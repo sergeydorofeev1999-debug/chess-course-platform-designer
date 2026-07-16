@@ -19,25 +19,16 @@ export default function Navbar({ isAdmin, isCoach }: NavbarProps) {
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
-    }).catch((error) => {
-      console.error('Failed to get user:', error);
-    });
-
+    }).catch(() => {});
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);
     });
-
     return () => subscription.unsubscribe();
   }, []);
 
   const handleLogout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      window.location.reload();
-    } catch (error) {
-      console.error('Failed to sign out:', error);
-    }
+    await supabase.auth.signOut();
+    window.location.reload();
   };
 
   const navLinks = [
@@ -46,9 +37,9 @@ export default function Navbar({ isAdmin, isCoach }: NavbarProps) {
   ];
 
   return (
-    <nav className="sticky top-0 z-50 bg-[#1A1816]/95 backdrop-blur-md border-b border-[#3D3A37]/40">
+    <nav className="navbar">
       <div className="max-w-6xl mx-auto px-4 flex items-center justify-between h-[56px]">
-        <Link href="/" className="font-bold text-[#F9F8F6] tracking-tight flex items-center gap-2">
+        <Link href="/" className="font-bold tracking-tight flex items-center gap-2">
           <span className="text-xl">♟️</span>
           <span className="hidden sm:inline">Chess Progress</span>
         </Link>
@@ -58,7 +49,8 @@ export default function Navbar({ isAdmin, isCoach }: NavbarProps) {
             <Link
               key={href}
               href={href}
-              className="px-3 py-1.5 rounded-lg text-[#9E9892] hover:text-[#F5F0EB] hover:bg-[#3D3A37]/30 transition-all duration-150"
+              className="px-3 py-1.5 rounded-lg opacity-60 hover:opacity-100 transition-all duration-150"
+              style={{ color: 'var(--text-primary)' }}
             >
               {label}
             </Link>
@@ -68,14 +60,16 @@ export default function Navbar({ isAdmin, isCoach }: NavbarProps) {
             <>
               <Link
                 href="/dashboard"
-                className="px-3 py-1.5 rounded-lg text-[#9E9892] hover:text-[#F5F0EB] hover:bg-[#3D3A37]/30 transition-all duration-150"
+                className="px-3 py-1.5 rounded-lg opacity-60 hover:opacity-100 transition-all duration-150"
+                style={{ color: 'var(--text-primary)' }}
               >
                 Кабинет
               </Link>
               {isCoach && (
                 <Link
                   href="/coach"
-                  className="px-3 py-1.5 rounded-lg text-[#9E9892] hover:text-[#F5F0EB] hover:bg-[#3D3A37]/30 transition-all duration-150"
+                  className="px-3 py-1.5 rounded-lg opacity-60 hover:opacity-100 transition-all duration-150"
+                  style={{ color: 'var(--text-primary)' }}
                 >
                   Тренер
                 </Link>
@@ -83,14 +77,16 @@ export default function Navbar({ isAdmin, isCoach }: NavbarProps) {
               {isAdmin && (
                 <Link
                   href="/admin"
-                  className="px-3 py-1.5 rounded-lg text-[#C9A84C] hover:text-[#DCC078] hover:bg-[#C9A84C]/10 transition-all duration-150"
+                  className="px-3 py-1.5 rounded-lg transition-all duration-150"
+                  style={{ color: 'var(--accent)' }}
                 >
                   Админ
                 </Link>
               )}
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-1.5 ml-1 px-3 py-1.5 rounded-lg text-[#9E9892] hover:text-[#F5F0EB] hover:bg-[#3D3A37]/30 transition-all duration-150 text-sm"
+                className="flex items-center gap-1.5 ml-1 px-3 py-1.5 rounded-lg opacity-50 hover:opacity-80 transition-all duration-150 text-sm"
+                style={{ color: 'var(--text-secondary)' }}
               >
                 <LogOut size={14} />
                 <span>Выйти</span>
@@ -99,7 +95,7 @@ export default function Navbar({ isAdmin, isCoach }: NavbarProps) {
           ) : (
             <Link
               href="/auth"
-              className="flex items-center gap-1.5 ml-1 bg-[#C9A84C] hover:bg-[#DCC078] text-[#1A1816] px-4 py-1.5 rounded-lg font-semibold transition-all duration-200 shadow-[0_2px_0_rgba(26,24,22,0.15)] hover:-translate-y-px hover:shadow-[0_4px_0_rgba(26,24,22,0.12)] active:translate-y-0 active:shadow-none"
+              className="btn btn-primary flex items-center gap-1.5 ml-1"
             >
               <LogIn size={15} />
               Войти
@@ -108,7 +104,8 @@ export default function Navbar({ isAdmin, isCoach }: NavbarProps) {
         </div>
 
         <button
-          className="md:hidden text-[#F5F0EB] p-1 rounded-lg hover:bg-[#3D3A37]/30 transition"
+          className="md:hidden p-1 rounded-lg transition"
+          style={{ color: 'var(--text-primary)' }}
           aria-label="Открыть меню"
           aria-expanded={open}
           aria-controls="mobile-menu"
@@ -119,12 +116,15 @@ export default function Navbar({ isAdmin, isCoach }: NavbarProps) {
       </div>
 
       {open && (
-        <div id="mobile-menu" className="md:hidden border-t border-[#3D3A37]/30 bg-[#1A1816]/98 backdrop-blur-md px-4 py-3 space-y-1 text-sm">
+        <div id="mobile-menu" className="md:hidden px-4 py-3 space-y-1 text-sm"
+          style={{ background: 'var(--bg-elevated)', borderTop: '1px solid var(--surface-border)' }}
+        >
           {navLinks.map(({ href, label, icon: Icon }) => (
             <Link
               key={href}
               href={href}
-              className="flex items-center gap-3 py-2 px-3 rounded-lg text-[#9E9892] hover:text-[#F5F0EB] hover:bg-[#3D3A37]/30 transition"
+              className="flex items-center gap-3 py-2 px-3 rounded-lg transition"
+              style={{ color: 'var(--text-secondary)' }}
               onClick={() => setOpen(false)}
             >
               <Icon size={16} /> {label}
@@ -134,7 +134,8 @@ export default function Navbar({ isAdmin, isCoach }: NavbarProps) {
             <>
               <Link
                 href="/dashboard"
-                className="flex items-center gap-3 py-2 px-3 rounded-lg text-[#9E9892] hover:text-[#F5F0EB] hover:bg-[#3D3A37]/30 transition"
+                className="flex items-center gap-3 py-2 px-3 rounded-lg transition"
+                style={{ color: 'var(--text-secondary)' }}
                 onClick={() => setOpen(false)}
               >
                 <LayoutDashboard size={16} /> Кабинет
@@ -142,7 +143,8 @@ export default function Navbar({ isAdmin, isCoach }: NavbarProps) {
               {isCoach && (
                 <Link
                   href="/coach"
-                  className="flex items-center gap-3 py-2 px-3 rounded-lg text-[#9E9892] hover:text-[#F5F0EB] hover:bg-[#3D3A37]/30 transition"
+                  className="flex items-center gap-3 py-2 px-3 rounded-lg transition"
+                  style={{ color: 'var(--text-secondary)' }}
                   onClick={() => setOpen(false)}
                 >
                   <BookOpen size={16} /> Тренер
@@ -151,7 +153,8 @@ export default function Navbar({ isAdmin, isCoach }: NavbarProps) {
               {isAdmin && (
                 <Link
                   href="/admin"
-                  className="flex items-center gap-3 py-2 px-3 rounded-lg text-[#C9A84C] hover:text-[#DCC078] hover:bg-[#C9A84C]/10 transition"
+                  className="flex items-center gap-3 py-2 px-3 rounded-lg transition"
+                  style={{ color: 'var(--accent)' }}
                   onClick={() => setOpen(false)}
                 >
                   <Settings size={16} /> Админ
@@ -159,7 +162,8 @@ export default function Navbar({ isAdmin, isCoach }: NavbarProps) {
               )}
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-3 py-2 px-3 rounded-lg text-[#9E9892] hover:text-red-400 hover:bg-red-500/10 transition w-full text-left"
+                className="flex items-center gap-3 py-2 px-3 rounded-lg transition w-full text-left"
+                style={{ color: 'var(--text-tertiary)' }}
               >
                 <LogOut size={16} /> Выйти
               </button>
@@ -167,7 +171,7 @@ export default function Navbar({ isAdmin, isCoach }: NavbarProps) {
           ) : (
             <Link
               href="/auth"
-              className="flex items-center gap-3 py-2 px-3 rounded-lg text-[#C9A84C] hover:text-[#DCC078] hover:bg-[#C9A84C]/10 transition"
+              className="btn btn-primary flex items-center gap-3 py-2 px-3 rounded-lg transition"
               onClick={() => setOpen(false)}
             >
               <LogIn size={16} /> Войти

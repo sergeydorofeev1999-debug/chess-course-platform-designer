@@ -58,49 +58,6 @@ const LESSON_KEYS: Record<string, string> = {
   'e1ff27cf-cc1c-47e8-8407-2bc8edf9a5d2': 'rookmate_progress',
 };
 
-/* ── Collectible card color schemes by state ──────────────────────────────── */
-function getCardTheme(isCompleted: boolean, hasProgress: boolean, isLocked: boolean) {
-  if (isLocked) {
-    return {
-      bg: 'bg-[#F5F0EB]',
-      border: 'border-[#EDE8E2]',
-      text: 'text-[#9E9892]',
-      accent: 'text-[#9E9892]',
-      badge: 'bg-[#EDE8E2] text-[#9E9892]',
-      iconBg: 'bg-[#EDE8E2]',
-    };
-  }
-  if (isCompleted) {
-    return {
-      bg: 'bg-gradient-to-br from-[#E8F5D8] to-[#F0F8E8]',
-      border: 'border-[#7AB648]/30',
-      text: 'text-[#1A1816]',
-      accent: 'text-[#7AB648]',
-      badge: 'bg-[#7AB648] text-white',
-      iconBg: 'bg-[#7AB648]/10',
-    };
-  }
-  if (hasProgress) {
-    return {
-      bg: 'bg-gradient-to-br from-[#EBF5FA] to-[#F0F8FB]',
-      border: 'border-[#2E6B7A]/20',
-      text: 'text-[#1A1816]',
-      accent: 'text-[#2E6B7A]',
-      badge: 'bg-[#2E6B7A] text-white',
-      iconBg: 'bg-[#2E6B7A]/10',
-    };
-  }
-  // Not started
-  return {
-    bg: 'bg-gradient-to-br from-white to-[#FAF8F5]',
-    border: 'border-[#EDE8E2]',
-    text: 'text-[#1A1816]',
-    accent: 'text-[#C9A84C]',
-    badge: 'bg-[#C9A84C]/10 text-[#C9A84C]',
-    iconBg: 'bg-[#C9A84C]/8',
-  };
-}
-
 export default function PieceCards({ lessons, progressMap, courseId, pieceCodes, descriptions }: Props) {
   const [clientDetails, setClientDetails] = useState<Record<string, Record<number, number>>>({});
   const [mounted, setMounted] = useState(false);
@@ -143,9 +100,11 @@ export default function PieceCards({ lessons, progressMap, courseId, pieceCodes,
 
         const isCompleted = isServerCompleted || (levelsDone >= totalLevels);
         const hasProgress = levelsDone > 0;
-        const isLocked = i > 0 && !isCompleted && !hasProgress && !progressMap[lessons[i-1]?.id];
         
-        const theme = getCardTheme(isCompleted, hasProgress, isLocked);
+        // Locked if previous not completed
+        const prevId = lessons[i - 1]?.id;
+        const isLocked = i > 0 && !isCompleted && !hasProgress && prevId && !progressMap[prevId] && !clientDetails[prevId];
+
         const piece = pieceCodes?.[i];
         const desc = descriptions?.[i];
 
@@ -158,31 +117,46 @@ export default function PieceCards({ lessons, progressMap, courseId, pieceCodes,
           <Link
             key={lesson.id}
             href={isLocked ? '#' : `/lessons/${lesson.id}?course=${courseId}`}
-            className={`group flex items-center gap-4 px-4 py-3.5 rounded-xl border transition-all duration-200 ${theme.bg} ${theme.border} ${
-              isLocked ? 'cursor-not-allowed opacity-60' : 'hover:-translate-y-px hover:shadow-[0_8px_24px_rgba(26,24,22,0.08)] active:translate-y-0'
+            className={`group flex items-center gap-4 px-4 py-3.5 rounded-xl border transition-all duration-200 ${
+              isLocked ? 'cursor-not-allowed' : 'hover:-translate-y-px active:translate-y-0'
             }`}
+            style={{
+              background: isLocked
+                ? 'var(--bg-secondary)'
+                : isCompleted
+                  ? 'var(--bg-elevated)'
+                  : hasProgress
+                    ? 'var(--bg-elevated)'
+                    : 'var(--surface)',
+              borderColor: isLocked
+                ? 'var(--surface-border)'
+                : isCompleted
+                  ? 'rgba(122,182,72,0.25)'
+                  : hasProgress
+                    ? 'rgba(46,107,122,0.2)'
+                    : 'var(--surface-border)',
+              boxShadow: isLocked ? 'none' : 'var(--shadow-sm)',
+              opacity: isLocked ? 0.5 : 1,
+            }}
           >
-            {/* Piece avatar or number */}
-            <div className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:scale-105 ${theme.iconBg}`}>
+            <div 
+              className="shrink-0 w-11 h-11 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:scale-105"
+              style={{ background: 'var(--bg-hover)' }}
+            >
               {piece ? (
-                <img
-                  src={`/pieces/cburnett/w${piece}.svg`}
-                  className="w-8 h-8"
-                  draggable={false}
-                  alt=""
-                />
+                <img src={`/pieces/cburnett/w${piece}.svg`} className="w-8 h-8" draggable={false} alt="" />
               ) : (
-                <span className={`text-sm font-bold ${theme.accent}`}>{lesson.order || i + 1}</span>
+                <span className="text-sm font-bold" style={{ color: 'var(--accent)' }}>
+                  {lesson.order || i + 1}
+                </span>
               )}
             </div>
 
-            {/* Text */}
             <div className="flex-1 min-w-0">
-              <p className={`font-bold text-sm truncate ${theme.text}`}>{lesson.title}</p>
-              {desc && <p className="text-xs text-[#9E9892] truncate">{desc}</p>}
+              <p className="font-bold text-sm truncate" style={{ color: 'var(--text-primary)' }}>{lesson.title}</p>
+              {desc && <p className="text-xs truncate" style={{ color: 'var(--text-tertiary)' }}>{desc}</p>}
             </div>
 
-            {/* Right side: stars or progress */}
             <div className="shrink-0 flex items-center">
               {isCompleted ? (
                 <div className="flex items-center gap-0.5">
@@ -193,21 +167,29 @@ export default function PieceCards({ lessons, progressMap, courseId, pieceCodes,
                       className={`w-4 h-4 transition-all duration-200 ${
                         s <= starCount ? 'star-animate opacity-100' : 'opacity-25 grayscale'
                       }`}
-                      style={s <= starCount ? { filter: 'drop-shadow(0 0 4px rgba(201,168,76,0.5))' } : undefined}
                       draggable={false}
                       alt=""
                     />
                   ))}
                 </div>
               ) : hasProgress ? (
-                <div className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${theme.badge}`}>
+                <div 
+                  className="text-[10px] font-bold px-2.5 py-1 rounded-full"
+                  style={{ 
+                    background: 'var(--accent)',
+                    color: 'var(--bg-primary)'
+                  }}
+                >
                   {levelsDone}/{totalLevels}
                 </div>
               ) : isLocked ? (
-                <span className="text-[#9E9892] text-lg">🔒</span>
+                <span style={{ color: 'var(--text-tertiary)' }} className="text-lg">🔒</span>
               ) : (
-                <div className="w-6 h-6 rounded-full border-2 border-dashed border-[#C9A84C]/30 flex items-center justify-center">
-                  <span className="text-[10px] text-[#C9A84C]/60">GO</span>
+                <div 
+                  className="w-6 h-6 rounded-full border-2 border-dashed flex items-center justify-center"
+                  style={{ borderColor: 'var(--accent)' }}
+                >
+                  <span className="text-[10px] font-bold" style={{ color: 'var(--accent)' }}>GO</span>
                 </div>
               )}
             </div>

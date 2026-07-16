@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import NavbarWrapper from "@/components/NavbarWrapper";
+import DirectionLayout from "@/components/DirectionLayout";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -13,10 +14,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru">
-      <body className="min-h-full bg-[#F9F8F6] text-[#1A1816] antialiased">
+    <html lang="ru" data-direction="a">
+      <body className="min-h-full antialiased">
         <NavbarWrapper />
-        <main>{children}</main>
+        <DirectionLayout>
+          <main>{children}</main>
+        </DirectionLayout>
       </body>
     </html>
   );

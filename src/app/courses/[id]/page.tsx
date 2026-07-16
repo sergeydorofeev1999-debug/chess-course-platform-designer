@@ -30,7 +30,7 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
   const totalLessons = allLessons.length;
 
   if (!course) {
-    return <div className="max-w-6xl mx-auto px-4 py-12">Курс не найден</div>;
+    return <div className="max-w-6xl mx-auto px-4 py-12" style={{ color: 'var(--text-primary)' }}>Курс не найден</div>;
   }
 
   const basicLevelLessons = allLessons.slice(6, 11);
@@ -55,14 +55,14 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
     'Особый ход короля и ладьи',
   ];
 
-  const sectionStyle = "mb-10";
-  const sectionTitle = "text-xs font-bold text-[#2E6B7A] uppercase tracking-[0.2em] mb-4 flex items-center gap-2";
+  const sectionTitle = "text-xs font-bold uppercase tracking-[0.2em] mb-4 flex items-center gap-2";
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
       <Link 
         href="/courses" 
-        className="group inline-flex items-center gap-2 text-sm text-[#9E9892] hover:text-[#2E6B7A] transition-colors mb-8"
+        className="group inline-flex items-center gap-2 text-sm mb-8 transition-colors hover:opacity-80"
+        style={{ color: 'var(--text-tertiary)' }}
       >
         <ArrowLeft size={16} className="transition-transform group-hover:-translate-x-0.5" />
         Назад к курсам
@@ -70,25 +70,31 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
 
       <div className="mb-10">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-14 h-14 rounded-2xl bg-[#C9A84C]/10 flex items-center justify-center">
+          <div 
+            className="w-14 h-14 rounded-2xl flex items-center justify-center"
+            style={{ background: 'var(--bg-hover)' }}
+          >
             <span className="text-3xl">♟️</span>
           </div>
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-[#1A1816]">{course.title}</h1>
-            <p className="text-sm text-[#9E9892] mt-1">{totalLessons} уроков · от нуля до первой победы</p>
+            <h1 className="heading-1" style={{ fontSize: 'clamp(1.75rem, 4vw, 2.5rem)' }}>{course.title}</h1>
+            <p className="text-sm mt-1" style={{ color: 'var(--text-tertiary)' }}>
+              {totalLessons} уроков · от нуля до первой победы
+            </p>
           </div>
         </div>
-        <p className="text-[#6B6560] leading-relaxed max-w-2xl">{course.description}</p>
+        <p className="leading-relaxed max-w-2xl body-text" style={{ color: 'var(--text-secondary)' }}>
+          {course.description}
+        </p>
         <div className="mt-6">
           <CourseProgress totalLessons={totalLessons} serverProgressMap={serverProgressMap} />
         </div>
       </div>
 
       <div className="space-y-8">
-        {/* ШАХМАТНЫЕ ФИГУРЫ */}
-        <div className={sectionStyle}>
-          <h2 className={sectionTitle}>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#C9A84C]" />
+        <div className="mb-10">
+          <h2 className={sectionTitle} style={{ color: 'var(--accent)' }}>
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--accent)' }} />
             Шахматные фигуры
           </h2>
           <PieceCards
@@ -107,10 +113,9 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
           />
         </div>
 
-        {/* БАЗОВЫЙ УРОВЕНЬ */}
-        <div className={sectionStyle}>
-          <h2 className={sectionTitle}>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#7AB648]" />
+        <div className="mb-10">
+          <h2 className={sectionTitle} style={{ color: 'var(--accent)' }}>
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--accent)' }} />
             Базовый уровень
           </h2>
           <PieceCards
@@ -128,10 +133,9 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
           />
         </div>
 
-        {/* СРЕДНИЙ УРОВЕНЬ */}
-        <div className={sectionStyle}>
-          <h2 className={sectionTitle}>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#2E6B7A]" />
+        <div className="mb-10">
+          <h2 className={sectionTitle} style={{ color: 'var(--accent)' }}>
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--accent)' }} />
             Средний уровень
           </h2>
           <PieceCards
@@ -149,10 +153,9 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
           />
         </div>
 
-        {/* ПОДГОТОВКА К ИГРЕ */}
-        <div className={sectionStyle}>
-          <h2 className={sectionTitle}>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#C9A84C]" />
+        <div className="mb-10">
+          <h2 className={sectionTitle} style={{ color: 'var(--accent)' }}>
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--accent)' }} />
             Подготовка к игре
           </h2>
           <PieceCards
@@ -178,10 +181,9 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
           />
         </div>
 
-        {/* ЭНДШПИЛЬ */}
-        <div className={sectionStyle}>
-          <h2 className={sectionTitle}>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#7AB648]" />
+        <div className="mb-10">
+          <h2 className={sectionTitle} style={{ color: 'var(--accent)' }}>
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--accent)' }} />
             Эндшпиль
           </h2>
           <PieceCards
@@ -202,10 +204,9 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
           />
         </div>
 
-        {/* МИТТЕЛЬШПИЛЬ */}
-        <div className={sectionStyle}>
-          <h2 className={sectionTitle}>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#2E6B7A]" />
+        <div className="mb-10">
+          <h2 className={sectionTitle} style={{ color: 'var(--accent)' }}>
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--accent)' }} />
             Миттельшпиль
           </h2>
           <PieceCards
@@ -223,10 +224,9 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
           />
         </div>
 
-        {/* ДЕБЮТ */}
-        <div className={sectionStyle}>
-          <h2 className={sectionTitle}>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#C9A84C]" />
+        <div className="mb-10">
+          <h2 className={sectionTitle} style={{ color: 'var(--accent)' }}>
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--accent)' }} />
             Дебют
           </h2>
           <PieceCards
@@ -244,10 +244,9 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
           />
         </div>
 
-        {/* ЗАДАЧИ */}
-        <div className={sectionStyle}>
-          <h2 className={sectionTitle}>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#7AB648]" />
+        <div className="mb-10">
+          <h2 className={sectionTitle} style={{ color: 'var(--accent)' }}>
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--accent)' }} />
             Задачи
           </h2>
           <PieceCards
@@ -265,10 +264,9 @@ export default async function CourseDetailPage({ params }: { params: Promise<{ i
           />
         </div>
 
-        {/* ТРЕНИРОВКА */}
-        <div className={sectionStyle}>
-          <h2 className={sectionTitle}>
-            <span className="w-1.5 h-1.5 rounded-full bg-[#2E6B7A]" />
+        <div className="mb-10">
+          <h2 className={sectionTitle} style={{ color: 'var(--accent)' }}>
+            <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--accent)' }} />
             Тренировка
           </h2>
           <PieceCards

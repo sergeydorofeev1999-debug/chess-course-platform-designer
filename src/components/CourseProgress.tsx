@@ -19,22 +19,27 @@ export default function CourseProgress({ totalLessons, serverProgressMap }: Prop
   const percent = totalLessons > 0 ? Math.round((completedCount / totalLessons) * 100) : 0;
 
   return (
-    <div className="collectible-card rounded-2xl p-5">
+    <div className="card p-5">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-[#2E6B7A]/10 flex items-center justify-center">
+          <div 
+            className="w-8 h-8 rounded-lg flex items-center justify-center"
+            style={{ background: 'var(--bg-hover)' }}
+          >
             <span className="text-sm">📈</span>
           </div>
-          <span className="font-bold text-[#1A1816]">Прогресс курса</span>
+          <span className="font-bold" style={{ color: 'var(--text-primary)' }}>Прогресс курса</span>
         </div>
-        <span className="font-bold text-[#2E6B7A] text-lg">{percent}%</span>
+        <span className="font-bold text-lg" style={{ color: 'var(--accent)' }}>{percent}%</span>
       </div>
       
-      <div className="progress-premium mb-2">
+      <div className="progress-bar mb-2">
         <div style={{ width: `${percent}%` }} />
       </div>
       
-      <p className="text-xs text-[#9E9892]">{completedCount} из {totalLessons} уроков пройдено</p>
+      <p className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+        {completedCount} из {totalLessons} уроков пройдено
+      </p>
     </div>
   );
 }
