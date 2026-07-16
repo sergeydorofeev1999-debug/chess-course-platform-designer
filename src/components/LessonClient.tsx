@@ -371,7 +371,7 @@ function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
   const pieceKey = `${color}${type.toUpperCase()}`;
   const src = `/pieces/cburnett/${pieceKey}.svg`;
   return (
-    <div className="w-full h-full" style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.4))" }}>
+    <div className="w-full h-full" style={{ filter: "var(--piece-shadow-inline)" }}>
       <img src={src} alt="" className="w-full h-full" draggable={false} />
     </div>
   );
@@ -651,7 +651,7 @@ function InlineChessBoard({
                 key={sq}
                 data-square={sq}
                 className={`flex items-center justify-center relative select-none ${isSource ? 'opacity-50' : ''}`}
-                style={{ width: sqSize, height: sqSize, cursor: pieceObj && pieceObj.color === 'w' ? 'grab' : 'default', touchAction: 'none', backgroundColor: light ? '#f0d9b5' : '#b58863' }}
+                style={{ width: sqSize, height: sqSize, cursor: pieceObj && pieceObj.color === 'w' ? 'grab' : 'default', touchAction: 'none', backgroundColor: light ? 'var(--square-light)' : 'var(--square-dark)' }}
                 onPointerDown={(e) => handlePointerDown(e, sq)}
                 onDragStart={preventDrag}
                 onMouseEnter={() => setHoveredSquare(sq)}
@@ -659,14 +659,14 @@ function InlineChessBoard({
               >
                 {/* Selected square highlight */}
                 {sel && !hasStar && (
-                  <div className="absolute inset-[1px] rounded-[5px] bg-[rgba(100,160,60,0.45)] pointer-events-none z-10" />
+                  <div className="absolute inset-[1px] rounded-[5px] bg-[var(--square-selected)] pointer-events-none z-10" />
                 )}
                 {/* Hover highlight */}
                 {hover && !sel && (
                   <div className="absolute inset-0 pointer-events-none" style={{ backgroundColor: light ? 'rgba(0,0,0,0.10)' : 'rgba(0,0,0,0.15)', zIndex: 5 }} />
                 )}
-                {fi === 0 && <span className={`absolute top-0.5 left-1 text-[10px] font-bold ${light ? 'text-[#b58863]' : 'text-[#f0d9b5]'}`}>{rank}</span>}
-                {ri === 7 && <span className={`absolute bottom-0.5 right-1 text-[10px] font-bold ${light ? 'text-[#b58863]' : 'text-[#f0d9b5]'}`}>{file}</span>}
+                {fi === 0 && <span className={`absolute top-0.5 left-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>{rank}</span>}
+                {ri === 7 && <span className={`absolute bottom-0.5 right-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>{file}</span>}
                 {/* Green move indicator dots (like Lichess) — only on empty squares (no star) */}
                 {isValidMove && !hasStar && (
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
@@ -674,7 +674,7 @@ function InlineChessBoard({
                       style={{
                         width: Math.round(sqSize * 0.3),
                         height: Math.round(sqSize * 0.3),
-                        backgroundColor: '#5d9040',
+                        backgroundColor: 'var(--square-valid)',
                         borderRadius: '50%',
                         opacity: 0.85,
                       }}
