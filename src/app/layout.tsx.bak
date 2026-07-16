@@ -14,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru">
-      <body className="min-h-full bg-[#F9F8F6] text-[#1A1816] antialiased">
+      <body className="min-h-full bg-white text-slate-900">
         <NavbarWrapper />
         <main>{children}</main>
       </body>

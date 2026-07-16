@@ -1,47 +1,345 @@
 @import "tailwindcss";
 
+/* ═══════════════════════════════════════════════════════════════════════════════
+   Chess Progress — Art Direction: "Space for Thought"
+   Premium warm-modern game aesthetic
+   ═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Keyframes ─────────────────────────────────────────────────────────────── */
+
 @keyframes star-pulse {
   0%, 100% {
     transform: scale(1) rotate(0deg);
+    filter: drop-shadow(0 0 6px rgba(201, 168, 76, 0.4));
   }
   50% {
-    transform: scale(1.08) rotate(3deg);
+    transform: scale(1.12) rotate(5deg);
+    filter: drop-shadow(0 0 14px rgba(201, 168, 76, 0.7));
   }
 }
 
-@keyframes star-hue {
-  50% {
-    filter: hue-rotate(-3deg) saturate(1.05);
+@keyframes star-collect {
+  0% {
+    transform: scale(0.3) rotate(-20deg);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15) rotate(5deg);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
   }
 }
 
-.star-animate {
-  animation:
-    1.7s ease-in-out 0s infinite none star-pulse,
-    0.7s ease-in-out 0s infinite none star-hue;
+@keyframes float-gentle {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
 }
+
+@keyframes glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(46, 107, 122, 0.25); }
+  50% { box-shadow: 0 0 20px 4px rgba(46, 107, 122, 0.15); }
+}
+
+@keyframes board-appear {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes progress-fill {
+  0% { width: 0%; }
+}
+
+/* ── Theme ──────────────────────────────────────────────────────────────────── */
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Warm paper foundation */
+  --bg-paper: #F9F8F6;
+  --bg-cream: #F5F0EB;
+  --bg-warm: #EDE8E2;
+
+  /* Deep ink */
+  --ink-primary: #1A1816;
+  --ink-secondary: #3D3A37;
+  --ink-muted: #6B6560;
+  --ink-ghost: #9E9892;
+
+  /* Premium accent */
+  --accent-teal: #2E6B7A;
+  --accent-teal-light: #4A8FA0;
+  --accent-teal-dark: #1E4F5C;
+
+  /* Warm gold */
+  --gold: #C9A84C;
+  --gold-light: #DCC078;
+  --gold-dark: #A68A3A;
+
+  /* Warm wood */
+  --wood: #5C4033;
+  --wood-light: #8B6F5C;
+
+  /* Board */
+  --board-light: #EBD6B3;
+  --board-dark: #B58763;
+  --board-border: #5C4033;
+
+  /* Success / reward */
+  --reward: #7AB648;
+  --reward-soft: #E8F5D8;
+
+  /* Shadows as physical depth */
+  --shadow-sm: 0 1px 2px rgba(26, 24, 22, 0.06), 0 1px 3px rgba(26, 24, 22, 0.04);
+  --shadow-md: 0 4px 6px -1px rgba(26, 24, 22, 0.08), 0 2px 4px -2px rgba(26, 24, 22, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(26, 24, 22, 0.1), 0 4px 6px -4px rgba(26, 24, 22, 0.08);
+  --shadow-xl: 0 20px 25px -5px rgba(26, 24, 22, 0.12), 0 8px 10px -6px rgba(26, 24, 22, 0.08);
+  --shadow-inset: inset 0 2px 4px rgba(26, 24, 22, 0.06);
+  --shadow-gold: 0 4px 14px rgba(201, 168, 76, 0.25);
+  --shadow-teal: 0 4px 14px rgba(46, 107, 122, 0.2);
+
+  /* Card collectible feel */
+  --card-raised: 0 2px 0 rgba(26, 24, 22, 0.04), 0 8px 24px rgba(26, 24, 22, 0.08);
+  --card-pressed: 0 1px 0 rgba(26, 24, 22, 0.04), 0 2px 6px rgba(26, 24, 22, 0.06);
+
+  --background: var(--bg-paper);
+  --foreground: var(--ink-primary);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-paper: var(--bg-paper);
+  --color-cream: var(--bg-cream);
+  --color-warm: var(--bg-warm);
+  --color-ink: var(--ink-primary);
+  --color-ink-secondary: var(--ink-secondary);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-ghost: var(--ink-ghost);
+  --color-accent: var(--accent-teal);
+  --color-accent-light: var(--accent-teal-light);
+  --color-accent-dark: var(--accent-teal-dark);
+  --color-gold: var(--gold);
+  --color-gold-light: var(--gold-light);
+  --color-gold-dark: var(--gold-dark);
+  --color-wood: var(--wood);
+  --color-wood-light: var(--wood-light);
+  --color-board-light: var(--board-light);
+  --color-board-dark: var(--board-dark);
+  --color-reward: var(--reward);
+  --color-reward-soft: var(--reward-soft);
   --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-playfair);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* ── Base ─────────────────────────────────────────────────────────────────── */
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-paper);
+  color: var(--ink-primary);
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+/* ── Animation utilities ──────────────────────────────────────────────────── */
+
+.star-animate {
+  animation:
+    2s ease-in-out 0s infinite none star-pulse;
+}
+
+.star-collect {
+  animation: star-collect 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.float-gentle {
+  animation: float-gentle 3s ease-in-out infinite;
+}
+
+.board-appear {
+  animation: board-appear 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.glow-pulse {
+  animation: glow-pulse 2.5s ease-in-out infinite;
+}
+
+.shimmer-bg {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,0.4) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* ── Tactile interactions ───────────────────────────────────────────────── */
+
+.tactile {
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.2s ease,
+              background-color 0.2s ease;
+}
+
+.tactile:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.tactile:active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: var(--shadow-sm);
+}
+
+.tactile-card {
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.25s ease;
+  box-shadow: var(--card-raised);
+}
+
+.tactile-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 12px 32px rgba(26, 24, 22, 0.12), 0 4px 8px rgba(26, 24, 22, 0.06);
+}
+
+.tactile-card:active {
+  transform: translateY(-1px) scale(0.995);
+  box-shadow: var(--card-pressed);
+}
+
+/* ── Premium button states ──────────────────────────────────────────────── */
+
+.btn-premium {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 2px 0 rgba(26, 24, 22, 0.08), var(--shadow-md);
+}
+
+.btn-premium::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.btn-premium:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 0 rgba(26, 24, 22, 0.08), var(--shadow-lg);
+}
+
+.btn-premium:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 rgba(26, 24, 22, 0.08), var(--shadow-sm);
+}
+
+/* ── Progress bar premium ───────────────────────────────────────────────── */
+
+.progress-premium {
+  height: 8px;
+  border-radius: 9999px;
+  background: var(--bg-warm);
+  overflow: hidden;
+  box-shadow: var(--shadow-inset);
+}
+
+.progress-premium > div {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, var(--accent-teal) 0%, var(--accent-teal-light) 100%);
+  box-shadow: 0 0 8px rgba(46, 107, 122, 0.3);
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Collectible card ────────────────────────────────────────────────────── */
+
+.collectible-card {
+  background: linear-gradient(145deg, #ffffff 0%, #FAF8F5 100%);
+  border: 1px solid rgba(92, 64, 51, 0.08);
+  box-shadow:
+    0 1px 2px rgba(26, 24, 22, 0.04),
+    0 4px 12px rgba(26, 24, 22, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.collectible-card:hover {
+  border-color: rgba(92, 64, 51, 0.12);
+  box-shadow:
+    0 2px 4px rgba(26, 24, 22, 0.05),
+    0 12px 28px rgba(26, 24, 22, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  transform: translateY(-3px);
+}
+
+.collectible-card:active {
+  transform: translateY(-1px) scale(0.995);
+  box-shadow:
+    0 1px 2px rgba(26, 24, 22, 0.04),
+    0 4px 10px rgba(26, 24, 22, 0.06);
+}
+
+/* ── Star magnetic glow ──────────────────────────────────────────────────── */
+
+.star-magnetic {
+  filter: drop-shadow(0 0 8px rgba(201, 168, 76, 0.5));
+  transition: filter 0.3s ease, transform 0.3s ease;
+}
+
+.star-magnetic:hover {
+  filter: drop-shadow(0 0 16px rgba(201, 168, 76, 0.8));
+  transform: scale(1.1);
+}
+
+/* ── Board frame ─────────────────────────────────────────────────────────── */
+
+.board-frame {
+  border: 3px solid var(--board-border);
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px rgba(92, 64, 51, 0.3),
+    0 20px 40px rgba(26, 24, 22, 0.15),
+    0 4px 8px rgba(26, 24, 22, 0.08);
+}
+
+/* ── Piece drag ──────────────────────────────────────────────────────────── */
+
+.piece-drag {
+  filter: drop-shadow(0 8px 16px rgba(26, 24, 22, 0.3));
+  transition: filter 0.15s ease;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-cream);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ink-ghost);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-muted);
 }

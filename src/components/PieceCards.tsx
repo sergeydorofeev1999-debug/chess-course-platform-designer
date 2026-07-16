@@ -32,18 +32,18 @@ function getLessonDetail(lessonId: string): Record<number, number> {
 }
 
 const MULTI_LEVEL_LESSONS = [
-  'af74a851-e308-411d-82e1-fafdc5bd390a', // pawnRace
-  'd239daeb-f7e9-410e-84c7-8f0eac3ebcb4', // rookPawn
-  '2976cdff-d622-45a6-9ce4-fbcc33fa9528', // bishopPawn
-  'a8b9a524-5e37-43c5-a479-9c98494d704e', // queenPawn
-  '1ce04101-6a7d-45c9-bcef-6e17dbafa6ac', // knightPawn
-  'bae12fca-bfa4-44b6-9dff-7555fe240706', // chessFootball
+  'af74a851-e308-411d-82e1-fafdc5bd390a',
+  'd239daeb-f7e9-410e-84c7-8f0eac3ebcb4',
+  '2976cdff-d622-45a6-9ce4-fbcc33fa9528',
+  'a8b9a524-5e37-43c5-a479-9c98494d704e',
+  '1ce04101-6a7d-45c9-bcef-6e17dbafa6ac',
+  'bae12fca-bfa4-44b6-9dff-7555fe240706',
 ];
 
 const STAR_BASED_LESSONS = [
-  '126a2252-7482-4ed4-8d5a-a0afe82d834d', // twoRooksMate
-  '3ca74ff6-7274-4cbd-9336-f33378310fcd', // queenMate
-  'e1ff27cf-cc1c-47e8-8407-2bc8edf9a5d2', // rookMate
+  '126a2252-7482-4ed4-8d5a-a0afe82d834d',
+  '3ca74ff6-7274-4cbd-9336-f33378310fcd',
+  'e1ff27cf-cc1c-47e8-8407-2bc8edf9a5d2',
 ];
 
 const LESSON_KEYS: Record<string, string> = {
@@ -57,6 +57,49 @@ const LESSON_KEYS: Record<string, string> = {
   '3ca74ff6-7274-4cbd-9336-f33378310fcd': 'queenmate_progress',
   'e1ff27cf-cc1c-47e8-8407-2bc8edf9a5d2': 'rookmate_progress',
 };
+
+/* ── Collectible card color schemes by state ──────────────────────────────── */
+function getCardTheme(isCompleted: boolean, hasProgress: boolean, isLocked: boolean) {
+  if (isLocked) {
+    return {
+      bg: 'bg-[#F5F0EB]',
+      border: 'border-[#EDE8E2]',
+      text: 'text-[#9E9892]',
+      accent: 'text-[#9E9892]',
+      badge: 'bg-[#EDE8E2] text-[#9E9892]',
+      iconBg: 'bg-[#EDE8E2]',
+    };
+  }
+  if (isCompleted) {
+    return {
+      bg: 'bg-gradient-to-br from-[#E8F5D8] to-[#F0F8E8]',
+      border: 'border-[#7AB648]/30',
+      text: 'text-[#1A1816]',
+      accent: 'text-[#7AB648]',
+      badge: 'bg-[#7AB648] text-white',
+      iconBg: 'bg-[#7AB648]/10',
+    };
+  }
+  if (hasProgress) {
+    return {
+      bg: 'bg-gradient-to-br from-[#EBF5FA] to-[#F0F8FB]',
+      border: 'border-[#2E6B7A]/20',
+      text: 'text-[#1A1816]',
+      accent: 'text-[#2E6B7A]',
+      badge: 'bg-[#2E6B7A] text-white',
+      iconBg: 'bg-[#2E6B7A]/10',
+    };
+  }
+  // Not started
+  return {
+    bg: 'bg-gradient-to-br from-white to-[#FAF8F5]',
+    border: 'border-[#EDE8E2]',
+    text: 'text-[#1A1816]',
+    accent: 'text-[#C9A84C]',
+    badge: 'bg-[#C9A84C]/10 text-[#C9A84C]',
+    iconBg: 'bg-[#C9A84C]/8',
+  };
+}
 
 export default function PieceCards({ lessons, progressMap, courseId, pieceCodes, descriptions }: Props) {
   const [clientDetails, setClientDetails] = useState<Record<string, Record<number, number>>>({});
@@ -100,90 +143,74 @@ export default function PieceCards({ lessons, progressMap, courseId, pieceCodes,
 
         const isCompleted = isServerCompleted || (levelsDone >= totalLevels);
         const hasProgress = levelsDone > 0;
-
-        let bgColor = 'bg-[#e6e0ec]';
-        let borderColor = 'border-[#c5b5d8]';
-        let starCount = 0;
-
-        if (isMultiLevel) {
-          // Lessons 18-23: green if any level won, stars = levels won
-          if (hasProgress) {
-            bgColor = 'bg-[#ebf5d8]';
-            borderColor = 'border-[#c5e0a5]';
-            starCount = levelsDone;
-          }
-        } else if (isStarBased) {
-          // Lesson 24: purple → blue → green
-          if (isCompleted) {
-            bgColor = 'bg-[#ebf5d8]';
-            borderColor = 'border-[#c5e0a5]';
-            starCount = minStars;
-          } else if (hasProgress) {
-            bgColor = 'bg-[#cce5ff]';
-            borderColor = 'border-[#a3c8f0]';
-          }
-        } else {
-          // Default lessons
-          if (isCompleted) {
-            bgColor = 'bg-[#ebf5d8]';
-            borderColor = 'border-[#c5e0a5]';
-            starCount = minStars || 1;
-          } else if (hasProgress) {
-            bgColor = 'bg-[#cce5ff]';
-            borderColor = 'border-[#a3c8f0]';
-          }
-        }
-
+        const isLocked = i > 0 && !isCompleted && !hasProgress && !progressMap[lessons[i-1]?.id];
+        
+        const theme = getCardTheme(isCompleted, hasProgress, isLocked);
         const piece = pieceCodes?.[i];
         const desc = descriptions?.[i];
+
+        let starCount = 0;
+        if (isMultiLevel && hasProgress) starCount = levelsDone;
+        else if (isStarBased && isCompleted) starCount = minStars;
+        else if (!isMultiLevel && !isStarBased && isCompleted) starCount = minStars || 1;
 
         return (
           <Link
             key={lesson.id}
-            href={`/lessons/${lesson.id}?course=${courseId}`}
-            className={`flex items-center gap-3 px-4 py-3 rounded-lg border ${bgColor} ${borderColor} hover:brightness-95 transition relative`}
+            href={isLocked ? '#' : `/lessons/${lesson.id}?course=${courseId}`}
+            className={`group flex items-center gap-4 px-4 py-3.5 rounded-xl border transition-all duration-200 ${theme.bg} ${theme.border} ${
+              isLocked ? 'cursor-not-allowed opacity-60' : 'hover:-translate-y-px hover:shadow-[0_8px_24px_rgba(26,24,22,0.08)] active:translate-y-0'
+            }`}
           >
-            {piece ? (
-              <img
-                src={`/pieces/cburnett/w${piece}.svg`}
-                className="w-10 h-10 shrink-0"
-                draggable={false}
-                alt=""
-              />
-            ) : (
-              <div className="w-10 h-10 shrink-0 rounded-full bg-white/70 border border-gray-300 flex items-center justify-center text-sm font-bold text-gray-600">
-                {lesson.order || i + 1}
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="font-bold text-gray-800 text-sm truncate">{lesson.title}</p>
-              {desc && <p className="text-xs text-gray-500 truncate">{desc}</p>}
+            {/* Piece avatar or number */}
+            <div className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center transition-transform duration-300 group-hover:scale-105 ${theme.iconBg}`}>
+              {piece ? (
+                <img
+                  src={`/pieces/cburnett/w${piece}.svg`}
+                  className="w-8 h-8"
+                  draggable={false}
+                  alt=""
+                />
+              ) : (
+                <span className={`text-sm font-bold ${theme.accent}`}>{lesson.order || i + 1}</span>
+              )}
             </div>
-            {isMultiLevel && hasProgress && (
-              <div className="absolute top-0 right-0 bg-[#7ab648] text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-lg">
-                {'★'.repeat(Math.min(starCount, 3))}
-              </div>
-            )}
-            {isStarBased && isCompleted && (
-              <div className="absolute top-0 right-0 bg-[#7ab648] text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-lg">
-                {'★'.repeat(starCount || 1)}
-              </div>
-            )}
-            {isStarBased && hasProgress && !isCompleted && (
-              <div className="absolute top-0 right-0 bg-[#3399ff] text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-lg">
-                {levelsDone}/{totalLevels}
-              </div>
-            )}
-            {!isMultiLevel && !isStarBased && isCompleted && (
-              <div className="absolute top-0 right-0 bg-[#7ab648] text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-lg">
-                {'★'.repeat(starCount || 1)}
-              </div>
-            )}
-            {!isMultiLevel && !isStarBased && hasProgress && !isCompleted && (
-              <div className="absolute top-0 right-0 bg-[#3399ff] text-white text-[10px] font-bold px-2 py-0.5 rounded-bl-lg rounded-tr-lg">
-                {levelsDone}/{totalLevels}
-              </div>
-            )}
+
+            {/* Text */}
+            <div className="flex-1 min-w-0">
+              <p className={`font-bold text-sm truncate ${theme.text}`}>{lesson.title}</p>
+              {desc && <p className="text-xs text-[#9E9892] truncate">{desc}</p>}
+            </div>
+
+            {/* Right side: stars or progress */}
+            <div className="shrink-0 flex items-center">
+              {isCompleted ? (
+                <div className="flex items-center gap-0.5">
+                  {[1, 2, 3].map((s) => (
+                    <img
+                      key={s}
+                      src="/images/learn/star.png"
+                      className={`w-4 h-4 transition-all duration-200 ${
+                        s <= starCount ? 'star-animate opacity-100' : 'opacity-25 grayscale'
+                      }`}
+                      style={s <= starCount ? { filter: 'drop-shadow(0 0 4px rgba(201,168,76,0.5))' } : undefined}
+                      draggable={false}
+                      alt=""
+                    />
+                  ))}
+                </div>
+              ) : hasProgress ? (
+                <div className={`text-[10px] font-bold px-2.5 py-1 rounded-full ${theme.badge}`}>
+                  {levelsDone}/{totalLevels}
+                </div>
+              ) : isLocked ? (
+                <span className="text-[#9E9892] text-lg">🔒</span>
+              ) : (
+                <div className="w-6 h-6 rounded-full border-2 border-dashed border-[#C9A84C]/30 flex items-center justify-center">
+                  <span className="text-[10px] text-[#C9A84C]/60">GO</span>
+                </div>
+              )}
+            </div>
           </Link>
         );
       })}
