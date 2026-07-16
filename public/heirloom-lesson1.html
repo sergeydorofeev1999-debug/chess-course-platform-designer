@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ru" data-direction="c">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heirloom Chess — Lesson 1</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap');
+
+  :root, [data-direction="c"] {
+    --bg-primary: #F5F0EB;
+    --bg-secondary: #EDE8E2;
+    --bg-elevated: #FAF8F5;
+    --bg-hover: rgba(92,64,51,0.04);
+    --text-primary: #2C241B;
+    --text-secondary: #5C4D3D;
+    --text-tertiary: #8B7D6B;
+    --accent: #B8956A;
+    --accent-hover: #C9A87A;
+    --accent-pressed: #A6845A;
+    --surface: #FAF8F5;
+    --surface-border: rgba(92,64,51,0.08);
+    --shadow-sm: 0 1px 2px rgba(44,36,27,0.06), 0 1px 3px rgba(44,36,27,0.04);
+    --shadow-md: 0 4px 6px rgba(44,36,27,0.07), 0 2px 4px rgba(44,36,27,0.05);
+    --shadow-lg: 0 12px 24px rgba(44,36,27,0.09), 0 4px 8px rgba(44,36,27,0.06);
+    --shadow-xl: 0 24px 48px rgba(44,36,27,0.1), 0 8px 16px rgba(44,36,27,0.07);
+    --board-light: #EBD6B3;
+    --board-dark: #A67C52;
+    --board-border: #5C4033;
+    --board-shadow: 0 4px 8px rgba(44,36,27,0.12), 0 16px 40px rgba(44,36,27,0.1);
+    --square-light: #EBD6B3;
+    --square-dark: #A67C52;
+    --square-selected: rgba(184,149,106,0.3);
+    --square-valid: rgba(184,149,106,0.6);
+    --square-rank-file: rgba(44,36,27,0.4);
+    --piece-shadow-inline: drop-shadow(0 2px 4px rgba(44,36,27,0.3));
+    --star-filter: brightness(0.95) saturate(0.9);
+    --progress-track: #E8E0D6;
+    --progress-fill: linear-gradient(90deg, #B8956A, #D4B896);
+    --card-bg: linear-gradient(145deg, #FFFFFF, #FAF8F5);
+    --card-border: 1px solid rgba(92,64,51,0.08);
+    --card-shadow: 0 1px 2px rgba(44,36,27,0.04), 0 8px 24px rgba(44,36,27,0.06), inset 0 1px 0 rgba(255,255,255,0.6);
+    --card-hover-shadow: 0 2px 4px rgba(44,36,27,0.05), 0 12px 32px rgba(44,36,27,0.1), inset 0 1px 0 rgba(255,255,255,0.7);
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --ease-out: cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  .heirloom-board {
+    border: 3px solid var(--board-border);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--board-shadow);
+    overflow: hidden;
+    display: inline-block;
+  }
+
+  .heirloom-board-inner {
+    display: grid;
+    grid-template-columns: repeat(8, 48px);
+    grid-template-rows: repeat(8, 48px);
+  }
+
+  .sq {
+    width: 48px; height: 48px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    font-size: 10px; font-weight: bold;
+  }
+  .sq-light { background: var(--square-light); color: var(--square-dark); }
+  .sq-dark { background: var(--square-dark); color: var(--square-light); }
+  .sq-sel { box-shadow: inset 0 0 0 2px var(--square-selected); }
+  .sq-valid::after {
+    content: '';
+    position: absolute;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--square-valid);
+    opacity: 0.85;
+  }
+  .sq-star img {
+    width: 36px; height: 36px;
+    filter: var(--star-filter);
+  }
+  .sq-piece img {
+    width: 40px; height: 40px;
+    filter: var(--piece-shadow-inline);
+  }
+  .coord-rank { position: absolute; top: 2px; left: 4px; font-size: 9px; font-weight: bold; opacity: 0.5; }
+  .coord-file { position: absolute; bottom: 2px; right: 4px; font-size: 9px; font-weight: bold; opacity: 0.5; }
+
+  .card {
+    background: var(--card-bg);
+    border: var(--card-border);
+    box-shadow: var(--card-shadow);
+    border-radius: var(--radius-md);
+    transition: all 0.4s var(--ease-out);
+  }
+  .card:hover {
+    box-shadow: var(--card-hover-shadow);
+    transform: translateY(-2px);
+  }
+
+  .progress-track {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--progress-track);
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: var(--progress-fill);
+  }
+
+  .btn-heirloom {
+    background: var(--accent);
+    color: #FAF8F5;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 12px 28px;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 0 rgba(44,36,27,0.1), 0 4px 12px rgba(44,36,27,0.08);
+    transition: all 0.3s var(--ease-out);
+  }
+  .btn-heirloom:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 0 rgba(44,36,27,0.1), 0 6px 16px rgba(44,36,27,0.1);
+  }
+  .btn-heirloom:active {
+    background: var(--accent-pressed);
+    transform: translateY(1px);
+    box-shadow: 0 1px 0 rgba(44,36,27,0.1);
+  }
+
+  h1, h2, h3 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 600;
+  }
+
+  .gold-shimmer {
+    background: linear-gradient(90deg, var(--accent), #D4B896, #C9A84C, var(--accent));
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer-gold 4s linear infinite;
+  }
+  @keyframes shimmer-gold {
+    0% { background-position: 0% center; }
+    100% { background-position: 200% center; }
+  }
+
+  .wood-grain::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(92,64,51,0.02) 2px,
+      rgba(92,64,51,0.02) 4px
+    );
+    pointer-events: none;
+    border-radius: inherit;
+  }
+</style>
+</head>
+<body style="padding: 40px;">
+
+  <!-- Desktop Layout -->
+  <div style="max-width: 1200px; margin: 0 auto;">
+    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 32px;">
+      <span style="font-size: 28px;">♟️</span>
+      <div>
+        <h1 style="font-size: 24px; font-weight: 700;">Шахматные фигуры</h1>
+        <p style="font-size: 12px; color: var(--text-tertiary); font-family: 'Inter', sans-serif;">Урок 1 · Ладья · Движется по прямой</p>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 420px; gap: 40px; align-items: start;">
+      
+      <!-- Left: Board -->
+      <div>
+        <div style="margin-bottom: 16px;">
+          <p style="font-size: 13px; color: var(--text-secondary); font-family: 'Inter', sans-serif; line-height: 1.6;">
+            <strong style="color: var(--text-primary);">Задание:</strong> Доберись ладьёй до ★. 
+            Ладья ходит только по прямой — вверх, вниз, влево, вправо.
+          </p>
+        </div>
+
+        <div class="heirloom-board">
+          <div class="heirloom-board-inner">
+            <!-- Rank 8 -->
+            <div class="sq sq-light"><span class="coord-rank">8</span></div>
+            <div class="sq sq-dark"></div>
+            <div class="sq sq-light"></div>
+            <div class="sq sq-dark"></div>
+            <div class="sq sq-light"></div>
+            <div class="sq sq-dark"></div>
+            <div class="sq sq-light"></div>
+            <div class="sq sq-dark"><span class="coord-file">h</span></div>
+
+            <!-- Rank 7 -->
+            <div class="sq sq-dark"><span class="coord-rank">7</span></div>
+            <div class="sq sq-light"></div>
+            <div class="sq sq-dark"></div>
+            <div class="sq sq-light"></div>
+            <div class="sq sq-dark"></div>
+            <div class="sq sq-light"></div>
+            <div class="sq sq-dark"></div>
+            <div class="sq sq-light"><span class="coord-file">h</span></div>
+
+            <!-- Rank 6 -->
+            <div class="sq sq-light"><span class="coord-rank">6</span></div>
+            <div class="sq sq-dark"></div>
+            <div class="sq sq-light"></div>
+            <div class="sq sq-dark"></div>
+            <div class="sq sq-light sq-valid"></div>
+            <div class="sq sq-dark"></div>
+            <div class="sq sq-light"></div>
+            <div class="sq sq-dark"><span class="coord-file">h</span></div>
+
+            <!-- Rank 5 -->
+            <div class="sq sq-dark"><span class="coord-rank">5</span></div>
+            <div class="sq sq-light"></div>
+            <div class="sq sq-dark"></div>
+            <div class="sq sq-light"></div>
+            <div class="sq sq-dark sq-valid"></div>
+            <div class="sq sq-light"></div>
+            <div class="sq sq-dark"></div>
+            <div class="sq sq-light"><span class="coord-file">h</span></div>
+
+            <!-- Rank 4 -->
+            <div class="sq sq-light sq-sel"><span class="coord-rank">4</span>
+              <div class="sq-piece"><img src="/pieces/cburnett/wR.svg" draggable="false" alt=""></div>
+            </div>
+            <div class="sq sq-dark sq-valid"></div>
+            <div class="sq sq-light sq-valid"></div>
+            <div class="sq sq-dark sq-valid"></div>
+            <div class="sq sq-light sq-valid"></div>
+            <div class="sq sq-dark sq-valid"></div>
+            <div class="sq sq-light sq-valid"></div>
+            <div class="sq sq-dark sq-valid"><span class="coord-file">h</span></div>
+
+            <!-- Rank 3 -->
+            <div class="sq sq-dark"><span class="coord-rank">3</span></div>
+            <div class="sq sq-light"></div>
+            <div class="sq sq-dark"></div>
+            <div class="sq sq-light"></div>
+            <div class="sq sq-dark sq-valid"></div>
+            <div class="sq sq-light"></div>
+            <div class="sq sq-dark"></div>
+            <div class="sq sq-light"><span class="coord-file">h</span></div>
+
+            <!-- Rank 2 -->
+            <div class="sq sq-light"><span class="coord-rank">2</span></div>
+            <div class="sq sq-dark"></div>
+            <div class="sq sq-light"></div>
+            <div class="sq sq-dark"></div>
+            <div class="sq sq-light sq-valid"></div>
+            <div class="sq sq-dark"></div>
+            <div class="sq sq-light"></div>
+            <div class="sq sq-dark"><span class="coord-file">h</span></div>
+
+            <!-- Rank 1 -->
+            <div class="sq sq-dark"><span class="coord-rank">1</span></div>
+            <div class="sq sq-light"></div>
+            <div class="sq sq-dark"></div>
+            <div class="sq sq-light"></div>
+            <div class="sq sq-dark sq-star">
+              <img src="/images/learn/star.png" draggable="false" alt="">
+              <span class="coord-file">e</span>
+            </div>
+            <div class="sq sq-light"></div>
+            <div class="sq sq-dark"></div>
+            <div class="sq sq-light"><span class="coord-file">h</span></div>
+          </div>
+        </div>
+
+        <div style="margin-top: 20px; display: flex; gap: 12px;">
+          <button class="btn-heirloom">Следующий урок →</button>
+          <button class="btn-heirloom" style="background: transparent; color: var(--text-secondary); border: 1px solid var(--surface-border); box-shadow: none;">↻ Заново</button>
+        </div>
+      </div>
+
+      <!-- Right: Cards -->
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <!-- Level progress -->
+        <div class="card" style="padding: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-tertiary);">Прогресс урока</span>
+            <span class="gold-shimmer" style="font-family: 'Playfair Display', serif; font-size: 14px; font-weight: 600;">0 / 3 звёзд</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" style="width: 0%;"></div>
+          </div>
+        </div>
+
+        <!-- Piece card -->
+        <div class="card" style="padding: 24px; text-align: center;">
+          <div style="width: 64px; height: 64px; margin: 0 auto 16px; display: flex; align-items: center; justify-content: center; border-radius: var(--radius-md); background: var(--bg-hover);">
+            <img src="/pieces/cburnett/wR.svg" style="width: 48px; height: 48px; filter: var(--piece-shadow-inline);" draggable="false" alt="">
+          </div>
+          <h2 style="font-size: 20px; margin-bottom: 4px;">Ладья</h2>
+          <p style="font-size: 12px; color: var(--text-tertiary); font-family: 'Inter', sans-serif; margin-bottom: 16px;">Движется по прямой</p>
+          <div style="display: flex; gap: 6px; justify-content: center;">
+            <img src="/images/learn/star.png" style="width: 20px; height: 20px; opacity: 0.2; filter: var(--star-filter);" draggable="false" alt="">
+            <img src="/images/learn/star.png" style="width: 20px; height: 20px; opacity: 0.2; filter: var(--star-filter);" draggable="false" alt="">
+            <img src="/images/learn/star.png" style="width: 20px; height: 20px; opacity: 0.2; filter: var(--star-filter);" draggable="false" alt="">
+          </div>
+        </div>
+
+        <!-- Hint card -->
+        <div class="card" style="padding: 20px;">
+          <div style="display: flex; align-items: flex-start; gap: 12px;">
+            <span style="font-size: 20px;">💡</span>
+            <div>
+              <p style="font-size: 12px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">Подсказка</p>
+              <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">
+                Ладья — самая прямая фигура. Она не умеет ходить по диагонали, только по горизонтали и вертикали. Проведи её от e4 до e1.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
