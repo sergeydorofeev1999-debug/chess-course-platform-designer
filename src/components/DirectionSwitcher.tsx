@@ -1,61 +1,55 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 type Direction = 'a' | 'b' | 'c' | 'd';
 
-const DIRECTIONS: { key: Direction; label: string; title: string; colorClass: string }[] = [
-  { key: 'a', label: 'A', title: 'Apple Chess — calm, precision, air', colorClass: 'switcher-a' },
-  { key: 'b', label: 'B', title: 'Nintendo Chess — joy, warmth, delight', colorClass: 'switcher-b' },
-  { key: 'c', label: 'C', title: 'Luxury Chess — craft, wood, brass', colorClass: 'switcher-c' },
-  { key: 'd', label: 'D', title: 'Digital Chess 2026 — responsive, alive', colorClass: 'switcher-d' },
+interface Props {
+  onChange?: (dir: Direction) => void;
+}
+
+const BUTTONS: { key: Direction; label: string; accent: string }[] = [
+  { key: 'a', label: 'A', accent: '#0071E3' },
+  { key: 'b', label: 'B', accent: '#FF6B35' },
+  { key: 'c', label: 'C', accent: '#B8956A' },
+  { key: 'd', label: 'D', accent: '#00D4AA' },
 ];
 
-export default function DirectionSwitcher() {
-  const [direction, setDirection] = useState<Direction>('a');
-  const [isExpanded, setIsExpanded] = useState(false);
+export default function DirectionSwitcher({ onChange }: Props) {
+  const [active, setActive] = useState<Direction>('a');
 
-  useEffect(() => {
-    const saved = typeof window !== 'undefined' ? (localStorage.getItem('chess-direction') as Direction) : null;
-    const initial: Direction = saved && ['a','b','c','d'].includes(saved) ? saved : 'a';
-    setDirection(initial);
-    document.documentElement.setAttribute('data-direction', initial);
-  }, []);
-
-  const handleSwitch = (dir: Direction) => {
-    setDirection(dir);
+  const handleClick = (dir: Direction) => {
+    setActive(dir);
     document.documentElement.setAttribute('data-direction', dir);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('chess-direction', dir);
-    }
-    setIsExpanded(false);
+    localStorage.setItem('chess-direction', dir);
+    onChange?.(dir);
   };
 
-  const current = DIRECTIONS.find((d) => d.key === direction);
-
   return (
-    <div className="direction-switcher">
-      {isExpanded && (
-        <div className="flex flex-col gap-2 mb-2 animate-in fade-in slide-in-from-bottom-2 duration-200">
-          {DIRECTIONS.map((dir) => (
-            <button
-              key={dir.key}
-              onClick={() => handleSwitch(dir.key)}
-              className={`${dir.colorClass} ${direction === dir.key ? 'active' : ''}`}
-              title={dir.title}
-            >
-              {dir.label}
-            </button>
-          ))}
-        </div>
-      )}
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className={`${current?.colorClass || 'switcher-a'} active`}
-        title={`Текущее направление: ${current?.title || 'Apple Chess'}`}
+    <div className="fixed top-20 right-4 z-50">
+      <div className="flex gap-1 p-1.5 rounded-xl"
+        style={{
+          background: 'var(--bg-elevated)',
+          border: '1px solid var(--surface-border)',
+          boxShadow: 'var(--shadow-md)',
+        }}
       >
-        {isExpanded ? '✕' : current?.label}
-      </button>
+        {BUTTONS.map((btn) => (
+          <button
+            key={btn.key}
+            onClick={() => handleClick(btn.key)}
+            className="w-9 h-9 rounded-lg text-sm font-bold transition-all duration-200 flex items-center justify-center"
+            style={{
+              background: active === btn.key ? btn.accent : 'transparent',
+              color: active === btn.key ? '#fff' : 'var(--text-tertiary)',
+              opacity: active === btn.key ? 1 : 0.6,
+            }}
+            title={btn.key === 'a' ? 'Apple Chess' : btn.key === 'b' ? 'Nintendo Chess' : btn.key === 'c' ? 'Luxury Chess' : 'Digital Chess'}
+          >
+            {btn.label}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
