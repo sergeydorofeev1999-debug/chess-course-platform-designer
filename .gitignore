@@ -1,17 +1,33 @@
-node_modules/
-.env.local
-.env
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Testing
+coverage
+
+# Next.js
 .next/
 out/
-dist/
-*.log
+
+# Production
+build
+
+# Misc
 .DS_Store
+*.pem
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local env files
+.env*.local
+
+# Vercel
 .vercel
-.env*
-extract-puzzles.js
-gen-puzzles.js
-*.bak
-*.bak2
-*.v2
+
+# TypeScript
 *.tsbuildinfo
-/1
+next-env.d.ts
