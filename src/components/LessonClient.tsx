@@ -456,9 +456,9 @@ function InlineChessBoard({
     const update = () => {
       const isMobile = window.innerWidth < 1024;
       if (isMobile) {
-        setSqSize(Math.min(80, Math.max(42, Math.floor((window.innerWidth - 16) / 8))));
+        setSqSize(Math.min(88, Math.max(42, Math.floor((window.innerWidth - 16) / 8))));
       } else {
-        setSqSize(Math.min(80, Math.max(56, Math.floor((Math.min(window.innerWidth, 520) - 24) / 8))));
+        setSqSize(Math.min(88, Math.max(56, Math.floor((Math.min(window.innerWidth, 860) - 24) / 8))));
       }
     };
     update();
@@ -653,7 +653,7 @@ function InlineChessBoard({
 
   return (
     <div className="flex flex-col items-center gap-2 select-none" style={{ touchAction: 'none' }}>
-      <div className={`grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none ${dimmed ? 'board-dim' : 'board-fade-in'}`} style={{ gridTemplateColumns: `repeat(8, ${sqSize}px)`, gridTemplateRows: `repeat(8, ${sqSize}px)`, touchAction: 'none' }}>
+      <div className={`grid border-[5px] border-[#1a1612] rounded-sm relative select-none ${dimmed ? 'board-dim' : 'board-fade-in'}`} style={{ gridTemplateColumns: `repeat(8, ${sqSize}px)`, gridTemplateRows: `repeat(8, ${sqSize}px)`, touchAction: 'none', boxShadow: '0 12px 40px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06)' }}>
         {RANKS.map((rank, ri) =>
           FILES.map((file, fi) => {
             const sq = `${file}${rank}`;
@@ -1291,58 +1291,40 @@ function MultiLevelStarBoard({
         </div>
       </div>
 
-      {/* RIGHT: Lesson companion panel */}
-      <div className="w-full lg:w-[300px] flex-shrink-0 flex flex-col gap-3 lg:pt-2">
-        {/* Lesson title */}
-        {lessonTitle && (
-          <div>
-            <p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wide font-medium">Урок</p>
-            <h2 className="text-sm font-bold text-[var(--text-primary)] leading-tight">{lessonTitle}</h2>
-          </div>
-        )}
-        {/* Description */}
-        {lessonContent && (
-          <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{lessonContent}</p>
-        )}
-        {/* Divider */}
-        <div className="w-full h-px bg-[var(--surface-border)]" />
-        {/* Game instruction card */}
+      {/* RIGHT: Quiet companion panel */}
+      <div className="w-full lg:w-[260px] flex-shrink-0 flex flex-col gap-4 lg:pt-10">
+        {/* Instructions — airy, no card */}
         {phase === 'playing' && level.instructions && !msg && !showHint && (
-          <div className="w-full flex items-start gap-2 bg-[var(--bg-secondary)] rounded-lg px-3 py-2 border border-[var(--surface-border)]">
-            <div className="w-5 h-5 rounded bg-[var(--accent)]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-3 h-3" draggable={false} alt="" />
-            </div>
-            <p className="text-xs text-[var(--text-secondary)] leading-snug">{level.instructions}</p>
+          <div className="flex flex-col gap-1">
+            <p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-medium">Задание</p>
+            <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{level.instructions}</p>
           </div>
         )}
         {/* Message */}
         {msg && !showHint && (
-          <div className="text-center py-1 px-3 rounded text-xs font-medium bg-[#e8dfd5] text-[#5a4a3a]">
-            {msg}
-          </div>
+          <p className="text-sm text-[var(--text-primary)] leading-relaxed">{msg}</p>
         )}
         {/* Star progress */}
         {stars.length > 0 && phase === 'playing' && (
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             {Array.from({ length: stars.length }, (_, i) => (
               <Star
                 key={i}
-                size={14}
+                size={16}
                 className={i < collectedCount ? 'fill-[#c9a84c] text-[#c9a84c]' : 'text-[#e5dfd8]'}
-                strokeWidth={2}
+                strokeWidth={1.5}
               />
             ))}
           </div>
         )}
-        {/* Next button */}
+        {/* Next button — quiet */}
         {allDone && nextLessonUrl && (
           <Link
             href={nextLessonUrl}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 hover:translate-x-0.5"
-            style={{ background: 'var(--accent)', color: 'var(--bg-primary)' }}
+            className="w-full flex items-center justify-center gap-2 py-2 rounded text-xs font-medium transition-all duration-200 hover:translate-x-0.5 border border-[var(--surface-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--text-muted)]"
           >
             <span>Следующий урок</span>
-            <ArrowRight size={14} className="transition-transform duration-300 group-hover:translate-x-1" />
+            <ArrowRight size={12} className="transition-transform duration-200 group-hover:translate-x-1" />
           </Link>
         )}
       </div>
