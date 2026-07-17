@@ -1240,39 +1240,6 @@ function MultiLevelStarBoard({
     <div className="flex flex-col lg:flex-row w-full gap-8 lg:gap-10 items-start justify-center">
       {/* LEFT: Board workspace */}
       <div className="flex-1 flex flex-col items-center min-w-0 max-w-[720px]">
-        {/* TOP: Unified game controller bar */}
-        <div className="w-full flex items-center justify-between py-2">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center shadow-sm">
-              <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-5 h-5" draggable={false} alt="" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-[11px] font-semibold text-[var(--text-secondary)] leading-tight">
-                Задание {currentLevel + 1} из {totalLevels}
-              </span>
-              <span className="text-[10px] text-[var(--text-tertiary)] leading-tight">{pieceName}</span>
-            </div>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <ExerciseDots />
-            <div className="w-px h-5 bg-[#d4c4b0]/30 mx-0.5" />
-            <button
-              onClick={() => { setHintLevel(0); setShowHint(!showHint); }}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 ${showHint ? 'bg-[#c9a84c]/15 text-[#8a6a3a]' : 'bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-border)]'}`}
-              title="Подсказка"
-            >
-              <Lightbulb size={15} />
-            </button>
-            <button
-              onClick={reset}
-              className="w-8 h-8 rounded-lg bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-border)] flex items-center justify-center transition-all duration-200"
-              title="Заново"
-            >
-              <RotateCcw size={15} />
-            </button>
-          </div>
-        </div>
-
         {/* BOARD */}
         <div className="relative w-full flex justify-center">
           <InlineChessBoard
@@ -1293,8 +1260,8 @@ function MultiLevelStarBoard({
         </div>
       </div>
 
-      {/* RIGHT: Lesson companion panel */}
-      <div className="w-full lg:w-[400px] flex-shrink-0 flex flex-col gap-6">
+      {/* RIGHT: Lesson panel (Chess.com Learn style) */}
+      <div className="w-full lg:w-[400px] flex-shrink-0 flex flex-col gap-5">
         {/* Title */}
         {lessonTitle && (
           <div className="flex flex-col gap-1">
@@ -1308,26 +1275,54 @@ function MultiLevelStarBoard({
         )}
         {/* Divider */}
         <div className="w-full h-px bg-[var(--surface-border)]" />
+        {/* Progress bar */}
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-[var(--text-secondary)]">Задание {currentLevel + 1} из {totalLevels}</span>
+            <span className="text-[11px] text-[var(--text-tertiary)]">{pieceName}</span>
+          </div>
+          <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+            <div
+              className="h-full bg-[var(--accent)] rounded-full transition-all duration-500"
+              style={{ width: `${((currentLevel + 1) / totalLevels) * 100}%` }}
+            />
+          </div>
+        </div>
         {/* Instructions */}
         {phase === 'playing' && level.instructions && !msg && !showHint && (
           <div className="flex flex-col gap-1">
             <p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-medium">Задание</p>
-            <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{level.instructions}</p>
+            <p className="text-base text-[var(--text-primary)] font-medium leading-relaxed">{level.instructions}</p>
           </div>
         )}
         {/* Message */}
         {msg && !showHint && (
-          <p className="text-sm text-[var(--text-primary)] leading-relaxed">{msg}</p>
+          <p className="text-base text-[var(--text-primary)] font-medium leading-relaxed">{msg}</p>
         )}
+        {/* Hint/Reset buttons */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => { setHintLevel(0); setShowHint(!showHint); }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all duration-200 ${showHint ? 'bg-[#c9a84c]/15 text-[#8a6a3a]' : 'bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-border)]'}`}
+          >
+            <Lightbulb size={13} /> Подсказка
+          </button>
+          <button
+            onClick={reset}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-border)] text-[11px] font-medium transition-all duration-200"
+          >
+            <RotateCcw size={13} /> Заново
+          </button>
+        </div>
         {/* Star progress */}
         {stars.length > 0 && phase === 'playing' && (
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             {Array.from({ length: stars.length }, (_, i) => (
               <Star
                 key={i}
-                size={16}
+                size={14}
                 className={i < collectedCount ? 'fill-[#c9a84c] text-[#c9a84c]' : 'text-[#e5dfd8]'}
-                strokeWidth={1.5}
+                strokeWidth={2}
               />
             ))}
           </div>
