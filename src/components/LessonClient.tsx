@@ -1133,10 +1133,6 @@ function MultiLevelStarBoard({
           <h3 className="font-bold text-lg text-[var(--text-primary)]">{pieceName}</h3>
           <p className="text-sm text-[var(--text-secondary)] mt-1">{pieceDesc}</p>
         </div>
-        <div className="text-sm text-[var(--text-secondary)] bg-gray-50 rounded-lg p-3">
-          <p className="font-medium text-[var(--text-primary)] mb-1">Задание {currentLevel + 1} из {totalLevels}</p>
-          <p className="text-xs">{level.instructions}</p>
-        </div>
         <button
           onClick={() => setPhase('playing')}
           className="w-full py-3 rounded-xl font-bold text-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
