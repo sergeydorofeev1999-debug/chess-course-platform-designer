@@ -1233,7 +1233,7 @@ function MultiLevelStarBoard({
   return (
     <div className="flex flex-col items-center w-full md:max-w-[520px] mx-auto">
       {/* TOP: Unified game controller bar */}
-      <div className="w-full flex items-center justify-between py-2 px-2">
+      <div className="w-full flex items-center justify-between py-2">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center shadow-sm">
             <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-5 h-5" draggable={false} alt="" />
@@ -1285,7 +1285,7 @@ function MultiLevelStarBoard({
       </div>
 
       {/* BOTTOM: instruction + progress */}
-      <div className="w-full flex flex-col items-center gap-2 mt-1 px-1">
+      <div className="w-full flex flex-col items-center gap-2 mt-1">
         {/* Game instruction card */}
         {phase === 'playing' && level.instructions && !msg && !showHint && (
           <div className="w-full flex items-center gap-2 bg-[var(--bg-secondary)] rounded-lg px-3 py-2 border border-[var(--surface-border)]">
