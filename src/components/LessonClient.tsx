@@ -403,6 +403,7 @@ interface InlineChessBoardProps {
   movedPieces?: Set<string>;
   enPassantTarget?: string | null;
   dimmed?: boolean;
+  hintLevel?: number;
 }
 
 function InlineChessBoard({
@@ -415,6 +416,7 @@ function InlineChessBoard({
   movedPieces: externalMovedPieces,
   enPassantTarget,
   dimmed = false,
+  hintLevel = 0,
 }: InlineChessBoardProps) {
   const pieceErrHint =
     pieceType === 'b' ? 'Слон ходит по диагонали!' :
@@ -615,6 +617,34 @@ function InlineChessBoard({
 
   const preventDrag = (e: React.DragEvent) => e.preventDefault();
 
+  // Hint visualization squares
+  const hintPieceSquare = useMemo(() => {
+    if (hintLevel < 1) return null;
+    // Find the first white piece that should move (piece matching pieceType or any white piece)
+    for (const sq of Object.keys(squares)) {
+      const p = squares[sq];
+      if (p && p.color === 'w' && (p.type === pieceType || !pieceType)) return sq;
+    }
+    return null;
+  }, [hintLevel, squares, pieceType]);
+
+  const hintValidSquares = useMemo(() => {
+    if (hintLevel < 2 || !hintPieceSquare) return [];
+    return getValidSquares(
+      squares[hintPieceSquare]?.type || pieceType,
+      hintPieceSquare,
+      squares,
+      stars,
+      movedPieces
+    );
+  }, [hintLevel, hintPieceSquare, squares, pieceType, stars, movedPieces]);
+
+  const hintTargetSquare = useMemo(() => {
+    if (hintLevel < 3) return null;
+    // Return first star as the target
+    return stars[0] || null;
+  }, [hintLevel, stars]);
+
   const validMoves = selectedSquare
     ? getValidSquares(squares[selectedSquare]?.type || pieceType, selectedSquare, squares, stars, movedPieces)
     : dragPiece
@@ -650,6 +680,15 @@ function InlineChessBoard({
                 )}
                 {hover && !sel && (
                   <div className="absolute inset-0 pointer-events-none" style={{ backgroundColor: light ? 'rgba(0,0,0,0.10)' : 'rgba(0,0,0,0.15)', zIndex: 5 }} />
+                )}
+                {hintPieceSquare === sq && hintLevel >= 1 && !sel && (
+                  <div className="absolute inset-[2px] rounded-[4px] hint-piece-emphasis pointer-events-none z-[9]" />
+                )}
+                {hintValidSquares.includes(sq) && hintLevel >= 2 && !sel && !isValidMove && (
+                  <div className="absolute inset-0 hint-valid-square pointer-events-none z-[8]" />
+                )}
+                {hintTargetSquare === sq && hintLevel >= 3 && (
+                  <div className="absolute inset-0 hint-target-square pointer-events-none z-[11]" />
                 )}
                 {fi === 0 && <span className={`absolute top-0.5 left-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>{rank}</span>}
                 {ri === 7 && <span className={`absolute bottom-0.5 right-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>{file}</span>}
@@ -1238,6 +1277,7 @@ function MultiLevelStarBoard({
           guideArrows={level.guideArrows || []}
           movedPieces={movedPieces}
           dimmed={phase === 'intro' || phase === 'success' || phase === 'fail'}
+          hintLevel={hintLevel}
         />
         {phase === 'intro' && <IntroOverlay />}
         {phase === 'success' && <SuccessOverlay />}
