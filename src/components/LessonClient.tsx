@@ -766,6 +766,8 @@ function MultiLevelStarBoard({
   allLessons,
   courseId,
   currentLessonId,
+  lessonTitle,
+  lessonContent,
 }: {
   config: any;
   onComplete?: () => void;
@@ -775,6 +777,8 @@ function MultiLevelStarBoard({
   allLessons?: any[];
   courseId?: string;
   currentLessonId?: string;
+  lessonTitle?: string;
+  lessonContent?: string;
 }) {
   const router = useRouter();
   const pieceCodeRaw = config.pieceCode || 'wR';
@@ -1231,79 +1235,93 @@ function MultiLevelStarBoard({
   );
 
   return (
-    <div className="flex flex-col items-center w-full mx-auto">
-      {/* TOP: Unified game controller bar */}
-      <div className="w-full flex items-center justify-between py-2">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center shadow-sm">
-            <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-5 h-5" draggable={false} alt="" />
+    <div className="flex flex-col lg:flex-row w-full gap-4 lg:gap-6">
+      {/* LEFT: Board area */}
+      <div className="flex-1 flex flex-col items-center min-w-0">
+        {/* TOP: Unified game controller bar */}
+        <div className="w-full flex items-center justify-between py-2">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center shadow-sm">
+              <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-5 h-5" draggable={false} alt="" />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[11px] font-semibold text-[var(--text-secondary)] leading-tight">
+                Задание {currentLevel + 1} из {totalLevels}
+              </span>
+              <span className="text-[10px] text-[var(--text-tertiary)] leading-tight">{pieceName}</span>
+            </div>
           </div>
-          <div className="flex flex-col">
-            <span className="text-[11px] font-semibold text-[var(--text-secondary)] leading-tight">
-              Задание {currentLevel + 1} из {totalLevels}
-            </span>
-            <span className="text-[10px] text-[var(--text-tertiary)] leading-tight">{pieceName}</span>
+          <div className="flex items-center gap-1.5">
+            <ExerciseDots />
+            <div className="w-px h-5 bg-[#d4c4b0]/30 mx-0.5" />
+            <button
+              onClick={() => { setHintLevel(0); setShowHint(!showHint); }}
+              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 ${showHint ? 'bg-[#c9a84c]/15 text-[#8a6a3a]' : 'bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-border)]'}`}
+              title="Подсказка"
+            >
+              <Lightbulb size={15} />
+            </button>
+            <button
+              onClick={reset}
+              className="w-8 h-8 rounded-lg bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-border)] flex items-center justify-center transition-all duration-200"
+              title="Заново"
+            >
+              <RotateCcw size={15} />
+            </button>
           </div>
         </div>
-        <div className="flex items-center gap-1.5">
-          <ExerciseDots />
-          <div className="w-px h-5 bg-[#d4c4b0]/30 mx-0.5" />
-          <button
-            onClick={() => { setHintLevel(0); setShowHint(!showHint); }}
-            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 ${showHint ? 'bg-[#c9a84c]/15 text-[#8a6a3a]' : 'bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-border)]'}`}
-            title="Подсказка"
-          >
-            <Lightbulb size={15} />
-          </button>
-          <button
-            onClick={reset}
-            className="w-8 h-8 rounded-lg bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-border)] flex items-center justify-center transition-all duration-200"
-            title="Заново"
-          >
-            <RotateCcw size={15} />
-          </button>
+
+        {/* BOARD */}
+        <div className="relative w-full flex justify-center">
+          <InlineChessBoard
+            key={currentLevel}
+            fen={position}
+            stars={visibleStars}
+            onMove={handleMove}
+            pieceType={pieceType}
+            pieceName={pieceName}
+            guideArrows={level.guideArrows || []}
+            movedPieces={movedPieces}
+            dimmed={phase === 'intro' || phase === 'success' || phase === 'fail'}
+            hintLevel={hintLevel}
+          />
+          {phase === 'intro' && <IntroOverlay />}
+          {phase === 'success' && <SuccessOverlay />}
+          {phase === 'fail' && <FailOverlay />}
         </div>
       </div>
 
-      {/* BOARD */}
-      <div className="relative w-full">
-        <InlineChessBoard
-          key={currentLevel}
-          fen={position}
-          stars={visibleStars}
-          onMove={handleMove}
-          pieceType={pieceType}
-          pieceName={pieceName}
-          guideArrows={level.guideArrows || []}
-          movedPieces={movedPieces}
-          dimmed={phase === 'intro' || phase === 'success' || phase === 'fail'}
-          hintLevel={hintLevel}
-        />
-        {phase === 'intro' && <IntroOverlay />}
-        {phase === 'success' && <SuccessOverlay />}
-        {phase === 'fail' && <FailOverlay />}
-      </div>
-
-      {/* BOTTOM: instruction + progress */}
-      <div className="w-full flex flex-col items-center gap-2 mt-1">
+      {/* RIGHT: Lesson companion panel */}
+      <div className="w-full lg:w-[300px] flex-shrink-0 flex flex-col gap-3 lg:pt-2">
+        {/* Lesson title */}
+        {lessonTitle && (
+          <div>
+            <p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wide font-medium">Урок</p>
+            <h2 className="text-sm font-bold text-[var(--text-primary)] leading-tight">{lessonTitle}</h2>
+          </div>
+        )}
+        {/* Description */}
+        {lessonContent && (
+          <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{lessonContent}</p>
+        )}
+        {/* Divider */}
+        <div className="w-full h-px bg-[var(--surface-border)]" />
         {/* Game instruction card */}
         {phase === 'playing' && level.instructions && !msg && !showHint && (
-          <div className="w-full flex items-center gap-2 bg-[var(--bg-secondary)] rounded-lg px-3 py-2 border border-[var(--surface-border)]">
-            <div className="w-5 h-5 rounded bg-[var(--accent)]/10 flex items-center justify-center flex-shrink-0">
+          <div className="w-full flex items-start gap-2 bg-[var(--bg-secondary)] rounded-lg px-3 py-2 border border-[var(--surface-border)]">
+            <div className="w-5 h-5 rounded bg-[var(--accent)]/10 flex items-center justify-center flex-shrink-0 mt-0.5">
               <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-3 h-3" draggable={false} alt="" />
             </div>
             <p className="text-xs text-[var(--text-secondary)] leading-snug">{level.instructions}</p>
           </div>
         )}
-
         {/* Message */}
         {msg && !showHint && (
           <div className="text-center py-1 px-3 rounded text-xs font-medium bg-[#e8dfd5] text-[#5a4a3a]">
             {msg}
           </div>
         )}
-
-        {/* Star progress — ⭐ ○ ○ ○ ○ */}
+        {/* Star progress */}
         {stars.length > 0 && phase === 'playing' && (
           <div className="flex items-center gap-1">
             {Array.from({ length: stars.length }, (_, i) => (
@@ -1316,7 +1334,6 @@ function MultiLevelStarBoard({
             ))}
           </div>
         )}
-
         {/* Next button */}
         {allDone && nextLessonUrl && (
           <Link
@@ -1478,6 +1495,8 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
                 allLessons={allLessons}
                 courseId={courseId}
                 currentLessonId={lesson.id}
+                lessonTitle={lesson.title}
+                lessonContent={lesson.content}
               />
             );
           })()}
