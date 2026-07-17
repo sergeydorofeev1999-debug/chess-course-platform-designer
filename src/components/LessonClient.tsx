@@ -403,6 +403,10 @@ interface InlineChessBoardProps {
   guideArrows?: { from: string; to: string }[];
   movedPieces?: Set<string>;
   enPassantTarget?: string | null;
+  levelComplete?: boolean;
+  levelFailed?: boolean;
+  onReset?: () => void;
+  nextLessonUrl?: string;
 }
 
 function InlineChessBoard({
@@ -1162,331 +1166,89 @@ function MultiLevelStarBoard({
   const allCollected = stars.every((s: string) => collected.includes(s));
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
-      {/* LEFT COLUMN: Stars + Figure menu + reset */}
-      <div className="w-full lg:w-[140px] flex-shrink-0 space-y-2">
-        {/* Stars progress — desktop */}
-        {totalLevels >= 7 ? (
-          <div className="hidden lg:grid gap-1 rounded overflow-hidden border border-gray-200 p-1" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
-            {levels.map((_l: any, i: number) => {
-              const earned = levelStars[i];
-              const isCurrent = i === currentLevel;
-              const isDone = earned != null;
-              const isFuture = !isCurrent && !isDone && i > currentLevel;
-              return (
-                <button
-                  key={i}
-                  onClick={() => {
-                    if (isFuture) return;
-                    if (i !== currentLevel) {
-                      setCurrentLevel(i);
-                      setAllDone(false);
-                    }
-                  }}
-                  disabled={isFuture}
-                  className={`flex items-center justify-center px-1 py-2 rounded transition ${
-                    isCurrent ? 'bg-blue-500 text-white' : isDone ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'
-                  } ${isFuture ? 'cursor-not-allowed' : 'cursor-pointer hover:brightness-110'}`}
-                >
-                  <div className="flex gap-0.5">
-                    {[1, 2, 3].map((s) => (
-                      <img
-                        key={s}
-                        src="/images/learn/star.png"
-                        className={`w-3.5 h-3.5 ${
-                          isFuture ? 'opacity-30 grayscale' : s <= (earned || 0) ? '' : 'opacity-40 grayscale'
-                        }`}
-                        draggable={false}
-                        alt=""
-                      />
-                    ))}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="hidden lg:flex flex-col rounded overflow-hidden border border-gray-200">
-            {levels.map((_l: any, i: number) => {
-              const earned = levelStars[i];
-              const isCurrent = i === currentLevel;
-              const isDone = earned != null;
-              const isFuture = !isCurrent && !isDone && i > currentLevel;
-              return (
-                <button
-                  key={i}
-                  onClick={() => {
-                    if (isFuture) return;
-                    if (i !== currentLevel) {
-                      setCurrentLevel(i);
-                      setAllDone(false);
-                    }
-                  }}
-                  disabled={isFuture}
-                  className={`flex items-center justify-center px-2 py-1.5 transition ${
-                    isCurrent ? 'bg-blue-500 text-white' : isDone ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'
-                  } ${isFuture ? 'cursor-not-allowed' : 'cursor-pointer hover:brightness-110'}`}
-                >
-                  <div className="flex gap-0.5">
-                    {[1, 2, 3].map((s) => (
-                      <img
-                        key={s}
-                        src="/images/learn/star.png"
-                        className={`w-3.5 h-3.5 ${
-                          isFuture ? 'opacity-30 grayscale' : s <= (earned || 0) ? '' : 'opacity-40 grayscale'
-                        }`}
-                        draggable={false}
-                        alt=""
-                      />
-                    ))}
-                  </div>
-                </button>
-              );
-            })}
+    <div className="flex flex-col items-center w-full max-w-[580px] mx-auto">
+      {/* Board + integrated instruction */}
+      <div className="relative w-full">
+        {/* Subtle instruction pill — no overlay, just context */}
+        {level.instructions && !allDone && !failed && (
+          <div className="text-center mb-2 px-4">
+            <span className="inline-block text-[12px] px-3 py-1 rounded-full" style={{ color: 'var(--text-secondary)', background: 'var(--bg-secondary)' }}>
+              {level.instructions}
+            </span>
           </div>
         )}
 
-        {/* Piece menu — clickable navigation to lessons */}
-        {allLessons && allLessons.length > 0 && (
-          <div className="hidden lg:block border border-gray-200 rounded overflow-hidden">
-            <div className="bg-blue-500 text-white text-[11px] font-bold px-2 py-1">
-              Шахматные фигуры
-            </div>
-            {allLessons
-              .filter((l: any) => l.video_url && (typeof l.video_url === 'string' ? l.video_url.includes('interactive_collect_stars') : l.video_url?.type === 'interactive_collect_stars'))
-              .map((l: any, i: number) => {
-                const cfg = typeof l.video_url === 'string' ? JSON.parse(l.video_url) : l.video_url;
-                const code = cfg?.pieceCode || 'wR';
-                const name = cfg?.pieceName || l.title;
-                const isActive = l.id === currentLessonId;
-                return (
-                  <Link
-                    key={l.id}
-                    href={isActive ? '#' : `/lessons/${l.id}?course=${courseId}`}
-                    aria-current={isActive ? 'page' : undefined}
-                    className={`flex items-center gap-2 px-2 py-1.5 text-xs ${
-                      isActive
-                        ? 'bg-blue-50 text-blue-900 font-semibold pointer-events-none'
-                        : i % 2 === 0
-                          ? 'bg-white text-gray-600 hover:bg-gray-100'
-                          : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
-                    }`}
-                  >
-                    <img src={`/pieces/cburnett/${code}.svg`} className="w-5 h-5" draggable={false} alt="" />
-                    <span>{name}</span>
-                  </Link>
-                );
-              })}
-          </div>
-        )}
-
-        <button onClick={reset} className="hidden lg:flex items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition w-full justify-center">
-          <RotateCcw size={14} /> Заново
-        </button>
+        {/* The board — no container wrapper, flat */}
+        <div className="relative" style={{ border: '2px solid var(--board-border)', borderRadius: '3px', overflow: 'hidden' }}>
+          <InlineChessBoard
+            key={currentLevel}
+            fen={position}
+            stars={visibleStars}
+            onMove={handleMove}
+            pieceType={pieceType}
+            pieceName={pieceName}
+            guideArrows={level.guideArrows || []}
+            movedPieces={movedPieces}
+            levelComplete={allDone}
+            levelFailed={failed}
+            onReset={reset}
+            nextLessonUrl={nextLessonUrl}
+          />
+        </div>
       </div>
 
-      {/* CENTER COLUMN: Chess board */}
-      <div className="flex-1 flex flex-col items-center gap-3 relative">
-        {/* Promotion dialog */}
-        {promotionPending && (
-          <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/30 rounded-lg">
-            <div className="bg-white rounded-lg p-4 shadow-xl text-center space-y-3 max-w-[260px]">
-              <p className="font-bold text-sm">Превращение пешки!</p>
-              <p className="text-xs text-gray-500">Ваша пешка достигла края доски</p>
-              <div className="flex gap-2 justify-center">
-                {[
-                  { code: 'q', name: 'Ферзь' },
-                  { code: 'r', name: 'Ладья' },
-                  { code: 'b', name: 'Слон' },
-                  { code: 'n', name: 'Конь' },
-                ].map(({ code, name }) => (
-                  <button
-                    key={code}
-                    onClick={() => {
-                      const parsed = parseFen(positionRef.current);
-                      const newSquares = { ...parsed.squares };
-                      delete newSquares[promotionPending.from];
-                      newSquares[promotionPending.to] = { type: code, color: 'w' };
-                      const newFen = squaresToFen(newSquares, 'w');
-                      positionRef.current = newFen;
-                      setPosition(newFen);
-                      setMoves((c) => c + 1);
-                      setPromotionPending(null);
-                      // Check star collection after promotion
-                      if (stars.includes(promotionPending.to) && !collected.includes(promotionPending.to)) {
-                        setCollected((prev) => {
-                          const next = [...prev, promotionPending.to];
-                          const allCollected = stars.every((s: string) => next.includes(s));
-                          if (allCollected) {
-                            const max = level.maxMoves || stars.length + 1;
-                            const m = movesRef.current + 1;
-                            let earned = 3;
-                            if (m <= max) earned = 3;
-                            else if (m <= max + 1) earned = 2;
-                            else earned = 1;
-                            setLevelStars((prev) => ({ ...prev, [currentLevel]: earned }));
-                            onLevelComplete?.(currentLevel, earned);
-                            setTimeout(() => {
-                              if (currentLevel + 1 < totalLevels) {
-                                setCurrentLevel((l) => {
-                                  const nextL = l + 1;
-                                  localStorage.setItem(`${savedKey}_level`, String(nextL));
-                                  return nextL;
-                                });
-                                setMsg('');
-                              } else {
-                                setAllDone(true);
-                                setMsg('🎉 Все позиции пройдены! Урок завершён!');
-                                onAllComplete?.();
-                              }
-                            }, 600);
-                          } else {
-                            setMsg(`⭐ ${next.length} / ${stars.length} звёзд`);
-                          }
-                          return next;
-                        });
-                      }
-                    }}
-                    className="w-12 h-12 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition border border-gray-300"
-                    title={name}
-                  >
-                    <img src={`/pieces/cburnett/w${code.toUpperCase()}.svg`} className="w-8 h-8" draggable={false} alt={name} />
-                  </button>
-                ))}
-              </div>
-            </div>
+      {/* Minimal status bar — only essential info */}
+      <div className="w-full mt-3 flex items-center justify-between px-1">
+        <div className="flex items-center gap-3">
+          {/* Stars collected */}
+          <div className="flex items-center gap-1">
+            {stars.map((s: string, i: number) => (
+              <img
+                key={s}
+                src="/images/learn/star.png"
+                className="w-4 h-4"
+                style={{
+                  opacity: collected.includes(s) ? 1 : 0.25,
+                  filter: collected.includes(s) ? 'none' : 'grayscale(1)',
+                  transition: 'opacity 0.3s ease',
+                }}
+                draggable={false}
+                alt=""
+              />
+            ))}
           </div>
-        )}
-        <InlineChessBoard key={currentLevel} fen={position} stars={visibleStars} onMove={handleMove} pieceType={pieceType} pieceName={pieceName} guideArrows={level.guideArrows || []} movedPieces={movedPieces} />
-
-        {/* Red fail banner (Lichess style) */}
-        {failed && (
-          <div className="w-full">
-            <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
-              <p className="text-white font-bold text-lg">Задание провалено!</p>
-              <button
-                onClick={reset}
-                className="bg-white text-[#c62828] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
-              >
-                ЕЩЁ РАЗ
-              </button>
-            </div>
-          </div>
-        )}
-
-
-        {/* Mobile stars */}
-        {totalLevels >= 7 ? (
-          <div className="lg:hidden grid gap-1 w-full" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
-            {levels.map((_l: any, i: number) => {
-              const earned = levelStars[i];
-              const isCurrent = i === currentLevel;
-              const isDone = earned != null;
-              const isFuture = !isCurrent && !isDone && i > currentLevel;
-              return (
-                <button
+          {/* Level progress dots */}
+          {totalLevels > 1 && (
+            <div className="flex items-center gap-1">
+              {levels.map((_l: any, i: number) => (
+                <div
                   key={i}
-                  onClick={() => {
-                    if (isFuture) return;
-                    if (i !== currentLevel) {
-                      setCurrentLevel(i);
-                      setAllDone(false);
-                    }
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{
+                    background: i === currentLevel ? 'var(--accent)' : i < currentLevel ? 'var(--text-tertiary)' : 'var(--surface-border)',
+                    transition: 'background 0.3s ease',
                   }}
-                  disabled={isFuture}
-                  className={`flex items-center justify-center gap-0.5 py-1.5 rounded text-xs transition ${
-                    isCurrent ? 'bg-blue-500 text-white' : isDone ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'
-                  } ${isFuture ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                >
-                  <div className="flex gap-0.5">
-                    {[1, 2, 3].map((s) => (
-                      <img
-                        key={s}
-                        src="/images/learn/star.png"
-                        className={`w-3.5 h-3.5 ${
-                          isFuture ? 'opacity-30 grayscale' : s <= (earned || 0) ? '' : 'opacity-40 grayscale'
-                        }`}
-                        draggable={false}
-                        alt=""
-                      />
-                    ))}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="flex lg:hidden gap-1 justify-center w-full overflow-x-auto">
-            {levels.map((_l: any, i: number) => {
-              const earned = levelStars[i];
-              const isCurrent = i === currentLevel;
-              const isDone = earned != null;
-              const isFuture = !isCurrent && !isDone && i > currentLevel;
-              return (
-                <button
-                  key={i}
-                  onClick={() => {
-                    if (isFuture) return;
-                    if (i !== currentLevel) {
-                      setCurrentLevel(i);
-                      setAllDone(false);
-                    }
-                  }}
-                  disabled={isFuture}
-                  className={`flex items-center gap-0.5 px-1.5 py-1 rounded text-xs transition ${
-                    isCurrent ? 'bg-blue-500 text-white' : isDone ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'
-                  } ${isFuture ? 'cursor-not-allowed' : 'cursor-pointer'}`}
-                >
-                  <div className="flex gap-0.5">
-                    {[1, 2, 3].map((s) => (
-                      <img
-                        key={s}
-                        src="/images/learn/star.png"
-                        className={`w-3.5 h-3.5 ${
-                          isFuture ? 'opacity-30 grayscale' : s <= (earned || 0) ? '' : 'opacity-40 grayscale'
-                        }`}
-                        draggable={false}
-                        alt=""
-                      />
-                    ))}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* RIGHT COLUMN: Exercise info */}
-      <div className="w-full lg:w-[180px] flex-shrink-0 space-y-3">
-        { /* Figure name header — Lichess style */ }
-        <div className="bg-blue-500 text-white rounded-t-lg p-2.5">
-          <div className="flex items-center gap-2">
-            <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-6 h-6" draggable={false} alt="" />
-            <div className="text-sm font-bold leading-tight">
-              <div>{pieceName}</div>
-              <div className="text-[11px] font-normal opacity-90">{pieceDesc}</div>
+                />
+              ))}
             </div>
-          </div>
+          )}
         </div>
 
-        {/* Instructions — single clean block */}
-        <div className="bg-white rounded-b-lg p-3 text-sm text-gray-800 leading-relaxed" style={{ whiteSpace: 'pre-line' }}>
-          {level.instructions}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={reset}
+            className="p-1.5 rounded-md transition-colors"
+            style={{ color: 'var(--text-tertiary)' }}
+            title="Заново"
+          >
+            <RotateCcw size={14} />
+          </button>
+          {moves > 0 && (
+            <span className="text-[11px]" style={{ color: 'var(--text-tertiary)' }}>
+              {moves} ход{moves === 1 ? '' : moves < 5 ? 'а' : 'ов'}
+            </span>
+          )}
         </div>
-
-        {/* Message */}
-        {msg && (
-          <div className={`text-center py-1.5 px-2 rounded text-xs font-medium ${msg.includes('Все позиции') ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
-            {msg}
-          </div>
-        )}
-
-        {/* Next lesson button */}
-        {allDone && nextLessonUrl && (
-          null
-        )}
-
       </div>
     </div>
   );
