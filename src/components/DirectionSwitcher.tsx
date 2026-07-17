@@ -16,7 +16,7 @@ const BUTTONS: { key: Direction; label: string; accent: string }[] = [
 ];
 
 export default function DirectionSwitcher({ onChange }: Props) {
-  const [active, setActive] = useState<Direction>('a');
+  const [active, setActive] = useState<Direction>('c');
 
   const handleClick = (dir: Direction) => {
     setActive(dir);
