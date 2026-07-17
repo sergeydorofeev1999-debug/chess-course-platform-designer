@@ -766,8 +766,6 @@ function MultiLevelStarBoard({
   allLessons,
   courseId,
   currentLessonId,
-  lessonTitle,
-  lessonContent,
 }: {
   config: any;
   onComplete?: () => void;
@@ -777,8 +775,6 @@ function MultiLevelStarBoard({
   allLessons?: any[];
   courseId?: string;
   currentLessonId?: string;
-  lessonTitle?: string;
-  lessonContent?: string;
 }) {
   const router = useRouter();
   const pieceCodeRaw = config.pieceCode || 'wR';
@@ -1235,96 +1231,101 @@ function MultiLevelStarBoard({
   );
 
   return (
-    <div className="flex flex-col lg:flex-row w-full gap-4 lg:gap-6">
-      {/* LEFT: Board area */}
-      <div className="flex-1 flex flex-col items-center min-w-0">
-        {/* TOP: Unified game controller bar */}
-        <div className="w-full flex items-center justify-between py-2">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center shadow-sm">
-              <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-5 h-5" draggable={false} alt="" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-[11px] font-semibold text-[var(--text-secondary)] leading-tight">
-                Задание {currentLevel + 1} из {totalLevels}
-              </span>
-              <span className="text-[10px] text-[var(--text-tertiary)] leading-tight">{pieceName}</span>
-            </div>
+    <div className="flex flex-col items-center w-full mx-auto">
+      {/* TOP: Unified game controller bar */}
+      <div className="w-full flex items-center justify-between py-2 px-2">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center shadow-sm">
+            <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-5 h-5" draggable={false} alt="" />
           </div>
-          <div className="flex items-center gap-1.5">
-            <ExerciseDots />
-            <div className="w-px h-5 bg-[#d4c4b0]/30 mx-0.5" />
-            <button
-              onClick={() => { setHintLevel(0); setShowHint(!showHint); }}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 ${showHint ? 'bg-[#c9a84c]/15 text-[#8a6a3a]' : 'bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-border)]'}`}
-              title="Подсказка"
-            >
-              <Lightbulb size={15} />
-            </button>
-            <button
-              onClick={reset}
-              className="w-8 h-8 rounded-lg bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-border)] flex items-center justify-center transition-all duration-200"
-              title="Заново"
-            >
-              <RotateCcw size={15} />
-            </button>
+          <div className="flex flex-col">
+            <span className="text-[11px] font-semibold text-[var(--text-secondary)] leading-tight">
+              Задание {currentLevel + 1} из {totalLevels}
+            </span>
+            <span className="text-[10px] text-[var(--text-tertiary)] leading-tight">{pieceName}</span>
           </div>
         </div>
-
-        {/* BOARD */}
-        <div className="relative w-full flex justify-center">
-          <InlineChessBoard
-            key={currentLevel}
-            fen={position}
-            stars={visibleStars}
-            onMove={handleMove}
-            pieceType={pieceType}
-            pieceName={pieceName}
-            guideArrows={level.guideArrows || []}
-            movedPieces={movedPieces}
-            dimmed={phase === 'intro' || phase === 'success' || phase === 'fail'}
-            hintLevel={hintLevel}
-          />
-          {phase === 'intro' && <IntroOverlay />}
-          {phase === 'success' && <SuccessOverlay />}
-          {phase === 'fail' && <FailOverlay />}
+        <div className="flex items-center gap-1.5">
+          <ExerciseDots />
+          <div className="w-px h-5 bg-[#d4c4b0]/30 mx-0.5" />
+          <button
+            onClick={() => { setHintLevel(0); setShowHint(!showHint); }}
+            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 ${showHint ? 'bg-[#c9a84c]/15 text-[#8a6a3a]' : 'bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-border)]'}`}
+            title="Подсказка"
+          >
+            <Lightbulb size={15} />
+          </button>
+          <button
+            onClick={reset}
+            className="w-8 h-8 rounded-lg bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-border)] flex items-center justify-center transition-all duration-200"
+            title="Заново"
+          >
+            <RotateCcw size={15} />
+          </button>
         </div>
       </div>
 
-      {/* RIGHT: Quiet companion panel */}
-      <div className="w-full lg:w-[260px] flex-shrink-0 flex flex-col gap-4 lg:pt-10">
-        {/* Instructions — airy, no card */}
+      {/* BOARD */}
+      <div className="relative w-full">
+        <InlineChessBoard
+          key={currentLevel}
+          fen={position}
+          stars={visibleStars}
+          onMove={handleMove}
+          pieceType={pieceType}
+          pieceName={pieceName}
+          guideArrows={level.guideArrows || []}
+          movedPieces={movedPieces}
+          dimmed={phase === 'intro' || phase === 'success' || phase === 'fail'}
+          hintLevel={hintLevel}
+        />
+        {phase === 'intro' && <IntroOverlay />}
+        {phase === 'success' && <SuccessOverlay />}
+        {phase === 'fail' && <FailOverlay />}
+      </div>
+
+      {/* BOTTOM: instruction + progress */}
+      <div className="w-full flex flex-col items-center gap-2 mt-1 px-1">
+        {/* Game instruction card */}
         {phase === 'playing' && level.instructions && !msg && !showHint && (
-          <div className="flex flex-col gap-1">
-            <p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-medium">Задание</p>
-            <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{level.instructions}</p>
+          <div className="w-full flex items-center gap-2 bg-[var(--bg-secondary)] rounded-lg px-3 py-2 border border-[var(--surface-border)]">
+            <div className="w-5 h-5 rounded bg-[var(--accent)]/10 flex items-center justify-center flex-shrink-0">
+              <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-3 h-3" draggable={false} alt="" />
+            </div>
+            <p className="text-xs text-[var(--text-secondary)] leading-snug">{level.instructions}</p>
           </div>
         )}
+
         {/* Message */}
         {msg && !showHint && (
-          <p className="text-sm text-[var(--text-primary)] leading-relaxed">{msg}</p>
+          <div className="text-center py-1 px-3 rounded text-xs font-medium bg-[#e8dfd5] text-[#5a4a3a]">
+            {msg}
+          </div>
         )}
-        {/* Star progress */}
+
+        {/* Star progress — ⭐ ○ ○ ○ ○ */}
         {stars.length > 0 && phase === 'playing' && (
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             {Array.from({ length: stars.length }, (_, i) => (
               <Star
                 key={i}
-                size={16}
+                size={14}
                 className={i < collectedCount ? 'fill-[#c9a84c] text-[#c9a84c]' : 'text-[#e5dfd8]'}
-                strokeWidth={1.5}
+                strokeWidth={2}
               />
             ))}
           </div>
         )}
-        {/* Next button — quiet */}
+
+        {/* Next button */}
         {allDone && nextLessonUrl && (
           <Link
             href={nextLessonUrl}
-            className="w-full flex items-center justify-center gap-2 py-2 rounded text-xs font-medium transition-all duration-200 hover:translate-x-0.5 border border-[var(--surface-border)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--text-muted)]"
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 hover:translate-x-0.5"
+            style={{ background: 'var(--accent)', color: 'var(--bg-primary)' }}
           >
             <span>Следующий урок</span>
-            <ArrowRight size={12} className="transition-transform duration-200 group-hover:translate-x-1" />
+            <ArrowRight size={14} className="transition-transform duration-300 group-hover:translate-x-1" />
           </Link>
         )}
       </div>
@@ -1374,9 +1375,21 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
   };
 
   return (
-    <div className="w-full">
+    <div className="max-w-6xl mx-auto px-2 py-4">
+      <div className="flex items-center justify-between mb-4">
+        <Link href={`/courses/${courseId}`} className="text-sm text-slate-500 hover:text-slate-800 inline-flex items-center gap-1">
+          <ArrowLeft size={16} /> Назад к курсу
+        </Link>
+        <div className="text-xs text-slate-400">
+          Урок {lessonIndex + 1} из {allLessons.length}
+        </div>
+      </div>
+
+      <h1 className="text-2xl font-bold mb-1">{lesson.title}</h1>
+      <p className="text-sm text-slate-500 mb-6">{lesson.duration_minutes} мин</p>
+
       {interactiveConfig ? (
-        <div className="w-full">
+        <div className="mb-8">
           {(() => {
             const type = interactiveConfig.type;
             if (type === 'interactive_capture') {
@@ -1477,8 +1490,6 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
                 allLessons={allLessons}
                 courseId={courseId}
                 currentLessonId={lesson.id}
-                lessonTitle={lesson.title}
-                lessonContent={lesson.content}
               />
             );
           })()}
@@ -1529,23 +1540,23 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
         </div>
       )}
 
-      <div className="flex items-center justify-between w-full py-2 px-2 border-t border-[var(--surface-border)]">
-        {prevLesson ? (
+      <div className="flex gap-3 pt-4 border-t border-slate-200">
+        {prevLesson && (
           <Link
             href={`/lessons/${prevLesson.id}?course=${courseId}`}
-            className="text-[11px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] inline-flex items-center gap-1 transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 py-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition"
           >
-            <ArrowLeft size={12} /> Предыдущий
+            <ArrowLeft size={18} /> Предыдущий
           </Link>
-        ) : <div />}
-        {nextLesson ? (
+        )}
+        {nextLesson && (
           <Link
             href={`/lessons/${nextLesson.id}?course=${courseId}`}
-            className="text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] inline-flex items-center gap-1 transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition"
           >
-            Следующий <ArrowRight size={12} />
+            Следующий <ArrowRight size={18} />
           </Link>
-        ) : <div />}
+        )}
       </div>
     </div>
   );
