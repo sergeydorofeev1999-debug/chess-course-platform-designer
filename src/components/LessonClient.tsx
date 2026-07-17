@@ -458,7 +458,7 @@ function InlineChessBoard({
       if (isMobile) {
         setSqSize(Math.min(80, Math.max(42, Math.floor((window.innerWidth - 16) / 8))));
       } else {
-        setSqSize(Math.min(64, Math.max(48, Math.floor((Math.min(window.innerWidth, 600) - 24) / 8))));
+        setSqSize(Math.min(80, Math.max(56, Math.floor((Math.min(window.innerWidth, 520) - 24) / 8))));
       }
     };
     update();
@@ -653,7 +653,7 @@ function InlineChessBoard({
 
   return (
     <div className="flex flex-col items-center gap-2 select-none" style={{ touchAction: 'none' }}>
-      <div className={`grid border-[4px] border-[#1a1612] rounded-sm relative select-none ${dimmed ? 'board-dim' : 'board-fade-in'}`} style={{ gridTemplateColumns: `repeat(8, ${sqSize}px)`, gridTemplateRows: `repeat(8, ${sqSize}px)`, touchAction: 'none', boxShadow: '0 8px 24px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.05)' }}>
+      <div className={`grid border-[5px] border-[#1a1612] rounded-sm relative select-none ${dimmed ? 'board-dim' : 'board-fade-in'}`} style={{ gridTemplateColumns: `repeat(8, ${sqSize}px)`, gridTemplateRows: `repeat(8, ${sqSize}px)`, touchAction: 'none', boxShadow: '0 12px 40px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06)' }}>
         {RANKS.map((rank, ri) =>
           FILES.map((file, fi) => {
             const sq = `${file}${rank}`;
@@ -709,7 +709,9 @@ function InlineChessBoard({
                   className="absolute inset-0 flex items-center justify-center pointer-events-none"
                   style={{ zIndex: 25, opacity: hasStar ? 1 : 0, visibility: hasStar ? 'visible' : 'hidden' }}
                 >
-                  <StarSvg />
+                  <div className={hasStar ? 'star-twinkle' : ''}>
+                    <StarSvg />
+                  </div>
                 </div>
                 {pieceObj && !isSource && (
                   <div className="relative pointer-events-none" style={{ width: Math.round(sqSize*0.85), height: Math.round(sqSize*0.85) }}>
@@ -766,8 +768,6 @@ function MultiLevelStarBoard({
   allLessons,
   courseId,
   currentLessonId,
-  lessonTitle,
-  lessonContent,
 }: {
   config: any;
   onComplete?: () => void;
@@ -777,8 +777,6 @@ function MultiLevelStarBoard({
   allLessons?: any[];
   courseId?: string;
   currentLessonId?: string;
-  lessonTitle?: string;
-  lessonContent?: string;
 }) {
   const router = useRouter();
   const pieceCodeRaw = config.pieceCode || 'wR';
@@ -1235,80 +1233,92 @@ function MultiLevelStarBoard({
   );
 
   return (
-    <div className="flex flex-col lg:flex-row w-full gap-5 lg:gap-8 items-start">
-      {/* LEFT: Board workspace */}
-      <div className="flex-1 flex flex-col items-center min-w-0">
-        {/* TOP: Unified game controller bar */}
-        <div className="w-full flex items-center justify-between py-2">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center shadow-sm">
-              <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-5 h-5" draggable={false} alt="" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-[11px] font-semibold text-[var(--text-secondary)] leading-tight">
-                Задание {currentLevel + 1} из {totalLevels}
-              </span>
-              <span className="text-[10px] text-[var(--text-tertiary)] leading-tight">{pieceName}</span>
-            </div>
+    <div className="flex flex-col items-center w-full md:max-w-[520px] mx-auto">
+      {/* TOP: Unified game controller bar */}
+      <div className="w-full flex items-center justify-between py-2 px-2">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center shadow-sm">
+            <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-5 h-5" draggable={false} alt="" />
           </div>
-          <div className="flex items-center gap-1.5">
-            <ExerciseDots />
-            <div className="w-px h-5 bg-[#d4c4b0]/30 mx-0.5" />
-            <button
-              onClick={() => { setHintLevel(0); setShowHint(!showHint); }}
-              className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 ${showHint ? 'bg-[#c9a84c]/15 text-[#8a6a3a]' : 'bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-border)]'}`}
-              title="Подсказка"
-            >
-              <Lightbulb size={15} />
-            </button>
-            <button
-              onClick={reset}
-              className="w-8 h-8 rounded-lg bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-border)] flex items-center justify-center transition-all duration-200"
-              title="Заново"
-            >
-              <RotateCcw size={15} />
-            </button>
+          <div className="flex flex-col">
+            <span className="text-[11px] font-semibold text-[var(--text-secondary)] leading-tight">
+              Задание {currentLevel + 1} из {totalLevels}
+            </span>
+            <span className="text-[10px] text-[var(--text-tertiary)] leading-tight">{pieceName}</span>
           </div>
         </div>
-
-        {/* BOARD */}
-        <div className="relative w-full flex justify-center">
-          <InlineChessBoard
-            key={currentLevel}
-            fen={position}
-            stars={visibleStars}
-            onMove={handleMove}
-            pieceType={pieceType}
-            pieceName={pieceName}
-            guideArrows={level.guideArrows || []}
-            movedPieces={movedPieces}
-            dimmed={phase === 'intro' || phase === 'success' || phase === 'fail'}
-            hintLevel={hintLevel}
-          />
-          {phase === 'intro' && <IntroOverlay />}
-          {phase === 'success' && <SuccessOverlay />}
-          {phase === 'fail' && <FailOverlay />}
+        <div className="flex items-center gap-1.5">
+          <ExerciseDots />
+          <div className="w-px h-5 bg-[#d4c4b0]/30 mx-0.5" />
+          <button
+            onClick={() => { setHintLevel(0); setShowHint(!showHint); }}
+            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 ${showHint ? 'bg-[#c9a84c]/15 text-[#8a6a3a]' : 'bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-border)]'}`}
+            title="Подсказка"
+          >
+            <Lightbulb size={15} />
+          </button>
+          <button
+            onClick={reset}
+            className="w-8 h-8 rounded-lg bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-border)] flex items-center justify-center transition-all duration-200"
+            title="Заново"
+          >
+            <RotateCcw size={15} />
+          </button>
         </div>
       </div>
 
-      {/* RIGHT: Quiet companion panel */}
-      <div className="w-full lg:w-[360px] flex-shrink-0 flex flex-col gap-5">
-        {/* Title */}
-        {lessonTitle && (
-          <h2 className="text-base font-bold text-[var(--text-primary)] leading-snug">{lessonTitle}</h2>
-        )}
-        {/* Description */}
-        {lessonContent && (
-          <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{lessonContent}</p>
-        )}
-        {/* Instructions */}
+      {/* BOARD */}
+      <div className="relative w-full">
+        <InlineChessBoard
+          key={currentLevel}
+          fen={position}
+          stars={visibleStars}
+          onMove={handleMove}
+          pieceType={pieceType}
+          pieceName={pieceName}
+          guideArrows={level.guideArrows || []}
+          movedPieces={movedPieces}
+          dimmed={phase === 'intro' || phase === 'success' || phase === 'fail'}
+          hintLevel={hintLevel}
+        />
+        {phase === 'intro' && <IntroOverlay />}
+        {phase === 'success' && <SuccessOverlay />}
+        {phase === 'fail' && <FailOverlay />}
+      </div>
+
+      {/* BOTTOM: instruction + progress */}
+      <div className="w-full flex flex-col items-center gap-2 mt-1 px-1">
+        {/* Game instruction card */}
         {phase === 'playing' && level.instructions && !msg && !showHint && (
-          <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{level.instructions}</p>
+          <div className="w-full flex items-center gap-2 bg-[var(--bg-secondary)] rounded-lg px-3 py-2 border border-[var(--surface-border)]">
+            <div className="w-5 h-5 rounded bg-[var(--accent)]/10 flex items-center justify-center flex-shrink-0">
+              <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-3 h-3" draggable={false} alt="" />
+            </div>
+            <p className="text-xs text-[var(--text-secondary)] leading-snug">{level.instructions}</p>
+          </div>
         )}
+
         {/* Message */}
         {msg && !showHint && (
-          <p className="text-sm text-[var(--text-primary)] leading-relaxed">{msg}</p>
+          <div className="text-center py-1 px-3 rounded text-xs font-medium bg-[#e8dfd5] text-[#5a4a3a]">
+            {msg}
+          </div>
         )}
+
+        {/* Star progress — ⭐ ○ ○ ○ ○ */}
+        {stars.length > 0 && phase === 'playing' && (
+          <div className="flex items-center gap-1">
+            {Array.from({ length: stars.length }, (_, i) => (
+              <Star
+                key={i}
+                size={14}
+                className={i < collectedCount ? 'fill-[#c9a84c] text-[#c9a84c]' : 'text-[#e5dfd8]'}
+                strokeWidth={2}
+              />
+            ))}
+          </div>
+        )}
+
         {/* Next button */}
         {allDone && nextLessonUrl && (
           <Link
@@ -1368,20 +1378,20 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
 
   return (
     <div className="w-full px-3 py-4">
-      {/* Quiet top nav */}
-      <div className="flex items-center justify-between mb-3">
-        <Link
-          href={`/courses/${courseId}`}
-          className="text-[11px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] inline-flex items-center gap-1 transition-colors"
-        >
-          <ArrowLeft size={12} /> К курсу
-        </Link>
-        <span className="text-[10px] text-[var(--text-tertiary)]">
-          Урок {lessonIndex + 1} из {allLessons.length}
-        </span>
-      </div>
+    {/* Quiet nav */}
+    <div className="flex items-center justify-between mb-3">
+      <Link
+        href={`/courses/${courseId}`}
+        className="text-[11px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] inline-flex items-center gap-1 transition-colors"
+      >
+        <ArrowLeft size={12} /> К курсу
+      </Link>
+      <span className="text-[10px] text-[var(--text-tertiary)]">
+        Урок {lessonIndex + 1} из {allLessons.length}
+      </span>
+    </div>
 
-      {interactiveConfig ? (
+    {interactiveConfig ? (
         <div className="mb-8">
           {(() => {
             const type = interactiveConfig.type;
@@ -1483,8 +1493,6 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
                 allLessons={allLessons}
                 courseId={courseId}
                 currentLessonId={lesson.id}
-                lessonTitle={lesson.title}
-                lessonContent={lesson.content}
               />
             );
           })()}
@@ -1535,23 +1543,23 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
         </div>
       )}
 
-      <div className="flex gap-3 pt-4 border-t border-slate-200">
-        {prevLesson && (
+      <div className="flex items-center justify-between w-full py-2 px-2 border-t border-[var(--surface-border)] mt-2">
+        {prevLesson ? (
           <Link
             href={`/lessons/${prevLesson.id}?course=${courseId}`}
-            className="flex-1 flex items-center justify-center gap-2 py-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition"
+            className="text-[11px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] inline-flex items-center gap-1 transition-colors"
           >
-            <ArrowLeft size={18} /> Предыдущий
+            <ArrowLeft size={12} /> Предыдущий
           </Link>
-        )}
-        {nextLesson && (
+        ) : <div />}
+        {nextLesson ? (
           <Link
             href={`/lessons/${nextLesson.id}?course=${courseId}`}
-            className="flex-1 flex items-center justify-center gap-2 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition"
+            className="text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] inline-flex items-center gap-1 transition-colors"
           >
-            Следующий <ArrowRight size={18} />
+            Следующий <ArrowRight size={12} />
           </Link>
-        )}
+        ) : <div />}
       </div>
     </div>
   );
