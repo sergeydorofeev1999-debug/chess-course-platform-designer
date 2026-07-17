@@ -1042,9 +1042,9 @@ function MultiLevelStarBoard({
   const collectedCount = stars.filter((s: string) => collected.includes(s)).length;
   const allCollected = stars.every((s: string) => collected.includes(s));
 
-  // ═══ EXERCISE NAVIGATION DOTS (Direction C — quiet, resolved) ═══
+  // ═══ EXERCISE NAVIGATION DOTS — compact horizontal bar ═══
   const ExerciseDots = () => (
-    <div className="flex items-center justify-center gap-1.5 mb-2">
+    <div className="flex items-center justify-center gap-2">
       {levels.map((_l: any, i: number) => {
         const earned = levelStars[i];
         const isCurrent = i === currentLevel;
@@ -1057,22 +1057,22 @@ function MultiLevelStarBoard({
               if (isFuture || isCurrent) return;
               setCurrentLevel(i);
               setAllDone(false);
-              setPhase('intro');
+              setPhase('playing');
             }}
             disabled={isFuture || isCurrent}
-            className={`relative flex items-center justify-center rounded-full transition-all duration-300 ${
+            className={`flex items-center justify-center rounded-full transition-all duration-300 ${
               isCurrent
-                ? 'w-8 h-8 bg-[var(--text-primary)] text-[var(--bg-primary)]'
+                ? 'w-6 h-6 bg-[var(--text-primary)] text-[var(--bg-primary)]'
                 : isDone
-                  ? 'w-6 h-6 bg-[#d4c4b0] text-[#3a2e24] opacity-80'
-                  : 'w-6 h-6 bg-[var(--bg-secondary)] text-[var(--text-muted)]'
+                  ? 'w-5 h-5 bg-[#d4c4b0] text-[#3a2e24] opacity-80'
+                  : 'w-5 h-5 bg-[var(--bg-secondary)] text-[var(--text-muted)] opacity-50'
             } ${isFuture ? 'cursor-not-allowed' : 'cursor-pointer hover:opacity-90'}`}
             title={isDone ? `Упражнение ${i + 1} — пройдено` : `Упражнение ${i + 1}`}
           >
             {isDone ? (
-              <CheckCircle size={12} strokeWidth={2.5} />
+              <CheckCircle size={10} strokeWidth={2.5} />
             ) : (
-              <span className="text-[10px] font-bold">{i + 1}</span>
+              <span className="text-[9px] font-bold">{i + 1}</span>
             )}
             {isCurrent && (
               <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[var(--accent)]" />
@@ -1117,74 +1117,35 @@ function MultiLevelStarBoard({
   const SuccessOverlay = () => {
     const earned = levelStars[currentLevel] || 3;
     const isLast = currentLevel + 1 >= totalLevels;
+    
+    // Auto-advance after brief delay
+    useEffect(() => {
+      const timer = setTimeout(() => {
+        if (!isLast) {
+          setCurrentLevel((l) => l + 1);
+          setPhase('playing');
+          setMsg('');
+        }
+      }, 1200);
+      return () => clearTimeout(timer);
+    }, [isLast]);
+    
     return (
-      <div className="absolute inset-0 z-40 flex flex-col items-center justify-end pb-8 pointer-events-none">
-        {/* Top banner — not covering the board */}
-        <div className="bg-[var(--bg-primary)]/95 backdrop-blur-sm rounded-xl px-6 py-4 shadow-lg border border-[#d4c4b0]/40 text-center pointer-events-auto success-bounce mx-4">
-          <div className="flex items-center justify-center gap-3">
-            {/* Compact star row */}
-            <div className="flex gap-0.5">
-              {[1, 2, 3].map((s) => (
-                <Star
-                  key={s}
-                  size={16}
-                  className={s <= earned ? 'fill-[#c9a84c] text-[#c9a84c]' : 'text-[#e5dfd8]'}
-                  strokeWidth={2.5}
-                />
-              ))}
-            </div>
-            <div className="h-4 w-px bg-[#d4c4b0]" />
-            <span className="text-sm font-medium text-[var(--text-secondary)]">
-              {isLast ? 'Урок завершён' : `Упражнение ${currentLevel + 1} выполнено`}
+      <div className="absolute inset-0 z-40 flex flex-col items-center justify-center pointer-events-none">
+        {/* Quick toast — not covering board */}
+        <div className="bg-[var(--bg-primary)]/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg border border-[#d4c4b0]/30 text-center pointer-events-auto success-bounce">
+          <div className="flex items-center gap-2">
+            {[1, 2, 3].map((s) => (
+              <Star
+                key={s}
+                size={14}
+                className={s <= earned ? 'fill-[#c9a84c] text-[#c9a84c]' : 'text-[#e5dfd8]'}
+                strokeWidth={2.5}
+              />
+            ))}
+            <span className="text-xs font-medium text-[var(--text-secondary)]">
+              {isLast ? 'Урок завершён' : 'Отлично!'}
             </span>
-          </div>
-
-          <div className="flex items-center justify-center gap-2 mt-3">
-            {!isLast && (
-              <button
-                onClick={() => {
-                  setCurrentLevel((l) => l + 1);
-                  setPhase('playing');
-                  setMsg('');
-                }}
-                className="px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                style={{
-                  background: 'var(--text-primary)',
-                  color: 'var(--bg-primary)',
-                }}
-              >
-                <div className="flex items-center gap-1.5">
-                  <span>Дальше</span>
-                  <ArrowRight size={14} />
-                </div>
-              </button>
-            )}
-            {isLast && nextLessonUrl && (
-              <Link
-                href={nextLessonUrl}
-                className="px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-                style={{
-                  background: 'var(--text-primary)',
-                  color: 'var(--bg-primary)',
-                }}
-              >
-                <div className="flex items-center gap-1.5">
-                  <span>Следующий урок</span>
-                  <ArrowRight size={14} />
-                </div>
-              </Link>
-            )}
-            <button
-              onClick={reset}
-              className="px-3 py-2 rounded-lg text-sm font-medium border transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-              style={{
-                borderColor: '#d4c4b0',
-                color: 'var(--text-secondary)',
-              }}
-              title="Заново"
-            >
-              <RotateCcw size={14} />
-            </button>
           </div>
         </div>
       </div>
@@ -1235,120 +1196,71 @@ function MultiLevelStarBoard({
   );
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
-      {/* LEFT COLUMN: Exercise dots + navigation */}
-      <div className="w-full lg:w-[140px] flex-shrink-0 space-y-2">
-        {/* Desktop: vertical dots */}
-        <div className="hidden lg:flex flex-col gap-2">
-          {levels.map((_l: any, i: number) => {
-            const earned = levelStars[i];
-            const isCurrent = i === currentLevel;
-            const isDone = earned != null;
-            const isFuture = !isCurrent && !isDone && i > currentLevel;
-            return (
-              <button
-                key={i}
-                onClick={() => {
-                  if (isFuture || isCurrent) return;
-                  setCurrentLevel(i);
-                  setAllDone(false);
-                  setPhase('intro');
-                }}
-                disabled={isFuture || isCurrent}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
-                  isCurrent
-                    ? 'bg-[var(--text-primary)] text-[var(--bg-primary)]'
-                    : isDone
-                      ? 'bg-[#e8dfd5] text-[#5a4a3a] opacity-80'
-                      : 'bg-[var(--bg-secondary)] text-[var(--text-muted)]'
-                } ${isFuture ? 'cursor-not-allowed' : 'cursor-pointer hover:opacity-90'}`}
-              >
-                <div className={`flex items-center justify-center rounded-full ${isCurrent ? 'w-5 h-5 bg-white/20' : 'w-4 h-4'} ${isDone ? 'bg-[#8a7a6a]' : 'bg-[#d4c4b0]'}`}>
-                  {isDone ? (
-                    <CheckCircle size={10} className="text-[var(--bg-primary)]" />
-                  ) : (
-                    <span className="text-[8px] font-bold text-white">{i + 1}</span>
-                  )}
-                </div>
-                <span className="text-xs font-medium">{i + 1}</span>
-              </button>
-            );
-          })}
+    <div className="flex flex-col items-center gap-3 w-full">
+      {/* TOP: Exercise dots + controls */}
+      <div className="w-full flex items-center justify-between px-2">
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-md bg-[var(--accent)]/10 flex items-center justify-center">
+            <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-4 h-4" draggable={false} alt="" />
+          </div>
+          <span className="text-xs font-medium text-[var(--text-secondary)]">
+            Задание {currentLevel + 1} из {totalLevels}
+          </span>
         </div>
-
-        {/* Mobile: horizontal dots */}
-        <div className="lg:hidden">
+        <div className="flex items-center gap-2">
           <ExerciseDots />
+          <button
+            onClick={() => setShowHint(!showHint)}
+            className={`p-1.5 rounded-md transition-all duration-200 ${showHint ? 'bg-[#c9a84c]/15 text-[#8a6a3a]' : 'bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-border)]'}`}
+            title="Подсказка"
+          >
+            <Lightbulb size={14} />
+          </button>
+          <button
+            onClick={reset}
+            className="p-1.5 rounded-md bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-border)] transition-all duration-200"
+            title="Заново"
+          >
+            <RotateCcw size={14} />
+          </button>
         </div>
       </div>
 
-      {/* CENTER COLUMN: Chess board with overlays */}
-      <div className="flex-1 flex flex-col items-center gap-3 relative">
-        {/* Exercise title + instructions pill */}
-        <div className="w-full flex items-center justify-between px-2">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center">
-              <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-5 h-5" draggable={false} alt="" />
-            </div>
-            <div>
-              <span className="text-xs font-bold text-[var(--accent)]">Задание {currentLevel + 1}/{totalLevels}</span>
-              <p className="text-xs text-[var(--text-secondary)]">{pieceName}</p>
-            </div>
-          </div>
-          <div className="flex gap-1">
-            <button
-              onClick={() => setShowHint(!showHint)}
-              className={`p-2 rounded-lg transition-all duration-200 ${showHint ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}
-              title="Подсказка"
-            >
-              <Lightbulb size={16} />
-            </button>
-            <button
-              onClick={reset}
-              className="p-2 rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all duration-200"
-              title="Заново"
-            >
-              <RotateCcw size={16} />
-            </button>
-          </div>
-        </div>
+      {/* BOARD: centered, large */}
+      <div className="relative">
+        <InlineChessBoard
+          key={currentLevel}
+          fen={position}
+          stars={visibleStars}
+          onMove={handleMove}
+          pieceType={pieceType}
+          pieceName={pieceName}
+          guideArrows={level.guideArrows || []}
+          movedPieces={movedPieces}
+          dimmed={phase === 'intro' || phase === 'success' || phase === 'fail'}
+        />
+        {phase === 'intro' && <IntroOverlay />}
+        {phase === 'success' && <SuccessOverlay />}
+        {phase === 'fail' && <FailOverlay />}
+      </div>
 
-        {/* Board container with overlays */}
-        <div className="relative">
-          <InlineChessBoard
-            key={currentLevel}
-            fen={position}
-            stars={visibleStars}
-            onMove={handleMove}
-            pieceType={pieceType}
-            pieceName={pieceName}
-            guideArrows={level.guideArrows || []}
-            movedPieces={movedPieces}
-            dimmed={phase === 'intro' || phase === 'success' || phase === 'fail'}
-          />
-          {phase === 'intro' && <IntroOverlay />}
-          {phase === 'success' && <SuccessOverlay />}
-          {phase === 'fail' && <FailOverlay />}
-        </div>
-
-        {/* Hint toast */}
+      {/* BOTTOM: instruction + progress */}
+      <div className="w-full flex flex-col items-center gap-2 mt-1">
+        {/* Hint toast (positioned below board) */}
         {showHint && phase === 'playing' && <HintToast />}
 
-        {/* Message bar — warm paper */}
+        {/* Message bar */}
         {msg && !showHint && (
-          <div className="text-center py-1.5 px-3 rounded-lg text-xs font-medium bg-[#e8dfd5] text-[#5a4a3a]">
+          <div className="text-center py-1 px-3 rounded text-xs font-medium bg-[#e8dfd5] text-[#5a4a3a]">
             {msg}
           </div>
         )}
 
         {/* Compact brass progress */}
         {stars.length > 0 && phase === 'playing' && (
-          <div className="w-full max-w-[180px]">
-            <div className="flex items-center justify-center gap-1 text-xs text-[var(--text-muted)]">
-              <Star size={10} className="text-[#c9a84c]" />
-              <span>{collectedCount} из {stars.length}</span>
-            </div>
-            <div className="h-1 bg-[#e5dfd8] rounded-full overflow-hidden mt-1">
+          <div className="w-full max-w-[200px] flex items-center gap-2">
+            <Star size={10} className="text-[#c9a84c]" />
+            <div className="flex-1 h-[2px] bg-[#e5dfd8] rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500 ease-out"
                 style={{
@@ -1357,34 +1269,17 @@ function MultiLevelStarBoard({
                 }}
               />
             </div>
+            <span className="text-[10px] text-[var(--text-muted)]">
+              {collectedCount}/{stars.length}
+            </span>
           </div>
         )}
-      </div>
 
-      {/* RIGHT COLUMN: Instructions + info */}
-      <div className="w-full lg:w-[180px] flex-shrink-0 space-y-3">
-        <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-          <h4 className="font-bold text-sm text-[var(--text-primary)] mb-2">Инструкция</h4>
-          <p className="text-xs text-[var(--text-secondary)] leading-relaxed" style={{ whiteSpace: 'pre-line' }}>
+        {/* Instructions — only when not playing */}
+        {phase !== 'playing' && (
+          <p className="text-[11px] text-center text-[var(--text-secondary)] max-w-[300px] leading-relaxed">
             {level.instructions}
           </p>
-        </div>
-
-        {allDone && nextLessonUrl && (
-          <Link
-            href={nextLessonUrl}
-            className="block w-full py-3 rounded-xl font-bold text-sm text-center transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
-            style={{
-              background: 'var(--accent)',
-              color: 'var(--bg-primary)',
-              boxShadow: '0 4px 12px rgba(46,107,122,0.3)',
-            }}
-          >
-            <div className="flex items-center justify-center gap-2">
-              <span>Следующий урок</span>
-              <ArrowRight size={16} />
-            </div>
-          </Link>
         )}
       </div>
     </div>
