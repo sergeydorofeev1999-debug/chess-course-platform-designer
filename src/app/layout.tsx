@@ -14,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru" data-direction="c">
+    <html lang="ru">
       <body className="min-h-full antialiased">
         <NavbarWrapper />
         <DirectionLayout>
