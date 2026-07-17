@@ -1231,7 +1231,7 @@ function MultiLevelStarBoard({
   );
 
   return (
-    <div className="flex flex-col items-center w-full md:max-w-[520px] mx-auto">
+    <div className="flex flex-col items-center w-full mx-auto">
       {/* TOP: Unified game controller bar */}
       <div className="w-full flex items-center justify-between py-2">
         <div className="flex items-center gap-2">
@@ -1375,21 +1375,9 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-2 py-4">
-      <div className="flex items-center justify-between mb-4">
-        <Link href={`/courses/${courseId}`} className="text-sm text-slate-500 hover:text-slate-800 inline-flex items-center gap-1">
-          <ArrowLeft size={16} /> Назад к курсу
-        </Link>
-        <div className="text-xs text-slate-400">
-          Урок {lessonIndex + 1} из {allLessons.length}
-        </div>
-      </div>
-
-      <h1 className="text-2xl font-bold mb-1">{lesson.title}</h1>
-      <p className="text-sm text-slate-500 mb-6">{lesson.duration_minutes} мин</p>
-
+    <div className="w-full">
       {interactiveConfig ? (
-        <div className="mb-8">
+        <div className="w-full">
           {(() => {
             const type = interactiveConfig.type;
             if (type === 'interactive_capture') {
@@ -1540,23 +1528,23 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
         </div>
       )}
 
-      <div className="flex gap-3 pt-4 border-t border-slate-200">
-        {prevLesson && (
+      <div className="flex items-center justify-between w-full py-2 px-2 border-t border-[var(--surface-border)]">
+        {prevLesson ? (
           <Link
             href={`/lessons/${prevLesson.id}?course=${courseId}`}
-            className="flex-1 flex items-center justify-center gap-2 py-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition"
+            className="text-[11px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] inline-flex items-center gap-1 transition-colors"
           >
-            <ArrowLeft size={18} /> Предыдущий
+            <ArrowLeft size={12} /> Предыдущий
           </Link>
-        )}
-        {nextLesson && (
+        ) : <div />}
+        {nextLesson ? (
           <Link
             href={`/lessons/${nextLesson.id}?course=${courseId}`}
-            className="flex-1 flex items-center justify-center gap-2 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition"
+            className="text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] inline-flex items-center gap-1 transition-colors"
           >
-            Следующий <ArrowRight size={18} />
+            Следующий <ArrowRight size={12} />
           </Link>
-        )}
+        ) : <div />}
       </div>
     </div>
   );
