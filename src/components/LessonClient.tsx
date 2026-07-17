@@ -456,9 +456,9 @@ function InlineChessBoard({
     const update = () => {
       const isMobile = window.innerWidth < 1024;
       if (isMobile) {
-        setSqSize(Math.min(64, Math.max(36, Math.floor((window.innerWidth - 24) / 8))));
+        setSqSize(Math.min(80, Math.max(42, Math.floor((window.innerWidth - 16) / 8))));
       } else {
-        setSqSize(Math.min(64, Math.max(48, Math.floor((window.innerWidth - 340) / 8))));
+        setSqSize(Math.min(80, Math.max(56, Math.floor((Math.min(window.innerWidth, 520) - 24) / 8))));
       }
     };
     update();
@@ -653,7 +653,7 @@ function InlineChessBoard({
 
   return (
     <div className="flex flex-col items-center gap-2 select-none" style={{ touchAction: 'none' }}>
-      <div className={`grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none ${dimmed ? 'opacity-40' : ''}`} style={{ gridTemplateColumns: `repeat(8, ${sqSize}px)`, gridTemplateRows: `repeat(8, ${sqSize}px)`, touchAction: 'none' }}>
+      <div className={`grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none ${dimmed ? 'board-dim' : 'board-fade-in'}`} style={{ gridTemplateColumns: `repeat(8, ${sqSize}px)`, gridTemplateRows: `repeat(8, ${sqSize}px)`, touchAction: 'none' }}>
         {RANKS.map((rank, ri) =>
           FILES.map((file, fi) => {
             const sq = `${file}${rank}`;
@@ -1231,38 +1231,42 @@ function MultiLevelStarBoard({
   );
 
   return (
-    <div className="flex flex-col items-center gap-3 w-full">
-      {/* TOP: Exercise dots + controls */}
-      <div className="w-full flex items-center justify-between px-2">
+    <div className="flex flex-col items-center w-full md:max-w-[520px] mx-auto">
+      {/* TOP: Unified game controller bar */}
+      <div className="w-full flex items-center justify-between py-2 px-2">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-md bg-[var(--accent)]/10 flex items-center justify-center">
-            <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-4 h-4" draggable={false} alt="" />
+          <div className="w-8 h-8 rounded-lg bg-[var(--accent)]/10 flex items-center justify-center shadow-sm">
+            <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-5 h-5" draggable={false} alt="" />
           </div>
-          <span className="text-xs font-medium text-[var(--text-secondary)]">
-            Задание {currentLevel + 1} из {totalLevels}
-          </span>
+          <div className="flex flex-col">
+            <span className="text-[11px] font-semibold text-[var(--text-secondary)] leading-tight">
+              Задание {currentLevel + 1} из {totalLevels}
+            </span>
+            <span className="text-[10px] text-[var(--text-tertiary)] leading-tight">{pieceName}</span>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <ExerciseDots />
+          <div className="w-px h-5 bg-[#d4c4b0]/30 mx-0.5" />
           <button
-            onClick={() => setShowHint(!showHint)}
-            className={`p-1.5 rounded-md transition-all duration-200 ${showHint ? 'bg-[#c9a84c]/15 text-[#8a6a3a]' : 'bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-border)]'}`}
+            onClick={() => { setHintLevel(0); setShowHint(!showHint); }}
+            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200 ${showHint ? 'bg-[#c9a84c]/15 text-[#8a6a3a]' : 'bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-border)]'}`}
             title="Подсказка"
           >
-            <Lightbulb size={14} />
+            <Lightbulb size={15} />
           </button>
           <button
             onClick={reset}
-            className="p-1.5 rounded-md bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-border)] transition-all duration-200"
+            className="w-8 h-8 rounded-lg bg-[var(--bg-secondary)] text-[var(--text-muted)] hover:bg-[var(--surface-border)] flex items-center justify-center transition-all duration-200"
             title="Заново"
           >
-            <RotateCcw size={14} />
+            <RotateCcw size={15} />
           </button>
         </div>
       </div>
 
-      {/* BOARD: centered, large */}
-      <div className="relative">
+      {/* BOARD */}
+      <div className="relative w-full">
         <InlineChessBoard
           key={currentLevel}
           fen={position}
@@ -1281,50 +1285,53 @@ function MultiLevelStarBoard({
       </div>
 
       {/* BOTTOM: instruction + progress */}
-      <div className="w-full flex flex-col items-center gap-2 mt-1">
-        {/* Hint toast (positioned below board) */}
-        {showHint && phase === 'playing' && <HintToast />}
+      <div className="w-full flex flex-col items-center gap-2 mt-1 px-1">
+        {/* Game instruction card */}
+        {phase === 'playing' && level.instructions && !msg && !showHint && (
+          <div className="w-full flex items-center gap-2 bg-[var(--bg-secondary)] rounded-lg px-3 py-2 border border-[var(--surface-border)]">
+            <div className="w-5 h-5 rounded bg-[var(--accent)]/10 flex items-center justify-center flex-shrink-0">
+              <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-3 h-3" draggable={false} alt="" />
+            </div>
+            <p className="text-xs text-[var(--text-secondary)] leading-snug">{level.instructions}</p>
+          </div>
+        )}
 
-        {/* Message bar */}
+        {/* Message */}
         {msg && !showHint && (
           <div className="text-center py-1 px-3 rounded text-xs font-medium bg-[#e8dfd5] text-[#5a4a3a]">
             {msg}
           </div>
         )}
 
-        {/* Compact brass progress */}
+        {/* Star progress — ⭐ ○ ○ ○ ○ */}
         {stars.length > 0 && phase === 'playing' && (
-          <div className="w-full max-w-[200px] flex items-center gap-2">
-            <Star size={10} className="text-[#c9a84c]" />
-            <div className="flex-1 h-[2px] bg-[#e5dfd8] rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-500 ease-out"
-                style={{
-                  width: `${(collectedCount / stars.length) * 100}%`,
-                  background: '#c9a84c',
-                }}
+          <div className="flex items-center gap-1">
+            {Array.from({ length: stars.length }, (_, i) => (
+              <Star
+                key={i}
+                size={14}
+                className={i < collectedCount ? 'fill-[#c9a84c] text-[#c9a84c]' : 'text-[#e5dfd8]'}
+                strokeWidth={2}
               />
-            </div>
-            <span className="text-[10px] text-[var(--text-muted)]">
-              {collectedCount}/{stars.length}
-            </span>
+            ))}
           </div>
         )}
 
-        {/* Instructions — only when not playing */}
-        {phase !== 'playing' && (
-          <p className="text-[11px] text-center text-[var(--text-secondary)] max-w-[300px] leading-relaxed">
-            {level.instructions}
-          </p>
+        {/* Next button */}
+        {allDone && nextLessonUrl && (
+          <Link
+            href={nextLessonUrl}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 hover:translate-x-0.5"
+            style={{ background: 'var(--accent)', color: 'var(--bg-primary)' }}
+          >
+            <span>Следующий урок</span>
+            <ArrowRight size={14} className="transition-transform duration-300 group-hover:translate-x-1" />
+          </Link>
         )}
       </div>
     </div>
   );
 }
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// LessonClient — main component
-// ═══════════════════════════════════════════════════════════════════════════════
 export default function LessonClient({ lesson, allLessons, courseId, isCompletedInit }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const [isCompleted, setIsCompleted] = useState(isCompletedInit);
