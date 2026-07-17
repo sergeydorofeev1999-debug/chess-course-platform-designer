@@ -778,6 +778,8 @@ function MultiLevelStarBoard({
   const [failed, setFailed] = useState(false);
   const [phase, setPhase] = useState<'intro' | 'playing' | 'success' | 'fail'>('intro');
   const [showHint, setShowHint] = useState(false);
+  const [showIntro, setShowIntro] = useState(true);
+  const [hintLevel, setHintLevel] = useState(0);
   const [promotionPending, setPromotionPending] = useState<{from: string, to: string} | null>(null);
   const [levelStars, setLevelStars] = useState<Record<number, number>>(() => savedProgress);
   const movesRef = useRef(moves);
@@ -803,6 +805,7 @@ function MultiLevelStarBoard({
     setGameOver(false);
     setPhase('intro');
     setShowHint(false);
+    setHintLevel(0);
   }, [level]);
 
   useEffect(() => {
@@ -1039,9 +1042,9 @@ function MultiLevelStarBoard({
   const collectedCount = stars.filter((s: string) => collected.includes(s)).length;
   const allCollected = stars.every((s: string) => collected.includes(s));
 
-  // ═══ EXERCISE NAVIGATION DOTS (Duolingo style) ═══
+  // ═══ EXERCISE NAVIGATION DOTS (Direction C — quiet, resolved) ═══
   const ExerciseDots = () => (
-    <div className="flex items-center justify-center gap-2 mb-4">
+    <div className="flex items-center justify-center gap-1.5 mb-2">
       {levels.map((_l: any, i: number) => {
         const earned = levelStars[i];
         const isCurrent = i === currentLevel;
@@ -1059,23 +1062,20 @@ function MultiLevelStarBoard({
             disabled={isFuture || isCurrent}
             className={`relative flex items-center justify-center rounded-full transition-all duration-300 ${
               isCurrent
-                ? 'w-10 h-10 ring-2 ring-[var(--accent)] ring-offset-2 bg-[var(--accent)] text-white'
+                ? 'w-8 h-8 bg-[var(--text-primary)] text-[var(--bg-primary)]'
                 : isDone
-                  ? 'w-8 h-8 bg-emerald-500 text-white'
-                  : 'w-8 h-8 bg-gray-200 text-gray-400'
-            } ${isFuture ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-110'}`}
+                  ? 'w-6 h-6 bg-[#d4c4b0] text-[#3a2e24] opacity-80'
+                  : 'w-6 h-6 bg-[var(--bg-secondary)] text-[var(--text-muted)]'
+            } ${isFuture ? 'cursor-not-allowed' : 'cursor-pointer hover:opacity-90'}`}
+            title={isDone ? `Упражнение ${i + 1} — пройдено` : `Упражнение ${i + 1}`}
           >
             {isDone ? (
-              <div className="flex gap-0.5">
-                {[1, 2, 3].map((s) => (
-                  <Star key={s} size={10} className={s <= earned ? 'fill-yellow-300 text-yellow-300' : 'text-white/30'} />
-                ))}
-              </div>
+              <CheckCircle size={12} strokeWidth={2.5} />
             ) : (
-              <span className="text-xs font-bold">{i + 1}</span>
+              <span className="text-[10px] font-bold">{i + 1}</span>
             )}
             {isCurrent && (
-              <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-[var(--accent)]" />
+              <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[var(--accent)]" />
             )}
           </button>
         );
@@ -1113,75 +1113,77 @@ function MultiLevelStarBoard({
     </div>
   );
 
-  // ═══ SUCCESS OVERLAY ═══
+  // ═══ SUCCESS OVERLAY — compact, contextual, premium ═══
   const SuccessOverlay = () => {
     const earned = levelStars[currentLevel] || 3;
     const isLast = currentLevel + 1 >= totalLevels;
     return (
-      <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/20 backdrop-blur-[2px] rounded-lg">
-        <div className="bg-white rounded-2xl p-6 shadow-2xl max-w-[320px] text-center space-y-4 mx-4 success-bounce">
-          <div className="flex justify-center gap-1">
-            {[1, 2, 3].map((s) => (
-              <div key={s} className={`transition-all duration-500 ${s <= earned ? 'star-pop' : ''}`} style={{ animationDelay: `${s * 150}ms` }}>
+      <div className="absolute inset-0 z-40 flex flex-col items-center justify-end pb-8 pointer-events-none">
+        {/* Top banner — not covering the board */}
+        <div className="bg-[var(--bg-primary)]/95 backdrop-blur-sm rounded-xl px-6 py-4 shadow-lg border border-[#d4c4b0]/40 text-center pointer-events-auto success-bounce mx-4">
+          <div className="flex items-center justify-center gap-3">
+            {/* Compact star row */}
+            <div className="flex gap-0.5">
+              {[1, 2, 3].map((s) => (
                 <Star
-                  size={32}
-                  className={s <= earned ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}
+                  key={s}
+                  size={16}
+                  className={s <= earned ? 'fill-[#c9a84c] text-[#c9a84c]' : 'text-[#e5dfd8]'}
+                  strokeWidth={2.5}
                 />
-              </div>
-            ))}
+              ))}
+            </div>
+            <div className="h-4 w-px bg-[#d4c4b0]" />
+            <span className="text-sm font-medium text-[var(--text-secondary)]">
+              {isLast ? 'Урок завершён' : `Упражнение ${currentLevel + 1} выполнено`}
+            </span>
           </div>
-          <div>
-            <h3 className="font-bold text-lg text-[var(--text-primary)]">Отлично!</h3>
-            <p className="text-sm text-[var(--text-secondary)] mt-1">
-              {isLast ? 'Все задания выполнены!' : `Задание ${currentLevel + 1} пройдено`}
-            </p>
-          </div>
-          <div className="flex gap-2">
+
+          <div className="flex items-center justify-center gap-2 mt-3">
             {!isLast && (
               <button
                 onClick={() => {
                   setCurrentLevel((l) => l + 1);
-                  setPhase('intro');
+                  setPhase('playing');
                   setMsg('');
                 }}
-                className="flex-1 py-3 rounded-xl font-bold text-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                className="px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                 style={{
-                  background: 'var(--accent)',
+                  background: 'var(--text-primary)',
                   color: 'var(--bg-primary)',
-                  boxShadow: '0 4px 12px rgba(46,107,122,0.3)',
                 }}
               >
-                <div className="flex items-center justify-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <span>Дальше</span>
-                  <ArrowRight size={16} />
+                  <ArrowRight size={14} />
                 </div>
               </button>
             )}
             {isLast && nextLessonUrl && (
               <Link
                 href={nextLessonUrl}
-                className="flex-1 py-3 rounded-xl font-bold text-sm text-center transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+                className="px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
                 style={{
-                  background: 'var(--accent)',
+                  background: 'var(--text-primary)',
                   color: 'var(--bg-primary)',
-                  boxShadow: '0 4px 12px rgba(46,107,122,0.3)',
                 }}
               >
-                <div className="flex items-center justify-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <span>Следующий урок</span>
-                  <ArrowRight size={16} />
+                  <ArrowRight size={14} />
                 </div>
               </Link>
             )}
             <button
               onClick={reset}
-              className="px-4 py-3 rounded-xl font-bold text-sm border-2 transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+              className="px-3 py-2 rounded-lg text-sm font-medium border transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
               style={{
-                borderColor: 'var(--accent)',
-                color: 'var(--accent)',
+                borderColor: '#d4c4b0',
+                color: 'var(--text-secondary)',
               }}
+              title="Заново"
             >
-              <RotateCcw size={18} />
+              <RotateCcw size={14} />
             </button>
           </div>
         </div>
@@ -1189,47 +1191,43 @@ function MultiLevelStarBoard({
     );
   };
 
-  // ═══ FAIL OVERLAY ═══
+  // ═══ FAIL OVERLAY — quiet, contextual ═══
   const FailOverlay = () => (
-    <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/20 backdrop-blur-[2px] rounded-lg">
-      <div className="bg-white rounded-2xl p-6 shadow-2xl max-w-[320px] text-center space-y-4 mx-4 shake">
-        <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto">
-          <X size={28} className="text-red-500" />
-        </div>
-        <div>
-          <h3 className="font-bold text-lg text-[var(--text-primary)]">Попробуйте снова</h3>
-          <p className="text-sm text-[var(--text-secondary)] mt-1">
+    <div className="absolute inset-0 z-40 flex flex-col items-center justify-end pb-8 pointer-events-none">
+      <div className="bg-[var(--bg-primary)]/95 backdrop-blur-sm rounded-xl px-6 py-4 shadow-lg border border-[#d4c4b0]/40 text-center pointer-events-auto shake mx-4">
+        <div className="flex items-center justify-center gap-2">
+          <RotateCcw size={14} className="text-[var(--text-secondary)]" />
+          <span className="text-sm font-medium text-[var(--text-secondary)]">
             {level.hint || 'Подумайте ещё раз о правилах движения фигуры'}
-          </p>
+          </span>
         </div>
         <button
           onClick={reset}
-          className="w-full py-3 rounded-xl font-bold text-sm transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
+          className="mt-3 px-5 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
           style={{
-            background: '#c62828',
-            color: 'white',
-            boxShadow: '0 4px 12px rgba(198,40,40,0.3)',
+            background: 'var(--text-primary)',
+            color: 'var(--bg-primary)',
           }}
         >
-          <div className="flex items-center justify-center gap-2">
-            <RotateCcw size={16} />
-            <span>Попробовать снова</span>
+          <div className="flex items-center gap-1.5">
+            <RotateCcw size={14} />
+            <span>Заново</span>
           </div>
         </button>
       </div>
     </div>
   );
 
-  // ═══ HINT TOAST ═══
+  // ═══ HINT TOAST — warm paper, no black ═══
   const HintToast = () => (
-    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 bg-[#2b2b2b] text-white px-4 py-2.5 rounded-xl shadow-lg text-sm max-w-[280px] text-center hint-slide-up">
+    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 bg-[var(--bg-primary)] border border-[#d4c4b0]/50 text-[var(--text-primary)] px-4 py-2.5 rounded-xl shadow-lg text-sm max-w-[280px] text-center hint-slide-up">
       <div className="flex items-center gap-2">
-        <Lightbulb size={16} className="text-yellow-400 flex-shrink-0" />
-        <span>{level.hint || 'Попробуйте найти кратчайший путь к звёздам'}</span>
+        <Lightbulb size={14} className="text-[#c9a84c] flex-shrink-0" />
+        <span className="text-xs">{level.hint || 'Попробуйте найти кратчайший путь к звёздам'}</span>
       </div>
       <button
         onClick={() => setShowHint(false)}
-        className="absolute -top-2 -right-2 w-5 h-5 bg-gray-400 rounded-full flex items-center justify-center text-white text-xs hover:bg-gray-500"
+        className="absolute -top-2 -right-2 w-5 h-5 bg-[#d4c4b0] rounded-full flex items-center justify-center text-white text-xs hover:bg-[#b8a898]"
       >
         <X size={10} />
       </button>
@@ -1259,24 +1257,20 @@ function MultiLevelStarBoard({
                 disabled={isFuture || isCurrent}
                 className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 ${
                   isCurrent
-                    ? 'bg-[var(--accent)] text-white shadow-md'
+                    ? 'bg-[var(--text-primary)] text-[var(--bg-primary)]'
                     : isDone
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      : 'bg-gray-100 text-gray-400'
-                } ${isFuture ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
+                      ? 'bg-[#e8dfd5] text-[#5a4a3a] opacity-80'
+                      : 'bg-[var(--bg-secondary)] text-[var(--text-muted)]'
+                } ${isFuture ? 'cursor-not-allowed' : 'cursor-pointer hover:opacity-90'}`}
               >
-                <div className={`flex items-center justify-center rounded-full ${isCurrent ? 'w-6 h-6 bg-white/20' : 'w-5 h-5'} ${isDone ? 'bg-emerald-500' : 'bg-gray-300'}`}>
+                <div className={`flex items-center justify-center rounded-full ${isCurrent ? 'w-5 h-5 bg-white/20' : 'w-4 h-4'} ${isDone ? 'bg-[#8a7a6a]' : 'bg-[#d4c4b0]'}`}>
                   {isDone ? (
-                    <CheckCircle size={12} className="text-white" />
+                    <CheckCircle size={10} className="text-[var(--bg-primary)]" />
                   ) : (
-                    <span className="text-[10px] font-bold text-white">{i + 1}</span>
+                    <span className="text-[8px] font-bold text-white">{i + 1}</span>
                   )}
                 </div>
-                <div className="flex gap-0.5">
-                  {[1, 2, 3].map((s) => (
-                    <Star key={s} size={10} className={s <= (earned || 0) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'} />
-                  ))}
-                </div>
+                <span className="text-xs font-medium">{i + 1}</span>
               </button>
             );
           })}
@@ -1340,26 +1334,26 @@ function MultiLevelStarBoard({
         {/* Hint toast */}
         {showHint && phase === 'playing' && <HintToast />}
 
-        {/* Message bar */}
+        {/* Message bar — warm paper */}
         {msg && !showHint && (
-          <div className="text-center py-1.5 px-3 rounded-lg text-xs font-medium bg-blue-50 text-blue-700">
+          <div className="text-center py-1.5 px-3 rounded-lg text-xs font-medium bg-[#e8dfd5] text-[#5a4a3a]">
             {msg}
           </div>
         )}
 
-        {/* Progress bar */}
+        {/* Compact brass progress */}
         {stars.length > 0 && phase === 'playing' && (
-          <div className="w-full max-w-[200px]">
-            <div className="flex items-center justify-between text-xs text-[var(--text-secondary)] mb-1">
-              <span>Прогресс</span>
-              <span className="font-bold text-[var(--accent)]">{collectedCount}/{stars.length}</span>
+          <div className="w-full max-w-[180px]">
+            <div className="flex items-center justify-center gap-1 text-xs text-[var(--text-muted)]">
+              <Star size={10} className="text-[#c9a84c]" />
+              <span>{collectedCount} из {stars.length}</span>
             </div>
-            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div className="h-1 bg-[#e5dfd8] rounded-full overflow-hidden mt-1">
               <div
                 className="h-full rounded-full transition-all duration-500 ease-out"
                 style={{
                   width: `${(collectedCount / stars.length) * 100}%`,
-                  background: 'var(--accent)',
+                  background: '#c9a84c',
                 }}
               />
             </div>
