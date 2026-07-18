@@ -651,7 +651,7 @@ function InlineChessBoard({
 
   return (
     <div className="flex flex-col items-center gap-2 select-none" style={{ touchAction: 'none' }}>
-      <div className="grid border-[5px] border-[#1a1612] rounded-sm relative select-none board-fade-in" style={{ gridTemplateColumns: `repeat(8, ${sqSize}px)`, gridTemplateRows: `repeat(8, ${sqSize}px)`, touchAction: 'none', boxShadow: '0 12px 40px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06)' }}>
+      <div className="grid border-[5px] border-[#1a1612] rounded relative select-none board-fade-in" style={{ gridTemplateColumns: `repeat(8, ${sqSize}px)`, gridTemplateRows: `repeat(8, ${sqSize}px)`, touchAction: 'none', boxShadow: '0 12px 40px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06)' }}>
         {RANKS.map((rank, ri) =>
           FILES.map((file, fi) => {
             const sq = `${file}${rank}`;
