@@ -1256,9 +1256,7 @@ function MultiLevelStarBoard({
             <span>{pieceName}</span>
           </div>
         </div>
-        {/* Step dots */}
         <ExerciseDots />
-        {/* Buttons stack */}
         <div className="flex flex-col gap-2">
           <button
             onClick={() => { setHintLevel(0); setShowHint(!showHint); }}
@@ -1273,48 +1271,33 @@ function MultiLevelStarBoard({
             <RotateCcw size={14} /> Заново
           </button>
         </div>
-        {/* Star progress */}
         {stars.length > 0 && phase === 'playing' && (
           <div className="flex items-center gap-1">
             {Array.from({ length: stars.length }, (_, i) => (
-              <Star
-                key={i}
-                size={14}
-                className={i < collectedCount ? 'fill-[#c9a84c] text-[#c9a84c]' : 'text-[#e5dfd8]'}
-                strokeWidth={2}
-              />
+              <Star key={i} size={14} className={i < collectedCount ? 'fill-[#c9a84c] text-[#c9a84c]' : 'text-[#e5dfd8]'} strokeWidth={2} />
             ))}
           </div>
         )}
       </div>
 
-      {/* CENTER — Board only */}
+      {/* CENTER — Board */}
       <div className="flex-1 flex flex-col items-center justify-center w-full lg:min-w-0">
-        {/* Mobile meta + controls — centered above board (unchanged) */}
-        <div className="lg:hidden w-full flex flex-col items-center gap-3 mb-4">
-          <div className="flex flex-col items-center gap-1">
-            <p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-medium">Задание</p>
-            <div className="flex items-center gap-2 text-base font-bold text-[var(--text-primary)]">
-              <span>{currentLevel + 1} из {totalLevels}</span>
-              <span className="text-[var(--text-tertiary)]">—</span>
-              <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-5 h-5 inline-block" draggable={false} alt="" />
-              <span>{pieceName}</span>
-            </div>
-          </div>
+        {/* Mobile: Character + Bubble */}
+        <div className="lg:hidden w-full flex flex-col gap-2 mb-3">
           <ExerciseDots />
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => { setHintLevel(0); setShowHint(!showHint); }}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-full border text-[13px] font-medium transition-all duration-200 h-9 ${showHint ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}
-            >
-              <Lightbulb size={14} /> Подсказка
-            </button>
-            <button
-              onClick={reset}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-full border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-[13px] font-medium transition-all duration-200 h-9"
-            >
-              <RotateCcw size={14} /> Заново
-            </button>
+          <div className="flex items-start gap-3">
+            <div className="w-14 h-14 rounded-full flex-shrink-0 flex items-center justify-center text-xl font-bold text-white" style={{ background: 'var(--accent)' }}>
+              Т
+            </div>
+            <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
+              <p className="text-sm text-[var(--text-primary)] leading-snug line-clamp-3">
+                {phase === 'intro' && (lessonTitle || lessonContent || pieceDesc)}
+                {phase === 'playing' && (level.instructions || 'Выполните задание')}
+                {phase === 'success' && 'Отлично! Задание выполнено!'}
+                {phase === 'fail' && 'Подумай ещё раз...'}
+                {showHint && level.hint && `💡 ${level.hint}`}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -1336,24 +1319,95 @@ function MultiLevelStarBoard({
           {phase === 'success' && <SuccessOverlay />}
           {phase === 'fail' && <FailOverlay />}
         </div>
+
+        {/* Mobile bottom toolbar */}
+        <div className="lg:hidden w-full flex flex-col gap-2 mt-4">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-[var(--text-primary)]">
+              Задание {currentLevel + 1} из {totalLevels}
+            </span>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: stars.length }, (_, i) => (
+                <Star key={i} size={12} className={i < collectedCount ? 'fill-[#c9a84c] text-[#c9a84c]' : 'text-[#e5dfd8]'} strokeWidth={2} />
+              ))}
+            </div>
+          </div>
+          <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+            <div
+              className="h-full bg-[var(--accent)] rounded-full transition-all duration-500"
+              style={{ width: `${((currentLevel + 1) / totalLevels) * 100}%` }}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            {phase === 'intro' && (
+              <button
+                onClick={() => { setPhase('playing'); setShowIntro(false); }}
+                className="flex-1 h-10 flex items-center justify-center gap-1 rounded-lg text-sm font-medium transition-all"
+                style={{ background: 'var(--accent)', color: 'var(--bg-primary)' }}
+              >
+                Начать <ArrowRight size={14} />
+              </button>
+            )}
+            {(phase === 'playing' || phase === 'fail') && (
+              <>
+                <button
+                  onClick={() => { setHintLevel(0); setShowHint(!showHint); }}
+                  className={`flex-1 h-10 flex items-center justify-center gap-1 rounded-lg border text-xs font-medium transition-all ${showHint ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)]'}`}
+                >
+                  <Lightbulb size={14} /> Подсказка
+                </button>
+                <button
+                  onClick={reset}
+                  className="flex-1 h-10 flex items-center justify-center gap-1 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] text-xs font-medium transition-all"
+                >
+                  <RotateCcw size={14} /> Заново
+                </button>
+              </>
+            )}
+            {phase === 'success' && (
+              <button
+                onClick={() => setCurrentLevel(l => l + 1)}
+                className="flex-1 h-10 flex items-center justify-center gap-1 rounded-lg text-sm font-medium transition-all"
+                style={{ background: 'var(--accent)', color: 'var(--bg-primary)' }}
+              >
+                Далее <ArrowRight size={14} />
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* RIGHT: Lesson Panel — 300px, only lesson content + progress + next */}
-      <div className="w-full lg:w-[300px] flex-shrink-0 flex flex-col gap-5">
-        {/* Title */}
-        {lessonTitle && (
-          <div className="flex flex-col gap-1">
-            <p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-medium">Урок</p>
-            <h2 className="text-base font-bold text-[var(--text-primary)] leading-snug">{lessonTitle}</h2>
+      {/* RIGHT: Lesson Panel — 300px */}
+      <div className="hidden lg:flex w-[300px] flex-shrink-0 flex-col gap-4">
+        {/* Desktop: mini character + bubble */}
+        <div className="flex items-start gap-2">
+          <div className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-bold text-white" style={{ background: 'var(--accent)' }}>
+            Т
           </div>
-        )}
-        {/* Description */}
-        {lessonContent && (
-          <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{lessonContent}</p>
-        )}
-        {/* Divider */}
+          <div className="flex-1 bg-white rounded-lg rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
+            <p className="text-[13px] text-[var(--text-primary)] leading-snug">
+              {phase === 'intro' && (lessonTitle || lessonContent || pieceDesc)}
+              {phase === 'playing' && (level.instructions || 'Выполните задание')}
+              {phase === 'success' && 'Отлично! Задание выполнено!'}
+              {phase === 'fail' && 'Подумай ещё раз...'}
+              {showHint && level.hint && `💡 ${level.hint}`}
+            </p>
+          </div>
+        </div>
+
         <div className="w-full h-px bg-[var(--surface-border)]" />
-        {/* Progress bar */}
+
+        {/* ЗАДАНИЕ + Progress */}
+        <div className="flex flex-col gap-2">
+          <p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-medium">Задание</p>
+          <div className="flex items-center gap-2 text-sm font-bold text-[var(--text-primary)]">
+            <span>{currentLevel + 1} из {totalLevels}</span>
+            <span className="text-[var(--text-tertiary)]">—</span>
+            <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-4 h-4 inline-block" draggable={false} alt="" />
+            <span>{pieceName}</span>
+          </div>
+        </div>
+
         <div className="flex flex-col gap-2">
           <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
             <div
@@ -1367,27 +1421,24 @@ function MultiLevelStarBoard({
         {stars.length > 0 && phase === 'playing' && (
           <div className="flex items-center gap-1">
             {Array.from({ length: stars.length }, (_, i) => (
-              <Star
-                key={i}
-                size={14}
-                className={i < collectedCount ? 'fill-[#c9a84c] text-[#c9a84c]' : 'text-[#e5dfd8]'}
-                strokeWidth={2}
-              />
+              <Star key={i} size={14} className={i < collectedCount ? 'fill-[#c9a84c] text-[#c9a84c]' : 'text-[#e5dfd8]'} strokeWidth={2} />
             ))}
           </div>
         )}
 
-        {/* Next button */}
-        {allDone && nextLessonUrl && (
-          <Link
-            href={nextLessonUrl}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 hover:translate-x-0.5"
-            style={{ background: 'var(--accent)', color: 'var(--bg-primary)' }}
-          >
-            <span>Следующий урок</span>
-            <ArrowRight size={14} className="transition-transform duration-300 group-hover:translate-x-1" />
-          </Link>
-        )}
+        {/* Nav buttons */}
+        <div className="flex items-center gap-2">
+          {prevLesson ? (
+            <Link href={`/lessons/${prevLesson.id}?course=${courseId}`} className="flex-1 h-9 flex items-center justify-center gap-1 rounded-lg border border-[rgba(92,64,51,0.12)] text-[12px] font-medium text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] transition-all">
+              <ArrowLeft size={12} /> Предыдущий
+            </Link>
+          ) : <div className="flex-1" />}
+          {nextLesson ? (
+            <Link href={`/lessons/${nextLesson.id}?course=${courseId}`} className="flex-1 h-9 flex items-center justify-center gap-1 rounded-lg border border-[rgba(92,64,51,0.12)] text-[12px] font-medium text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] transition-all">
+              Следующий <ArrowRight size={12} />
+            </Link>
+          ) : <div className="flex-1" />}
+        </div>
       </div>
     </div>
   );
