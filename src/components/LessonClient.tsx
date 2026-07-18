@@ -1238,51 +1238,33 @@ function MultiLevelStarBoard({
 
   return (
     <div className="flex flex-col lg:flex-row w-full max-w-[1200px] mx-auto gap-6 py-6 items-start justify-center">
-      {/* LEFT: Exercise Sidebar — 180px fixed */}
-      <div className="hidden lg:flex w-[180px] flex-shrink-0 flex-col gap-4 sticky top-4">
-        {/* ЗАДАНИЕ label + title */}
-        <div className="flex flex-col gap-1">
-          <p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-medium">Задание</p>
-          <div className="flex items-center gap-1.5 text-sm font-bold text-[var(--text-primary)]">
-            <span>{currentLevel + 1} из {totalLevels}</span>
-            <span className="text-[var(--text-tertiary)]">—</span>
-            <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-[18px] h-[18px] inline-block" draggable={false} alt="" />
-            <span>{pieceName}</span>
-          </div>
-        </div>
-
-        {/* Step dots */}
-        <ExerciseDots />
-
-        {/* Buttons stack */}
-        <div className="flex flex-col gap-2">
-          <button
-            onClick={() => { setHintLevel(0); setShowHint(!showHint); }}
-            className={`w-full flex items-center justify-center gap-1.5 h-9 rounded-lg border text-xs font-medium transition-all duration-200 ${showHint ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}
-          >
-            <Lightbulb size={14} /> Подсказка
-          </button>
-          <button
-            onClick={reset}
-            className="w-full flex items-center justify-center gap-1.5 h-9 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200"
-          >
-            <RotateCcw size={14} /> Заново
-          </button>
-        </div>
-      </div>
-
-      {/* CENTER: Board only */}
+      {/* LEFT: Board only */}
       <div className="flex-1 flex flex-col items-center justify-center min-w-0">
-        {/* Mobile meta row — centered above board */}
+        {/* Mobile meta + controls — centered above board */}
         <div className="lg:hidden w-full flex flex-col items-center gap-3 mb-4">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 text-sm font-bold text-[var(--text-primary)]">
-              <span className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-medium mr-1">Задание</span>
+          <div className="flex flex-col items-center gap-1">
+            <p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-medium">Задание</p>
+            <div className="flex items-center gap-2 text-base font-bold text-[var(--text-primary)]">
               <span>{currentLevel + 1} из {totalLevels}</span>
-              <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-[18px] h-[18px] inline-block" draggable={false} alt="" />
+              <span className="text-[var(--text-tertiary)]">—</span>
+              <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-5 h-5 inline-block" draggable={false} alt="" />
               <span>{pieceName}</span>
             </div>
-            <ExerciseDots />
+          </div>
+          <ExerciseDots />
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { setHintLevel(0); setShowHint(!showHint); }}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-full border text-[13px] font-medium transition-all duration-200 h-9 ${showHint ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}
+            >
+              <Lightbulb size={14} /> Подсказка
+            </button>
+            <button
+              onClick={reset}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-full border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-[13px] font-medium transition-all duration-200 h-9"
+            >
+              <RotateCcw size={14} /> Заново
+            </button>
           </div>
         </div>
 
@@ -1304,26 +1286,10 @@ function MultiLevelStarBoard({
           {phase === 'success' && <SuccessOverlay />}
           {phase === 'fail' && <FailOverlay />}
         </div>
-
-        {/* Mobile buttons under board */}
-        <div className="lg:hidden w-full flex items-center justify-center gap-2 mt-4">
-          <button
-            onClick={() => { setHintLevel(0); setShowHint(!showHint); }}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-full border text-[13px] font-medium transition-all duration-200 h-9 ${showHint ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}
-          >
-            <Lightbulb size={14} /> Подсказка
-          </button>
-          <button
-            onClick={reset}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-[13px] font-medium transition-all duration-200 h-9"
-          >
-            <RotateCcw size={14} /> Заново
-          </button>
-        </div>
       </div>
 
-      {/* RIGHT: Lesson Panel — 300px fixed */}
-      <div className="w-full lg:w-[300px] flex-shrink-0 flex flex-col gap-5">
+      {/* RIGHT: Lesson panel */}
+      <div className="w-full lg:w-[360px] flex-shrink-0 flex flex-col gap-5">
         {/* Title */}
         {lessonTitle && (
           <div className="flex flex-col gap-1">
@@ -1338,9 +1304,19 @@ function MultiLevelStarBoard({
         {/* Divider */}
         <div className="w-full h-px bg-[var(--surface-border)]" />
 
-        {/* ЗАДАНИЕ label + instructions */}
+        {/* ЗАДАНИЕ block */}
         <div className="flex flex-col gap-1">
           <p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-medium">Задание</p>
+          <div className="flex items-center gap-2 text-base font-bold text-[var(--text-primary)]">
+            <span>{currentLevel + 1} из {totalLevels}</span>
+            <span className="text-[var(--text-tertiary)]">—</span>
+            <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-5 h-5 inline-block" draggable={false} alt="" />
+            <span>{pieceName}</span>
+          </div>
+        </div>
+
+        {/* Instructions */}
+        <div className="flex flex-col gap-1">
           {phase === 'playing' && level.instructions && !msg && !showHint && (
             <p className="text-sm text-[var(--text-primary)] font-medium leading-relaxed">{level.instructions}</p>
           )}
@@ -1350,6 +1326,37 @@ function MultiLevelStarBoard({
           {!msg && !level.instructions && (
             <p className="text-sm text-[var(--text-muted)]">Выполните задание на доске</p>
           )}
+        </div>
+
+        {/* Desktop-only step dots */}
+        <div className="hidden lg:block">
+          <ExerciseDots />
+        </div>
+
+        {/* Hint/Reset buttons — desktop style, pill outlined */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => { setHintLevel(0); setShowHint(!showHint); }}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-full border text-[13px] font-medium transition-all duration-200 h-9 ${showHint ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}
+          >
+            <Lightbulb size={14} /> Подсказка
+          </button>
+          <button
+            onClick={reset}
+            className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-[13px] font-medium transition-all duration-200 h-9"
+          >
+            <RotateCcw size={14} /> Заново
+          </button>
+        </div>
+
+        {/* Progress bar */}
+        <div className="flex flex-col gap-2">
+          <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+            <div
+              className="h-full bg-[var(--accent)] rounded-full transition-all duration-500"
+              style={{ width: `${((currentLevel + 1) / totalLevels) * 100}%` }}
+            />
+          </div>
         </div>
 
         {/* Star progress */}
@@ -1365,16 +1372,6 @@ function MultiLevelStarBoard({
             ))}
           </div>
         )}
-
-        {/* Progress bar */}
-        <div className="flex flex-col gap-2">
-          <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
-            <div
-              className="h-full bg-[var(--accent)] rounded-full transition-all duration-500"
-              style={{ width: `${((currentLevel + 1) / totalLevels) * 100}%` }}
-            />
-          </div>
-        </div>
 
         {/* Next button */}
         {allDone && nextLessonUrl && (
