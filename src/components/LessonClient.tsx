@@ -458,7 +458,9 @@ function InlineChessBoard({
       if (isMobile) {
         setSqSize(Math.min(80, Math.max(42, Math.floor((window.innerWidth - 16) / 8))));
       } else {
-        setSqSize(Math.min(72, Math.max(48, Math.floor((Math.min(window.innerWidth, 720) - 24) / 8))));
+        // Desktop 3-col layout: sidebar 180px + panel 300px + gaps ≈ 520px
+        const available = Math.max(0, window.innerWidth - 520);
+        setSqSize(Math.min(84, Math.max(56, Math.floor(available / 8))));
       }
     };
     update();
@@ -1313,7 +1315,7 @@ function MultiLevelStarBoard({
         </div>
 
         {/* BOARD */}
-        <div className="relative w-full flex justify-center max-w-[600px]">
+        <div className="relative w-full flex justify-center">
           <InlineChessBoard
             key={currentLevel}
             fen={position}
