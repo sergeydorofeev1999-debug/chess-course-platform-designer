@@ -1149,7 +1149,7 @@ function MultiLevelStarBoard({
 
   // ═══ INTRO OVERLAY ═══
   const IntroOverlay = () => (
-    <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-[rgba(44,36,27,0.55)] backdrop-blur-[2px] rounded-lg">
+    <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-[rgba(68,50,40,0.55)] backdrop-blur-[3px] rounded-lg">
       <div className="bg-white rounded-2xl p-6 shadow-2xl max-w-[320px] text-center space-y-4 mx-4">
         <div className="w-14 h-14 rounded-full bg-[var(--accent)]/10 flex items-center justify-center mx-auto">
           <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-8 h-8" draggable={false} alt="" />
