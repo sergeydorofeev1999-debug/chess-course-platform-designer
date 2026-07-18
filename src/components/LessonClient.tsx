@@ -376,7 +376,7 @@ function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
   );
 }
 
-function StarSvg() {
+function StarSvg({ size }: { size: number }) {
   return (
     <img
       src="/images/learn/star.png"
@@ -384,8 +384,8 @@ function StarSvg() {
       className="star-animate"
       draggable={false}
       style={{
-        width: '85%',
-        height: '85%',
+        width: size,
+        height: size,
         objectFit: 'contain',
         filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.3))',
       }}
@@ -712,7 +712,7 @@ function InlineChessBoard({
                   style={{ zIndex: 25, opacity: hasStar ? 1 : 0, visibility: hasStar ? 'visible' : 'hidden' }}
                 >
                   <div className={hasStar ? 'star-twinkle' : ''}>
-                    <StarSvg />
+                    <StarSvg size={Math.round(sqSize * 0.65)} />
                   </div>
                 </div>
                 {pieceObj && !isSource && (
