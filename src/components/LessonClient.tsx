@@ -843,6 +843,14 @@ function MultiLevelStarBoard({
   const visibleStars = useMemo(() => stars.filter((s: string) => !collected.includes(s)), [stars, collected]);
   const totalLevels = levels.length;
 
+  /* ── Сохраняем прогресс в базу при завершении последнего уровня ── */
+  useEffect(() => {
+    if (phase === 'success' && currentLevel + 1 >= totalLevels && !allDone) {
+      setAllDone(true);
+      onAllComplete?.();
+    }
+  }, [phase, currentLevel, totalLevels, allDone, onAllComplete]);
+
   const reset = useCallback(() => {
     setPosition(level.initialFen);
     setCollected([]);
