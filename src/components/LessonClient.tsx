@@ -1145,7 +1145,7 @@ function MultiLevelStarBoard({
 
   // ═══ INTRO OVERLAY ═══
   const IntroOverlay = () => (
-    <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-[#4A3C32]">
+    <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-[rgba(44,36,27,0.65)] backdrop-blur-[4px]">
       <div className="bg-white rounded-2xl p-6 shadow-2xl max-w-[320px] text-center space-y-4 mx-4">
         <div className="w-14 h-14 rounded-full bg-[var(--accent)]/10 flex items-center justify-center mx-auto">
           <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-8 h-8" draggable={false} alt="" />
@@ -1658,26 +1658,24 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
         </div>
       )}
 
-      {!interactiveConfig && (
-        <div className="flex items-center justify-between w-full py-2 px-2 border-t border-[var(--surface-border)] mt-2">
-          {prevLesson ? (
-            <Link
-              href={`/lessons/${prevLesson.id}?course=${courseId}`}
-              className="text-[11px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] inline-flex items-center gap-1 transition-colors"
-            >
-              <ArrowLeft size={12} /> Предыдущий
-            </Link>
-          ) : <div />}
-          {nextLesson ? (
-            <Link
-              href={`/lessons/${nextLesson.id}?course=${courseId}`}
-              className="text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] inline-flex items-center gap-1 transition-colors"
-            >
-              Следующий <ArrowRight size={12} />
-            </Link>
-          ) : <div />}
-        </div>
-      )}
+      <div className="flex items-center justify-between w-full py-2 px-2 border-t border-[var(--surface-border)] mt-2">
+        {prevLesson ? (
+          <Link
+            href={`/lessons/${prevLesson.id}?course=${courseId}`}
+            className="text-[11px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] inline-flex items-center gap-1 transition-colors"
+          >
+            <ArrowLeft size={12} /> Предыдущий
+          </Link>
+        ) : <div />}
+        {nextLesson ? (
+          <Link
+            href={`/lessons/${nextLesson.id}?course=${courseId}`}
+            className="text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] inline-flex items-center gap-1 transition-colors"
+          >
+            Следующий <ArrowRight size={12} />
+          </Link>
+        ) : <div />}
+      </div>
     </div>
   );
 }
