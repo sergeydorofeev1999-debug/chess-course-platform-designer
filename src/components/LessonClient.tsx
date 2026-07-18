@@ -1095,38 +1095,53 @@ function MultiLevelStarBoard({
 
   // ═══ EXERCISE NAVIGATION DOTS — compact horizontal bar ═══
   const ExerciseDots = () => (
-    <div className="flex items-center justify-center gap-2">
+    <div className="flex items-center justify-center gap-1">
       {levels.map((_l: any, i: number) => {
         const earned = levelStars[i];
+        const starCount = typeof earned === 'number' ? earned : (earned ? 1 : 0);
         const isCurrent = i === currentLevel;
         const isDone = earned != null;
         const isFuture = !isCurrent && !isDone && i > currentLevel;
         return (
-          <button
-            key={i}
-            onClick={() => {
-              if (isFuture || isCurrent) return;
-              setCurrentLevel(i);
-              setAllDone(false);
-              setPhase('playing');
-            }}
-            disabled={isFuture || isCurrent}
-            className={`relative flex items-center justify-center rounded-full transition-all duration-300 ${
-              isCurrent
-                ? 'w-6 h-6 bg-[var(--text-primary)] text-[var(--bg-primary)]'
-                : isDone
-                  ? 'w-5 h-5 bg-[#E8E0D6] border border-[#C9C0B6] text-[var(--text-tertiary)] opacity-50'
-                  : 'w-5 h-5 bg-[var(--bg-secondary)] text-[var(--text-muted)] opacity-50'
-            } ${isFuture ? 'cursor-not-allowed' : 'cursor-pointer hover:opacity-90'}`}
-            title={isDone ? `Упражнение ${i + 1} — пройдено` : `Упражнение ${i + 1}`}
-          >
-            <span className={`font-bold ${isCurrent ? 'text-[11px]' : isDone ? 'text-[10px]' : 'text-[9px]'}`}>
-              {i + 1}
+          <div key={i} className="flex flex-col items-center gap-1 w-[52px] lg:w-auto">
+            <button
+              onClick={() => {
+                if (isFuture || isCurrent) return;
+                setCurrentLevel(i);
+                setAllDone(false);
+                setPhase('playing');
+              }}
+              disabled={isFuture || isCurrent}
+              className={`relative flex items-center justify-center rounded-full transition-all duration-300 ${
+                isCurrent
+                  ? 'w-6 h-6 bg-[var(--text-primary)] text-[var(--bg-primary)]'
+                  : isDone
+                    ? 'w-5 h-5 bg-[#E8E0D6] border border-[#C9C0B6] text-[var(--text-tertiary)] opacity-50'
+                    : 'w-5 h-5 bg-[var(--bg-secondary)] text-[var(--text-muted)] opacity-50'
+              } ${isFuture ? 'cursor-not-allowed' : 'cursor-pointer hover:opacity-90'}`}
+              title={isDone ? `Упражнение ${i + 1} — пройдено` : `Упражнение ${i + 1}`}
+            >
+              <span className={`font-bold ${isCurrent ? 'text-[11px]' : isDone ? 'text-[10px]' : 'text-[9px]'}`}>
+                {i + 1}
+              </span>
+              {isCurrent && (
+                <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[var(--accent)]" />
+              )}
+            </button>
+            {/* Mobile: 3 mini-stars */}
+            <div className="flex gap-[1px] lg:hidden">
+              {[0, 1, 2].map(s => (
+                <span key={s} className={`text-[10px] ${s < starCount ? 'text-[#D4A843]' : 'text-[#E8E0D6]'}`}>★</span>
+              ))}
+            </div>
+            {/* Desktop: 1 star = rating color */}
+            <span className="hidden lg:block text-[10px]">
+              {starCount >= 3 && <span className="text-[#D4A843]">★</span>}
+              {starCount === 2 && <span className="text-[#B0B0B0]">★</span>}
+              {starCount === 1 && <span className="text-[#B8956A]">★</span>}
+              {starCount === 0 && <span className="text-[#E8E0D6]">★</span>}
             </span>
-            {isCurrent && (
-              <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[var(--accent)]" />
-            )}
-          </button>
+          </div>
         );
       })}
     </div>
