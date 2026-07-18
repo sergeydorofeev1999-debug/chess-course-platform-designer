@@ -678,10 +678,10 @@ function InlineChessBoard({
                 onMouseLeave={() => setHoveredSquare(null)}
               >
                 {sel && !hasStar && (
-                  <div className="absolute inset-[1px] rounded-[5px] bg-[var(--square-selected)] pointer-events-none z-10" />
+                  <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
                 )}
                 {hover && !sel && (
-                  <div className="absolute inset-0 pointer-events-none" style={{ backgroundColor: light ? 'rgba(0,0,0,0.10)' : 'rgba(0,0,0,0.15)', zIndex: 5 }} />
+                  <div className="absolute inset-0 pointer-events-none" style={{ backgroundColor: 'rgba(184,149,106,0.35)', zIndex: 5 }} />
                 )}
                 {hintPieceSquare === sq && hintLevel >= 1 && !sel && (
                   <div className="absolute inset-[2px] rounded-[4px] hint-piece-emphasis pointer-events-none z-[9]" />
