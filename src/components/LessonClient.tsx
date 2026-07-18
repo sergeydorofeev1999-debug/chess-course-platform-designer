@@ -1296,7 +1296,7 @@ function MultiLevelStarBoard({
           <ExerciseDots />
           <div className="flex items-start gap-3">
             <div className="w-14 h-14 flex-shrink-0">
-              <img src="/coach-avatar.jpg" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
+              <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
             </div>
             <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
               <p className="text-sm text-[var(--text-primary)] leading-snug line-clamp-3">
