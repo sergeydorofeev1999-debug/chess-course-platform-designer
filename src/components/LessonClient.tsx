@@ -1149,7 +1149,7 @@ function MultiLevelStarBoard({
 
   // ═══ INTRO OVERLAY ═══
   const IntroOverlay = () => (
-    <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-[rgba(44,36,27,0.5)] backdrop-blur-sm rounded-lg">
+    <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-[rgba(44,36,27,0.55)] backdrop-blur-[2px] rounded-lg">
       <div className="bg-white rounded-2xl p-6 shadow-2xl max-w-[320px] text-center space-y-4 mx-4">
         <div className="w-14 h-14 rounded-full bg-[var(--accent)]/10 flex items-center justify-center mx-auto">
           <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-8 h-8" draggable={false} alt="" />
@@ -1333,52 +1333,54 @@ function MultiLevelStarBoard({
           {phase === 'fail' && <FailOverlay />}
         </div>
 
-        {/* Mobile bottom toolbar */}
-        <div className="lg:hidden w-full flex flex-col gap-2 mt-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-[var(--text-primary)]">
-              Задание {currentLevel + 1} из {totalLevels}
-            </span>
-            <div className="flex items-center gap-1">
-              {Array.from({ length: stars.length }, (_, i) => (
-                <Star key={i} size={12} className={i < collectedCount ? 'fill-[#c9a84c] text-[#c9a84c]' : 'text-[#e5dfd8]'} strokeWidth={2} />
-              ))}
+        {/* Mobile bottom toolbar — скрыт на intro */}
+        {phase !== 'intro' && (
+          <div className="lg:hidden w-full flex flex-col gap-2 mt-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-[var(--text-primary)]">
+                Задание {currentLevel + 1} из {totalLevels}
+              </span>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: stars.length }, (_, i) => (
+                  <Star key={i} size={12} className={i < collectedCount ? 'fill-[#c9a84c] text-[#c9a84c]' : 'text-[#e5dfd8]'} strokeWidth={2} />
+                ))}
+              </div>
+            </div>
+            <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+              <div
+                className="h-full bg-[var(--accent)] rounded-full transition-all duration-500"
+                style={{ width: `${((currentLevel + 1) / totalLevels) * 100}%` }}
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              {(phase === 'playing' || phase === 'fail') && (
+                <>
+                  <button
+                    onClick={() => { setHintLevel(0); setShowHint(!showHint); }}
+                    className={`flex-1 h-10 flex items-center justify-center gap-1 rounded-lg border text-xs font-medium transition-all ${showHint ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)]'}`}
+                  >
+                    <Lightbulb size={14} /> Подсказка
+                  </button>
+                  <button
+                    onClick={reset}
+                    className="flex-1 h-10 flex items-center justify-center gap-1 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] text-xs font-medium transition-all"
+                  >
+                    <RotateCcw size={14} /> Заново
+                  </button>
+                </>
+              )}
+              {phase === 'success' && (
+                <button
+                  onClick={() => setCurrentLevel(l => l + 1)}
+                  className="flex-1 h-10 flex items-center justify-center gap-1 rounded-lg text-sm font-medium transition-all"
+                  style={{ background: 'var(--accent)', color: 'var(--bg-primary)' }}
+                >
+                  Далее <ArrowRight size={14} />
+                </button>
+              )}
             </div>
           </div>
-          <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
-            <div
-              className="h-full bg-[var(--accent)] rounded-full transition-all duration-500"
-              style={{ width: `${((currentLevel + 1) / totalLevels) * 100}%` }}
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            {(phase === 'playing' || phase === 'fail') && (
-              <>
-                <button
-                  onClick={() => { setHintLevel(0); setShowHint(!showHint); }}
-                  className={`flex-1 h-10 flex items-center justify-center gap-1 rounded-lg border text-xs font-medium transition-all ${showHint ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)]'}`}
-                >
-                  <Lightbulb size={14} /> Подсказка
-                </button>
-                <button
-                  onClick={reset}
-                  className="flex-1 h-10 flex items-center justify-center gap-1 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] text-xs font-medium transition-all"
-                >
-                  <RotateCcw size={14} /> Заново
-                </button>
-              </>
-            )}
-            {phase === 'success' && (
-              <button
-                onClick={() => setCurrentLevel(l => l + 1)}
-                className="flex-1 h-10 flex items-center justify-center gap-1 rounded-lg text-sm font-medium transition-all"
-                style={{ background: 'var(--accent)', color: 'var(--bg-primary)' }}
-              >
-                Далее <ArrowRight size={14} />
-              </button>
-            )}
-          </div>
-        </div>
+        )}
       </div>
 
       {/* RIGHT: Lesson Panel — 300px */}
