@@ -402,7 +402,6 @@ interface InlineChessBoardProps {
   guideArrows?: { from: string; to: string }[];
   movedPieces?: Set<string>;
   enPassantTarget?: string | null;
-  dimmed?: boolean;
   hintLevel?: number;
 }
 
@@ -415,7 +414,6 @@ function InlineChessBoard({
   guideArrows = [],
   movedPieces: externalMovedPieces,
   enPassantTarget,
-  dimmed = false,
   hintLevel = 0,
 }: InlineChessBoardProps) {
   const pieceErrHint =
@@ -481,7 +479,6 @@ function InlineChessBoard({
 
   const click = useCallback(
     (square: string) => {
-      if (dimmed) return;
       const sqs = squaresRef.current;
       const sel = selectedSquareRef.current;
       const piece = sqs[square];
@@ -520,7 +517,7 @@ function InlineChessBoard({
         }
       }
     },
-    [dimmed]
+    [],
   );
 
   useEffect(() => {
@@ -538,7 +535,6 @@ function InlineChessBoard({
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent, square: string) => {
-      if (dimmed) return;
       if (processLockRef.current) return;
       if (e.pointerType === 'touch' && e.isPrimary === false) return;
       e.preventDefault();
@@ -549,7 +545,7 @@ function InlineChessBoard({
         setSelectedSquare(square);
       }
     },
-    [dimmed]
+    [],
   );
 
   useEffect(() => {
@@ -655,7 +651,7 @@ function InlineChessBoard({
 
   return (
     <div className="flex flex-col items-center gap-2 select-none" style={{ touchAction: 'none' }}>
-      <div className={`grid border-[5px] border-[#1a1612] rounded-sm relative select-none ${dimmed ? 'board-dim' : 'board-fade-in'}`} style={{ gridTemplateColumns: `repeat(8, ${sqSize}px)`, gridTemplateRows: `repeat(8, ${sqSize}px)`, touchAction: 'none', boxShadow: '0 12px 40px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06)' }}>
+      <div className="grid border-[5px] border-[#1a1612] rounded-sm relative select-none board-fade-in" style={{ gridTemplateColumns: `repeat(8, ${sqSize}px)`, gridTemplateRows: `repeat(8, ${sqSize}px)`, touchAction: 'none', boxShadow: '0 12px 40px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06)' }}>
         {RANKS.map((rank, ri) =>
           FILES.map((file, fi) => {
             const sq = `${file}${rank}`;
@@ -671,7 +667,7 @@ function InlineChessBoard({
                 key={sq}
                 data-square={sq}
                 className={`flex items-center justify-center relative select-none ${isSource ? 'opacity-50' : ''}`}
-                style={{ width: sqSize, height: sqSize, cursor: dimmed ? 'default' : (pieceObj && pieceObj.color === 'w' ? 'grab' : 'default'), touchAction: 'none', backgroundColor: light ? 'var(--square-light)' : 'var(--square-dark)' }}
+                style={{ width: sqSize, height: sqSize, cursor: pieceObj && pieceObj.color === 'w' ? 'grab' : 'default', touchAction: 'none', backgroundColor: light ? 'var(--square-light)' : 'var(--square-dark)' }}
                 onPointerDown={(e) => handlePointerDown(e, sq)}
                 onDragStart={preventDrag}
                 onMouseEnter={() => setHoveredSquare(sq)}
@@ -1325,7 +1321,6 @@ function MultiLevelStarBoard({
             pieceName={pieceName}
             guideArrows={level.guideArrows || []}
             movedPieces={movedPieces}
-            dimmed={phase === 'intro' || phase === 'success' || phase === 'fail'}
             hintLevel={hintLevel}
           />
           {phase === 'intro' && <IntroOverlay />}
