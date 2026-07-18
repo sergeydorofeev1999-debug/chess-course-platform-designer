@@ -1289,7 +1289,7 @@ function MultiLevelStarBoard({
       </div>
 
       {/* CENTER — Board only */}
-      <div className="flex-1 flex flex-col items-center justify-center min-w-0">
+      <div className="flex-1 flex flex-col items-center justify-center w-full lg:min-w-0">
         {/* Mobile meta + controls — centered above board (unchanged) */}
         <div className="lg:hidden w-full flex flex-col items-center gap-3 mb-4">
           <div className="flex flex-col items-center gap-1">
