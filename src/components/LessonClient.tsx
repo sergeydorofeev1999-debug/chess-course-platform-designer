@@ -1312,7 +1312,7 @@ function MultiLevelStarBoard({
 
         {/* BOARD */}
         <div className="flex justify-center w-full">
-          <div className="relative inline-block">
+          <div className="relative inline-block rounded-sm">
             <InlineChessBoard
               key={currentLevel}
               fen={position}
