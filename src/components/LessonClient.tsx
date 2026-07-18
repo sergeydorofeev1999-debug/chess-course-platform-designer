@@ -772,6 +772,8 @@ function MultiLevelStarBoard({
   currentLessonId,
   lessonTitle,
   lessonContent,
+  prevLesson,
+  nextLesson,
 }: {
   config: any;
   onComplete?: () => void;
@@ -782,7 +784,9 @@ function MultiLevelStarBoard({
   courseId?: string;
   currentLessonId?: string;
   lessonTitle?: string;
-  lessonContent?: string;
+  lessonContent?: string | null;
+  prevLesson?: any;
+  nextLesson?: any;
 }) {
   const router = useRouter();
   const pieceCodeRaw = config.pieceCode || 'wR';
@@ -1269,6 +1273,19 @@ function MultiLevelStarBoard({
             <RotateCcw size={14} /> Заново
           </button>
         </div>
+
+        {/* Nav — К курсу */}
+        {courseId && (
+          <div className="mt-4 pt-4 border-t border-[rgba(92,64,51,0.08)]">
+            <Link
+              href={`/courses/${courseId}`}
+              className="flex items-center gap-1 text-[11px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] transition-colors"
+            >
+              <ArrowLeft size={12} /> К курсу
+            </Link>
+          </div>
+        )}
+
         {/* Star progress */}
         {stars.length > 0 && phase === 'playing' && (
           <div className="flex items-center gap-1">
@@ -1358,17 +1375,40 @@ function MultiLevelStarBoard({
             />
           </div>
         </div>
-        {/* Next button */}
-        {allDone && nextLessonUrl && (
-          <Link
-            href={nextLessonUrl}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 hover:translate-x-0.5"
-            style={{ background: 'var(--accent)', color: 'var(--bg-primary)' }}
-          >
-            <span>Следующий урок</span>
-            <ArrowRight size={14} className="transition-transform duration-300 group-hover:translate-x-1" />
-          </Link>
+
+        {/* Star progress */}
+        {stars.length > 0 && phase === 'playing' && (
+          <div className="flex items-center gap-1">
+            {Array.from({ length: stars.length }, (_, i) => (
+              <Star
+                key={i}
+                size={14}
+                className={i < collectedCount ? 'fill-[#c9a84c] text-[#c9a84c]' : 'text-[#e5dfd8]'}
+                strokeWidth={2}
+              />
+            ))}
+          </div>
         )}
+
+        {/* Nav buttons — Prev / Next */}
+        <div className="flex items-center gap-2 mt-2">
+          {prevLesson ? (
+            <Link
+              href={`/lessons/${prevLesson.id}?course=${courseId}`}
+              className="flex-1 h-9 flex items-center justify-center gap-1 rounded-lg border border-[rgba(92,64,51,0.12)] text-[12px] font-medium text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] transition-all"
+            >
+              <ArrowLeft size={12} /> Предыдущий
+            </Link>
+          ) : <div className="flex-1" />}
+          {nextLesson ? (
+            <Link
+              href={`/lessons/${nextLesson.id}?course=${courseId}`}
+              className="flex-1 h-9 flex items-center justify-center gap-1 rounded-lg border border-[rgba(92,64,51,0.12)] text-[12px] font-medium text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] transition-all"
+            >
+              Следующий <ArrowRight size={12} />
+            </Link>
+          ) : <div className="flex-1" />}
+        </div>
       </div>
     </div>
   );
@@ -1417,8 +1457,8 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
 
   return (
     <div className="w-full px-3 py-4">
-    {/* Quiet nav */}
-    <div className="flex items-center justify-between mb-3">
+    {/* Quiet nav — mobile only */}
+    <div className="lg:hidden flex items-center justify-between mb-3">
       <Link
         href={`/courses/${courseId}`}
         className="text-[11px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] inline-flex items-center gap-1 transition-colors"
@@ -1524,17 +1564,19 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
             }
             console.warn('Unknown interactive type:', type);
             return (
-              <MultiLevelStarBoard
-                config={interactiveConfig}
-                onAllComplete={handleInteractiveComplete}
-                onLevelComplete={handleLevelComplete}
-                nextLessonUrl={nextLesson ? `/lessons/${nextLesson.id}?course=${courseId}` : undefined}
-                allLessons={allLessons}
-                courseId={courseId}
-                currentLessonId={lesson.id}
-                lessonTitle={lesson.title}
-                lessonContent={lesson.content}
-              />
+            <MultiLevelStarBoard
+              config={interactiveConfig}
+              onAllComplete={handleInteractiveComplete}
+              onLevelComplete={handleLevelComplete}
+              nextLessonUrl={nextLesson ? `/lessons/${nextLesson.id}?course=${courseId}` : undefined}
+              allLessons={allLessons}
+              courseId={courseId}
+              currentLessonId={lesson.id}
+              lessonTitle={lesson.title}
+              lessonContent={lesson.content}
+              prevLesson={prevLesson}
+              nextLesson={nextLesson}
+            />
             );
           })()}
         </div>
