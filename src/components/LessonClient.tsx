@@ -1145,7 +1145,10 @@ function MultiLevelStarBoard({
 
   // ═══ INTRO OVERLAY ═══
   const IntroOverlay = () => (
-    <div className="absolute inset-0 z-40 flex flex-col items-center justify-center bg-[rgba(44,36,27,0.65)] backdrop-blur-[4px]">
+    <div
+      className="absolute z-40 flex flex-col items-center justify-center bg-[rgba(44,36,27,0.65)] backdrop-blur-[4px]"
+      style={{ top: -20, left: -20, right: -20, bottom: -20, borderRadius: 'inherit' }}
+    >
       <div className="bg-white rounded-2xl p-6 shadow-2xl max-w-[320px] text-center space-y-4 mx-4">
         <div className="w-14 h-14 rounded-full bg-[var(--accent)]/10 flex items-center justify-center mx-auto">
           <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-8 h-8" draggable={false} alt="" />
@@ -1187,7 +1190,10 @@ function MultiLevelStarBoard({
     }, [isLast]);
     
     return (
-      <div className="absolute inset-0 z-40 flex flex-col items-center justify-center pointer-events-none">
+      <div
+        className="absolute z-40 flex flex-col items-center justify-center pointer-events-none"
+        style={{ top: -20, left: -20, right: -20, bottom: -20, borderRadius: 'inherit' }}
+      >
         {/* Quick toast — not covering board */}
         <div className="bg-[var(--bg-primary)]/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg border border-[#d4c4b0]/30 text-center pointer-events-auto success-bounce">
           <div className="flex items-center gap-2">
@@ -1210,7 +1216,10 @@ function MultiLevelStarBoard({
 
   // ═══ FAIL OVERLAY — quiet, contextual ═══
   const FailOverlay = () => (
-    <div className="absolute inset-0 z-40 flex flex-col items-center justify-end pb-8 pointer-events-none">
+    <div
+      className="absolute z-40 flex flex-col items-center justify-end pb-8 pointer-events-none"
+      style={{ top: -20, left: -20, right: -20, bottom: -20, borderRadius: 'inherit' }}
+    >
       <div className="bg-[var(--bg-primary)]/95 backdrop-blur-sm rounded-xl px-6 py-4 shadow-lg border border-[#d4c4b0]/40 text-center pointer-events-auto shake mx-4">
         <div className="flex items-center justify-center gap-2">
           <RotateCcw size={14} className="text-[var(--text-secondary)]" />
@@ -1312,7 +1321,7 @@ function MultiLevelStarBoard({
 
         {/* BOARD */}
         <div className="flex justify-center w-full">
-          <div className="relative inline-block overflow-hidden rounded-sm">
+          <div className="relative inline-block rounded-sm">
             <InlineChessBoard
               key={currentLevel}
               fen={position}
