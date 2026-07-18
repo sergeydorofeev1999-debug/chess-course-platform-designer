@@ -1111,22 +1111,20 @@ function MultiLevelStarBoard({
               setPhase('playing');
             }}
             disabled={isFuture || isCurrent}
-            className={`flex items-center justify-center rounded-full transition-all duration-300 ${
+            className={`relative flex items-center justify-center rounded-full transition-all duration-300 ${
               isCurrent
                 ? 'w-6 h-6 bg-[var(--text-primary)] text-[var(--bg-primary)]'
                 : isDone
-                  ? 'w-5 h-5 bg-[#d4c4b0] text-[#3a2e24] opacity-80'
+                  ? 'w-5 h-5 bg-[#E8E0D6] border border-[#C9C0B6] text-[var(--text-tertiary)] opacity-50'
                   : 'w-5 h-5 bg-[var(--bg-secondary)] text-[var(--text-muted)] opacity-50'
             } ${isFuture ? 'cursor-not-allowed' : 'cursor-pointer hover:opacity-90'}`}
             title={isDone ? `Упражнение ${i + 1} — пройдено` : `Упражнение ${i + 1}`}
           >
-            {isDone ? (
-              <CheckCircle size={10} strokeWidth={2.5} />
-            ) : (
-              <span className="text-[9px] font-bold">{i + 1}</span>
-            )}
+            <span className={`font-bold ${isCurrent ? 'text-[11px]' : isDone ? 'text-[10px]' : 'text-[9px]'}`}>
+              {i + 1}
+            </span>
             {isCurrent && (
-              <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[var(--accent)]" />
+              <span className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-[var(--accent)]" />
             )}
           </button>
         );
