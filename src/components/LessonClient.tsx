@@ -1295,8 +1295,8 @@ function MultiLevelStarBoard({
         <div className="lg:hidden w-full flex flex-col gap-2 mb-3">
           <ExerciseDots />
           <div className="flex items-start gap-3">
-            <div className="w-14 h-14 rounded-full flex-shrink-0 flex items-center justify-center text-xl font-bold text-white" style={{ background: 'var(--accent)' }}>
-              Т
+            <div className="w-14 h-14 rounded-full flex-shrink-0 overflow-hidden shadow-sm">
+              <img src="/coach-avatar.jpg" alt="Тренер" className="w-full h-full object-cover" draggable={false} />
             </div>
             <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
               <p className="text-sm text-[var(--text-primary)] leading-snug line-clamp-3">
