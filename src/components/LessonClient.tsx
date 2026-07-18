@@ -1379,22 +1379,18 @@ function MultiLevelStarBoard({
 
       {/* RIGHT: Lesson Panel — 300px */}
       <div className="hidden lg:flex w-[300px] flex-shrink-0 flex-col gap-4">
-        {/* Desktop: mini character + bubble */}
-        <div className="flex items-start gap-2">
-          <div className="w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-bold text-white" style={{ background: 'var(--accent)' }}>
-            Т
+        {/* Title */}
+        {lessonTitle && (
+          <div className="flex flex-col gap-1">
+            <p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-medium">Урок</p>
+            <h2 className="text-base font-bold text-[var(--text-primary)] leading-snug">{lessonTitle}</h2>
           </div>
-          <div className="flex-1 bg-white rounded-lg rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
-            <p className="text-[13px] text-[var(--text-primary)] leading-snug">
-              {phase === 'intro' && (lessonTitle || lessonContent || pieceDesc)}
-              {phase === 'playing' && (level.instructions || 'Выполните задание')}
-              {phase === 'success' && 'Отлично! Задание выполнено!'}
-              {phase === 'fail' && 'Подумай ещё раз...'}
-              {showHint && level.hint && `💡 ${level.hint}`}
-            </p>
-          </div>
-        </div>
-
+        )}
+        {/* Description */}
+        {lessonContent && (
+          <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{lessonContent}</p>
+        )}
+        {/* Divider */}
         <div className="w-full h-px bg-[var(--surface-border)]" />
 
         {/* ЗАДАНИЕ + Progress */}
@@ -1421,24 +1417,27 @@ function MultiLevelStarBoard({
         {stars.length > 0 && phase === 'playing' && (
           <div className="flex items-center gap-1">
             {Array.from({ length: stars.length }, (_, i) => (
-              <Star key={i} size={14} className={i < collectedCount ? 'fill-[#c9a84c] text-[#c9a84c]' : 'text-[#e5dfd8]'} strokeWidth={2} />
+              <Star
+                key={i}
+                size={14}
+                className={i < collectedCount ? 'fill-[#c9a84c] text-[#c9a84c]' : 'text-[#e5dfd8]'}
+                strokeWidth={2}
+              />
             ))}
           </div>
         )}
 
-        {/* Nav buttons */}
-        <div className="flex items-center gap-2">
-          {prevLesson ? (
-            <Link href={`/lessons/${prevLesson.id}?course=${courseId}`} className="flex-1 h-9 flex items-center justify-center gap-1 rounded-lg border border-[rgba(92,64,51,0.12)] text-[12px] font-medium text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] transition-all">
-              <ArrowLeft size={12} /> Предыдущий
-            </Link>
-          ) : <div className="flex-1" />}
-          {nextLesson ? (
-            <Link href={`/lessons/${nextLesson.id}?course=${courseId}`} className="flex-1 h-9 flex items-center justify-center gap-1 rounded-lg border border-[rgba(92,64,51,0.12)] text-[12px] font-medium text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] transition-all">
-              Следующий <ArrowRight size={12} />
-            </Link>
-          ) : <div className="flex-1" />}
-        </div>
+        {/* Next button */}
+        {allDone && nextLessonUrl && (
+          <Link
+            href={nextLessonUrl}
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 hover:translate-x-0.5"
+            style={{ background: 'var(--accent)', color: 'var(--bg-primary)' }}
+          >
+            <span>Следующий урок</span>
+            <ArrowRight size={14} className="transition-transform duration-300 group-hover:translate-x-1" />
+          </Link>
+        )}
       </div>
     </div>
   );
