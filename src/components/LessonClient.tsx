@@ -731,13 +731,13 @@ function InlineChessBoard({
               const y1 = (fromR + 0.5) * sqSize;
               const x2 = (toF + 0.5) * sqSize;
               const y2 = (toR + 0.5) * sqSize;
-              const strokeW = sqSize < 60 ? 14 : 18;
+              const strokeW = sqSize < 60 ? 20 : 26;
               const halfW = strokeW / 2;
               const dx = x2 - x1;
               const dy = y2 - y1;
               const len = Math.sqrt(dx * dx + dy * dy) || 1;
-              const headHeight = sqSize * 0.6;
-              const headBase   = strokeW * 3;
+              const headHeight = sqSize * 0.7;
+              const headBase   = strokeW * 3.5;
               const nx = -dy / len;
               const ny = dx / len;
               const tailX = x2 - (dx / len) * headHeight;
