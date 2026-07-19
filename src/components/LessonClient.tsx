@@ -1490,7 +1490,7 @@ function MultiLevelStarBoard({
             <span>{pieceName}</span>
           </div>
         </div>
-        <ExerciseDots />
+        <LevelPills />
         <div className="flex flex-col gap-2">
           <button
             onClick={() => { setHintLevel(0); if (hintArrows.length === 0) { const arrows = computeHintArrow(); setHintArrows(arrows); setShowHint(arrows.length > 0); } else { setHintArrows([]); setShowHint(false); } }}
@@ -1554,6 +1554,9 @@ function MultiLevelStarBoard({
             {phase === 'fail' && <FailOverlay />}
           </div>
         </div>
+
+        {/* Level Pills — under board, mobile + desktop */}
+        <LevelPills />
 
         {/* Mobile bottom toolbar — скрыт на intro */}
         {phase !== 'intro' && (
