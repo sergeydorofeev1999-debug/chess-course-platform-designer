@@ -732,15 +732,32 @@ function InlineChessBoard({
               const x2 = (toF + 0.5) * sqSize;
               const y2 = (toR + 0.5) * sqSize;
               const strokeW = sqSize < 60 ? 14 : 18;
+              const dx = x2 - x1;
+              const dy = y2 - y1;
+              const len = Math.sqrt(dx * dx + dy * dy) || 1;
+              const headBase = strokeW * 2.5;
+              const headHeight = strokeW * 2;
+              const nx = -dy / len;
+              const ny = dx / len;
+              const bx = x2 - (dx / len) * headHeight;
+              const by = y2 - (dy / len) * headHeight;
+              const lx = bx + nx * headBase / 2;
+              const ly = by + ny * headBase / 2;
+              const rx = bx - nx * headBase / 2;
+              const ry = by - ny * headBase / 2;
               return (
-                <line
-                  key={i}
-                  x1={x1} y1={y1} x2={x2} y2={y2}
-                  stroke="rgba(232, 168, 56, 0.60)"
-                  strokeWidth={strokeW}
-                  strokeLinecap="round"
-                  className="arrow-hint-line"
-                />
+                <g key={i} className="arrow-hint-line">
+                  <line
+                    x1={x1} y1={y1} x2={x2} y2={y2}
+                    stroke="rgba(44, 36, 27, 0.45)"
+                    strokeWidth={strokeW}
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d={`M ${x2} ${y2} L ${lx} ${ly} L ${rx} ${ry} Z`}
+                    fill="rgba(44, 36, 27, 0.45)"
+                  />
+                </g>
               );
             })}
           </svg>
