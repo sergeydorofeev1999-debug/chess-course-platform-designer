@@ -1264,7 +1264,57 @@ function MultiLevelStarBoard({
   const collectedCount = stars.filter((s: string) => collected.includes(s)).length;
   const allCollected = stars.every((s: string) => collected.includes(s));
 
-  // ═══ EXERCISE NAVIGATION DOTS — compact horizontal bar ═══
+  // ═══ LEVEL PILLS — under board, Lichess-style ═══
+  const LevelPills = () => (
+    <div className="flex items-center justify-center gap-1">
+      {levels.map((_l: any, i: number) => {
+        const earned = levelStars[i];
+        const starCount = typeof earned === 'number' ? earned : (earned ? 1 : 0);
+        const isCurrent = i === currentLevel;
+        const isDone = earned != null;
+        const isFuture = !isCurrent && !isDone && i > currentLevel;
+        return (
+          <button
+            key={i}
+            onClick={() => {
+              if (isFuture || isCurrent) return;
+              setCurrentLevel(i);
+              setAllDone(false);
+              setPhase('playing');
+            }}
+            disabled={isFuture || isCurrent}
+            className={`flex flex-col items-center justify-center gap-0.5 rounded-[10px] transition-all duration-200 ${
+              isCurrent
+                ? 'h-10 min-w-[48px] bg-[#2C241B] text-white shadow-md'
+                : isDone
+                  ? 'h-10 min-w-[48px] bg-[#C9A84C] text-white'
+                  : 'h-10 min-w-[48px] bg-[#F0EBE4] border border-[#D4C5B5] text-[#A89B8C]'
+            } ${isFuture ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:scale-[1.02]'}`}
+            title={isDone ? `Упражнение ${i + 1} — пройдено` : `Упражнение ${i + 1}`}
+          >
+            <span className="text-sm font-bold leading-none">{i + 1}</span>
+            <div className="flex gap-[1px]">
+              {[0, 1, 2].map(s => (
+                <Star
+                  key={s}
+                  size={10}
+                  className={`
+                    ${s < starCount
+                      ? isCurrent ? 'fill-white text-white' : 'fill-[#FFF8E7] text-[#FFF8E7]'
+                      : isCurrent ? 'text-[#5C4A3D]' : 'text-[#D4C5B5]'
+                    }
+                  `}
+                  strokeWidth={2}
+                />
+              ))}
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  // ═══ EXERCISE NAVIGATION DOTS — compact horizontal bar (DEPRECATED, kept for reference) ═══
   const ExerciseDots = () => (
     <div className="flex items-center justify-center gap-1">
       {levels.map((_l: any, i: number) => {
@@ -1468,7 +1518,6 @@ function MultiLevelStarBoard({
       <div className="flex-1 flex flex-col items-center justify-center w-full lg:min-w-0">
         {/* Mobile: Character + Bubble */}
         <div className="lg:hidden w-full flex flex-col gap-2 mb-3">
-          <ExerciseDots />
           <div className="flex items-start gap-3">
             <div className="w-14 h-14 flex-shrink-0">
               <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
