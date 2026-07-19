@@ -532,6 +532,5 @@ h1, h2, h3 {
 /* ── Arrow hint line (guide arrow on board) ──────────────────────────────── */
 
 .arrow-hint-line {
-  animation: arrowFadeIn 0.4s ease-out forwards, arrowIdlePulse 2s ease-in-out infinite;
-  animation-delay: 0s, 0.4s;
+  /* static — no animation */
 }
