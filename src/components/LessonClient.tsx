@@ -735,27 +735,27 @@ function InlineChessBoard({
               const dx = x2 - x1;
               const dy = y2 - y1;
               const len = Math.sqrt(dx * dx + dy * dy) || 1;
-              const headBase = strokeW * 2.5;
-              const headHeight = strokeW * 2;
+              const headBase = strokeW * 3.5;
+              const headHeight = strokeW * 3;
               const nx = -dy / len;
               const ny = dx / len;
-              const bx = x2 - (dx / len) * headHeight;
-              const by = y2 - (dy / len) * headHeight;
-              const lx = bx + nx * headBase / 2;
-              const ly = by + ny * headBase / 2;
-              const rx = bx - nx * headBase / 2;
-              const ry = by - ny * headBase / 2;
+              const tailX = x2 - (dx / len) * headHeight;
+              const tailY = y2 - (dy / len) * headHeight;
+              const lx = tailX + nx * headBase / 2;
+              const ly = tailY + ny * headBase / 2;
+              const rx = tailX - nx * headBase / 2;
+              const ry = tailY - ny * headBase / 2;
               return (
                 <g key={i} className="arrow-hint-line">
                   <line
-                    x1={x1} y1={y1} x2={x2} y2={y2}
-                    stroke="rgba(44, 36, 27, 0.45)"
+                    x1={x1} y1={y1} x2={tailX} y2={tailY}
+                    stroke="rgba(44, 36, 27, 0.50)"
                     strokeWidth={strokeW}
                     strokeLinecap="round"
                   />
                   <path
                     d={`M ${x2} ${y2} L ${lx} ${ly} L ${rx} ${ry} Z`}
-                    fill="rgba(44, 36, 27, 0.45)"
+                    fill="rgba(44, 36, 27, 0.50)"
                   />
                 </g>
               );

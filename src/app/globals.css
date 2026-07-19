@@ -127,8 +127,8 @@
 }
 
 @keyframes arrowIdlePulse {
-  0%, 100% { opacity: 0.45; }
-  50% { opacity: 0.55; }
+  0%, 100% { opacity: 0.50; }
+  50% { opacity: 0.60; }
 }
 
 /* ═══ DIRECTION C: HEIRLOOM CHESS ════════════════════════════════════════════ */
