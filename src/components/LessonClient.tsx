@@ -957,21 +957,17 @@ function MultiLevelStarBoard({
       return path;
     };
 
-    // Для каждой стартовой позиции считаем TSP и выбираем оптимальную
-    let globalBestFirstStep: string | null = null;
-    let globalBestTotal = Infinity;
-    let globalBestFrom: string | null = null;
+    // ── TSP для одной стартовой позиции и набора звёзд (subset) ──
+    const solveTSP = (from: string, starsSubset: string[]) => {
+      if (starsSubset.length === 0) return { total: 0, firstStep: null };
+      const nodes = [from, ...starsSubset];
+      const n = nodes.length;
+      const dist: (number | null)[][] = Array(n).fill(null).map(() => Array(n).fill(null));
+      const nextStep: (string | null)[][] = Array(n).fill(null).map(() => Array(n).fill(null));
 
-    for (const from of allFroms) {
-      /* ── Precompute distance matrix (start + all visible stars) ── */
-      const nodes = [from, ...visibleStars];
-      const dist: (number | null)[][] = Array(nodes.length).fill(null).map(() => Array(nodes.length).fill(null));
-      const nextStep: (string | null)[][] = Array(nodes.length).fill(null).map(() => Array(nodes.length).fill(null));
-
-      for (let i = 0; i < nodes.length; i++) {
-        for (let j = 0; j < nodes.length; j++) {
+      for (let i = 0; i < n; i++) {
+        for (let j = 0; j < n; j++) {
           if (i === j) { dist[i][j] = 0; continue; }
-          // Звезда nodes[i] считается уже собранной (не блокирует)
           const blocked = visibleStars.filter((s: string) => s !== nodes[j] && s !== nodes[i]);
           const p = getPath(nodes[i], nodes[j], blocked);
           if (p) {
@@ -981,21 +977,18 @@ function MultiLevelStarBoard({
         }
       }
 
-      /* ── Branch-and-bound TSP (min total moves to collect ALL stars) ── */
       let bestFirstStep: string | null = null;
       let bestTotal = Infinity;
+      const subsetMaskAll = (1 << starsSubset.length) - 1;
 
       const tspSearch = (currentIdx: number, visitedMask: number, currentTotal: number, firstStep: string | null) => {
         if (currentTotal >= bestTotal) return;
-
-        const allVisited = (1 << visibleStars.length) - 1;
-        if (visitedMask === allVisited) {
+        if (visitedMask === subsetMaskAll) {
           bestTotal = currentTotal;
           if (firstStep !== null) bestFirstStep = firstStep;
           return;
         }
-
-        for (let i = 0; i < visibleStars.length; i++) {
+        for (let i = 0; i < starsSubset.length; i++) {
           if (visitedMask & (1 << i)) continue;
           const d = dist[currentIdx][i + 1];
           if (d === null) continue;
@@ -1005,26 +998,81 @@ function MultiLevelStarBoard({
       };
 
       tspSearch(0, 0, 0, null);
+      return { total: bestTotal === Infinity ? null : bestTotal, firstStep: bestFirstStep };
+    };
 
-      if (bestTotal < globalBestTotal) {
-        globalBestTotal = bestTotal;
-        globalBestFirstStep = bestFirstStep;
-        globalBestFrom = from;
+    // ── Single-piece: старая логика (обратная совместимость) ──
+    if (allFroms.length === 1) {
+      const from = allFroms[0];
+      const { total, firstStep } = solveTSP(from, visibleStars);
+      if (firstStep && total !== null) {
+        const sameFile = from[0] === firstStep[0];
+        const sameRank = from[1] === firstStep[1];
+        if (pieceType === 'r' && (sameFile || sameRank)) {
+          return [{ from, to: firstStep }];
+        }
+        if (pieceType !== 'r') {
+          return [{ from, to: firstStep }];
+        }
       }
-    }
+    } else {
+      // ── Multi-piece: перебираем все разбиения звёзд между фигурами ──
+      // Кодируем разбиение битовой маской: для каждой звезды i, бит i указывает какой фигуре она отдана
+      // (для 2+ фигур используем base-(allFroms.length) partition, но оптимально: генерируем маски)
+      // Упрощаем: для N фигур генерируем все назначения (N^stars). Для 2 фигур и 7 звёзд = 128 вариантов
+      const nPieces = allFroms.length;
+      const nStars = visibleStars.length;
+      let globalBestTotal = Infinity;
+      let globalBestFirstStep: string | null = null;
+      let globalBestFrom: string | null = null;
 
-    const from = globalBestFrom;
-    const bestFirstStep = globalBestFirstStep;
+      const generatePartitions = (idx: number, assignment: number[]) => {
+        if (idx === nStars) {
+          // assignment[i] = индекс фигуры, которой отдана звезда i
+          const pieceStars: string[][] = Array(nPieces).fill(null).map(() => []);
+          for (let i = 0; i < nStars; i++) {
+            pieceStars[assignment[i]].push(visibleStars[i]);
+          }
+          let totalSum = 0;
+          let anyNull = false;
+          for (let p = 0; p < nPieces; p++) {
+            const result = solveTSP(allFroms[p], pieceStars[p]);
+            if (result.total === null) { anyNull = true; break; }
+            totalSum += result.total;
+          }
+          if (anyNull) return;
+          if (totalSum < globalBestTotal) {
+            globalBestTotal = totalSum;
+            // Выбираем первый ход первой фигуры, у которой есть звёзды
+            for (let p = 0; p < nPieces; p++) {
+              if (pieceStars[p].length > 0) {
+                const result = solveTSP(allFroms[p], pieceStars[p]);
+                globalBestFirstStep = result.firstStep;
+                globalBestFrom = allFroms[p];
+                break;
+              }
+            }
+          }
+          return;
+        }
+        for (let p = 0; p < nPieces; p++) {
+          assignment.push(p);
+          generatePartitions(idx + 1, assignment);
+          assignment.pop();
+        }
+      };
 
-    if (bestFirstStep && from) {
-      // Валидация направления для ладьи
-      const sameFile = from[0] === bestFirstStep[0];
-      const sameRank = from[1] === bestFirstStep[1];
-      if (pieceType === 'r' && (sameFile || sameRank)) {
-        return [{ from, to: bestFirstStep }];
-      }
-      if (pieceType !== 'r') {
-        return [{ from, to: bestFirstStep }];
+      generatePartitions(0, []);
+
+      if (globalBestFirstStep && globalBestFrom) {
+        const sameFile = globalBestFrom[0] === globalBestFirstStep[0];
+        const sameRank = globalBestFrom[1] === globalBestFirstStep[1];
+        if (pieceType === 'r' && (sameFile || sameRank)) {
+          return [{ from: globalBestFrom, to: globalBestFirstStep }];
+        }
+        if (pieceType !== 'r') {
+          return [{ from: globalBestFrom, to: globalBestFirstStep }];
+        }
       }
     }
 
@@ -1035,7 +1083,6 @@ function MultiLevelStarBoard({
     for (const startSq of allFroms) {
       for (const star of visibleStars) {
         if (star[0] === startSq[0] || star[1] === startSq[1]) {
-          // Вычисляем манхэттенское расстояние для ладьи (грубая оценка ходов)
           const sFile = FILES.indexOf(startSq[0]);
           const sRank = RANKS.indexOf(startSq[1]);
           const tFile = FILES.indexOf(star[0]);
