@@ -721,7 +721,7 @@ function InlineChessBoard({
           })
         )}
         {guideArrows.length > 0 && !selectedSquare && !dragPiece && (
-          <svg className="absolute inset-0 pointer-events-none z-30" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
+          <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
             {guideArrows.map((arrow, i) => {
               const fromF = FILES.indexOf(arrow.from[0]);
               const fromR = RANKS.indexOf(arrow.from[1]);
@@ -731,13 +731,15 @@ function InlineChessBoard({
               const y1 = (fromR + 0.5) * sqSize;
               const x2 = (toF + 0.5) * sqSize;
               const y2 = (toR + 0.5) * sqSize;
+              const strokeW = sqSize < 60 ? 14 : 18;
               return (
                 <line
                   key={i}
                   x1={x1} y1={y1} x2={x2} y2={y2}
-                  stroke="rgba(93, 144, 64, 0.55)"
-                  strokeWidth={Math.max(14, sqSize * 0.45)}
+                  stroke="rgba(232, 168, 56, 0.60)"
+                  strokeWidth={strokeW}
                   strokeLinecap="round"
+                  className="arrow-hint-line"
                 />
               );
             })}
