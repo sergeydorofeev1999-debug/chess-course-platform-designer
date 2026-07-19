@@ -910,8 +910,60 @@ function MultiLevelStarBoard({
         if (parsed.squares[sq].color === 'w') { from = sq; break; }
       }
     }
-    const to = visibleStars[0] || null;
-    return (from && to) ? [{from, to}] : [];
+    if (!from || visibleStars.length === 0) return [];
+
+    // BFS: find shortest path to nearest reachable star
+    const queue: string[] = [];
+    const visited = new Map<string, string | null>();
+    queue.push(from);
+    visited.set(from, null);
+
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+
+      // If current square is a star (and not starting position), we found path
+      if (visibleStars.includes(current) && current !== from) {
+        // Reconstruct path: find first move from 'from'
+        const path: string[] = [];
+        let node: string | null = current;
+        while (node !== null) {
+          path.unshift(node);
+          node = visited.get(node) ?? null;
+        }
+        // path[0] = from, path[1] = first step
+        if (path.length >= 2) {
+          return [{ from, to: path[1] }];
+        }
+        return [];
+      }
+
+      // Generate all valid moves from current square
+      for (let f = 0; f < 8; f++) {
+        for (let r = 0; r < 8; r++) {
+          const dest = `${FILES[f]}${RANKS[r]}`;
+          if (dest === current) continue;
+          if (visited.has(dest)) continue;
+          if (!isValidMove(pieceType, current, dest, parsed.squares, visibleStars, parsed.enPassant)) continue;
+
+          visited.set(dest, current);
+          queue.push(dest);
+        }
+      }
+    }
+
+    // Fallback: nearest star by Manhattan distance
+    let bestStar = visibleStars[0];
+    let bestDist = Infinity;
+    const fromF = FILES.indexOf(from[0]);
+    const fromR = RANKS.indexOf(from[1]);
+    for (const star of visibleStars) {
+      const dist = Math.abs(fromF - FILES.indexOf(star[0])) + Math.abs(fromR - RANKS.indexOf(star[1]));
+      if (dist < bestDist) {
+        bestDist = dist;
+        bestStar = star;
+      }
+    }
+    return [{ from, to: bestStar }];
   }, [position, pieceType, visibleStars]);
 
   /* ── Сохраняем прогресс в базу при завершении последнего уровня ── */
