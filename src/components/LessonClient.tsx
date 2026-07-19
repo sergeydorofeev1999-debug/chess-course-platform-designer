@@ -865,7 +865,7 @@ function MultiLevelStarBoard({
   const totalLevels = levels.length;
 
   const guideArrows = useMemo(() => {
-    if (level.guideArrows?.length > 0) return level.guideArrows;
+    if (level.guideArrows != null) return level.guideArrows;
     const parsed = parseFen(level.initialFen);
     let from = null;
     for (const sq of Object.keys(parsed.squares)) {
