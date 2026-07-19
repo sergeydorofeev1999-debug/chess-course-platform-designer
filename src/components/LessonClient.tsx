@@ -736,8 +736,7 @@ function InlineChessBoard({
               const dx = x2 - x1;
               const dy = y2 - y1;
               const len = Math.sqrt(dx * dx + dy * dy) || 1;
-              const headBase = strokeW * 2.8;
-              const headHeight = sqSize * 0.55;
+              const headHeight = sqSize * 0.45;
               const nx = -dy / len;
               const ny = dx / len;
               const tailX = x2 - (dx / len) * headHeight;
@@ -746,10 +745,9 @@ function InlineChessBoard({
               const brx = x1 - nx * halfW;   const bry = y1 - ny * halfW;
               const tlx = tailX + nx * halfW; const tly = tailY + ny * halfW;
               const trx = tailX - nx * halfW; const try_ = tailY - ny * halfW;
-              const hlx = tailX + nx * headBase / 2; const hly = tailY + ny * headBase / 2;
-              const hrx = tailX - nx * headBase / 2; const hry = tailY - ny * headBase / 2;
-              const arcR = halfW;
-              const pathD = `M ${x2} ${y2} L ${hlx} ${hly} L ${tlx} ${tly} A ${arcR} ${arcR} 0 0 0 ${blx} ${bly} L ${brx} ${bry} A ${arcR} ${arcR} 0 0 0 ${trx} ${try_} L ${hrx} ${hry} Z`;
+              // sweep для полукруга основания
+              const sweep = dy > 0 ? 1 : 0;
+              const pathD = `M ${blx} ${bly} L ${tlx} ${tly} L ${x2} ${y2} L ${trx} ${try_} L ${brx} ${bry} A ${halfW} ${halfW} 0 0 ${sweep} ${blx} ${bly} Z`;
               return (
                 <path
                   key={i}
