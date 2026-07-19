@@ -912,56 +912,81 @@ function MultiLevelStarBoard({
     }
     if (!from || visibleStars.length === 0) return [];
 
-    // BFS: find shortest path to nearest reachable star
-    const queue: string[] = [];
-    const visited = new Map<string, string | null>();
-    queue.push(from);
-    visited.set(from, null);
+    /* ── Helper: BFS shortest path from → to (returns path array or null) ── */
+    const getPath = (start: string, target: string, blockedStars: string[]) => {
+      const q: string[] = [];
+      const prev = new Map<string, string | null>();
+      q.push(start);
+      prev.set(start, null);
 
-    while (queue.length > 0) {
-      const current = queue.shift()!;
-
-      // If current square is a star (and not starting position), we found path
-      if (visibleStars.includes(current) && current !== from) {
-        // Reconstruct path: find first move from 'from'
-        const path: string[] = [];
-        let node: string | null = current;
-        while (node !== null) {
-          path.unshift(node);
-          node = visited.get(node) ?? null;
-        }
-        // path[0] = from, path[1] = first step
-        if (path.length >= 2) {
-          return [{ from, to: path[1] }];
-        }
-        return [];
-      }
-
-      // Generate all valid moves from current square
-      for (let f = 0; f < 8; f++) {
-        for (let r = 0; r < 8; r++) {
-          const dest = `${FILES[f]}${RANKS[r]}`;
-          if (dest === current) continue;
-          if (visited.has(dest)) continue;
-          if (!isValidMove(pieceType, current, dest, parsed.squares, visibleStars, parsed.enPassant)) continue;
-
-          visited.set(dest, current);
-          queue.push(dest);
+      while (q.length > 0) {
+        const cur = q.shift()!;
+        if (cur === target) break;
+        for (let f = 0; f < 8; f++) {
+          for (let r = 0; r < 8; r++) {
+            const dest = `${FILES[f]}${RANKS[r]}`;
+            if (dest === cur || prev.has(dest)) continue;
+            if (!isValidMove(pieceType, cur, dest, parsed.squares, blockedStars, parsed.enPassant)) continue;
+            prev.set(dest, cur);
+            q.push(dest);
+          }
         }
       }
-    }
 
-    // Fallback: nearest star by Manhattan distance
+      if (!prev.has(target)) return null;
+      const path: string[] = [];
+      let node: string | null = target;
+      while (node !== null) {
+        path.unshift(node);
+        node = prev.get(node) ?? null;
+      }
+      return path;
+    };
+
+    /* ── TSP: find optimal star visiting order (minimum total moves) ── */
+    let bestFirstStep: string | null = null;
+    let bestTotal = Infinity;
+
+    const permute = (arr: string[], prefix: string[] = []) => {
+      if (arr.length === 0) {
+        // Evaluate this order
+        let total = 0;
+        let pos = from;
+        const remaining = new Set(visibleStars);
+        for (const star of prefix) {
+          const blocked = visibleStars.filter((s: string) => remaining.has(s) && s !== star);
+          const path = getPath(pos, star, blocked);
+          if (!path) { total = Infinity; break; }
+          total += path.length - 1;
+          pos = star;
+          remaining.delete(star);
+        }
+        if (total < bestTotal && prefix.length > 0) {
+          bestTotal = total;
+          const blocked0 = visibleStars.filter((s: string) => s !== prefix[0]);
+          const p0 = getPath(from, prefix[0], blocked0);
+          bestFirstStep = p0 && p0.length >= 2 ? p0[1] : null;
+        }
+        return;
+      }
+      for (let i = 0; i < arr.length; i++) {
+        const rest = [...arr.slice(0, i), ...arr.slice(i + 1)];
+        permute(rest, [...prefix, arr[i]]);
+      }
+    };
+
+    permute(visibleStars);
+
+    if (bestFirstStep) return [{ from, to: bestFirstStep }];
+
+    // Fallback: nearest star
     let bestStar = visibleStars[0];
     let bestDist = Infinity;
     const fromF = FILES.indexOf(from[0]);
     const fromR = RANKS.indexOf(from[1]);
     for (const star of visibleStars) {
       const dist = Math.abs(fromF - FILES.indexOf(star[0])) + Math.abs(fromR - RANKS.indexOf(star[1]));
-      if (dist < bestDist) {
-        bestDist = dist;
-        bestStar = star;
-      }
+      if (dist < bestDist) { bestDist = dist; bestStar = star; }
     }
     return [{ from, to: bestStar }];
   }, [position, pieceType, visibleStars]);
