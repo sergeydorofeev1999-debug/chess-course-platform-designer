@@ -724,7 +724,7 @@ function InlineChessBoard({
             );
           })
         )}
-        {(guideArrows.length > 0 || hintArrows.length > 0) && moves === 0 && !selectedSquare && !dragPiece && (
+        {((guideArrows.length > 0 && moves === 0) || hintArrows.length > 0) && !selectedSquare && !dragPiece && (
           <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
             {[...guideArrows, ...hintArrows].map((arrow, i) => {
               const fromF = FILES.indexOf(arrow.from[0]);
