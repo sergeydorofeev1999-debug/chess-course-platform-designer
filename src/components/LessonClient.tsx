@@ -732,6 +732,7 @@ function InlineChessBoard({
               const x2 = (toF + 0.5) * sqSize;
               const y2 = (toR + 0.5) * sqSize;
               const strokeW = sqSize < 60 ? 14 : 18;
+              const halfW = strokeW / 2;
               const dx = x2 - x1;
               const dy = y2 - y1;
               const len = Math.sqrt(dx * dx + dy * dy) || 1;
@@ -739,22 +740,15 @@ function InlineChessBoard({
               const headHeight = sqSize * 0.45;
               const nx = -dy / len;
               const ny = dx / len;
-              const halfW = strokeW / 2;
               const tailX = x2 - (dx / len) * headHeight;
               const tailY = y2 - (dy / len) * headHeight;
-              const lx = tailX + nx * headBase / 2;
-              const ly = tailY + ny * headBase / 2;
-              const rx = tailX - nx * headBase / 2;
-              const ry = tailY - ny * headBase / 2;
-              const baseLx = x1 + nx * halfW;
-              const baseLy = y1 + ny * halfW;
-              const baseRx = x1 - nx * halfW;
-              const baseRy = y1 - ny * halfW;
-              const tailLx = tailX + nx * halfW;
-              const tailLy = tailY + ny * halfW;
-              const tailRx = tailX - nx * halfW;
-              const tailRy = tailY - ny * halfW;
-              const pathD = `M ${baseLx} ${baseLy} L ${tailLx} ${tailLy} L ${lx} ${ly} L ${x2} ${y2} L ${rx} ${ry} L ${tailRx} ${tailRy} Z`;
+              const blx = x1 + nx * halfW;   const bly = y1 + ny * halfW;
+              const brx = x1 - nx * halfW;   const bry = y1 - ny * halfW;
+              const tlx = tailX + nx * halfW; const tly = tailY + ny * halfW;
+              const trx = tailX - nx * halfW; const try_ = tailY - ny * halfW;
+              const hlx = tailX + nx * headBase / 2; const hly = tailY + ny * headBase / 2;
+              const hrx = tailX - nx * headBase / 2; const hry = tailY - ny * headBase / 2;
+              const pathD = `M ${blx} ${bly} L ${tlx} ${tly} L ${hlx} ${hly} L ${x2} ${y2} L ${hrx} ${hry} L ${trx} ${try_} L ${brx} ${bry} Z`;
               return (
                 <path
                   key={i}
