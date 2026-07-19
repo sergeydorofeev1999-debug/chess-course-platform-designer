@@ -900,27 +900,33 @@ function MultiLevelStarBoard({
 
   const computeHintArrow = useCallback(() => {
     const parsed = parseFen(position);
-    let from = null;
+    // Собираем ВСЕ стартовые позиции белых фигур нужного типа
+    const allFroms: string[] = [];
     for (const sq of Object.keys(parsed.squares)) {
       const p = parsed.squares[sq];
-      if (p.color === 'w' && p.type === pieceType) { from = sq; break; }
+      if (p.color === 'w' && p.type === pieceType) { allFroms.push(sq); }
     }
-    if (!from) {
+    // Fallback: любая белая фигура
+    if (allFroms.length === 0) {
       for (const sq of Object.keys(parsed.squares)) {
-        if (parsed.squares[sq].color === 'w') { from = sq; break; }
+        if (parsed.squares[sq].color === 'w') { allFroms.push(sq); break; }
       }
     }
-    if (!from || visibleStars.length === 0) return [];
+    if (allFroms.length === 0 || visibleStars.length === 0) return [];
 
     /* ── BFS shortest path from → to (chess-legal, returns path array or null) ── */
     const getPath = (start: string, target: string, blockedStars: string[]) => {
       const passableBlocked = blockedStars.filter((s: string) => s !== target);
-      // Перемещаем виртуальную ладью на start для корректного isValidMove (star-to-star пути)
+      // Перемещаем виртуальную ладью на start: удаляем белую фигуру на start (или первую найденную)
       const virtualSquares = {...parsed.squares};
-      for (const sq of Object.keys(virtualSquares)) {
-        if (virtualSquares[sq].color === 'w' && virtualSquares[sq].type === pieceType) {
-          delete virtualSquares[sq];
-          break;
+      if (virtualSquares[start]?.color === 'w' && virtualSquares[start]?.type === pieceType) {
+        delete virtualSquares[start];
+      } else {
+        for (const sq of Object.keys(virtualSquares)) {
+          if (virtualSquares[sq].color === 'w' && virtualSquares[sq].type === pieceType) {
+            delete virtualSquares[sq];
+            break;
+          }
         }
       }
       virtualSquares[start] = {type: pieceType, color: 'w'};
@@ -951,50 +957,66 @@ function MultiLevelStarBoard({
       return path;
     };
 
-    /* ── Precompute distance matrix (start + all visible stars) ── */
-    const nodes = [from, ...visibleStars];
-    const dist: (number | null)[][] = Array(nodes.length).fill(null).map(() => Array(nodes.length).fill(null));
-    const nextStep: (string | null)[][] = Array(nodes.length).fill(null).map(() => Array(nodes.length).fill(null));
+    // Для каждой стартовой позиции считаем TSP и выбираем оптимальную
+    let globalBestFirstStep: string | null = null;
+    let globalBestTotal = Infinity;
+    let globalBestFrom: string | null = null;
 
-    for (let i = 0; i < nodes.length; i++) {
-      for (let j = 0; j < nodes.length; j++) {
-        if (i === j) { dist[i][j] = 0; continue; }
-        // Звезда nodes[i] считается уже собранной (не блокирует)
-        const blocked = visibleStars.filter((s: string) => s !== nodes[j] && s !== nodes[i]);
-        const p = getPath(nodes[i], nodes[j], blocked);
-        if (p) {
-          dist[i][j] = p.length - 1;
-          nextStep[i][j] = p.length >= 2 ? p[1] : nodes[j];
+    for (const from of allFroms) {
+      /* ── Precompute distance matrix (start + all visible stars) ── */
+      const nodes = [from, ...visibleStars];
+      const dist: (number | null)[][] = Array(nodes.length).fill(null).map(() => Array(nodes.length).fill(null));
+      const nextStep: (string | null)[][] = Array(nodes.length).fill(null).map(() => Array(nodes.length).fill(null));
+
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = 0; j < nodes.length; j++) {
+          if (i === j) { dist[i][j] = 0; continue; }
+          // Звезда nodes[i] считается уже собранной (не блокирует)
+          const blocked = visibleStars.filter((s: string) => s !== nodes[j] && s !== nodes[i]);
+          const p = getPath(nodes[i], nodes[j], blocked);
+          if (p) {
+            dist[i][j] = p.length - 1;
+            nextStep[i][j] = p.length >= 2 ? p[1] : nodes[j];
+          }
         }
+      }
+
+      /* ── Branch-and-bound TSP (min total moves to collect ALL stars) ── */
+      let bestFirstStep: string | null = null;
+      let bestTotal = Infinity;
+
+      const tspSearch = (currentIdx: number, visitedMask: number, currentTotal: number, firstStep: string | null) => {
+        if (currentTotal >= bestTotal) return;
+
+        const allVisited = (1 << visibleStars.length) - 1;
+        if (visitedMask === allVisited) {
+          bestTotal = currentTotal;
+          if (firstStep !== null) bestFirstStep = firstStep;
+          return;
+        }
+
+        for (let i = 0; i < visibleStars.length; i++) {
+          if (visitedMask & (1 << i)) continue;
+          const d = dist[currentIdx][i + 1];
+          if (d === null) continue;
+          const fs = firstStep === null ? nextStep[currentIdx][i + 1] : firstStep;
+          tspSearch(i + 1, visitedMask | (1 << i), currentTotal + d, fs);
+        }
+      };
+
+      tspSearch(0, 0, 0, null);
+
+      if (bestTotal < globalBestTotal) {
+        globalBestTotal = bestTotal;
+        globalBestFirstStep = bestFirstStep;
+        globalBestFrom = from;
       }
     }
 
-    /* ── Branch-and-bound TSP (min total moves to collect ALL stars) ── */
-    let bestFirstStep: string | null = null;
-    let bestTotal = Infinity;
+    const from = globalBestFrom;
+    const bestFirstStep = globalBestFirstStep;
 
-    const tspSearch = (currentIdx: number, visitedMask: number, currentTotal: number, firstStep: string | null) => {
-      if (currentTotal >= bestTotal) return;
-
-      const allVisited = (1 << visibleStars.length) - 1;
-      if (visitedMask === allVisited) {
-        bestTotal = currentTotal;
-        if (firstStep !== null) bestFirstStep = firstStep;
-        return;
-      }
-
-      for (let i = 0; i < visibleStars.length; i++) {
-        if (visitedMask & (1 << i)) continue;
-        const d = dist[currentIdx][i + 1];
-        if (d === null) continue;
-        const fs = firstStep === null ? nextStep[currentIdx][i + 1] : firstStep;
-        tspSearch(i + 1, visitedMask | (1 << i), currentTotal + d, fs);
-      }
-    };
-
-    tspSearch(0, 0, 0, null);
-
-    if (bestFirstStep) {
+    if (bestFirstStep && from) {
       // Валидация направления для ладьи
       const sameFile = from[0] === bestFirstStep[0];
       const sameRank = from[1] === bestFirstStep[1];
@@ -1006,11 +1028,29 @@ function MultiLevelStarBoard({
       }
     }
 
-    // Fallback: ближайшая звезда по прямой для ладьи
-    for (const star of visibleStars) {
-      if (star[0] === from[0] || star[1] === from[1]) {
-        return [{ from, to: star }];
+    // Fallback: для каждой стартовой ладьи ищем ближайшую звезду по прямой (минимум по ходам)
+    let fallbackFrom: string | null = null;
+    let fallbackTo: string | null = null;
+    let fallbackDist = Infinity;
+    for (const startSq of allFroms) {
+      for (const star of visibleStars) {
+        if (star[0] === startSq[0] || star[1] === startSq[1]) {
+          // Вычисляем манхэттенское расстояние для ладьи (грубая оценка ходов)
+          const sFile = FILES.indexOf(startSq[0]);
+          const sRank = RANKS.indexOf(startSq[1]);
+          const tFile = FILES.indexOf(star[0]);
+          const tRank = RANKS.indexOf(star[1]);
+          const md = Math.abs(sFile - tFile) + Math.abs(sRank - tRank);
+          if (md < fallbackDist) {
+            fallbackDist = md;
+            fallbackFrom = startSq;
+            fallbackTo = star;
+          }
+        }
       }
+    }
+    if (fallbackFrom && fallbackTo) {
+      return [{ from: fallbackFrom, to: fallbackTo }];
     }
     return [];
   }, [position, pieceType, visibleStars]);
