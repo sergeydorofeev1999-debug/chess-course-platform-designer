@@ -942,41 +942,62 @@ function MultiLevelStarBoard({
       return path;
     };
 
-    // Подсказка: первая несобранная звезда в порядке урока (visibleStars[0])
-    let target = visibleStars[0];
+    /* ── Precompute distance matrix (start + all visible stars) ── */
+    const nodes = [from, ...visibleStars];
+    const dist: (number | null)[][] = Array(nodes.length).fill(null).map(() => Array(nodes.length).fill(null));
+    const nextStep: (string | null)[][] = Array(nodes.length).fill(null).map(() => Array(nodes.length).fill(null));
 
-    // Для ладьи: если несколько звёзд на одной линии, берём дальнюю
-    // (чтобы не возвращаться — оптимизация "собери всё на одной линии за один проход")
-    if (pieceType === 'r' && visibleStars.length > 1) {
-      const sameLine = visibleStars.filter((s: string) => s[0] === from[0] || s[1] === from[1]);
-      if (sameLine.length > 1) {
-        // Найти самую дальнюю по манхэттенскому расстоянию
-        let farthest = sameLine[0];
-        let maxDist = 0;
-        for (const s of sameLine) {
-          const d = Math.abs(FILES.indexOf(s[0]) - FILES.indexOf(from[0])) + Math.abs(RANKS.indexOf(s[1]) - RANKS.indexOf(from[1]));
-          if (d > maxDist) { maxDist = d; farthest = s; }
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = 0; j < nodes.length; j++) {
+        if (i === j) { dist[i][j] = 0; continue; }
+        // Звезда nodes[i] считается уже собранной (не блокирует)
+        const blocked = visibleStars.filter((s: string) => s !== nodes[j] && s !== nodes[i]);
+        const p = getPath(nodes[i], nodes[j], blocked);
+        if (p) {
+          dist[i][j] = p.length - 1;
+          nextStep[i][j] = p.length >= 2 ? p[1] : nodes[j];
         }
-        target = farthest;
       }
     }
 
-    const blocked = visibleStars.filter((s: string) => s !== target);
-    const path = getPath(from, target, blocked);
-    if (path && path.length >= 2) {
-      const next = path[1];
-      // Прямая проверка направления для ладьи
-      const sameFile = from[0] === next[0];
-      const sameRank = from[1] === next[1];
+    /* ── Branch-and-bound TSP (min total moves to collect ALL stars) ── */
+    let bestFirstStep: string | null = null;
+    let bestTotal = Infinity;
+
+    const tspSearch = (currentIdx: number, visitedMask: number, currentTotal: number, firstStep: string | null) => {
+      if (currentTotal >= bestTotal) return;
+
+      const allVisited = (1 << visibleStars.length) - 1;
+      if (visitedMask === allVisited) {
+        bestTotal = currentTotal;
+        if (firstStep !== null) bestFirstStep = firstStep;
+        return;
+      }
+
+      for (let i = 0; i < visibleStars.length; i++) {
+        if (visitedMask & (1 << i)) continue;
+        const d = dist[currentIdx][i + 1];
+        if (d === null) continue;
+        const fs = firstStep === null ? nextStep[currentIdx][i + 1] : firstStep;
+        tspSearch(i + 1, visitedMask | (1 << i), currentTotal + d, fs);
+      }
+    };
+
+    tspSearch(0, 0, 0, null);
+
+    if (bestFirstStep) {
+      // Валидация направления для ладьи
+      const sameFile = from[0] === bestFirstStep[0];
+      const sameRank = from[1] === bestFirstStep[1];
       if (pieceType === 'r' && (sameFile || sameRank)) {
-        return [{ from, to: next }];
+        return [{ from, to: bestFirstStep }];
       }
       if (pieceType !== 'r') {
-        return [{ from, to: next }];
+        return [{ from, to: bestFirstStep }];
       }
     }
 
-    // Fallback: ближайшая по прямой линия для ладьи
+    // Fallback: ближайшая звезда по прямой для ладьи
     for (const star of visibleStars) {
       if (star[0] === from[0] || star[1] === from[1]) {
         return [{ from, to: star }];
