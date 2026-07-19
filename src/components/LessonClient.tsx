@@ -403,6 +403,7 @@ interface InlineChessBoardProps {
   movedPieces?: Set<string>;
   enPassantTarget?: string | null;
   hintLevel?: number;
+  moves?: number;
 }
 
 function InlineChessBoard({
@@ -415,6 +416,7 @@ function InlineChessBoard({
   movedPieces: externalMovedPieces,
   enPassantTarget,
   hintLevel = 0,
+  moves = 0,
 }: InlineChessBoardProps) {
   const pieceErrHint =
     pieceType === 'b' ? 'Слон ходит по диагонали!' :
@@ -720,7 +722,7 @@ function InlineChessBoard({
             );
           })
         )}
-        {guideArrows.length > 0 && !selectedSquare && !dragPiece && (
+        {guideArrows.length > 0 && moves === 0 && !selectedSquare && !dragPiece && (
           <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
             {guideArrows.map((arrow, i) => {
               const fromF = FILES.indexOf(arrow.from[0]);
@@ -1367,6 +1369,7 @@ function MultiLevelStarBoard({
               guideArrows={guideArrows}
               movedPieces={movedPieces}
               hintLevel={hintLevel}
+              moves={moves}
             />
             {phase === 'intro' && <IntroOverlay />}
             {phase === 'success' && <SuccessOverlay />}
