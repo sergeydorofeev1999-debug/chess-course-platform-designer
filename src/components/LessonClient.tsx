@@ -942,78 +942,29 @@ function MultiLevelStarBoard({
       return path;
     };
 
-    /* ── Precompute distance matrix (start + all stars) ── */
-    const nodes = [from, ...visibleStars];
-    const dist: (number | null)[][] = Array(nodes.length).fill(null).map(() => Array(nodes.length).fill(null));
-    const nextStep: (string | null)[][] = Array(nodes.length).fill(null).map(() => Array(nodes.length).fill(null));
-
-    for (let i = 0; i < nodes.length; i++) {
-      for (let j = 0; j < nodes.length; j++) {
-        if (i === j) { dist[i][j] = 0; continue; }
-        // Для пути от звезды A к звезде B: A уже собрана и не блокирует
-        const blocked = visibleStars.filter((s: string) => s !== nodes[j] && s !== nodes[i]);
-        const p = getPath(nodes[i], nodes[j], blocked);
-        if (p) {
-          dist[i][j] = p.length - 1;
-          nextStep[i][j] = p.length >= 2 ? p[1] : nodes[j];
-        }
+    // Подсказка: первая несобранная звезда в порядке урока (visibleStars[0])
+    const target = visibleStars[0];
+    const blocked = visibleStars.filter((s: string) => s !== target);
+    const path = getPath(from, target, blocked);
+    if (path && path.length >= 2) {
+      const next = path[1];
+      // Прямая проверка направления для ладьи
+      const sameFile = from[0] === next[0];
+      const sameRank = from[1] === next[1];
+      if (pieceType === 'r' && (sameFile || sameRank)) {
+        return [{ from, to: next }];
+      }
+      if (pieceType !== 'r') {
+        return [{ from, to: next }];
       }
     }
 
-    /* ── Branch-and-bound TSP (min total moves) ── */
-    let bestFirstStep: string | null = null;
-    let bestTotal = Infinity;
-
-    const tspSearch = (currentIdx: number, visitedMask: number, currentTotal: number, firstStarIdx: number | null, firstStep: string | null) => {
-      // Pruning
-      if (currentTotal >= bestTotal) return;
-
-      const allVisited = (1 << visibleStars.length) - 1;
-      if (visitedMask === allVisited) {
-        bestTotal = currentTotal;
-        bestFirstStep = firstStep;
-        return;
-      }
-
-      for (let i = 0; i < visibleStars.length; i++) {
-        if (visitedMask & (1 << i)) continue;
-        const d = dist[currentIdx][i + 1];
-        if (d === null) continue;
-        const newFirstStep = firstStep === null ? nextStep[currentIdx][i + 1] : firstStep;
-        tspSearch(i + 1, visitedMask | (1 << i), currentTotal + d, firstStarIdx ?? (i + 1), newFirstStep);
-      }
-    };
-
-    tspSearch(0, 0, 0, null, null);
-
-    if (bestFirstStep) {
-      // Простая проверка: from и to на одной прямой для ладьи или диагонали для слона
-      const sameFile = from[0] === bestFirstStep[0];
-      const sameRank = from[1] === bestFirstStep[1];
-      const fileDiff = Math.abs(FILES.indexOf(from[0]) - FILES.indexOf(bestFirstStep[0]));
-      const rankDiff = Math.abs(RANKS.indexOf(from[1]) - RANKS.indexOf(bestFirstStep[1]));
-      const isDiagonal = fileDiff === rankDiff;
-      let valid = false;
-      if (pieceType === 'r' && (sameFile || sameRank)) valid = true;
-      else if (pieceType === 'b' && isDiagonal) valid = true;
-      else if (pieceType === 'q' && (sameFile || sameRank || isDiagonal)) valid = true;
-      else if (pieceType === 'n' && ((fileDiff === 2 && rankDiff === 1) || (fileDiff === 1 && rankDiff === 2))) valid = true;
-      else if (pieceType === 'k' && fileDiff <= 1 && rankDiff <= 1) valid = true;
-      if (valid) {
-        return [{ from, to: bestFirstStep }];
+    // Fallback: ближайшая по прямой линия для ладьи
+    for (const star of visibleStars) {
+      if (star[0] === from[0] || star[1] === from[1]) {
+        return [{ from, to: star }];
       }
     }
-
-    // Fallback: nearest reachable star
-    let bestStar = null as string | null;
-    let bestDist = Infinity;
-    for (let i = 0; i < visibleStars.length; i++) {
-      if (dist[0][i + 1] !== null && dist[0][i + 1]! < bestDist) {
-        bestDist = dist[0][i + 1]!;
-        bestStar = nextStep[0][i + 1];
-      }
-    }
-    if (bestStar) return [{ from, to: bestStar }];
     return [];
   }, [position, pieceType, visibleStars]);
 
