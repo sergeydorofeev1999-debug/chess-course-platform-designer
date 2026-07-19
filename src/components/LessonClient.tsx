@@ -912,15 +912,13 @@ function MultiLevelStarBoard({
     }
     if (!from || visibleStars.length === 0) return [];
 
-    /* ── Helper: BFS shortest path from → to (returns path array or null) ── */
+    /* ── BFS shortest path from → to (chess-legal, returns path array or null) ── */
     const getPath = (start: string, target: string, blockedStars: string[]) => {
-      // Целевая звезда должна быть доступна для остановки
       const passableBlocked = blockedStars.filter((s: string) => s !== target);
       const q: string[] = [];
       const prev = new Map<string, string | null>();
       q.push(start);
       prev.set(start, null);
-
       while (q.length > 0) {
         const cur = q.shift()!;
         if (cur === target) break;
@@ -934,7 +932,6 @@ function MultiLevelStarBoard({
           }
         }
       }
-
       if (!prev.has(target)) return null;
       const path: string[] = [];
       let node: string | null = target;
@@ -945,55 +942,62 @@ function MultiLevelStarBoard({
       return path;
     };
 
-    /* ── TSP: find optimal star visiting order (minimum total moves) ── */
+    /* ── Precompute distance matrix (start + all stars) ── */
+    const nodes = [from, ...visibleStars];
+    const dist: (number | null)[][] = Array(nodes.length).fill(null).map(() => Array(nodes.length).fill(null));
+    const nextStep: (string | null)[][] = Array(nodes.length).fill(null).map(() => Array(nodes.length).fill(null));
+
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = 0; j < nodes.length; j++) {
+        if (i === j) { dist[i][j] = 0; continue; }
+        const blocked = visibleStars.filter((s: string) => s !== nodes[j]);
+        const p = getPath(nodes[i], nodes[j], blocked);
+        if (p) {
+          dist[i][j] = p.length - 1;
+          nextStep[i][j] = p.length >= 2 ? p[1] : nodes[j];
+        }
+      }
+    }
+
+    /* ── Branch-and-bound TSP (min total moves) ── */
     let bestFirstStep: string | null = null;
     let bestTotal = Infinity;
 
-    const permute = (arr: string[], prefix: string[] = []) => {
-      if (arr.length === 0) {
-        // Evaluate this order
-        let total = 0;
-        let pos = from;
-        const remaining = new Set(visibleStars);
-        for (const star of prefix) {
-          const blocked = visibleStars.filter((s: string) => remaining.has(s) && s !== star);
-          const path = getPath(pos, star, blocked);
-          if (!path) { total = Infinity; break; }
-          total += path.length - 1;
-          pos = star;
-          remaining.delete(star);
-        }
-        if (total < bestTotal && prefix.length > 0) {
-          bestTotal = total;
-          const blocked0 = visibleStars.filter((s: string) => s !== prefix[0]);
-          const p0 = getPath(from, prefix[0], blocked0);
-          bestFirstStep = p0 && p0.length >= 2 ? p0[1] : null;
-        }
+    const tspSearch = (currentIdx: number, visitedMask: number, currentTotal: number, firstStarIdx: number | null, firstStep: string | null) => {
+      // Pruning
+      if (currentTotal >= bestTotal) return;
+
+      const allVisited = (1 << visibleStars.length) - 1;
+      if (visitedMask === allVisited) {
+        bestTotal = currentTotal;
+        bestFirstStep = firstStep;
         return;
       }
-      for (let i = 0; i < arr.length; i++) {
-        const rest = [...arr.slice(0, i), ...arr.slice(i + 1)];
-        permute(rest, [...prefix, arr[i]]);
+
+      for (let i = 0; i < visibleStars.length; i++) {
+        if (visitedMask & (1 << i)) continue;
+        const d = dist[currentIdx][i + 1];
+        if (d === null) continue;
+        const newFirstStep = firstStep === null ? nextStep[currentIdx][i + 1] : firstStep;
+        tspSearch(i + 1, visitedMask | (1 << i), currentTotal + d, firstStarIdx ?? (i + 1), newFirstStep);
       }
     };
 
-    permute(visibleStars);
+    tspSearch(0, 0, 0, null, null);
 
     if (bestFirstStep) {
-      // Validate arrow matches piece movement rules
       if (isValidMove(pieceType, from, bestFirstStep, parsed.squares, visibleStars, parsed.enPassant)) {
         return [{ from, to: bestFirstStep }];
       }
     }
 
-    // Fallback: nearest star by BFS (chess-legal moves only)
+    // Fallback: nearest reachable star
     let bestStar = null as string | null;
     let bestDist = Infinity;
-    for (const star of visibleStars) {
-      const p = getPath(from, star, visibleStars.filter((s: string) => s !== star));
-      if (p && p.length - 1 < bestDist) {
-        bestDist = p.length - 1;
-        bestStar = p.length >= 2 ? p[1] : star;
+    for (let i = 0; i < visibleStars.length; i++) {
+      if (dist[0][i + 1] !== null && dist[0][i + 1]! < bestDist) {
+        bestDist = dist[0][i + 1]!;
+        bestStar = nextStep[0][i + 1];
       }
     }
     if (bestStar) return [{ from, to: bestStar }];
