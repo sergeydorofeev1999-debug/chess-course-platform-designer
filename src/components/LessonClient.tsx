@@ -400,6 +400,7 @@ interface InlineChessBoardProps {
   pieceType?: string;
   pieceName?: string;
   guideArrows?: { from: string; to: string }[];
+  hintArrows?: { from: string; to: string }[];
   movedPieces?: Set<string>;
   enPassantTarget?: string | null;
   hintLevel?: number;
@@ -413,6 +414,7 @@ function InlineChessBoard({
   pieceType = 'r',
   pieceName = 'Ладья',
   guideArrows = [],
+  hintArrows = [],
   movedPieces: externalMovedPieces,
   enPassantTarget,
   hintLevel = 0,
@@ -722,9 +724,9 @@ function InlineChessBoard({
             );
           })
         )}
-        {guideArrows.length > 0 && moves === 0 && !selectedSquare && !dragPiece && (
+        {(guideArrows.length > 0 || hintArrows.length > 0) && moves === 0 && !selectedSquare && !dragPiece && (
           <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
-            {guideArrows.map((arrow, i) => {
+            {[...guideArrows, ...hintArrows].map((arrow, i) => {
               const fromF = FILES.indexOf(arrow.from[0]);
               const fromR = RANKS.indexOf(arrow.from[1]);
               const toF = FILES.indexOf(arrow.to[0]);
@@ -829,6 +831,13 @@ function MultiLevelStarBoard({
   }, [savedKey]);
 
   const [currentLevel, setCurrentLevel] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const hashMatch = window.location.hash.match(/level=(\d+)/);
+      if (hashMatch) {
+        const n = parseInt(hashMatch[1], 10);
+        if (!isNaN(n) && n >= 0 && n < levels.length) return n;
+      }
+    }
     let start = savedCurrentLevel || 0;
     while (start < levels.length && savedProgress[start] != null) {
       start++;
@@ -838,6 +847,13 @@ function MultiLevelStarBoard({
   const [position, setPosition] = useState(levels[currentLevel || 0].initialFen);
   const positionRef = useRef(position);
   useEffect(() => { positionRef.current = position; }, [position]);
+
+  /* ── Синхронизация URL hash с текущим уровнем ── */
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.location.hash = `level=${currentLevel}`;
+    }
+  }, [currentLevel]);
   const [collected, setCollected] = useState<string[]>([]);
   const [moves, setMoves] = useState(0);
   const [msg, setMsg] = useState('');
@@ -846,6 +862,7 @@ function MultiLevelStarBoard({
   const [failed, setFailed] = useState(false);
   const [phase, setPhase] = useState<'intro' | 'playing' | 'success' | 'fail'>('intro');
   const [showHint, setShowHint] = useState(false);
+  const [hintArrows, setHintArrows] = useState<{from: string; to: string}[]>([]);
   const [showIntro, setShowIntro] = useState(true);
   const [hintLevel, setHintLevel] = useState(0);
   const [promotionPending, setPromotionPending] = useState<{from: string, to: string} | null>(null);
@@ -881,6 +898,22 @@ function MultiLevelStarBoard({
     return (from && to) ? [{from, to}] : [];
   }, [level, pieceType, stars]);
 
+  const computeHintArrow = useCallback(() => {
+    const parsed = parseFen(position);
+    let from = null;
+    for (const sq of Object.keys(parsed.squares)) {
+      const p = parsed.squares[sq];
+      if (p.color === 'w' && p.type === pieceType) { from = sq; break; }
+    }
+    if (!from) {
+      for (const sq of Object.keys(parsed.squares)) {
+        if (parsed.squares[sq].color === 'w') { from = sq; break; }
+      }
+    }
+    const to = visibleStars[0] || null;
+    return (from && to) ? [{from, to}] : [];
+  }, [position, pieceType, visibleStars]);
+
   /* ── Сохраняем прогресс в базу при завершении последнего уровня ── */
   useEffect(() => {
     if (phase === 'success' && currentLevel + 1 >= totalLevels && !allDone) {
@@ -898,6 +931,7 @@ function MultiLevelStarBoard({
     setGameOver(false);
     setPhase('intro');
     setShowHint(false);
+    setHintArrows([]);
     setHintLevel(0);
   }, [level]);
 
@@ -906,10 +940,12 @@ function MultiLevelStarBoard({
     setCollected([]);
     setMoves(0);
     setMsg('');
+    setHintArrows([]);
   }, [currentLevel, levels]);
 
   const handleMove = useCallback(
     (from: string, to: string) => {
+      setHintArrows([]);
       if (phase !== 'playing') return false;
       const parsed = parseFen(positionRef.current);
       if (parsed.squares[from]?.color !== 'w') return false;
@@ -1314,7 +1350,7 @@ function MultiLevelStarBoard({
         <ExerciseDots />
         <div className="flex flex-col gap-2">
           <button
-            onClick={() => { setHintLevel(0); setShowHint(!showHint); }}
+            onClick={() => { setHintLevel(0); if (hintArrows.length === 0) { const arrows = computeHintArrow(); setHintArrows(arrows); setShowHint(arrows.length > 0); } else { setHintArrows([]); setShowHint(false); } }}
             className={`w-full flex items-center justify-center gap-1.5 h-9 rounded-lg border text-xs font-medium transition-all duration-200 ${showHint ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}
           >
             <Lightbulb size={14} /> Подсказка
@@ -1350,7 +1386,6 @@ function MultiLevelStarBoard({
                 {phase === 'playing' && (level.instructions || 'Выполните задание')}
                 {phase === 'success' && 'Отлично! Задание выполнено!'}
                 {phase === 'fail' && 'Подумай ещё раз...'}
-                {showHint && level.hint && `💡 ${level.hint}`}
               </p>
             </div>
           </div>
@@ -1367,6 +1402,7 @@ function MultiLevelStarBoard({
               pieceType={pieceType}
               pieceName={pieceName}
               guideArrows={guideArrows}
+              hintArrows={hintArrows}
               movedPieces={movedPieces}
               hintLevel={hintLevel}
               moves={moves}
@@ -1400,7 +1436,7 @@ function MultiLevelStarBoard({
               {(phase === 'playing' || phase === 'fail') && (
                 <>
                   <button
-                    onClick={() => { setHintLevel(0); setShowHint(!showHint); }}
+                    onClick={() => { setHintLevel(0); if (hintArrows.length === 0) { const arrows = computeHintArrow(); setHintArrows(arrows); setShowHint(arrows.length > 0); } else { setHintArrows([]); setShowHint(false); } }}
                     className={`flex-1 h-10 flex items-center justify-center gap-1 rounded-lg border text-xs font-medium transition-all ${showHint ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)]'}`}
                   >
                     <Lightbulb size={14} /> Подсказка
