@@ -979,7 +979,12 @@ function MultiLevelStarBoard({
 
     permute(visibleStars);
 
-    if (bestFirstStep) return [{ from, to: bestFirstStep }];
+    if (bestFirstStep) {
+      // Validate arrow matches piece movement rules
+      if (isValidMove(pieceType, from, bestFirstStep, parsed.squares, visibleStars, parsed.enPassant)) {
+        return [{ from, to: bestFirstStep }];
+      }
+    }
 
     // Fallback: nearest star by BFS (chess-legal moves only)
     let bestStar = null as string | null;
