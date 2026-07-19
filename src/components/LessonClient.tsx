@@ -943,7 +943,24 @@ function MultiLevelStarBoard({
     };
 
     // Подсказка: первая несобранная звезда в порядке урока (visibleStars[0])
-    const target = visibleStars[0];
+    let target = visibleStars[0];
+
+    // Для ладьи: если несколько звёзд на одной линии, берём дальнюю
+    // (чтобы не возвращаться — оптимизация "собери всё на одной линии за один проход")
+    if (pieceType === 'r' && visibleStars.length > 1) {
+      const sameLine = visibleStars.filter((s: string) => s[0] === from[0] || s[1] === from[1]);
+      if (sameLine.length > 1) {
+        // Найти самую дальнюю по манхэттенскому расстоянию
+        let farthest = sameLine[0];
+        let maxDist = 0;
+        for (const s of sameLine) {
+          const d = Math.abs(FILES.indexOf(s[0]) - FILES.indexOf(from[0])) + Math.abs(RANKS.indexOf(s[1]) - RANKS.indexOf(from[1]));
+          if (d > maxDist) { maxDist = d; farthest = s; }
+        }
+        target = farthest;
+      }
+    }
+
     const blocked = visibleStars.filter((s: string) => s !== target);
     const path = getPath(from, target, blocked);
     if (path && path.length >= 2) {
