@@ -751,7 +751,7 @@ function InlineChessBoard({
               const trx = tailX - nx * halfW; const try_ = tailY - ny * halfW;
               const hlx = tailX + nx * headBase / 2; const hly = tailY + ny * headBase / 2;
               const hrx = tailX - nx * headBase / 2; const hry = tailY - ny * headBase / 2;
-              const sweep = (dy < 0 || (dy === 0 && dx < 0)) ? 1 : 0;
+              const sweep = (dy < 0 || dx < 0) ? 1 : 0;
               const pathD = `M ${blx} ${bly} L ${tlx} ${tly} L ${hlx} ${hly} L ${x2} ${y2} L ${hrx} ${hry} L ${trx} ${try_} L ${brx} ${bry} A ${halfW} ${halfW} 0 1 ${sweep} ${blx} ${bly} Z`;
               return (
                 <path
