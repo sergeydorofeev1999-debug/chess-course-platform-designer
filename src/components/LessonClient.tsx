@@ -845,6 +845,23 @@ function MultiLevelStarBoard({
   const visibleStars = useMemo(() => stars.filter((s: string) => !collected.includes(s)), [stars, collected]);
   const totalLevels = levels.length;
 
+  const guideArrows = useMemo(() => {
+    if (level.guideArrows?.length > 0) return level.guideArrows;
+    const parsed = parseFen(level.initialFen);
+    let from = null;
+    for (const sq of Object.keys(parsed.squares)) {
+      const p = parsed.squares[sq];
+      if (p.color === 'w' && p.type === pieceType) { from = sq; break; }
+    }
+    if (!from) {
+      for (const sq of Object.keys(parsed.squares)) {
+        if (parsed.squares[sq].color === 'w') { from = sq; break; }
+      }
+    }
+    const to = stars[0] || null;
+    return (from && to) ? [{from, to}] : [];
+  }, [level, pieceType, stars]);
+
   /* ── Сохраняем прогресс в базу при завершении последнего уровня ── */
   useEffect(() => {
     if (phase === 'success' && currentLevel + 1 >= totalLevels && !allDone) {
@@ -1330,7 +1347,7 @@ function MultiLevelStarBoard({
               onMove={handleMove}
               pieceType={pieceType}
               pieceName={pieceName}
-              guideArrows={level.guideArrows || []}
+              guideArrows={guideArrows}
               movedPieces={movedPieces}
               hintLevel={hintLevel}
             />
