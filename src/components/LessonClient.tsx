@@ -736,8 +736,8 @@ function InlineChessBoard({
               const dx = x2 - x1;
               const dy = y2 - y1;
               const len = Math.sqrt(dx * dx + dy * dy) || 1;
-              const headBase = strokeW * 2;
-              const headHeight = sqSize * 0.45;
+              const headBase = strokeW * 2.8;
+              const headHeight = sqSize * 0.55;
               const nx = -dy / len;
               const ny = dx / len;
               const tailX = x2 - (dx / len) * headHeight;
@@ -748,7 +748,8 @@ function InlineChessBoard({
               const trx = tailX - nx * halfW; const try_ = tailY - ny * halfW;
               const hlx = tailX + nx * headBase / 2; const hly = tailY + ny * headBase / 2;
               const hrx = tailX - nx * headBase / 2; const hry = tailY - ny * headBase / 2;
-              const pathD = `M ${blx} ${bly} L ${tlx} ${tly} L ${hlx} ${hly} L ${x2} ${y2} L ${hrx} ${hry} L ${trx} ${try_} L ${brx} ${bry} Z`;
+              const arcR = halfW;
+              const pathD = `M ${x2} ${y2} L ${hlx} ${hly} L ${tlx} ${tly} A ${arcR} ${arcR} 0 0 0 ${blx} ${bly} L ${brx} ${bry} A ${arcR} ${arcR} 0 0 0 ${trx} ${try_} L ${hrx} ${hry} Z`;
               return (
                 <path
                   key={i}
