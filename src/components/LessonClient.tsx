@@ -745,8 +745,7 @@ function InlineChessBoard({
               const brx = x1 - nx * halfW;   const bry = y1 - ny * halfW;
               const tlx = tailX + nx * halfW; const tly = tailY + ny * halfW;
               const trx = tailX - nx * halfW; const try_ = tailY - ny * halfW;
-              // sweep для полукруга основания
-              const sweep = dy > 0 ? 1 : 0;
+              const sweep = (dy < 0 || (dy === 0 && dx < 0)) ? 1 : 0;
               const pathD = `M ${blx} ${bly} L ${tlx} ${tly} L ${x2} ${y2} L ${trx} ${try_} L ${brx} ${bry} A ${halfW} ${halfW} 0 0 ${sweep} ${blx} ${bly} Z`;
               return (
                 <path
