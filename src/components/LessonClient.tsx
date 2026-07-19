@@ -914,6 +914,8 @@ function MultiLevelStarBoard({
 
     /* ── Helper: BFS shortest path from → to (returns path array or null) ── */
     const getPath = (start: string, target: string, blockedStars: string[]) => {
+      // Целевая звезда должна быть доступна для остановки
+      const passableBlocked = blockedStars.filter((s: string) => s !== target);
       const q: string[] = [];
       const prev = new Map<string, string | null>();
       q.push(start);
@@ -926,7 +928,7 @@ function MultiLevelStarBoard({
           for (let r = 0; r < 8; r++) {
             const dest = `${FILES[f]}${RANKS[r]}`;
             if (dest === cur || prev.has(dest)) continue;
-            if (!isValidMove(pieceType, cur, dest, parsed.squares, blockedStars, parsed.enPassant)) continue;
+            if (!isValidMove(pieceType, cur, dest, parsed.squares, passableBlocked, parsed.enPassant)) continue;
             prev.set(dest, cur);
             q.push(dest);
           }
@@ -979,16 +981,18 @@ function MultiLevelStarBoard({
 
     if (bestFirstStep) return [{ from, to: bestFirstStep }];
 
-    // Fallback: nearest star
-    let bestStar = visibleStars[0];
+    // Fallback: nearest star by BFS (chess-legal moves only)
+    let bestStar = null as string | null;
     let bestDist = Infinity;
-    const fromF = FILES.indexOf(from[0]);
-    const fromR = RANKS.indexOf(from[1]);
     for (const star of visibleStars) {
-      const dist = Math.abs(fromF - FILES.indexOf(star[0])) + Math.abs(fromR - RANKS.indexOf(star[1]));
-      if (dist < bestDist) { bestDist = dist; bestStar = star; }
+      const p = getPath(from, star, visibleStars.filter((s: string) => s !== star));
+      if (p && p.length - 1 < bestDist) {
+        bestDist = p.length - 1;
+        bestStar = p.length >= 2 ? p[1] : star;
+      }
     }
-    return [{ from, to: bestStar }];
+    if (bestStar) return [{ from, to: bestStar }];
+    return [];
   }, [position, pieceType, visibleStars]);
 
   /* ── Сохраняем прогресс в базу при завершении последнего уровня ── */
