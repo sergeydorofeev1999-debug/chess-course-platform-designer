@@ -915,6 +915,15 @@ function MultiLevelStarBoard({
     /* ── BFS shortest path from → to (chess-legal, returns path array or null) ── */
     const getPath = (start: string, target: string, blockedStars: string[]) => {
       const passableBlocked = blockedStars.filter((s: string) => s !== target);
+      // Перемещаем виртуальную ладью на start для корректного isValidMove (star-to-star пути)
+      const virtualSquares = {...parsed.squares};
+      for (const sq of Object.keys(virtualSquares)) {
+        if (virtualSquares[sq].color === 'w' && virtualSquares[sq].type === pieceType) {
+          delete virtualSquares[sq];
+          break;
+        }
+      }
+      virtualSquares[start] = {type: pieceType, color: 'w'};
       const q: string[] = [];
       const prev = new Map<string, string | null>();
       q.push(start);
@@ -926,7 +935,7 @@ function MultiLevelStarBoard({
           for (let r = 0; r < 8; r++) {
             const dest = `${FILES[f]}${RANKS[r]}`;
             if (dest === cur || prev.has(dest)) continue;
-            if (!isValidMove(pieceType, cur, dest, parsed.squares, passableBlocked, parsed.enPassant)) continue;
+            if (!isValidMove(pieceType, cur, dest, virtualSquares, passableBlocked, parsed.enPassant)) continue;
             prev.set(dest, cur);
             q.push(dest);
           }
@@ -1297,7 +1306,7 @@ function MultiLevelStarBoard({
               {[0, 1, 2].map(s => (
                 <Star
                   key={s}
-                  size={10}
+                  size={15}
                   className={`
                     ${s < starCount
                       ? isCurrent ? 'fill-white text-white' : 'fill-[#FFF8E7] text-[#FFF8E7]'
