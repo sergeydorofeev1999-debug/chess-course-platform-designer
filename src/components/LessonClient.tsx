@@ -950,7 +950,8 @@ function MultiLevelStarBoard({
     for (let i = 0; i < nodes.length; i++) {
       for (let j = 0; j < nodes.length; j++) {
         if (i === j) { dist[i][j] = 0; continue; }
-        const blocked = visibleStars.filter((s: string) => s !== nodes[j]);
+        // Для пути от звезды A к звезде B: A уже собрана и не блокирует
+        const blocked = visibleStars.filter((s: string) => s !== nodes[j] && s !== nodes[i]);
         const p = getPath(nodes[i], nodes[j], blocked);
         if (p) {
           dist[i][j] = p.length - 1;
@@ -986,7 +987,19 @@ function MultiLevelStarBoard({
     tspSearch(0, 0, 0, null, null);
 
     if (bestFirstStep) {
-      if (isValidMove(pieceType, from, bestFirstStep, parsed.squares, visibleStars, parsed.enPassant)) {
+      // Простая проверка: from и to на одной прямой для ладьи или диагонали для слона
+      const sameFile = from[0] === bestFirstStep[0];
+      const sameRank = from[1] === bestFirstStep[1];
+      const fileDiff = Math.abs(FILES.indexOf(from[0]) - FILES.indexOf(bestFirstStep[0]));
+      const rankDiff = Math.abs(RANKS.indexOf(from[1]) - RANKS.indexOf(bestFirstStep[1]));
+      const isDiagonal = fileDiff === rankDiff;
+      let valid = false;
+      if (pieceType === 'r' && (sameFile || sameRank)) valid = true;
+      else if (pieceType === 'b' && isDiagonal) valid = true;
+      else if (pieceType === 'q' && (sameFile || sameRank || isDiagonal)) valid = true;
+      else if (pieceType === 'n' && ((fileDiff === 2 && rankDiff === 1) || (fileDiff === 1 && rankDiff === 2))) valid = true;
+      else if (pieceType === 'k' && fileDiff <= 1 && rankDiff <= 1) valid = true;
+      if (valid) {
         return [{ from, to: bestFirstStep }];
       }
     }
