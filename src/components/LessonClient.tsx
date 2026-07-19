@@ -946,6 +946,7 @@ function MultiLevelStarBoard({
   const handleMove = useCallback(
     (from: string, to: string) => {
       setHintArrows([]);
+      setShowHint(false);
       if (phase !== 'playing') return false;
       const parsed = parseFen(positionRef.current);
       if (parsed.squares[from]?.color !== 'w') return false;
