@@ -735,29 +735,33 @@ function InlineChessBoard({
               const dx = x2 - x1;
               const dy = y2 - y1;
               const len = Math.sqrt(dx * dx + dy * dy) || 1;
-              const headBase = strokeW * 3.5;
-              const headHeight = strokeW * 3;
+              const headBase = strokeW * 2;
+              const headHeight = sqSize * 0.45;
               const nx = -dy / len;
               const ny = dx / len;
+              const halfW = strokeW / 2;
               const tailX = x2 - (dx / len) * headHeight;
               const tailY = y2 - (dy / len) * headHeight;
               const lx = tailX + nx * headBase / 2;
               const ly = tailY + ny * headBase / 2;
               const rx = tailX - nx * headBase / 2;
               const ry = tailY - ny * headBase / 2;
+              const baseLx = x1 + nx * halfW;
+              const baseLy = y1 + ny * halfW;
+              const baseRx = x1 - nx * halfW;
+              const baseRy = y1 - ny * halfW;
+              const tailLx = tailX + nx * halfW;
+              const tailLy = tailY + ny * halfW;
+              const tailRx = tailX - nx * halfW;
+              const tailRy = tailY - ny * halfW;
+              const pathD = `M ${baseLx} ${baseLy} L ${tailLx} ${tailLy} L ${lx} ${ly} L ${x2} ${y2} L ${rx} ${ry} L ${tailRx} ${tailRy} Z`;
               return (
-                <g key={i} className="arrow-hint-line">
-                  <line
-                    x1={x1} y1={y1} x2={tailX} y2={tailY}
-                    stroke="rgba(44, 36, 27, 0.50)"
-                    strokeWidth={strokeW}
-                    strokeLinecap="round"
-                  />
-                  <path
-                    d={`M ${x2} ${y2} L ${lx} ${ly} L ${rx} ${ry} Z`}
-                    fill="rgba(44, 36, 27, 0.50)"
-                  />
-                </g>
+                <path
+                  key={i}
+                  d={pathD}
+                  fill="rgba(44, 36, 27, 0.50)"
+                  className="arrow-hint-line"
+                />
               );
             })}
           </svg>
