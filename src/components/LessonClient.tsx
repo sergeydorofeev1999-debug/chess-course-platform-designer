@@ -1786,14 +1786,14 @@ function MultiLevelStarBoard({
 
         {/* Next button */}
         {allDone && nextLessonUrl && (
-          <Link
+          <a
             href={nextLessonUrl}
             className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 hover:translate-x-0.5"
             style={{ background: 'var(--accent)', color: 'var(--bg-primary)' }}
           >
             <span>Следующий урок</span>
             <ArrowRight size={14} className="transition-transform duration-300 group-hover:translate-x-1" />
-          </Link>
+          </a>
         )}
       </div>
     </div>

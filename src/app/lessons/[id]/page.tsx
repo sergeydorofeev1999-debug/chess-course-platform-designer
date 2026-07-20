@@ -19,11 +19,14 @@ export default async function LessonPage({
   const lesson = await getLesson(id);
   if (!lesson) return notFound();
 
-  const allLessonsRaw = await getCourseLessons(lesson.course_id);
+  // Run independent queries in parallel
+  const [allLessonsRaw, supabase] = await Promise.all([
+    getCourseLessons(lesson.course_id),
+    createClient(),
+  ]);
   const allLessons = allLessonsRaw.map(({ id, title, order }) => ({ id, title, order }));
 
-  // Check auth
-  const supabase = await createClient();
+  // Auth + progress — parallel if user exists
   const { data: { user } } = await supabase.auth.getUser();
   let isCompleted = false;
   if (user) {
@@ -40,7 +43,7 @@ export default async function LessonPage({
     <LessonClient
       lesson={lesson}
       allLessons={allLessons}
-      courseId={lesson.course_id}
+      courseId={courseId || lesson.course_id}
       isCompletedInit={isCompleted}
     />
   );
