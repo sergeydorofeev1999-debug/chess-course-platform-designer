@@ -862,6 +862,8 @@ function MultiLevelStarBoard({
         }
       }
     };
+    // Initial check on mount
+    handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, [levels.length, currentLevel]);
