@@ -1013,47 +1013,70 @@ function MultiLevelStarBoard({
     };
 
     // ── TSP для одной стартовой позиции и набора звёзд (subset) ──
+    // Held-Karp DP с динамическим blockedStars: блокируем только НЕпосещённые звёзды.
+    // Статический dist matrix давал неверные пути, т.к. звёзды "исчезают" по ходу маршрута.
     const solveTSP = (from: string, starsSubset: string[]) => {
       if (starsSubset.length === 0) return { total: 0, firstStep: null };
-      const nodes = [from, ...starsSubset];
-      const n = nodes.length;
-      const dist: (number | null)[][] = Array(n).fill(null).map(() => Array(n).fill(null));
-      const nextStep: (string | null)[][] = Array(n).fill(null).map(() => Array(n).fill(null));
+      const m = starsSubset.length;
+      const INF = Infinity;
+      const dp: number[][] = Array(1 << m).fill(null).map(() => Array(m).fill(INF));
+      const firstStep: (string | null)[][] = Array(1 << m).fill(null).map(() => Array(m).fill(null));
 
-      for (let i = 0; i < n; i++) {
-        for (let j = 0; j < n; j++) {
-          if (i === j) { dist[i][j] = 0; continue; }
-          const blocked = visibleStars.filter((s: string) => s !== nodes[j] && s !== nodes[i]);
-          const p = getPath(nodes[i], nodes[j], blocked);
-          if (p) {
-            dist[i][j] = p.length - 1;
-            nextStep[i][j] = p.length >= 2 ? p[1] : nodes[j];
+      // Блокируем все visibleStars, кроме:
+      //   - целевой звезды (targetIdx)
+      //   - уже посещённых (бит в mask установлен)
+      const buildBlocked = (targetIdx: number, mask: number) => {
+        const blocked: string[] = [];
+        for (const s of visibleStars) {
+          const idxInSubset = starsSubset.indexOf(s);
+          if (idxInSubset === targetIdx) continue; // цель проходима
+          if (idxInSubset !== -1 && (mask & (1 << idxInSubset))) continue; // посещённые проходимы
+          blocked.push(s);
+        }
+        return blocked;
+      };
+
+      // База: from -> каждая звезда
+      for (let i = 0; i < m; i++) {
+        const blocked = buildBlocked(i, 1 << i);
+        const p = getPath(from, starsSubset[i], blocked);
+        if (p) {
+          dp[1 << i][i] = p.length - 1;
+          firstStep[1 << i][i] = p.length >= 2 ? p[1] : starsSubset[i];
+        }
+      }
+
+      // Переходы
+      for (let mask = 1; mask < (1 << m); mask++) {
+        for (let last = 0; last < m; last++) {
+          if (!(mask & (1 << last))) continue;
+          if (dp[mask][last] === INF) continue;
+          for (let nxt = 0; nxt < m; nxt++) {
+            if (mask & (1 << nxt)) continue;
+            const blocked = buildBlocked(nxt, mask);
+            const p = getPath(starsSubset[last], starsSubset[nxt], blocked);
+            if (!p) continue;
+            const newMask = mask | (1 << nxt);
+            const cost = dp[mask][last] + (p.length - 1);
+            if (cost < dp[newMask][nxt]) {
+              dp[newMask][nxt] = cost;
+              firstStep[newMask][nxt] = firstStep[mask][last];
+            }
           }
         }
       }
 
+      let bestTotal = INF;
       let bestFirstStep: string | null = null;
-      let bestTotal = Infinity;
-      const subsetMaskAll = (1 << starsSubset.length) - 1;
-
-      const tspSearch = (currentIdx: number, visitedMask: number, currentTotal: number, firstStep: string | null) => {
-        if (currentTotal >= bestTotal) return;
-        if (visitedMask === subsetMaskAll) {
-          bestTotal = currentTotal;
-          if (firstStep !== null) bestFirstStep = firstStep;
-          return;
+      const fullMask = (1 << m) - 1;
+      for (let i = 0; i < m; i++) {
+        if (dp[fullMask][i] < bestTotal) {
+          bestTotal = dp[fullMask][i];
+          bestFirstStep = firstStep[fullMask][i];
         }
-        for (let i = 0; i < starsSubset.length; i++) {
-          if (visitedMask & (1 << i)) continue;
-          const d = dist[currentIdx][i + 1];
-          if (d === null) continue;
-          const fs = firstStep === null ? nextStep[currentIdx][i + 1] : firstStep;
-          tspSearch(i + 1, visitedMask | (1 << i), currentTotal + d, fs);
-        }
-      };
+      }
 
-      tspSearch(0, 0, 0, null);
-      return { total: bestTotal === Infinity ? null : bestTotal, firstStep: bestFirstStep };
+      return { total: bestTotal === INF ? null : bestTotal, firstStep: bestFirstStep };
     };
 
     // ── Single-piece: старая логика (обратная совместимость) ──
