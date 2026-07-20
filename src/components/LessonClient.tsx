@@ -2027,7 +2027,7 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
         {prevLesson ? (
           <Link
             href={`/lessons/${prevLesson.id}?course=${courseId}`}
-            className="flex-1 flex items-center justify-center gap-1.5 h-10 px-1.5 text-[12px] font-medium text-[var(--text-tertiary)] border border-[rgba(92,64,51,0.12)] rounded-lg hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] active:scale-[0.98] transition-all whitespace-nowrap"
+            className="flex-1 flex items-center justify-center gap-1.5 h-10 px-1.5 text-[14px] font-medium text-[var(--text-tertiary)] border border-[rgba(92,64,51,0.12)] rounded-lg hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] active:scale-[0.98] transition-all whitespace-nowrap"
             title={prevLesson?.title}
           >
             <ArrowLeft size={16} /> Предыдущий урок
@@ -2036,7 +2036,7 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
         {nextLesson ? (
           <Link
             href={`/lessons/${nextLesson.id}?course=${courseId}`}
-            className="flex-1 flex items-center justify-center gap-1.5 h-10 px-1.5 text-[12px] font-medium text-[var(--text-secondary)] border border-[rgba(92,64,51,0.12)] rounded-lg hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] active:scale-[0.98] transition-all whitespace-nowrap"
+            className="flex-1 flex items-center justify-center gap-1.5 h-10 px-1.5 text-[14px] font-medium text-[var(--text-secondary)] border border-[rgba(92,64,51,0.12)] rounded-lg hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] active:scale-[0.98] transition-all whitespace-nowrap"
             title={nextLesson?.title}
           >
             Следующий урок <ArrowRight size={16} />
