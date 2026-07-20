@@ -768,7 +768,7 @@ function InlineChessBoard({
                 <path
                   key={i}
                   d={pathD}
-                  fill="rgba(44, 36, 27, 0.65)"
+                  fill="rgba(44, 36, 27, 0.35)"
                   className="arrow-hint-line"
                 />
               );
