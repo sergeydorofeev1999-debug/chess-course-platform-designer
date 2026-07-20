@@ -861,12 +861,14 @@ function MultiLevelStarBoard({
   });
 
   // Sync currentLevel with URL hash
+  const currentLevelRef = useRef(currentLevel);
+  useEffect(() => { currentLevelRef.current = currentLevel; }, [currentLevel]);
   useEffect(() => {
     const handleHashChange = () => {
       const hashMatch = window.location.hash.match(/level=(\d+)/);
       if (hashMatch) {
         const l = parseInt(hashMatch[1], 10);
-        if (l >= 0 && l < levels.length && l !== currentLevel) {
+        if (l >= 0 && l < levels.length && l !== currentLevelRef.current) {
           setCurrentLevel(l);
         }
       }
@@ -875,7 +877,7 @@ function MultiLevelStarBoard({
     handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, [levels.length, currentLevel]);
+  }, [levels.length]);
 
   const [position, setPosition] = useState(levels[currentLevel || 0].initialFen);
   const positionRef = useRef(position);
@@ -884,7 +886,10 @@ function MultiLevelStarBoard({
   /* ── Синхронизация URL hash с текущим уровнем ── */
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      window.location.hash = `level=${currentLevel}`;
+      const newHash = `level=${currentLevel}`;
+      if (window.location.hash !== `#${newHash}`) {
+        window.history.replaceState(null, '', `#${newHash}`);
+      }
     }
   }, [currentLevel]);
   const [collected, setCollected] = useState<string[]>([]);
