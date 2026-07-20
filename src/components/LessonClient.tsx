@@ -1641,13 +1641,7 @@ function MultiLevelStarBoard({
             <RotateCcw size={14} /> Заново
           </button>
         </div>
-        {stars.length > 0 && phase === 'playing' && (
-          <div className="flex items-center gap-1">
-            {Array.from({ length: stars.length }, (_, i) => (
-              <Star key={i} size={14} className={i < collectedCount ? 'fill-[#c9a84c] text-[#c9a84c]' : 'text-[#e5dfd8]'} strokeWidth={2} />
-            ))}
-          </div>
-        )}
+
       </div>
 
       {/* CENTER — Board */}
@@ -1691,7 +1685,7 @@ function MultiLevelStarBoard({
         </div>
 
         {/* Level Pills — under board, mobile + desktop */}
-        <div className="mt-3 w-full">
+        <div className="mt-3 w-full px-0 self-stretch">
           <LevelPills />
         </div>
 
