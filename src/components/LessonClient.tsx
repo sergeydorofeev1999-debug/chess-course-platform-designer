@@ -1362,7 +1362,7 @@ function MultiLevelStarBoard({
 
   // ═══ LEVEL PILLS — under board, Lichess-style ═══
   const LevelPills = () => (
-    <div className="flex items-center justify-center gap-1">
+    <div className="flex items-center justify-center gap-[1px]">
       {levels.map((_l: any, i: number) => {
         const earned = levelStars[i];
         const starCount = typeof earned === 'number' ? earned : (earned ? 1 : 0);
@@ -1379,30 +1379,43 @@ function MultiLevelStarBoard({
               setPhase('playing');
             }}
             disabled={isFuture || isCurrent}
-            className={`flex flex-col items-center justify-center gap-0.5 rounded-[10px] transition-all duration-200 ${
+            className={`flex flex-col items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-8 min-w-[44px] ${
               isCurrent
-                ? 'h-10 min-w-[48px] bg-[#2C241B] text-white shadow-md'
+                ? 'bg-[#2C241B] shadow-md'
                 : isDone
-                  ? 'h-10 min-w-[48px] bg-[#C9A84C] text-white'
-                  : 'h-10 min-w-[48px] bg-[#F0EBE4] border border-[#D4C5B5] text-[#A89B8C]'
+                  ? 'bg-[#C9A84C]'
+                  : 'bg-[#F0EBE4] border border-[#D4C5B5]'
             } ${isFuture ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:scale-[1.02]'}`}
             title={isDone ? `Упражнение ${i + 1} — пройдено` : `Упражнение ${i + 1}`}
           >
-            <span className="text-sm font-bold leading-none">{i + 1}</span>
+            {/* Top row: 2 stars */}
             <div className="flex gap-[1px]">
-              {[0, 1, 2].map(s => (
+              {[0, 1].map(s => (
                 <Star
                   key={s}
-                  size={15}
+                  size={10}
                   className={`
                     ${s < starCount
-                      ? isCurrent ? 'fill-white text-white' : 'fill-[#FFF8E7] text-[#FFF8E7]'
-                      : isCurrent ? 'text-[#5C4A3D]' : 'text-[#D4C5B5]'
+                      ? (isCurrent || isDone) ? 'fill-white text-white' : 'fill-white text-white'
+                      : isFuture ? 'text-[#9CA3AF]' : 'text-[#9CA3AF]'
                     }
                   `}
-                  strokeWidth={2}
+                  strokeWidth={1.5}
                 />
               ))}
+            </div>
+            {/* Bottom row: 1 star */}
+            <div className="flex">
+              <Star
+                size={10}
+                className={`
+                  ${2 < starCount
+                    ? (isCurrent || isDone) ? 'fill-white text-white' : 'fill-white text-white'
+                    : isFuture ? 'text-[#9CA3AF]' : 'text-[#9CA3AF]'
+                  }
+                `}
+                strokeWidth={1.5}
+              />
             </div>
           </button>
         );
