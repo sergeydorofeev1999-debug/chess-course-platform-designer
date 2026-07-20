@@ -1424,11 +1424,11 @@ function MultiLevelStarBoard({
             {isDone && starCount > 0 ? (
               starCount === 3 ? (
                 <>
-                  <div className="flex gap-[1px]">
-                    <MassiveStar filled={true} />
+                  <div className="flex">
                     <MassiveStar filled={true} />
                   </div>
-                  <div className="flex">
+                  <div className="flex gap-[1px]">
+                    <MassiveStar filled={true} />
                     <MassiveStar filled={true} />
                   </div>
                 </>
