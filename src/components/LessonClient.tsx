@@ -1397,15 +1397,15 @@ function MultiLevelStarBoard({
             } ${isFuture ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:scale-[1.02]'}`}
             title={isDone ? `Упражнение ${i + 1} — пройдено` : `Упражнение ${i + 1}`}
           >
-            {/* Top row: 2 stars */}
+            {/* Top row: 1 star */}
+            <div className="flex">
+              <MassiveStar filled={0 < starCount} dimmed={0 >= starCount} />
+            </div>
+            {/* Bottom row: 2 stars */}
             <div className="flex gap-[1px]">
-              {[0, 1].map(s => (
+              {[1, 2].map(s => (
                 <MassiveStar key={s} filled={s < starCount} />
               ))}
-            </div>
-            {/* Bottom row: 1 star */}
-            <div className="flex">
-              <MassiveStar filled={2 < starCount} dimmed={2 >= starCount} />
             </div>
           </button>
         );
