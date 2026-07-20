@@ -117,6 +117,7 @@ export default function PieceCards({ lessons, progressMap, courseId, pieceCodes,
           <Link
             key={lesson.id}
             href={isLocked ? '#' : `/lessons/${lesson.id}?course=${courseId}`}
+            prefetch={!isLocked}
             className={`group flex items-center gap-4 px-4 py-3.5 rounded-xl border transition-all duration-200 ${
               isLocked ? 'cursor-not-allowed' : 'hover:-translate-y-px active:translate-y-0'
             }`}

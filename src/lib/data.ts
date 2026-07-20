@@ -1,5 +1,6 @@
 'use server';
 
+import { unstable_cache } from 'next/cache';
 import { createClient } from './supabase/server';
 
 function isUUID(str: string): boolean {
