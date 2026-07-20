@@ -34,6 +34,15 @@ const CoordinateTrainingBoard = dynamic(() => import('./CoordinateTrainingBoard'
 const ComputerPlayBoard = dynamic(() => import('./ComputerPlayBoard'), { ssr: false });
 const TacticalStormBoard = dynamic(() => import('./TacticalStormBoard'), { ssr: false });
 
+// ═══ MINI STAR — Lichess-style golden SVG star ═══
+function MiniStar({ filled, dimmed }: { filled: boolean; dimmed?: boolean }) {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill={filled ? '#FFD700' : 'none'} stroke={filled ? '#B45309' : dimmed ? '#D4C5B5' : '#D4C5B5'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  );
+}
+
 interface Lesson {
   id: string;
   title: string;
@@ -1391,16 +1400,10 @@ function MultiLevelStarBoard({
             <span className="text-sm font-bold leading-none">{i + 1}</span>
             <div className="flex gap-[1px]">
               {[0, 1, 2].map(s => (
-                <Star
+                <MiniStar
                   key={s}
-                  size={15}
-                  className={`
-                    ${s < starCount
-                      ? isCurrent ? 'fill-white text-white' : 'fill-[#FFF8E7] text-[#FFF8E7]'
-                      : isCurrent ? 'text-[#5C4A3D]' : 'text-[#D4C5B5]'
-                    }
-                  `}
-                  strokeWidth={2}
+                  filled={s < starCount}
+                  dimmed={!isCurrent && s >= starCount}
                 />
               ))}
             </div>
@@ -1448,16 +1451,12 @@ function MultiLevelStarBoard({
             {/* Mobile: 3 mini-stars */}
             <div className="flex gap-[1px] lg:hidden">
               {[0, 1, 2].map(s => (
-                <span key={s} className={`text-[10px] ${s < starCount ? 'text-[#D4A843]' : 'text-[#E8E0D6]'}`}>★</span>
+                <MiniStar key={s} filled={s < starCount} />
               ))}
             </div>
-            {/* Desktop: 1 star = rating color */}
-            <span className="hidden lg:block text-[10px]">
-              {starCount >= 3 && <span className="text-[#D4A843]">★</span>}
-              {starCount === 2 && <span className="text-[#B0B0B0]">★</span>}
-              {starCount === 1 && <span className="text-[#B8956A]">★</span>}
-              {starCount === 0 && <span className="text-[#E8E0D6]">★</span>}
-            </span>
+            <div className="hidden lg:block">
+              <MiniStar filled={starCount > 0} dimmed={starCount === 0} />
+            </div>
           </div>
         );
       })}
