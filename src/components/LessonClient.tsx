@@ -2023,23 +2023,25 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
         </div>
       )}
 
-      <div className="flex items-center justify-between w-full py-2 px-2 border-t border-[var(--surface-border)] mt-2">
+      <div className="flex items-center justify-between gap-3 w-full py-3 px-2 border-t border-[var(--surface-border)] mt-2">
         {prevLesson ? (
           <Link
             href={`/lessons/${prevLesson.id}?course=${courseId}`}
-            className="text-[11px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] inline-flex items-center gap-1 transition-colors"
+            className="flex-1 flex items-center justify-center gap-1.5 h-10 px-4 text-sm font-medium text-[var(--text-tertiary)] border border-[rgba(92,64,51,0.12)] rounded-lg hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] active:scale-[0.98] transition-all"
+            title={prevLesson?.title}
           >
-            <ArrowLeft size={12} /> Предыдущий
+            <ArrowLeft size={16} /> ← Предыдущий урок
           </Link>
-        ) : <div />}
+        ) : <div className="flex-1" />}
         {nextLesson ? (
           <Link
             href={`/lessons/${nextLesson.id}?course=${courseId}`}
-            className="text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] inline-flex items-center gap-1 transition-colors"
+            className="flex-1 flex items-center justify-center gap-1.5 h-10 px-4 text-sm font-medium text-[var(--text-secondary)] border border-[rgba(92,64,51,0.12)] rounded-lg hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] active:scale-[0.98] transition-all"
+            title={nextLesson?.title}
           >
-            Следующий <ArrowRight size={12} />
+            Следующий урок → <ArrowRight size={16} />
           </Link>
-        ) : <div />}
+        ) : <div className="flex-1" />}
       </div>
     </div>
   );
