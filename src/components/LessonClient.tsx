@@ -844,18 +844,28 @@ function MultiLevelStarBoard({
     if (typeof window !== 'undefined') {
       const hashMatch = window.location.hash.match(/level=(\d+)/);
       if (hashMatch) {
-        const n = parseInt(hashMatch[1], 10);
-        if (!isNaN(n) && n >= 0 && n < levels.length) return n;
+        const l = parseInt(hashMatch[1], 10);
+        if (l >= 0 && l < levels.length) return l;
       }
     }
-    const solvedCount = Object.values(savedProgress).filter((v) => (v as number) > 0).length;
-    if (solvedCount >= levels.length) return 0;
-    let start = savedCurrentLevel || 0;
-    while (start < levels.length && savedProgress[start] != null) {
-      start++;
-    }
-    return Math.min(start, levels.length - 1);
+    return 0;
   });
+
+  // Sync currentLevel with URL hash
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hashMatch = window.location.hash.match(/level=(\d+)/);
+      if (hashMatch) {
+        const l = parseInt(hashMatch[1], 10);
+        if (l >= 0 && l < levels.length && l !== currentLevel) {
+          setCurrentLevel(l);
+        }
+      }
+    };
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [levels.length, currentLevel]);
+
   const [position, setPosition] = useState(levels[currentLevel || 0].initialFen);
   const positionRef = useRef(position);
   useEffect(() => { positionRef.current = position; }, [position]);
