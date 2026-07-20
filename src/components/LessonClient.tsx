@@ -870,15 +870,23 @@ function MultiLevelStarBoard({
   const [gameOver, setGameOver] = useState(false);
   const [failed, setFailed] = useState(false);
   const [phase, setPhase] = useState<'intro' | 'playing' | 'success' | 'fail'>('intro');
-  useEffect(() => {
-    if (typeof window !== 'undefined' && currentLessonId) {
-      const started = localStorage.getItem(`lesson_started_${currentLessonId}`);
-      if (started === 'true') setPhase('playing');
-    }
-  }, [currentLessonId]);
   const [showHint, setShowHint] = useState(false);
   const [hintArrows, setHintArrows] = useState<{from: string; to: string}[]>([]);
   const [showIntro, setShowIntro] = useState(true);
+  useEffect(() => {
+    const checkStarted = () => {
+      if (typeof window !== 'undefined' && currentLessonId) {
+        const started = localStorage.getItem(`lesson_started_${currentLessonId}`);
+        if (started === 'true') {
+          setPhase('playing');
+          setShowIntro(false);
+        }
+      }
+    };
+    checkStarted();
+    const timer = setTimeout(checkStarted, 500);
+    return () => clearTimeout(timer);
+  }, []);
   useEffect(() => {
     if (typeof window !== 'undefined' && currentLessonId) {
       const started = localStorage.getItem(`lesson_started_${currentLessonId}`);
