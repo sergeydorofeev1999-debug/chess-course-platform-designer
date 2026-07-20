@@ -35,9 +35,10 @@ const ComputerPlayBoard = dynamic(() => import('./ComputerPlayBoard'), { ssr: fa
 const TacticalStormBoard = dynamic(() => import('./TacticalStormBoard'), { ssr: false });
 
 // ═══ MASSIVE STAR — Lichess-style filled SVG star ═══
-function MassiveStar({ filled, dimmed }: { filled: boolean; dimmed?: boolean }) {
+function MassiveStar({ filled }: { filled: boolean }) {
+  if (!filled) return null;
   return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill={filled ? '#FFFFFF' : 'none'} stroke={filled ? '#FFFFFF' : dimmed ? '#9CA3AF' : '#9CA3AF'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none">
       <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
     </svg>
   );
@@ -1418,16 +1419,17 @@ function MultiLevelStarBoard({
             } ${isFuture ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:scale-[1.02]'}`}
             title={isDone ? `Упражнение ${i + 1} — пройдено` : `Упражнение ${i + 1}`}
           >
-            {/* Top row: 1 star */}
-            <div className="flex">
-              <MassiveStar filled={0 < starCount} dimmed={0 >= starCount} />
-            </div>
-            {/* Bottom row: 2 stars */}
-            <div className="flex gap-[1px]">
-              {[1, 2].map(s => (
-                <MassiveStar key={s} filled={s < starCount} />
-              ))}
-            </div>
+            {isDone && starCount > 0 ? (
+              <div className={`flex gap-[2px] ${starCount < 3 ? 'justify-center w-full' : ''}`}>
+                {Array.from({ length: starCount }, (_, s) => (
+                  <MassiveStar key={s} filled={true} />
+                ))}
+              </div>
+            ) : (
+              <span className={`text-sm font-bold leading-none ${
+                isCurrent ? 'text-white' : 'text-[#9CA3AF]'
+              }`}>{i + 1}</span>
+            )}
           </button>
         );
       })}
