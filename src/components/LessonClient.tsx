@@ -1371,7 +1371,7 @@ function MultiLevelStarBoard({
 
   // ═══ LEVEL PILLS — under board, Lichess-style ═══
   const LevelPills = () => (
-    <div className="flex items-center justify-center gap-[1px]">
+    <div className="w-full flex items-stretch gap-[1px]">
       {levels.map((_l: any, i: number) => {
         const earned = levelStars[i];
         const starCount = typeof earned === 'number' ? earned : (earned ? 1 : 0);
@@ -1388,7 +1388,7 @@ function MultiLevelStarBoard({
               setPhase('playing');
             }}
             disabled={isFuture || isCurrent}
-            className={`flex flex-col items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-8 min-w-[44px] ${
+            className={`flex-1 flex flex-col items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 ${
               isCurrent
                 ? 'bg-[#2C241B] shadow-md'
                 : isDone
@@ -1632,6 +1632,7 @@ function MultiLevelStarBoard({
           </div>
         </div>
 
+        <LevelPills />
         {/* BOARD */}
         <div className="flex justify-center w-full">
           <div className="relative inline-block rounded-sm">
