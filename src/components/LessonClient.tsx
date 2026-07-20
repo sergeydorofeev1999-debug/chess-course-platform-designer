@@ -1420,11 +1420,23 @@ function MultiLevelStarBoard({
             title={isDone ? `Упражнение ${i + 1} — пройдено` : `Упражнение ${i + 1}`}
           >
             {isDone && starCount > 0 ? (
-              <div className={`flex gap-[2px] ${starCount < 3 ? 'justify-center w-full' : ''}`}>
-                {Array.from({ length: starCount }, (_, s) => (
-                  <MassiveStar key={s} filled={true} />
-                ))}
-              </div>
+              starCount === 3 ? (
+                <>
+                  <div className="flex gap-[1px]">
+                    <MassiveStar filled={true} />
+                    <MassiveStar filled={true} />
+                  </div>
+                  <div className="flex">
+                    <MassiveStar filled={true} />
+                  </div>
+                </>
+              ) : (
+                <div className="flex gap-[2px] justify-center w-full">
+                  {Array.from({ length: starCount }, (_, s) => (
+                    <MassiveStar key={s} filled={true} />
+                  ))}
+                </div>
+              )
             ) : (
               <span className={`text-sm font-bold leading-none ${
                 isCurrent ? 'text-white' : 'text-[#9CA3AF]'
