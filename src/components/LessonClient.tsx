@@ -452,9 +452,18 @@ function InlineChessBoard({
 
   const fenRef = useRef(fen);
   useEffect(() => {
-    if (!externalMovedPieces && fenRef.current !== fen) {
+    if (fenRef.current !== fen) {
       fenRef.current = fen;
-      setInternalMovedPieces(new Set());
+      setSelectedSquare(null);
+      selectedSquareRef.current = null;
+      setDragPiece(null);
+      setDragPos({ x: 0, y: 0 });
+      setHoveredSquare(null);
+      setMsg('');
+      pointerStartRef.current = null;
+      if (!externalMovedPieces) {
+        setInternalMovedPieces(new Set());
+      }
     }
   }, [fen, externalMovedPieces]);
 
@@ -1720,7 +1729,6 @@ function MultiLevelStarBoard({
         <div className="flex justify-center w-full">
           <div className="relative inline-block rounded-sm">
             <InlineChessBoard
-              key={currentLevel}
               fen={position}
               stars={visibleStars}
               onMove={handleMove}
