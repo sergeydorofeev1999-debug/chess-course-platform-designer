@@ -2030,7 +2030,7 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
             className="flex-1 flex items-center justify-center gap-1.5 h-10 px-4 text-sm font-medium text-[var(--text-tertiary)] border border-[rgba(92,64,51,0.12)] rounded-lg hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] active:scale-[0.98] transition-all"
             title={prevLesson?.title}
           >
-            ← Предыдущий урок
+            <ArrowLeft size={16} /> Предыдущий урок
           </Link>
         ) : <div className="flex-1" />}
         {nextLesson ? (
@@ -2039,7 +2039,7 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
             className="flex-1 flex items-center justify-center gap-1.5 h-10 px-4 text-sm font-medium text-[var(--text-secondary)] border border-[rgba(92,64,51,0.12)] rounded-lg hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] active:scale-[0.98] transition-all"
             title={nextLesson?.title}
           >
-            Следующий урок →
+            Следующий урок <ArrowRight size={16} />
           </Link>
         ) : <div className="flex-1" />}
       </div>
