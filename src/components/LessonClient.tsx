@@ -1702,11 +1702,6 @@ function MultiLevelStarBoard({
               <span className="text-xs font-bold text-[var(--text-primary)]">
                 Задание {currentLevel + 1} из {totalLevels}
               </span>
-              <div className="flex items-center gap-1">
-                {Array.from({ length: stars.length }, (_, i) => (
-                  <Star key={i} size={12} className={i < collectedCount ? 'fill-[#c9a84c] text-[#c9a84c]' : 'text-[#e5dfd8]'} strokeWidth={2} />
-                ))}
-              </div>
             </div>
             <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
               <div
