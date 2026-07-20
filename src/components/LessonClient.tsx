@@ -1131,23 +1131,31 @@ function MultiLevelStarBoard({
       }
     }
 
-    // Fallback: для каждой стартовой ладьи ищем ближайшую звезду по прямой (минимум по ходам)
+    // Fallback: для каждой стартовой фигуры ищем ближайшую звезду по правилам хода (минимум по ходам)
     let fallbackFrom: string | null = null;
     let fallbackTo: string | null = null;
     let fallbackDist = Infinity;
     for (const startSq of allFroms) {
       for (const star of visibleStars) {
-        if (star[0] === startSq[0] || star[1] === startSq[1]) {
+        // Check if move is legal for the piece type
+        if (pieceType === 'r') {
+          if (star[0] !== startSq[0] && star[1] !== startSq[1]) continue;
+        } else if (pieceType === 'b') {
           const sFile = FILES.indexOf(startSq[0]);
           const sRank = RANKS.indexOf(startSq[1]);
           const tFile = FILES.indexOf(star[0]);
           const tRank = RANKS.indexOf(star[1]);
-          const md = Math.abs(sFile - tFile) + Math.abs(sRank - tRank);
-          if (md < fallbackDist) {
-            fallbackDist = md;
-            fallbackFrom = startSq;
-            fallbackTo = star;
-          }
+          if (Math.abs(sFile - tFile) !== Math.abs(sRank - tRank)) continue;
+        }
+        const sFile = FILES.indexOf(startSq[0]);
+        const sRank = RANKS.indexOf(startSq[1]);
+        const tFile = FILES.indexOf(star[0]);
+        const tRank = RANKS.indexOf(star[1]);
+        const md = Math.abs(sFile - tFile) + Math.abs(sRank - tRank);
+        if (md < fallbackDist) {
+          fallbackDist = md;
+          fallbackFrom = startSq;
+          fallbackTo = star;
         }
       }
     }
