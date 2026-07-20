@@ -879,6 +879,12 @@ function MultiLevelStarBoard({
   const [showHint, setShowHint] = useState(false);
   const [hintArrows, setHintArrows] = useState<{from: string; to: string}[]>([]);
   const [showIntro, setShowIntro] = useState(true);
+  useEffect(() => {
+    if (typeof window !== 'undefined' && currentLessonId) {
+      const started = localStorage.getItem(`lesson_started_${currentLessonId}`);
+      if (started === 'true') setShowIntro(false);
+    }
+  }, [currentLessonId]);
   const [hintLevel, setHintLevel] = useState(0);
   const [promotionPending, setPromotionPending] = useState<{from: string, to: string} | null>(null);
   const [levelStars, setLevelStars] = useState<Record<number, number>>(() => savedProgress);
@@ -1133,6 +1139,7 @@ function MultiLevelStarBoard({
     setFailed(false);
     setGameOver(false);
     setPhase('playing');
+    setShowIntro(false);
     setShowHint(false);
     setHintArrows([]);
     setHintLevel(0);
