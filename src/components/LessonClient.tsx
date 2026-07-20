@@ -1406,19 +1406,19 @@ function MultiLevelStarBoard({
           <button
             key={i}
             onClick={() => {
-              if (isFuture || isCurrent) return;
+              if (isCurrent) return;
               setCurrentLevel(i);
               setAllDone(false);
               setPhase('playing');
             }}
-            disabled={isFuture || isCurrent}
+            disabled={isCurrent}
             className={`flex-1 flex flex-col items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 ${
               isCurrent
                 ? 'bg-[#2C241B] shadow-md'
                 : isDone
                   ? 'bg-[#C9A84C]'
                   : 'bg-[#F0EBE4] border border-[#D4C5B5]'
-            } ${isFuture ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:scale-[1.02]'}`}
+            } ${isCurrent ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
             title={isDone ? `Упражнение ${i + 1} — пройдено` : `Упражнение ${i + 1}`}
           >
             {isDone && starCount > 0 ? (
@@ -1463,19 +1463,19 @@ function MultiLevelStarBoard({
           <div key={i} className="flex flex-col items-center gap-1 w-[52px] lg:w-auto">
             <button
               onClick={() => {
-                if (isFuture || isCurrent) return;
+                if (isCurrent) return;
                 setCurrentLevel(i);
                 setAllDone(false);
                 setPhase('playing');
               }}
-              disabled={isFuture || isCurrent}
+              disabled={isCurrent}
               className={`relative flex items-center justify-center rounded-full transition-all duration-300 ${
                 isCurrent
                   ? 'w-6 h-6 bg-[var(--text-primary)] text-[var(--bg-primary)]'
                   : isDone
                     ? 'w-5 h-5 bg-[#E8E0D6] border border-[#C9C0B6] text-[var(--text-tertiary)] opacity-50'
                     : 'w-5 h-5 bg-[var(--bg-secondary)] text-[var(--text-muted)] opacity-50'
-              } ${isFuture ? 'cursor-not-allowed' : 'cursor-pointer hover:opacity-90'}`}
+              } ${isCurrent ? 'cursor-not-allowed' : 'cursor-pointer hover:opacity-90'}`}
               title={isDone ? `Упражнение ${i + 1} — пройдено` : `Упражнение ${i + 1}`}
             >
               <span className={`font-bold ${isCurrent ? 'text-[11px]' : isDone ? 'text-[10px]' : 'text-[9px]'}`}>
