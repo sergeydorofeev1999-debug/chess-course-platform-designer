@@ -1615,7 +1615,6 @@ function MultiLevelStarBoard({
 
       {/* CENTER — Board */}
       <div className="flex-1 flex flex-col items-center justify-center w-full lg:min-w-0">
-        {/* Mobile: Character + Bubble */}
         <div className="lg:hidden w-full flex flex-col gap-2 mb-3">
           <div className="flex items-start gap-3">
             <div className="w-14 h-14 flex-shrink-0">
