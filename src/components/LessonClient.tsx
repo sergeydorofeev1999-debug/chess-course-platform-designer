@@ -916,6 +916,21 @@ function MultiLevelStarBoard({
   const guideArrows = useMemo(() => {
     if (level.guideArrows != null) return level.guideArrows;
     const parsed = parseFen(level.initialFen);
+
+    // ── Special case: Lesson 2 Exercise 1 (bishop c3 → e5 → b8) ──
+    if (pieceType === 'b' && currentLevel === 0) {
+      const hasBishopOnC3 = parsed.squares['c3']?.type === 'b' && parsed.squares['c3']?.color === 'w';
+      const hasStarE5 = stars.includes('e5');
+      const hasStarB8 = stars.includes('b8');
+      if (hasBishopOnC3 && hasStarE5 && hasStarB8) {
+        return [{from: 'c3', to: 'e5'}, {from: 'e5', to: 'b8'}];
+      }
+    }
+
+    // ── For bishop: never show default guide arrows (first star may not be diagonal) ──
+    if (pieceType === 'b') return [];
+
+    // ── Default for rook and other pieces ──
     let from = null;
     for (const sq of Object.keys(parsed.squares)) {
       const p = parsed.squares[sq];
@@ -928,7 +943,7 @@ function MultiLevelStarBoard({
     }
     const to = stars[0] || null;
     return (from && to) ? [{from, to}] : [];
-  }, [level, pieceType, stars]);
+  }, [level, pieceType, stars, currentLevel]);
 
   const computeHintArrow = useCallback(() => {
     const parsed = parseFen(position);
@@ -949,16 +964,12 @@ function MultiLevelStarBoard({
     /* ── BFS shortest path from → to (chess-legal, returns path array or null) ── */
     const getPath = (start: string, target: string, blockedStars: string[]) => {
       const passableBlocked = blockedStars.filter((s: string) => s !== target);
-      // Перемещаем виртуальную ладью на start: удаляем белую фигуру на start (или первую найденную)
+      // Удаляем ВСЕ белые фигуры того же типа (для multi-piece TSP другие фигуры того типа
+      // должны считаться "отошедшими" и не блокировать диагонали)
       const virtualSquares = {...parsed.squares};
-      if (virtualSquares[start]?.color === 'w' && virtualSquares[start]?.type === pieceType) {
-        delete virtualSquares[start];
-      } else {
-        for (const sq of Object.keys(virtualSquares)) {
-          if (virtualSquares[sq].color === 'w' && virtualSquares[sq].type === pieceType) {
-            delete virtualSquares[sq];
-            break;
-          }
+      for (const sq of Object.keys(virtualSquares)) {
+        if (virtualSquares[sq]?.color === 'w' && virtualSquares[sq]?.type === pieceType) {
+          delete virtualSquares[sq];
         }
       }
       virtualSquares[start] = {type: pieceType, color: 'w'};
