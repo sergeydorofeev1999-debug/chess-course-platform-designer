@@ -1631,7 +1631,6 @@ function MultiLevelStarBoard({
           </div>
         </div>
 
-        <LevelPills />
         {/* BOARD */}
         <div className="flex justify-center w-full">
           <div className="relative inline-block rounded-sm">
