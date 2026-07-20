@@ -1654,7 +1654,9 @@ function MultiLevelStarBoard({
         </div>
 
         {/* Level Pills — under board, mobile + desktop */}
-        <LevelPills />
+        <div className="mt-3 w-full">
+          <LevelPills />
+        </div>
 
         {/* Mobile bottom toolbar — скрыт на intro */}
         {phase !== 'intro' && (
