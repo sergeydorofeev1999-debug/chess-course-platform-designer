@@ -34,6 +34,15 @@ const CoordinateTrainingBoard = dynamic(() => import('./CoordinateTrainingBoard'
 const ComputerPlayBoard = dynamic(() => import('./ComputerPlayBoard'), { ssr: false });
 const TacticalStormBoard = dynamic(() => import('./TacticalStormBoard'), { ssr: false });
 
+// ═══ MASSIVE STAR — Lichess-style filled SVG star ═══
+function MassiveStar({ filled, dimmed }: { filled: boolean; dimmed?: boolean }) {
+  return (
+    <svg width="10" height="10" viewBox="0 0 24 24" fill={filled ? '#FFFFFF' : 'none'} stroke={filled ? '#FFFFFF' : dimmed ? '#9CA3AF' : '#9CA3AF'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  );
+}
+
 interface Lesson {
   id: string;
   title: string;
@@ -1391,31 +1400,12 @@ function MultiLevelStarBoard({
             {/* Top row: 2 stars */}
             <div className="flex gap-[1px]">
               {[0, 1].map(s => (
-                <Star
-                  key={s}
-                  size={10}
-                  className={`
-                    ${s < starCount
-                      ? (isCurrent || isDone) ? 'fill-white text-white' : 'fill-white text-white'
-                      : isFuture ? 'text-[#9CA3AF]' : 'text-[#9CA3AF]'
-                    }
-                  `}
-                  strokeWidth={1.5}
-                />
+                <MassiveStar key={s} filled={s < starCount} />
               ))}
             </div>
             {/* Bottom row: 1 star */}
             <div className="flex">
-              <Star
-                size={10}
-                className={`
-                  ${2 < starCount
-                    ? (isCurrent || isDone) ? 'fill-white text-white' : 'fill-white text-white'
-                    : isFuture ? 'text-[#9CA3AF]' : 'text-[#9CA3AF]'
-                  }
-                `}
-                strokeWidth={1.5}
-              />
+              <MassiveStar filled={2 < starCount} dimmed={2 >= starCount} />
             </div>
           </button>
         );
