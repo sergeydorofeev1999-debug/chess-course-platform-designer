@@ -848,6 +848,8 @@ function MultiLevelStarBoard({
         if (!isNaN(n) && n >= 0 && n < levels.length) return n;
       }
     }
+    const solvedCount = Object.values(savedProgress).filter((v) => (v as number) > 0).length;
+    if (solvedCount >= levels.length) return 0;
     let start = savedCurrentLevel || 0;
     while (start < levels.length && savedProgress[start] != null) {
       start++;
