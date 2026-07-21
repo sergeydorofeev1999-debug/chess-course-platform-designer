@@ -741,7 +741,7 @@ function InlineChessBoard({
                         width: sqSize,
                         height: sqSize,
                         borderRadius: '50%',
-                        border: '4px solid var(--square-valid)',
+                        border: '3px solid var(--square-valid)',
                         boxSizing: 'border-box',
                       }}
                     />
