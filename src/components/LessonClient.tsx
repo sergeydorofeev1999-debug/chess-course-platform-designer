@@ -726,7 +726,15 @@ function InlineChessBoard({
                     />
                   </div>
                 )}
-                {isValidMove && pieceObj && pieceObj.color === 'b' && (
+                <div
+                  className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                  style={{ zIndex: 25, opacity: hasStar ? 1 : 0, visibility: hasStar ? 'visible' : 'hidden' }}
+                >
+                  <div className={hasStar ? 'star-twinkle' : ''}>
+                    <StarSvg size={Math.round(sqSize * 0.65)} />
+                  </div>
+                </div>
+                {isValidMove && (pieceObj?.color === 'b' || hasStar) && (
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 30 }}>
                     <div
                       style={{
@@ -739,14 +747,6 @@ function InlineChessBoard({
                     />
                   </div>
                 )}
-                <div
-                  className="absolute inset-0 flex items-center justify-center pointer-events-none"
-                  style={{ zIndex: 25, opacity: hasStar ? 1 : 0, visibility: hasStar ? 'visible' : 'hidden' }}
-                >
-                  <div className={hasStar ? 'star-twinkle' : ''}>
-                    <StarSvg size={Math.round(sqSize * 0.65)} />
-                  </div>
-                </div>
                 {pieceObj && !isSource && (
                   <div className="relative pointer-events-none" style={{ width: Math.round(sqSize*0.85), height: Math.round(sqSize*0.85) }}>
                     <PieceImg type={pieceObj.type} color={pieceObj.color as 'w' | 'b'} />
