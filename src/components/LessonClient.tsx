@@ -941,10 +941,10 @@ function MultiLevelStarBoard({
 
   const guideArrows = useMemo(() => {
     if (level.guideArrows != null) return level.guideArrows;
-    const parsed = parseFen(level.initialFen);
 
-    // ── Lesson 3 Exercise 1 (queen d2 → d5 → g8) ──
+    // ── Special case: Lesson 3 Exercise 1 (queen d2 → d5 → g8) ──
     if (pieceType === 'q' && currentLevel === 0) {
+      const parsed = parseFen(level.initialFen);
       const hasQueenOnD2 = parsed.squares['d2']?.type === 'q' && parsed.squares['d2']?.color === 'w';
       const hasStarD5 = stars.includes('d5');
       const hasStarG8 = stars.includes('g8');
@@ -953,22 +953,7 @@ function MultiLevelStarBoard({
       }
     }
 
-    // ── Bishop: never show default guide arrows ──
-    if (pieceType === 'b') return [];
-
-    // ── Default for rook and other pieces (Lesson 1 etc.) ──
-    let from = null;
-    for (const sq of Object.keys(parsed.squares)) {
-      const p = parsed.squares[sq];
-      if (p.color === 'w' && p.type === pieceType) { from = sq; break; }
-    }
-    if (!from) {
-      for (const sq of Object.keys(parsed.squares)) {
-        if (parsed.squares[sq].color === 'w') { from = sq; break; }
-      }
-    }
-    const to = stars[0] || null;
-    return (from && to) ? [{from, to}] : [];
+    return [];
   }, [level, pieceType, stars, currentLevel]);
 
   const computeHintArrow = useCallback(() => {
