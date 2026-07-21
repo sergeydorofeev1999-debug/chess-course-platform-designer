@@ -745,7 +745,7 @@ function InlineChessBoard({
         )}
         {((guideArrows.length > 0 && moves === 0) || hintArrows.length > 0) && !selectedSquare && !dragPiece && (
           <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
-            {[...guideArrows, ...hintArrows].map((arrow, i) => {
+            {(hintArrows.length > 0 ? hintArrows : guideArrows).map((arrow, i) => {
               const fromF = FILES.indexOf(arrow.from[0]);
               const fromR = RANKS.indexOf(arrow.from[1]);
               const toF = FILES.indexOf(arrow.to[0]);
@@ -957,7 +957,7 @@ function MultiLevelStarBoard({
   }, [level, pieceType, stars, currentLevel]);
 
   const computeHintArrow = useCallback(() => {
-    const parsed = parseFen(position);
+    const parsed = parseFen(positionRef.current);
 
     // ── Special case: Lesson 3 Exercise 1 (queen d2 → d5 → g8) ──
     if (pieceType === 'q' && currentLevel === 0) {
@@ -1231,6 +1231,8 @@ function MultiLevelStarBoard({
     setMoves(0);
     setMsg('');
     setHintArrows([]);
+    setShowHint(false);
+    setHintLevel(0);
   }, [currentLevel, levels]);
 
   const handleMove = useCallback(
