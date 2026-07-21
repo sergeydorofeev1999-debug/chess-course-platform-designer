@@ -940,9 +940,36 @@ function MultiLevelStarBoard({
   const totalLevels = levels.length;
 
   const guideArrows = useMemo(() => {
-    // No permanent guide arrows — hints only via hint button
-    return [];
-  }, []);
+    if (level.guideArrows != null) return level.guideArrows;
+    const parsed = parseFen(level.initialFen);
+
+    // ── Lesson 3 Exercise 1 (queen d2 → d5 → g8) ──
+    if (pieceType === 'q' && currentLevel === 0) {
+      const hasQueenOnD2 = parsed.squares['d2']?.type === 'q' && parsed.squares['d2']?.color === 'w';
+      const hasStarD5 = stars.includes('d5');
+      const hasStarG8 = stars.includes('g8');
+      if (hasQueenOnD2 && hasStarD5 && hasStarG8) {
+        return [{from: 'd2', to: 'd5'}, {from: 'd5', to: 'g8'}];
+      }
+    }
+
+    // ── Bishop: never show default guide arrows ──
+    if (pieceType === 'b') return [];
+
+    // ── Default for rook and other pieces (Lesson 1 etc.) ──
+    let from = null;
+    for (const sq of Object.keys(parsed.squares)) {
+      const p = parsed.squares[sq];
+      if (p.color === 'w' && p.type === pieceType) { from = sq; break; }
+    }
+    if (!from) {
+      for (const sq of Object.keys(parsed.squares)) {
+        if (parsed.squares[sq].color === 'w') { from = sq; break; }
+      }
+    }
+    const to = stars[0] || null;
+    return (from && to) ? [{from, to}] : [];
+  }, [level, pieceType, stars, currentLevel]);
 
   const computeHintArrow = useCallback(() => {
     const parsed = parseFen(position);
