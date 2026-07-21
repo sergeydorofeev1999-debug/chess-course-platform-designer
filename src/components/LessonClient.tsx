@@ -713,7 +713,7 @@ function InlineChessBoard({
                 )}
                 {fi === 0 && <span className={`absolute top-0.5 left-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>{rank}</span>}
                 {ri === 7 && <span className={`absolute bottom-0.5 right-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>{file}</span>}
-                {isValidMove && !hasStar && (
+                {isValidMove && !hasStar && !(pieceObj && pieceObj.color === 'b') && (
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
                     <div
                       style={{
@@ -722,6 +722,19 @@ function InlineChessBoard({
                         backgroundColor: 'var(--square-valid)',
                         borderRadius: '50%',
                         opacity: 0.85,
+                      }}
+                    />
+                  </div>
+                )}
+                {isValidMove && pieceObj && pieceObj.color === 'b' && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                    <div
+                      style={{
+                        width: Math.round(sqSize * 0.85),
+                        height: Math.round(sqSize * 0.85),
+                        borderRadius: '50%',
+                        border: '3px solid #C9A84C',
+                        boxShadow: '0 0 8px rgba(201,168,76,0.45)',
                       }}
                     />
                   </div>
