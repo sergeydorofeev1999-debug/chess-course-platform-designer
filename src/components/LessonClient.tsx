@@ -738,12 +738,10 @@ function InlineChessBoard({
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 50 }}>
                     <div
                       style={{
-                        position: 'absolute',
-                        width: Math.round(sqSize * 0.9),
-                        height: Math.round(sqSize * 0.9),
+                        width: Math.round(sqSize - 4),
+                        height: Math.round(sqSize - 4),
                         borderRadius: '50%',
-                        border: '3px solid #C9A84C',
-                        boxShadow: '0 0 10px 2px rgba(201,168,76,0.9), inset 0 0 6px rgba(201,168,76,0.3)',
+                        border: '2px solid var(--square-valid)',
                       }}
                     />
                   </div>
