@@ -727,7 +727,7 @@ function InlineChessBoard({
                   </div>
                 )}
                 {isValidMove && pieceObj && pieceObj.color === 'b' && (
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 30 }}>
                     <div
                       style={{
                         width: Math.round(sqSize * 0.85),
