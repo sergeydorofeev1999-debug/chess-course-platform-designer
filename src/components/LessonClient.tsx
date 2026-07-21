@@ -940,39 +940,28 @@ function MultiLevelStarBoard({
   const totalLevels = levels.length;
 
   const guideArrows = useMemo(() => {
-    if (level.guideArrows != null) return level.guideArrows;
-    const parsed = parseFen(level.initialFen);
-
-    // ── Special case: Lesson 2 Exercise 1 (bishop c3 → e5 → b8) ──
-    if (pieceType === 'b' && currentLevel === 0) {
-      const hasBishopOnC3 = parsed.squares['c3']?.type === 'b' && parsed.squares['c3']?.color === 'w';
-      const hasStarE5 = stars.includes('e5');
-      const hasStarB8 = stars.includes('b8');
-      if (hasBishopOnC3 && hasStarE5 && hasStarB8) {
-        return [{from: 'c3', to: 'e5'}, {from: 'e5', to: 'b8'}];
-      }
-    }
-
-    // ── For bishop: never show default guide arrows (first star may not be diagonal) ──
-    if (pieceType === 'b') return [];
-
-    // ── Default for rook and other pieces ──
-    let from = null;
-    for (const sq of Object.keys(parsed.squares)) {
-      const p = parsed.squares[sq];
-      if (p.color === 'w' && p.type === pieceType) { from = sq; break; }
-    }
-    if (!from) {
-      for (const sq of Object.keys(parsed.squares)) {
-        if (parsed.squares[sq].color === 'w') { from = sq; break; }
-      }
-    }
-    const to = stars[0] || null;
-    return (from && to) ? [{from, to}] : [];
-  }, [level, pieceType, stars, currentLevel]);
+    // No permanent guide arrows — hints only via hint button
+    return [];
+  }, []);
 
   const computeHintArrow = useCallback(() => {
     const parsed = parseFen(position);
+
+    // ── Special case: Lesson 3 Exercise 1 (queen d2 → d5 → g8) ──
+    if (pieceType === 'q' && currentLevel === 0) {
+      const hasStarD5 = stars.includes('d5');
+      const hasStarG8 = stars.includes('g8');
+      const queenSq = Object.keys(parsed.squares).find(
+        (sq) => parsed.squares[sq]?.type === 'q' && parsed.squares[sq]?.color === 'w'
+      );
+      if (queenSq === 'd2' && hasStarD5 && hasStarG8) {
+        return [{from: 'd2', to: 'd5'}, {from: 'd5', to: 'g8'}];
+      }
+      if (queenSq === 'd5' && hasStarG8) {
+        return [{from: 'd5', to: 'g8'}];
+      }
+    }
+
     // Собираем ВСЕ стартовые позиции белых фигур нужного типа
     const allFroms: string[] = [];
     for (const sq of Object.keys(parsed.squares)) {
