@@ -741,8 +741,8 @@ function InlineChessBoard({
                         width: Math.round(sqSize * 0.95),
                         height: Math.round(sqSize * 0.95),
                         borderRadius: '50%',
-                        border: '4px solid #C9A84C',
-                        boxShadow: '0 0 16px rgba(201,168,76,0.8)',
+                        border: '5px solid #C9A84C',
+                        boxShadow: '0 0 20px rgba(201,168,76,1), 0 0 40px rgba(201,168,76,0.5)',
                         backgroundColor: 'transparent',
                       }}
                     />
