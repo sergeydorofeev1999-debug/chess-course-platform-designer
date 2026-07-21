@@ -736,16 +736,17 @@ function InlineChessBoard({
                 </div>
                 {isValidMove && (pieceObj?.color === 'b' || hasStar) && (
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 30 }}>
-                    <div
-                      style={{
-                        width: Math.round(sqSize * 0.95),
-                        height: Math.round(sqSize * 0.95),
-                        borderRadius: '50%',
-                        border: '5px solid #C9A84C',
-                        boxShadow: '0 0 20px rgba(201,168,76,1), 0 0 40px rgba(201,168,76,0.5)',
-                        backgroundColor: 'transparent',
-                      }}
-                    />
+                    <svg width={sqSize} height={sqSize} viewBox={`0 0 ${sqSize} ${sqSize}`} style={{ position: 'absolute' }}>
+                      <circle
+                        cx={sqSize / 2}
+                        cy={sqSize / 2}
+                        r={Math.round(sqSize * 0.45)}
+                        fill="none"
+                        stroke="#C9A84C"
+                        strokeWidth="4"
+                        style={{ filter: 'drop-shadow(0 0 6px rgba(201,168,76,0.8))' }}
+                      />
+                    </svg>
                   </div>
                 )}
                 {pieceObj && !isSource && (
