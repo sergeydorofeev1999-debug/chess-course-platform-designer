@@ -741,7 +741,7 @@ function InlineChessBoard({
                         width: Math.round(sqSize - 4),
                         height: Math.round(sqSize - 4),
                         borderRadius: '50%',
-                        border: '2px solid var(--square-valid)',
+                        border: '4px solid var(--square-valid)',
                       }}
                     />
                   </div>
