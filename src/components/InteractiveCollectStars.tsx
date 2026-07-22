@@ -56,6 +56,7 @@ function InteractiveBoard({ Chessboard, config, onComplete }: Props & { Chessboa
   const [moveHistory, setMoveHistory] = useState<string[]>([]);
   const [isComplete, setIsComplete] = useState(false);
   const [message, setMessage] = useState(config.instructions);
+  const [promotionPending, setPromotionPending] = useState<{from: string, to: string} | null>(null);
 
   const getSquareStyles = useCallback(() => {
     const styles: Record<string, React.CSSProperties> = {};
@@ -80,6 +81,13 @@ function InteractiveBoard({ Chessboard, config, onComplete }: Props & { Chessboa
   const handlePieceDrop = useCallback(
     ({ sourceSquare, targetSquare }: { sourceSquare: string; targetSquare: string | null }) => {
       if (isComplete || !targetSquare) return false;
+
+      // Check if this is a white pawn promotion
+      const piece = game.get(sourceSquare as any);
+      if (piece && piece.color === 'w' && piece.type === 'p' && targetSquare[1] === '8') {
+        setPromotionPending({ from: sourceSquare, to: targetSquare });
+        return false; // Stop the move, wait for user to select piece
+      }
 
       const move = game.move({
         from: sourceSquare,
@@ -127,8 +135,45 @@ function InteractiveBoard({ Chessboard, config, onComplete }: Props & { Chessboa
     }, [game, stars, isComplete, config, onComplete]
   );
 
+  const handlePromotion = useCallback((piece: string) => {
+    if (!promotionPending) return;
+    const { from, to } = promotionPending;
+    const move = game.move({ from, to, promotion: piece });
+    if (move === null) {
+      setPromotionPending(null);
+      return;
+    }
+
+    const newStars = stars.map(star => {
+      if (star.square === to && !star.collected) {
+        return { ...star, collected: true };
+      }
+      return star;
+    });
+    setStars(newStars);
+    setMoveHistory(prev => [...prev, `${from}-${to}`]);
+
+    const remainingStars = newStars.filter(s => !s.collected).length;
+    if (remainingStars === 0) {
+      setIsComplete(true);
+      setMessage(config.successMessage);
+      onComplete();
+    } else {
+      setMessage(`Осталось звёзд: ${remainingStars}`);
+    }
+
+    setGame(new Chess(game.fen()));
+    setPromotionPending(null);
+  }, [game, stars, promotionPending, config, onComplete]);
+
+  const PROMOTION_PIECES = [
+    { code: 'q', name: 'Ферзь' },
+    { code: 'n', name: 'Конь' },
+    { code: 'r', name: 'Ладья' },
+    { code: 'b', name: 'Слон' },
+  ];
+
   const reset = () => {
-    setGame(new Chess(config.initialFen));
     setStars(config.stars.map(s => ({ ...s, collected: false })));
     setMoveHistory([]);
     setIsComplete(false);
@@ -173,6 +218,59 @@ function InteractiveBoard({ Chessboard, config, onComplete }: Props & { Chessboa
           {stars.filter(s => !s.collected).map(star => (
             <StarOverlay key={star.square} square={star.square} color={star.color} />
           ))}
+          {promotionPending && (
+            <div className="absolute z-50 pointer-events-auto promotion-panel" style={{
+              left: `${(promotionPending.to.charCodeAt(0) - 97) * 12.5}%`,
+              top: 0,
+              width: '12.5%',
+              height: '50%',
+              backgroundColor: 'rgba(44, 36, 27, 0.88)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              borderRadius: '4px',
+              border: '1px solid rgba(201, 168, 76, 0.2)',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.35)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+            }}>
+              {PROMOTION_PIECES.map(({ code }) => (
+                <button
+                  key={code}
+                  onClick={() => handlePromotion(code)}
+                  className="w-full aspect-square flex items-center justify-center transition-all duration-150"
+                  style={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                    border: '2px solid transparent',
+                    borderRadius: 0,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
+                    e.currentTarget.style.borderColor = '#C9A84C';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
+                    e.currentTarget.style.borderColor = 'transparent';
+                  }}
+                  onMouseDown={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.25)';
+                  }}
+                  onMouseUp={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
+                  }}
+                >
+                  <img
+                    src={`/pieces/cburnett/w${code.toUpperCase()}.svg`}
+                    alt={code}
+                    draggable={false}
+                    style={{ width: '78%', height: '78%', objectFit: 'contain', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }}
+                  />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
