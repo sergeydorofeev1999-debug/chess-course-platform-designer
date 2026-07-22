@@ -8,7 +8,7 @@ const CaptureBoard = dynamic(() => import('./CaptureBoard'), { ssr: false });
 
 function MassiveStar({ filled }: { filled: boolean }) {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill={filled ? '#FFFFFF' : 'none'} stroke={filled ? 'none' : '#9CA3AF'} strokeWidth="2">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill={filled ? '#FFFFFF' : 'none'} stroke={filled ? 'none' : '#9CA3AF'} strokeWidth="2">
       <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9" />
     </svg>
   );
@@ -110,7 +110,6 @@ function parseFenSimple(fen: string) {
     setCurrentLevel(idx);
     setShowHint(false);
     setHintArrows([]);
-    setResetKey(k => k + 1);
     setCurrentPosition(levels[idx]?.initialFen || '');
   };
 
