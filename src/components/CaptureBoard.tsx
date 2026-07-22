@@ -553,9 +553,10 @@ function InlineChessBoard({
     const update = () => {
       const isMobile = window.innerWidth < 1024;
       if (isMobile) {
-        setSqSize(Math.min(64, Math.max(36, Math.floor((window.innerWidth - 24) / 8))));
+        setSqSize(Math.min(80, Math.max(42, Math.floor((window.innerWidth - 16) / 8))));
       } else {
-        setSqSize(Math.min(64, Math.max(48, Math.floor((window.innerWidth - 340) / 8))));
+        const available = Math.max(0, window.innerWidth - 520);
+        setSqSize(Math.min(84, Math.max(56, Math.floor(available / 8))));
       }
     };
     update();

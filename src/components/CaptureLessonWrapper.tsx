@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { RotateCcw, Lightbulb, Star } from 'lucide-react';
+import { RotateCcw, Lightbulb } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 const CaptureBoard = dynamic(() => import('./CaptureBoard'), { ssr: false });
@@ -169,23 +169,11 @@ export default function CaptureLessonWrapper({
         </div>
       </div>
 
-      {/* ── Progress: "Задание X из Y" + bar + stars ── */}
+      {/* ── Progress: "Задание X из Y" + bar ── */}
       <div className="w-full flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-bold text-[var(--text-primary)]">
-            Задание {currentLevel + 1} из {totalLevels}
-          </span>
-          <div className="flex items-center gap-1">
-            {Array.from({ length: 3 }, (_, i) => (
-              <Star
-                key={i}
-                size={14}
-                className={i < starCount ? 'fill-[#c9a84c] text-[#c9a84c]' : 'text-[#e5dfd8]'}
-                strokeWidth={2}
-              />
-            ))}
-          </div>
-        </div>
+        <span className="text-xs font-bold text-[var(--text-primary)]">
+          Задание {currentLevel + 1} из {totalLevels}
+        </span>
         <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
           <div
             className="h-full bg-[var(--accent)] rounded-full transition-all duration-500"
@@ -205,13 +193,13 @@ export default function CaptureLessonWrapper({
       <div className="flex items-center gap-3">
         <button
           onClick={() => setShowHint(prev => !prev)}
-          className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg border text-xs font-medium transition-all duration-200 border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]"
+          className="flex-1 h-10 flex items-center justify-center gap-1 rounded-lg border text-xs font-medium transition-all duration-200 border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]"
         >
           <Lightbulb size={14} /> Подсказка
         </button>
         <button
           onClick={() => goToLevel(currentLevel)}
-          className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg border text-xs font-medium transition-all duration-200 border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]"
+          className="flex-1 h-10 flex items-center justify-center gap-1 rounded-lg border text-xs font-medium transition-all duration-200 border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]"
         >
           <RotateCcw size={14} /> Заново
         </button>
