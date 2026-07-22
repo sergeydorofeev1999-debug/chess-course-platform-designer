@@ -1067,11 +1067,7 @@ function MultiLevelStarBoard({
     if (pieceType === 'p' && currentLevel === 0) {
       const parsed = parseFen(level.initialFen);
       const hasPawnOnH5 = parsed.squares['h5']?.type === 'p' && parsed.squares['h5']?.color === 'w';
-      const hasStarH6 = stars.includes('h6');
-      const hasStarH7 = stars.includes('h7');
-      const hasStarH8 = stars.includes('h8');
-      const hasStarC3 = stars.includes('c3');
-      if (hasPawnOnH5 && hasStarH6 && hasStarH7 && hasStarH8 && hasStarC3) {
+      if (hasPawnOnH5) {
         return [
           {from: 'h5', to: 'h6'},
           {from: 'h6', to: 'h7'},
@@ -1085,11 +1081,7 @@ function MultiLevelStarBoard({
     if (pieceType === 'p' && currentLevel === 2) {
       const parsed = parseFen(level.initialFen);
       const hasPawnOnD3 = parsed.squares['d3']?.type === 'p' && parsed.squares['d3']?.color === 'w';
-      const hasStarD4 = stars.includes('d4');
-      const hasStarE5 = stars.includes('e5');
-      const hasStarF6 = stars.includes('f6');
-      const hasStarE7 = stars.includes('e7');
-      if (hasPawnOnD3 && hasStarD4 && hasStarE5 && hasStarF6 && hasStarE7) {
+      if (hasPawnOnD3) {
         return [
           {from: 'd3', to: 'd4'},
           {from: 'd4', to: 'e5'},
@@ -1103,8 +1095,7 @@ function MultiLevelStarBoard({
     if (pieceType === 'p' && currentLevel === 6) {
       const parsed = parseFen(level.initialFen);
       const hasPawnOnD2 = parsed.squares['d2']?.type === 'p' && parsed.squares['d2']?.color === 'w';
-      const hasStarD4 = stars.includes('d4');
-      if (hasPawnOnD2 && hasStarD4) {
+      if (hasPawnOnD2) {
         return [{from: 'd2', to: 'd4'}];
       }
     }
