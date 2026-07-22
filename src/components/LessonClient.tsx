@@ -1076,6 +1076,8 @@ function MultiLevelStarBoard({
       while (q.length > 0) {
         const cur = q.shift()!;
         if (cur === target) break;
+        // Временно размещаем фигуру на cur, чтобы isValidMove принял ход отсюда
+        virtualSquares[cur] = {type: pieceType, color: 'w'};
         for (let f = 0; f < 8; f++) {
           for (let r = 0; r < 8; r++) {
             const dest = `${FILES[f]}${RANKS[r]}`;
@@ -1085,6 +1087,7 @@ function MultiLevelStarBoard({
             q.push(dest);
           }
         }
+        delete virtualSquares[cur];
       }
       if (!prev.has(target)) return null;
       const path: string[] = [];
