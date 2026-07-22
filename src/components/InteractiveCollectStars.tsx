@@ -224,11 +224,8 @@ function InteractiveBoard({ Chessboard, config, onComplete }: Props & { Chessboa
               top: 0,
               width: '12.5%',
               height: '50%',
-              backgroundColor: 'rgba(44, 36, 27, 0.88)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              borderRadius: '4px',
-              border: '1px solid rgba(201, 168, 76, 0.2)',
+              backgroundColor: '#2C241B',
+              borderRadius: '0px',
               boxShadow: '0 4px 16px rgba(0, 0, 0, 0.35)',
               display: 'flex',
               flexDirection: 'column',
@@ -242,16 +239,16 @@ function InteractiveBoard({ Chessboard, config, onComplete }: Props & { Chessboa
                   onClick={() => handlePromotion(code)}
                   className="w-full aspect-square flex items-center justify-center transition-all duration-150"
                   style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                    backgroundColor: 'transparent',
                     border: '2px solid transparent',
-                    borderRadius: 0,
+                    borderRadius: '0px',
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
                     e.currentTarget.style.borderColor = '#C9A84C';
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
+                    e.currentTarget.style.backgroundColor = 'transparent';
                     e.currentTarget.style.borderColor = 'transparent';
                   }}
                   onMouseDown={(e) => {
@@ -265,7 +262,7 @@ function InteractiveBoard({ Chessboard, config, onComplete }: Props & { Chessboa
                     src={`/pieces/cburnett/w${code.toUpperCase()}.svg`}
                     alt={code}
                     draggable={false}
-                    style={{ width: '78%', height: '78%', objectFit: 'contain', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }}
+                    style={{ width: '78%', height: '78%', objectFit: 'contain', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}
                   />
                 </button>
               ))}

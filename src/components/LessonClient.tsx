@@ -814,11 +814,8 @@ function InlineChessBoard({
           top: promotionPending.from[1] === '2' && squares[promotionPending.from]?.color === 'b' ? 4 * sqSize : 0,
           width: sqSize,
           height: 4 * sqSize,
-          backgroundColor: 'rgba(44, 36, 27, 0.88)',
-          backdropFilter: 'blur(8px)',
-          WebkitBackdropFilter: 'blur(8px)',
-          borderRadius: '4px',
-          border: '1px solid rgba(201, 168, 76, 0.2)',
+          backgroundColor: squares[promotionPending.from]?.color === 'b' ? '#F5F0E8' : '#2C241B',
+          borderRadius: '0px',
           boxShadow: '0 4px 16px rgba(0, 0, 0, 0.35)',
           display: 'flex',
           flexDirection: 'column',
@@ -826,39 +823,43 @@ function InlineChessBoard({
           justifyContent: 'center',
           overflow: 'hidden',
         }}>
-          {PROMOTION_PIECES.map(({ code }) => (
+          {PROMOTION_PIECES.map(({ code }) => {
+            const pawnColor = squares[promotionPending.from]?.color || 'w';
+            const isBlackPawn = pawnColor === 'b';
+            return (
             <button
               key={code}
               onClick={() => onPromotion?.(code)}
               className="w-full aspect-square flex items-center justify-center transition-all duration-150"
               style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                backgroundColor: 'transparent',
                 border: '2px solid transparent',
-                borderRadius: 0,
+                borderRadius: '0px',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
+                e.currentTarget.style.backgroundColor = isBlackPawn ? 'rgba(44, 36, 27, 0.08)' : 'rgba(201, 168, 76, 0.15)';
                 e.currentTarget.style.borderColor = '#C9A84C';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
+                e.currentTarget.style.backgroundColor = 'transparent';
                 e.currentTarget.style.borderColor = 'transparent';
               }}
               onMouseDown={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.25)';
+                e.currentTarget.style.backgroundColor = isBlackPawn ? 'rgba(44, 36, 27, 0.15)' : 'rgba(201, 168, 76, 0.25)';
               }}
               onMouseUp={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
+                e.currentTarget.style.backgroundColor = isBlackPawn ? 'rgba(44, 36, 27, 0.08)' : 'rgba(201, 168, 76, 0.15)';
               }}
             >
               <img
-                src={`/pieces/cburnett/w${code.toUpperCase()}.svg`}
+                src={`/pieces/cburnett/${isBlackPawn ? 'b' : 'w'}${code.toUpperCase()}.svg`}
                 alt={code}
                 draggable={false}
-                style={{ width: '78%', height: '78%', objectFit: 'contain', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }}
+                style={{ width: '78%', height: '78%', objectFit: 'contain', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}
               />
             </button>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
