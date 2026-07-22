@@ -323,7 +323,7 @@ export default function TacticalStormBoard({ onComplete }: Props) {
     const testGame = new Chess(game.fen());
     let move;
     try {
-      move = testGame.move({ from, to, promotion: 'q' });
+      move = testGame.move({ from, to });
     } catch {
       move = null;
     }
@@ -335,7 +335,7 @@ export default function TacticalStormBoard({ onComplete }: Props) {
 
     // Apply the move to the actual game state so the piece stays on target square
     const newGame = new Chess(game.fen());
-    newGame.move({ from, to, promotion: 'q' });
+    newGame.move({ from, to });
 
     // Build UCI from move result (handles promotions correctly)
     const userUci = move.from + move.to + (move.promotion || '');

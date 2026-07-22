@@ -84,7 +84,6 @@ function InteractiveBoard({ Chessboard, config, onComplete }: Props & { Chessboa
       const move = game.move({
         from: sourceSquare,
         to: targetSquare,
-        promotion: 'q',
       });
 
       if (move === null) return false;
