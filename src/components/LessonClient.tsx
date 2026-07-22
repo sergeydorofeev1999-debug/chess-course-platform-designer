@@ -86,6 +86,12 @@ function parseInteractiveConfig(videoUrl: string | null | object) {
 /* ====== ВСТРОЕННАЯ ШАХМАТНАЯ ДОСКА (без chess.js — pure JS) ====== */
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 const RANKS = ['8', '7', '6', '5', '4', '3', '2', '1'];
+const PROMOTION_PIECES = [
+  { code: 'q', name: 'Ферзь' },
+  { code: 'n', name: 'Конь' },
+  { code: 'r', name: 'Ладья' },
+  { code: 'b', name: 'Слон' },
+];
 
 function parseFen(fen: string) {
   const squares: Record<string, { type: string; color: 'w' | 'b' }> = {};
@@ -415,6 +421,8 @@ interface InlineChessBoardProps {
   enPassantTarget?: string | null;
   hintLevel?: number;
   moves?: number;
+  promotionPending?: { from: string; to: string } | null;
+  onPromotion?: (piece: string) => void;
 }
 
 function InlineChessBoard({
@@ -429,6 +437,8 @@ function InlineChessBoard({
   enPassantTarget,
   hintLevel = 0,
   moves = 0,
+  promotionPending,
+  onPromotion,
 }: InlineChessBoardProps) {
   const pieceErrHint =
     pieceType === 'b' ? 'Слон ходит по диагонали!' :
@@ -799,6 +809,51 @@ function InlineChessBoard({
           </svg>
         )}
       </div>
+      {promotionPending && onPromotion && (
+        <div className="absolute z-50 pointer-events-auto promotion-panel" style={{
+          left: `${(FILES.indexOf(promotionPending.to[0])) * sqSize}px`,
+          top: 0,
+          width: sqSize + 16,
+          marginLeft: -8,
+          height: 4 * sqSize + 16,
+          padding: '8px',
+          backgroundColor: 'rgba(30,30,30,0.92)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          borderRadius: '12px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '4px',
+          alignItems: 'center',
+          justifyContent: 'center',
+          transition: 'all 200ms ease-out',
+        }}>
+          {PROMOTION_PIECES.map(({ code }) => (
+            <button
+              key={code}
+              onClick={() => onPromotion?.(code)}
+              className="w-full aspect-square rounded-lg flex items-center justify-center transition-all duration-150 hover:scale-105 active:scale-95"
+              style={{
+                backgroundColor: '#2C241B',
+                border: '2px solid transparent',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = '#C9A84C';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'transparent';
+              }}
+            >
+              <img
+                src={`/pieces/cburnett/w${code.toUpperCase()}.svg`}
+                alt={code}
+                draggable={false}
+                style={{ width: '70%', height: '70%', objectFit: 'contain' }}
+              />
+            </button>
+          ))}
+        </div>
+      )}
       {dragPiece && (
         <div className="fixed pointer-events-none z-50" style={{ left: dragPos.x - Math.round(sqSize/2), top: dragPos.y - Math.round(sqSize/2), width: Math.round(sqSize*0.85), height: Math.round(sqSize*0.85) }}>
           <PieceImg type={dragPiece.type} color={dragPiece.color as 'w' | 'b'} />
@@ -953,6 +1008,7 @@ function MultiLevelStarBoard({
   const totalLevels = levels.length;
 
   const guideArrows = useMemo(() => {
+    if (currentLevel !== 0) return [];
     if (level.guideArrows != null) return level.guideArrows;
 
     // ── Special case: Lesson 3 Exercise 1 (queen d2 → d5 → g8) ──
@@ -1474,6 +1530,46 @@ function MultiLevelStarBoard({
     [stars, collected, currentLevel, totalLevels, onAllComplete, phase]
   );
 
+  const handlePromotion = useCallback(
+    (piece: string) => {
+      if (!promotionPending) return;
+      const { from, to } = promotionPending;
+      const parsed = parseFen(positionRef.current);
+      const newSquares = { ...parsed.squares };
+      delete newSquares[from];
+      newSquares[to] = { type: piece, color: 'w' };
+      const newFen = squaresToFen(newSquares, 'w');
+      positionRef.current = newFen;
+      setPosition(newFen);
+      setMoves((c) => c + 1);
+      setMsg('');
+      setPromotionPending(null);
+
+      // Check collect star
+      if (stars.includes(to) && !collected.includes(to)) {
+        setCollected((prev) => {
+          const next = [...prev, to];
+          const allCollected = stars.every((s: string) => next.includes(s));
+          if (allCollected) {
+            const max = level.maxMoves || stars.length + 1;
+            const m = movesRef.current + 1;
+            let earned = 3;
+            if (m <= max) earned = 3;
+            else if (m <= max + 1) earned = 2;
+            else earned = 1;
+            setLevelStars((prev) => ({ ...prev, [currentLevel]: earned }));
+            onLevelComplete?.(currentLevel, earned);
+            setPhase('success');
+          } else {
+            setMsg(`⭐ ${next.length} / ${stars.length} звёзд`);
+          }
+          return next;
+        });
+      }
+    },
+    [promotionPending, stars, collected, currentLevel, onLevelComplete]
+  );
+
   const collectedCount = stars.filter((s: string) => collected.includes(s)).length;
   const allCollected = stars.every((s: string) => collected.includes(s));
 
@@ -1760,6 +1856,8 @@ function MultiLevelStarBoard({
               movedPieces={movedPieces}
               hintLevel={hintLevel}
               moves={moves}
+              promotionPending={promotionPending}
+              onPromotion={handlePromotion}
             />
             {phase === 'intro' && <IntroOverlay />}
             {phase === 'success' && <SuccessOverlay />}
