@@ -520,6 +520,8 @@ function InlineChessBoard({
   setMsg,
   forbiddenSquares = [],
   hintArrows = [],
+  promotionPending,
+  onPromotion,
 }: {
   fen: string;
   onMove: (from: string, to: string) => boolean;
@@ -528,6 +530,8 @@ function InlineChessBoard({
   setMsg: (s: string) => void;
   forbiddenSquares?: string[];
   hintArrows?: { from: string; to: string }[];
+  promotionPending?: { from: string; to: string } | null;
+  onPromotion?: (piece: string) => void;
 }) {
   const parsed = parseFen(fen);
   const [squares, setSquares] = useState(parsed.squares);
@@ -543,6 +547,8 @@ function InlineChessBoard({
     y: number;
     offsetX: number;
     offsetY: number;
+    startX: number;
+    startY: number;
   } | null>(null);
   const dragStateRef = useRef(dragState);
   const pointerStartRef = useRef<string | null>(null);
@@ -664,15 +670,26 @@ function InlineChessBoard({
       y: centerY,
       offsetX,
       offsetY,
+      startX: e.clientX,
+      startY: e.clientY,
     };
-    setDragState(initState);
+    // Don't set dragState yet — wait for threshold
     dragStateRef.current = initState;
     (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
   };
 
   const handleGlobalMove = (e: PointerEvent) => {
     if (!dragStateRef.current) return;
-    justDraggedRef.current = true;
+    const dx = e.clientX - dragStateRef.current.startX;
+    const dy = e.clientY - dragStateRef.current.startY;
+    if (!justDraggedRef.current && Math.abs(dx) <= 20 && Math.abs(dy) <= 20) {
+      return; // still within click threshold
+    }
+    if (!justDraggedRef.current) {
+      // Threshold crossed — start drag
+      justDraggedRef.current = true;
+      setDragState(dragStateRef.current);
+    }
     selectedSquareRef.current = dragStateRef.current.square;
     setSelectedSquare(dragStateRef.current.square);
     const rect = containerRef.current?.getBoundingClientRect();
@@ -740,11 +757,12 @@ function InlineChessBoard({
   return (
     <div className="flex flex-col items-center gap-2 select-none">
       <div
-        className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none"
+        className="grid border-[5px] border-[#1a1612] rounded relative select-none board-fade-in"
         style={{
           gridTemplateColumns: `repeat(8, ${sqSize}px)`,
           gridTemplateRows: `repeat(8, ${sqSize}px)`,
           touchAction: 'none',
+          boxShadow: '0 12px 40px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06)',
         }}
         ref={containerRef}
       >
@@ -767,7 +785,7 @@ function InlineChessBoard({
                   height: sqSize,
                   cursor: pieceObj && pieceObj.color === 'w' ? 'grab' : 'default',
                   touchAction: 'none',
-                  backgroundColor: light ? '#f0d9b5' : '#b58863',
+                  backgroundColor: light ? 'var(--square-light)' : 'var(--square-dark)',
                 }}
                 onPointerDown={(e) => handlePointerDown(e, sq)}
                 onClick={() => click(sq)}
@@ -790,7 +808,7 @@ function InlineChessBoard({
                 {fi === 0 && (
                   <span
                     className={`absolute top-0.5 left-1 text-[10px] font-bold ${
-                      light ? 'text-[#b58863]' : 'text-[#f0d9b5]'
+                      light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'
                     }`}
                   >
                     {rank}
@@ -799,7 +817,7 @@ function InlineChessBoard({
                 {ri === 7 && (
                   <span
                     className={`absolute bottom-0.5 right-1 text-[10px] font-bold ${
-                      light ? 'text-[#b58863]' : 'text-[#f0d9b5]'
+                      light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'
                     }`}
                   >
                     {file}
@@ -818,7 +836,11 @@ function InlineChessBoard({
                     />
                   </div>
                 )}
-                {pieceObj && !isSource && <PieceImg type={pieceObj.type} color={pieceObj.color} />}
+                {pieceObj && !isSource && (
+                  <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize*0.85), height: Math.round(sqSize*0.85) }}>
+                    <PieceImg type={pieceObj.type} color={pieceObj.color} />
+                  </div>
+                )}
               </div>
             );
           })
@@ -880,6 +902,44 @@ function InlineChessBoard({
             })}
           </svg>
         )}
+        {promotionPending && onPromotion && (
+          <div className="absolute z-50 pointer-events-auto" style={{
+            left: `${(FILES.indexOf(promotionPending.to[0])) * sqSize}px`,
+            top: 0,
+            width: sqSize,
+            height: 4 * sqSize,
+            backgroundColor: '#2C241B',
+            borderRadius: '0px',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.35)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '2px',
+            padding: '2px 0',
+          }}>
+            {[
+              { code: 'q', name: 'Ферзь' },
+              { code: 'n', name: 'Конь' },
+              { code: 'r', name: 'Ладья' },
+              { code: 'b', name: 'Слон' },
+            ].map((p) => (
+              <button
+                key={p.code}
+                onClick={() => onPromotion(p.code)}
+                className="w-full flex items-center justify-center hover:bg-[rgba(255,255,255,0.1)] transition-colors"
+                style={{ height: sqSize }}
+              >
+                <img
+                  src={`/pieces/cburnett/w${p.code.toUpperCase()}.svg`}
+                  alt={p.name}
+                  draggable={false}
+                  style={{ width: '78%', height: '78%', objectFit: 'contain' }}
+                />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       {msg && <div className="text-red-500 text-sm mt-1">{msg}</div>}
     </div>
@@ -923,6 +983,7 @@ interface Props {
   onExternalStarsChange?: (stars: Record<number, number>) => void;
   hintArrows?: { from: string; to: string }[];
   onAnyMove?: () => void;
+  onPositionChange?: (fen: string) => void;
 }
 
 export default function CaptureBoard({
@@ -939,6 +1000,7 @@ export default function CaptureBoard({
   onExternalStarsChange,
   hintArrows = [],
   onAnyMove,
+  onPositionChange,
 }: Props) {
   const router = useRouter();
   const savedKey = `lesson_capture_${lessonId}`;
@@ -952,6 +1014,7 @@ export default function CaptureBoard({
   const [msg, setMsg] = useState('');
   const [moves, setMoves] = useState(0);
   const [allDone, setAllDone] = useState(false);
+  const [promotionPending, setPromotionPending] = useState<{from: string, to: string} | null>(null);
 
   // Use external state when embedded, internal otherwise
   const currentLevel = embedded && externalCurrentLevel !== undefined ? externalCurrentLevel : currentLevelInternal;
@@ -1090,6 +1153,12 @@ export default function CaptureBoard({
       // Only reject obviously illegal moves (wrong piece mechanics, self-capture)
       if (!isValidMove(fromType, from, to, parsed.squares, 'w', [], false, parsed.enPassant)) return false;
 
+      // Pawn promotion — show picker
+      if (fromType === 'p' && to[1] === '8') {
+        setPromotionPending({ from, to });
+        return false;
+      }
+
       const movedPiece = parsed.squares[from];
 
       // Apply move immediately (visual first, like Lichess)
@@ -1119,6 +1188,7 @@ export default function CaptureBoard({
       setMoves((c) => c + 1);
       setMsg('');
       onAnyMove?.();
+      onPositionChange?.(newFen);
 
       // Trigger auto moves after white makes a target move (e.g. en passant capture)
       if (level.triggerAutoMove && level.triggerAutoMove.length > 0) {
@@ -1526,15 +1596,92 @@ export default function CaptureBoard({
     setAllDone(false);
     setGameOver(false);
     setFailed(false);
+    setPromotionPending(null);
     setMsg('');
   };
+
+  const handlePromotion = useCallback(
+    (piece: string) => {
+      if (!promotionPending) return;
+      const { from, to } = promotionPending;
+      const parsed = parseFen(positionRef.current);
+      const newSquares = { ...parsed.squares };
+      delete newSquares[from];
+      newSquares[to] = { type: piece, color: 'w' };
+      let newFen = squaresToFen(newSquares, 'w');
+      positionRef.current = newFen;
+      setPosition(newFen);
+      setPromotionPending(null);
+      setMoves((c) => c + 1);
+      setMsg('');
+      onAnyMove?.();
+
+      // Continue with the rest of handleMove logic (auto-moves, checks, etc.)
+      // For simplicity, trigger handleMove again from the new position
+      // But since we already moved, just check win conditions
+      const stars = level.stars || level.targets || [];
+      const lvl = levels[currentLevel];
+      const collectedCount = stars.filter((s: string) => collected.includes(s)).length;
+
+      if (stars.includes(to)) {
+        if (level.requireAll) {
+          if (stars.every((s: string) => [...collected, to].includes(s))) {
+            const earned = 1;
+            if (onLevelComplete) onLevelComplete(currentLevel, earned);
+            const nextLevel = currentLevel + 1;
+            if (nextLevel <= totalLevels) {
+              setTimeout(() => {
+                setCurrentLevelInternal(nextLevel);
+                setPosition(lvl ? lvl.initialFen : positionRef.current);
+                setCollected([]);
+                setMoves(0);
+                setAllDone(false);
+                setGameOver(false);
+                setFailed(false);
+                setPromotionPending(null);
+                setMsg('');
+              }, 600);
+            }
+            if (nextLevel > totalLevels) {
+              setAllDone(true);
+              setGameOver(true);
+              if (onAllComplete) setTimeout(onAllComplete, 800);
+            }
+          }
+        } else {
+          const earned = 1;
+          if (onLevelComplete) onLevelComplete(currentLevel, earned);
+          const nextLevel = currentLevel + 1;
+          if (nextLevel <= totalLevels) {
+            setTimeout(() => {
+              setCurrentLevelInternal(nextLevel);
+              setPosition(lvl ? lvl.initialFen : positionRef.current);
+              setCollected([]);
+              setMoves(0);
+              setAllDone(false);
+              setGameOver(false);
+              setFailed(false);
+              setPromotionPending(null);
+              setMsg('');
+            }, 600);
+          }
+          if (nextLevel > totalLevels) {
+            setAllDone(true);
+            setGameOver(true);
+            if (onAllComplete) setTimeout(onAllComplete, 800);
+          }
+        }
+      }
+    },
+    [promotionPending, currentLevel, levels, totalLevels, collected, onLevelComplete, onAllComplete, onAnyMove]
+  );
 
   return (
     <div className="w-full">
       {embedded ? (
         /* Minimal mode: only the board + fail callback */
         <div className="flex flex-col items-center gap-3">
-          <InlineChessBoard key={currentLevel} fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} />
+          <InlineChessBoard key={currentLevel} fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} promotionPending={promotionPending} onPromotion={handlePromotion} />
           {failed && onFail && (
             <div className="w-full">
               <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">

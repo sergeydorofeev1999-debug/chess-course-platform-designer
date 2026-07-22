@@ -8,7 +8,7 @@ const CaptureBoard = dynamic(() => import('./CaptureBoard'), { ssr: false });
 
 function MassiveStar({ filled }: { filled: boolean }) {
   return (
-    <svg width="10" height="10" viewBox="0 0 24 24" fill={filled ? '#FFFFFF' : 'none'} stroke={filled ? 'none' : '#9CA3AF'} strokeWidth="2">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill={filled ? '#FFFFFF' : 'none'} stroke={filled ? 'none' : '#9CA3AF'} strokeWidth="2">
       <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9" />
     </svg>
   );
@@ -35,8 +35,34 @@ export default function CaptureLessonWrapper({
   const [levelStars, setLevelStars] = useState<Record<number, number>>({});
   const [showHint, setShowHint] = useState(false);
   const [hintArrows, setHintArrows] = useState<{ from: string; to: string }[]>([]);
+  const [resetKey, setResetKey] = useState(0);
+  const [currentPosition, setCurrentPosition] = useState('');
 
   const savedKey = `lesson_capture_${lesson.id}`;
+
+// Simple FEN parse (placement only)
+function parseFenSimple(fen: string) {
+  const squares: Record<string, { type: string; color: 'w' | 'b' }> = {};
+  const parts = fen.split(' ');
+  const placement = parts[0];
+  const rows = placement.split('/');
+  const files = ['a','b','c','d','e','f','g','h'];
+  const ranks = ['8','7','6','5','4','3','2','1'];
+  for (let ri = 0; ri < 8; ri++) {
+    let fi = 0;
+    for (const ch of rows[ri]) {
+      if (ch >= '1' && ch <= '8') {
+        fi += parseInt(ch);
+      } else {
+        const color = ch === ch.toUpperCase() ? 'w' : 'b';
+        const type = ch.toLowerCase();
+        squares[`${files[fi]}${ranks[ri]}`] = { type, color };
+        fi++;
+      }
+    }
+  }
+  return squares;
+}
 
   // Load progress
   useEffect(() => {
@@ -45,7 +71,10 @@ export default function CaptureLessonWrapper({
       if (saved) {
         const data = JSON.parse(saved);
         if (data.levelStars) setLevelStars(data.levelStars);
-        if (typeof data.currentLevel === 'number') setCurrentLevel(data.currentLevel);
+        if (typeof data.currentLevel === 'number') {
+          setCurrentLevel(data.currentLevel);
+          setCurrentPosition(levels[data.currentLevel]?.initialFen || levels[0].initialFen || '');
+        }
       }
     } catch {}
   }, [savedKey]);
@@ -57,6 +86,12 @@ export default function CaptureLessonWrapper({
       currentLevel,
     }));
   }, [levelStars, currentLevel, savedKey]);
+
+  // Initialize position on mount
+  useEffect(() => {
+    const initialPos = levels[currentLevel]?.initialFen || levels[0].initialFen || '';
+    setCurrentPosition(initialPos);
+  }, [levels, currentLevel]);
 
   const handleLevelComplete = useCallback((levelIndex: number, stars: number) => {
     setLevelStars(prev => ({ ...prev, [levelIndex]: stars }));
@@ -72,22 +107,66 @@ export default function CaptureLessonWrapper({
     setCurrentLevel(idx);
     setShowHint(false);
     setHintArrows([]);
+    setResetKey(k => k + 1);
+    setCurrentPosition(levels[idx].initialFen || '');
   }, [levels.length]);
 
-  // Simple hint: find any white piece that can capture a target
-  const computeHintArrow = useCallback(() => {
+  // Hint: from current position, find arrow to nearest remaining target
+  const computeHintArrow = () => {
     const level = levels[currentLevel];
     if (!level) return [];
+    
+    const fen = currentPosition || level.initialFen || '';
+    if (!fen) return [];
+    
     const targets = level.stars || level.targets || [];
     if (targets.length === 0) return [];
 
-    // For capture lessons, show arrow from white piece to first target
-    // This is a simplified hint — just show any valid move toward target
-    const fen = level.initialFen; // Use initial as fallback
-    // In a real implementation we'd parse current position
-    // For now, return empty to avoid errors, or simple logic
+    const squares = parseFenSimple(fen);
+    const files = ['a','b','c','d','e','f','g','h'];
+    const ranks = ['8','7','6','5','4','3','2','1'];
+
+    for (const target of targets) {
+      for (const sq of Object.keys(squares)) {
+        const piece = squares[sq];
+        if (piece.color !== 'w') continue;
+        const pf = files.indexOf(sq[0]);
+        const pr = ranks.indexOf(sq[1]);
+        const tf = files.indexOf(target[0]);
+        const tr = ranks.indexOf(target[1]);
+        const df = Math.abs(tf - pf);
+        const dr = Math.abs(tr - pr);
+        let valid = false;
+        switch (piece.type) {
+          case 'r':
+            if (pf === tf || pr === tr) valid = true;
+            break;
+          case 'b':
+            if (df === dr) valid = true;
+            break;
+          case 'q':
+            if (pf === tf || pr === tr || df === dr) valid = true;
+            break;
+          case 'n':
+            if ((df === 2 && dr === 1) || (df === 1 && dr === 2)) valid = true;
+            break;
+          case 'k':
+            if (df <= 1 && dr <= 1) valid = true;
+            break;
+          case 'p': {
+            const forwardDir = -1;
+            if (tf === pf && tr === pr + forwardDir) valid = true;
+            if (Math.abs(tf - pf) === 1 && tr === pr + forwardDir) valid = true;
+            break;
+          }
+        }
+        if (valid) {
+          return [{ from: sq, to: target }];
+        }
+      }
+    }
     return [];
-  }, [levels, currentLevel]);
+  };
 
   const level = levels[currentLevel];
   const totalLevels = levels.length;
@@ -116,6 +195,7 @@ export default function CaptureLessonWrapper({
       <div className="flex justify-center w-full">
         <div className="relative inline-block rounded-sm">
           <CaptureBoard
+            key={resetKey}
             lessonId={lesson.id}
             levels={levels}
             successMessage="Молодец!"
@@ -127,7 +207,11 @@ export default function CaptureLessonWrapper({
             externalLevelStars={levelStars}
             onExternalStarsChange={setLevelStars}
             hintArrows={hintArrows}
-            onAnyMove={() => setHintArrows([])}
+            onAnyMove={() => {
+              setHintArrows([]);
+              setCurrentPosition('');
+            }}
+            onPositionChange={setCurrentPosition}
           />
         </div>
       </div>
@@ -199,13 +283,6 @@ export default function CaptureLessonWrapper({
           />
         </div>
       </div>
-
-      {/* ── Hint ── */}
-      {showHint && level?.hint && (
-        <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-2">
-          <p className="text-sm text-amber-800">💡 {level.hint}</p>
-        </div>
-      )}
 
       {/* ── Buttons: Hint + Reset ── */}
       <div className="flex items-center gap-3">
