@@ -808,8 +808,7 @@ function InlineChessBoard({
             })}
           </svg>
         )}
-      </div>
-      {promotionPending && onPromotion && (
+        {promotionPending && onPromotion && (
         <div className="absolute z-50 pointer-events-auto promotion-panel" style={{
           left: `${(FILES.indexOf(promotionPending.to[0])) * sqSize}px`,
           top: promotionPending.from[1] === '2' && squares[promotionPending.from]?.color === 'b' ? 4 * sqSize : 0,
@@ -862,7 +861,8 @@ function InlineChessBoard({
           ))}
         </div>
       )}
-      {dragPiece && (
+    </div>
+    {dragPiece && (
         <div className="fixed pointer-events-none z-50" style={{ left: dragPos.x - Math.round(sqSize/2), top: dragPos.y - Math.round(sqSize/2), width: Math.round(sqSize*0.85), height: Math.round(sqSize*0.85) }}>
           <PieceImg type={dragPiece.type} color={dragPiece.color as 'w' | 'b'} />
         </div>
