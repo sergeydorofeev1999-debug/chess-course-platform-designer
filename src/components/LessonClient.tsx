@@ -1084,10 +1084,13 @@ function MultiLevelStarBoard({
         const file = pawnSq[0];
         const rank = parseInt(pawnSq[1]);
         let firstStep: string | null = null;
-        if (rank === 5) firstStep = `${file}6`;
+        if (rank === 7) firstStep = `${file}8`;
+        else if (rank === 6) firstStep = `${file}7`;
+        else if (rank === 5) firstStep = `${file}6`;
         else if (rank === 4) firstStep = `${file}5`;
         else if (rank === 3) firstStep = `${file}4`;
         else if (rank === 2) firstStep = `${file}4`;
+        else if (rank === 1) firstStep = `${file}2`;
         if (firstStep) {
           return [{ from: pawnSq, to: firstStep }];
         }
