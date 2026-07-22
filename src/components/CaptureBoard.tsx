@@ -501,7 +501,7 @@ function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
   const pieceKey = `${color}${type.toUpperCase()}`;
   const src = `/pieces/cburnett/${pieceKey}.svg`;
   return (
-    <div className="w-full h-full" style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}>
+    <div className="w-full h-full" style={{ filter: "var(--piece-shadow-inline)" }}>
       <img src={src} alt="" className="w-full h-full" draggable={false} />
     </div>
   );
@@ -519,6 +519,7 @@ function InlineChessBoard({
   msg,
   setMsg,
   forbiddenSquares = [],
+  hintArrows = [],
 }: {
   fen: string;
   onMove: (from: string, to: string) => boolean;
@@ -526,6 +527,7 @@ function InlineChessBoard({
   msg: string;
   setMsg: (s: string) => void;
   forbiddenSquares?: string[];
+  hintArrows?: { from: string; to: string }[];
 }) {
   const parsed = parseFen(fen);
   const [squares, setSquares] = useState(parsed.squares);
@@ -774,7 +776,7 @@ function InlineChessBoard({
                 onMouseLeave={() => setHoveredSquare(null)}
               >
                 {sel && (
-                  <div className="absolute inset-[1px] rounded-[5px] bg-[rgba(100,160,60,0.45)] pointer-events-none z-10" />
+                  <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
                 )}
                 {hover && !sel && (
                   <div
@@ -809,7 +811,7 @@ function InlineChessBoard({
                       style={{
                         width: Math.round(sqSize * 0.3),
                         height: Math.round(sqSize * 0.3),
-                        backgroundColor: '#5d9040',
+                        backgroundColor: 'var(--square-valid)',
                         borderRadius: '50%',
                         opacity: 0.85,
                       }}
@@ -834,6 +836,49 @@ function InlineChessBoard({
           >
             <PieceImg type={dragState.type} color={dragState.color as 'w' | 'b'} />
           </div>
+        )}
+        {/* Hint arrows SVG */}
+        {hintArrows.length > 0 && (
+          <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
+            {hintArrows.map((arrow, i) => {
+              const fromF = FILES.indexOf(arrow.from[0]);
+              const fromR = RANKS.indexOf(arrow.from[1]);
+              const toF = FILES.indexOf(arrow.to[0]);
+              const toR = RANKS.indexOf(arrow.to[1]);
+              const x1 = (fromF + 0.5) * sqSize;
+              const y1 = (fromR + 0.5) * sqSize;
+              const x2 = (toF + 0.5) * sqSize;
+              const y2 = (toR + 0.5) * sqSize;
+              const strokeW = sqSize < 60 ? 14 : 18;
+              const halfW = strokeW / 2;
+              const dx = x2 - x1;
+              const dy = y2 - y1;
+              const len = Math.sqrt(dx * dx + dy * dy) || 1;
+              const headHeight = sqSize * 0.6;
+              const headBase   = strokeW * 3;
+              const nx = -dy / len;
+              const ny = dx / len;
+              const blx = x1 + nx * halfW;   const bly = y1 + ny * halfW;
+              const brx = x1 - nx * halfW;   const bry = y1 - ny * halfW;
+              const tailX = x2 - (dx / len) * headHeight;
+              const tailY = y2 - (dy / len) * headHeight;
+              const tlx = tailX + nx * halfW; const tly = tailY + ny * halfW;
+              const trx = tailX - nx * halfW; const try_ = tailY - ny * halfW;
+              const hlx = tailX + nx * headBase / 2; const hly = tailY + ny * headBase / 2;
+              const hrx = tailX - nx * headBase / 2; const hry = tailY - ny * headBase / 2;
+              const cross = (brx - blx) * (-dy / len) - (bry - bly) * (-dx / len);
+              const sweep = cross > 0 ? 1 : 0;
+              const pathD = `M ${blx} ${bly} L ${tlx} ${tly} L ${hlx} ${hly} L ${x2} ${y2} L ${hrx} ${hry} L ${trx} ${try_} L ${brx} ${bry} A ${halfW} ${halfW} 0 1 ${sweep} ${blx} ${bly} Z`;
+              return (
+                <path
+                  key={i}
+                  d={pathD}
+                  fill="rgba(44, 36, 27, 0.35)"
+                  className="arrow-hint-line"
+                />
+              );
+            })}
+          </svg>
         )}
       </div>
       {msg && <div className="text-red-500 text-sm mt-1">{msg}</div>}
@@ -876,6 +921,8 @@ interface Props {
   onExternalLevelChange?: (level: number) => void;
   externalLevelStars?: Record<number, number>;
   onExternalStarsChange?: (stars: Record<number, number>) => void;
+  hintArrows?: { from: string; to: string }[];
+  onAnyMove?: () => void;
 }
 
 export default function CaptureBoard({
@@ -890,6 +937,8 @@ export default function CaptureBoard({
   onExternalLevelChange,
   externalLevelStars,
   onExternalStarsChange,
+  hintArrows = [],
+  onAnyMove,
 }: Props) {
   const router = useRouter();
   const savedKey = `lesson_capture_${lessonId}`;
@@ -1069,6 +1118,7 @@ export default function CaptureBoard({
       setPosition(newFen);
       setMoves((c) => c + 1);
       setMsg('');
+      onAnyMove?.();
 
       // Trigger auto moves after white makes a target move (e.g. en passant capture)
       if (level.triggerAutoMove && level.triggerAutoMove.length > 0) {
@@ -1484,7 +1534,7 @@ export default function CaptureBoard({
       {embedded ? (
         /* Minimal mode: only the board + fail callback */
         <div className="flex flex-col items-center gap-3">
-          <InlineChessBoard key={currentLevel} fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} />
+          <InlineChessBoard key={currentLevel} fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} />
           {failed && onFail && (
             <div className="w-full">
               <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
