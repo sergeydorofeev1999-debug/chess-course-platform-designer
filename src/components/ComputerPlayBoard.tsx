@@ -516,6 +516,31 @@ export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete
 
         {/* Board */}
         <div className="flex justify-center w-full relative">
+          {/* Promotion Modal */}
+          {promotionPending && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/30 rounded-lg">
+              <div className="bg-white rounded-lg p-4 shadow-xl text-center space-y-3 max-w-[260px]">
+                <p className="font-bold text-sm">Превращение пешки!</p>
+                <p className="text-xs text-gray-500">Ваша пешка достигла края доски</p>
+                <div className="flex gap-2 justify-center">
+                  {PROMOTION_PIECES.map(({ code, name }) => (
+                    <button
+                      key={code}
+                      onClick={() => {
+                        processMove(promotionPending.from, promotionPending.to, code);
+                        setPromotionPending(null);
+                      }}
+                      className="w-12 h-12 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition border border-gray-300"
+                      title={name}
+                    >
+                      <img src={`/pieces/cburnett/w${code.toUpperCase()}.svg`} className="w-8 h-8" draggable={false} alt={name} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           <div
             data-board
             className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none"
@@ -587,65 +612,6 @@ export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete
               })
             ))}
           </div>
-
-          {promotionPending && (
-            <div className="absolute z-50 pointer-events-auto promotion-panel" style={{
-              left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
-              top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
-              width: sqSize,
-              height: 4 * sqSize,
-              padding: '4px 0',
-              backgroundColor: 'rgba(44, 36, 27, 0.88)',
-              backdropFilter: 'blur(8px)',
-              WebkitBackdropFilter: 'blur(8px)',
-              borderRadius: '8px',
-              border: '1px solid rgba(201, 168, 76, 0.2)',
-              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.35)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '2px',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'opacity 200ms ease-out',
-            }}>
-              {PROMOTION_PIECES.map(({ code, name }) => (
-                <button
-                  key={code}
-                  onClick={() => {
-                    processMove(promotionPending.from, promotionPending.to, code);
-                    setPromotionPending(null);
-                  }}
-                  className="w-full aspect-square rounded-md flex items-center justify-center transition-all duration-150"
-                  style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                    border: '2px solid transparent',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
-                    e.currentTarget.style.borderColor = '#C9A84C';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
-                    e.currentTarget.style.borderColor = 'transparent';
-                  }}
-                  onMouseDown={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.25)';
-                  }}
-                  onMouseUp={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
-                  }}
-                  title={name}
-                >
-                  <img
-                    src={`/pieces/cburnett/w${code.toUpperCase()}.svg`}
-                    alt={name}
-                    draggable={false}
-                    style={{ width: '72%', height: '72%', objectFit: 'contain' }}
-                  />
-                </button>
-              ))}
-            </div>
-          )}
 
           {dragPiece && (
             <div
