@@ -815,28 +815,27 @@ function InlineChessBoard({
           top: promotionPending.from[1] === '2' && squares[promotionPending.from]?.color === 'b' ? 4 * sqSize : 0,
           width: sqSize,
           height: 4 * sqSize,
-          padding: '4px 0',
           backgroundColor: 'rgba(44, 36, 27, 0.88)',
           backdropFilter: 'blur(8px)',
           WebkitBackdropFilter: 'blur(8px)',
-          borderRadius: '8px',
+          borderRadius: '4px',
           border: '1px solid rgba(201, 168, 76, 0.2)',
           boxShadow: '0 4px 16px rgba(0, 0, 0, 0.35)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '2px',
           alignItems: 'center',
           justifyContent: 'center',
-          transition: 'opacity 200ms ease-out',
+          overflow: 'hidden',
         }}>
           {PROMOTION_PIECES.map(({ code }) => (
             <button
               key={code}
               onClick={() => onPromotion?.(code)}
-              className="w-full aspect-square rounded-md flex items-center justify-center transition-all duration-150"
+              className="w-full aspect-square flex items-center justify-center transition-all duration-150"
               style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.06)',
                 border: '2px solid transparent',
+                borderRadius: 0,
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
@@ -857,7 +856,7 @@ function InlineChessBoard({
                 src={`/pieces/cburnett/w${code.toUpperCase()}.svg`}
                 alt={code}
                 draggable={false}
-                style={{ width: '72%', height: '72%', objectFit: 'contain' }}
+                style={{ width: '78%', height: '78%', objectFit: 'contain', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.5))' }}
               />
             </button>
           ))}
