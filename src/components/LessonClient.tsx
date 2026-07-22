@@ -9,6 +9,7 @@ import { markLessonCompleteAuth } from '@/lib/data';
 import dynamic from 'next/dynamic';
 
 const CaptureBoard = dynamic(() => import('./CaptureBoard'), { ssr: false });
+const CaptureLessonWrapper = dynamic(() => import('./CaptureLessonWrapper'), { ssr: false });
 const PieceValueBoard = dynamic(() => import('./PieceValueBoard'), { ssr: false });
 const PawnRaceBoard = dynamic(() => import('./PawnRaceBoard'), { ssr: false });
 const RookPawnBoard = dynamic(() => import('./RookPawnBoard'), { ssr: false });
@@ -2087,10 +2088,11 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
             const type = interactiveConfig.type;
             if (type === 'interactive_capture') {
               return (
-                <CaptureBoard
-                  lessonId={lesson.id}
+                <CaptureLessonWrapper
+                  lesson={lesson}
+                  allLessons={allLessons}
+                  courseId={courseId}
                   levels={interactiveConfig.levels || []}
-                  successMessage={interactiveConfig.successMessage || 'Молодец!'}
                   onAllComplete={handleInteractiveComplete}
                   onLevelComplete={handleLevelComplete}
                 />
