@@ -1,10 +1,18 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { RotateCcw, Lightbulb, ChevronLeft, ChevronRight } from 'lucide-react';
+import { RotateCcw, Lightbulb, ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 const CaptureBoard = dynamic(() => import('./CaptureBoard'), { ssr: false });
+
+function MassiveStar({ filled }: { filled: boolean }) {
+  return (
+    <svg width="10" height="10" viewBox="0 0 24 24" fill={filled ? '#FFFFFF' : 'none'} stroke={filled ? 'none' : '#9CA3AF'} strokeWidth="2">
+      <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9" />
+    </svg>
+  );
+}
 
 interface Props {
   lesson: any;
@@ -67,6 +75,7 @@ export default function CaptureLessonWrapper({
   const level = levels[currentLevel];
   const totalLevels = levels.length;
   const earned = levelStars[currentLevel];
+  const starCount = typeof earned === 'number' ? earned : (earned ? 1 : 0);
 
   // Find prev/next lesson
   const currentIndex = allLessons?.findIndex((l: any) => l.id === lesson.id) ?? -1;
@@ -79,11 +88,11 @@ export default function CaptureLessonWrapper({
     <div className="flex flex-col w-full max-w-3xl mx-auto gap-4">
       {/* ── Header: avatar + speech bubble ── */}
       <div className="flex items-start gap-3">
-        <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden border-2 border-[rgba(201,168,76,0.3)] shadow-sm">
+        <div className="w-14 h-14 flex-shrink-0">
           <img
-            src="/images/instructor.png"
-            alt="Инструктор"
-            className="w-full h-full object-cover"
+            src="/coach-avatar.png"
+            alt="Тренер"
+            className="w-full h-full object-contain"
             draggable={false}
           />
         </div>
@@ -112,6 +121,86 @@ export default function CaptureLessonWrapper({
         </div>
       </div>
 
+      {/* ── Level Pills (like lesson 5) ── */}
+      <div className="w-full">
+        <div className="w-full flex items-stretch gap-[1px]">
+          {levels.map((_l: any, i: number) => {
+            const earnedI = levelStars[i];
+            const starCountI = typeof earnedI === 'number' ? earnedI : (earnedI ? 1 : 0);
+            const isCurrent = i === currentLevel;
+            const isDone = earnedI != null;
+            const isFuture = !isCurrent && !isDone && i > currentLevel;
+            return (
+              <button
+                key={i}
+                onClick={() => {
+                  if (isCurrent) return;
+                  goToLevel(i);
+                }}
+                disabled={isCurrent}
+                className={`flex-1 flex flex-col items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 ${
+                  isCurrent
+                    ? 'bg-[#2C241B] shadow-md'
+                    : isDone
+                      ? 'bg-[#C9A84C]'
+                      : 'bg-[#F0EBE4] border border-[#D4C5B5]'
+                } ${isCurrent ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
+                title={isDone ? `Упражнение ${i + 1} — пройдено` : `Упражнение ${i + 1}`}
+              >
+                {isDone && starCountI > 0 ? (
+                  starCountI === 3 ? (
+                    <>
+                      <div className="flex">
+                        <MassiveStar filled={true} />
+                      </div>
+                      <div className="flex gap-[1px]">
+                        <MassiveStar filled={true} />
+                        <MassiveStar filled={true} />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex gap-[2px] justify-center w-full">
+                      {Array.from({ length: starCountI }, (_, s) => (
+                        <MassiveStar key={s} filled={true} />
+                      ))}
+                    </div>
+                  )
+                ) : (
+                  <span className={`text-sm font-bold leading-none ${
+                    isCurrent ? 'text-white' : 'text-[#9CA3AF]'
+                  }`}>{i + 1}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ── Progress: "Задание X из Y" + bar + stars ── */}
+      <div className="w-full flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold text-[var(--text-primary)]">
+            Задание {currentLevel + 1} из {totalLevels}
+          </span>
+          <div className="flex items-center gap-1">
+            {Array.from({ length: 3 }, (_, i) => (
+              <Star
+                key={i}
+                size={14}
+                className={i < starCount ? 'fill-[#c9a84c] text-[#c9a84c]' : 'text-[#e5dfd8]'}
+                strokeWidth={2}
+              />
+            ))}
+          </div>
+        </div>
+        <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+          <div
+            className="h-full bg-[var(--accent)] rounded-full transition-all duration-500"
+            style={{ width: `${((currentLevel + 1) / totalLevels) * 100}%` }}
+          />
+        </div>
+      </div>
+
       {/* ── Hint ── */}
       {showHint && level?.hint && (
         <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-2">
@@ -123,72 +212,16 @@ export default function CaptureLessonWrapper({
       <div className="flex items-center gap-3">
         <button
           onClick={() => setShowHint(prev => !prev)}
-          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 bg-white border border-[rgba(201,168,76,0.3)] text-[var(--text-primary)] hover:bg-[rgba(201,168,76,0.08)] active:bg-[rgba(201,168,76,0.15)]"
+          className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg border text-xs font-medium transition-all duration-200 border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]"
         >
-          <Lightbulb size={18} className="text-[var(--accent)]" />
-          Подсказка
+          <Lightbulb size={14} /> Подсказка
         </button>
         <button
-          onClick={() => setCurrentLevel(currentLevel)}
-          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 bg-white border border-[rgba(201,168,76,0.3)] text-[var(--text-primary)] hover:bg-[rgba(201,168,76,0.08)] active:bg-[rgba(201,168,76,0.15)]"
+          onClick={() => goToLevel(currentLevel)}
+          className="flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg border text-xs font-medium transition-all duration-200 border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]"
         >
-          <RotateCcw size={18} className="text-[var(--accent)]" />
-          Заново
+          <RotateCcw size={14} /> Заново
         </button>
-      </div>
-
-      {/* ── Progress: "Задание X из Y" + bar ── */}
-      <div className="w-full">
-        <div className="flex items-center justify-between mb-1">
-          <span className="text-xs text-[var(--text-secondary)]">
-            Задание {currentLevel + 1} из {totalLevels}
-          </span>
-          <div className="flex gap-0.5">
-            {[1, 2, 3].map(s => (
-              <img
-                key={s}
-                src="/images/learn/star.png"
-                alt=""
-                className="w-4 h-4"
-                style={{
-                  filter: earned != null && s <= earned
-                    ? 'brightness(1.2) drop-shadow(0 0 1px rgba(255,255,255,0.6))'
-                    : 'grayscale(100%) brightness(0.4)',
-                }}
-                draggable={false}
-              />
-            ))}
-          </div>
-        </div>
-        <div className="w-full h-1 bg-[var(--bg-tertiary)] rounded-full overflow-hidden">
-          <div
-            className="h-full bg-[var(--accent)] rounded-full transition-all duration-500"
-            style={{ width: `${((currentLevel + 1) / totalLevels) * 100}%` }}
-          />
-        </div>
-      </div>
-
-      {/* ── Level pills (like lesson 5) ── */}
-      <div className="flex gap-2 justify-center">
-        {levels.map((_l: any, i: number) => {
-          const isCurrent = i === currentLevel;
-          const isDone = levelStars[i] != null;
-          return (
-            <button
-              key={i}
-              onClick={() => goToLevel(i)}
-              className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                isCurrent
-                  ? 'bg-[#2C241B] text-white shadow-md'
-                  : isDone
-                  ? 'bg-[#C9A84C]/20 text-[#2C241B] border border-[#C9A84C]/30'
-                  : 'bg-[var(--bg-tertiary)] text-[var(--text-secondary)]'
-              }`}
-            >
-              {i + 1}
-            </button>
-          );
-        })}
       </div>
 
       {/* ── Lesson navigation ── */}
