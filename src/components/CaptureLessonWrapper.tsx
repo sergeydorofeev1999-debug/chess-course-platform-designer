@@ -36,7 +36,10 @@ export default function CaptureLessonWrapper({
   const [showHint, setShowHint] = useState(false);
   const [hintArrows, setHintArrows] = useState<{ from: string; to: string }[]>([]);
   const [resetKey, setResetKey] = useState(0);
-  const [currentPosition, setCurrentPosition] = useState('');
+  const [currentPosition, setCurrentPosition] = useState(() => {
+    // SSR-safe: initialize synchronously with the initial level's FEN
+    return levels[0]?.initialFen || '';
+  });
 
   const savedKey = `lesson_capture_${lesson.id}`;
 

@@ -1063,6 +1063,52 @@ function MultiLevelStarBoard({
       }
     }
 
+    // ── Special case: Pawn Lesson Exercise 1 (h5 → h6 → h7 → h8 → c3) ──
+    if (pieceType === 'p' && currentLevel === 0) {
+      const parsed = parseFen(level.initialFen);
+      const hasPawnOnH5 = parsed.squares['h5']?.type === 'p' && parsed.squares['h5']?.color === 'w';
+      const hasStarH6 = stars.includes('h6');
+      const hasStarH7 = stars.includes('h7');
+      const hasStarH8 = stars.includes('h8');
+      const hasStarC3 = stars.includes('c3');
+      if (hasPawnOnH5 && hasStarH6 && hasStarH7 && hasStarH8 && hasStarC3) {
+        return [
+          {from: 'h5', to: 'h6'},
+          {from: 'h6', to: 'h7'},
+          {from: 'h7', to: 'h8'},
+          {from: 'h8', to: 'c3'},
+        ];
+      }
+    }
+
+    // ── Special case: Pawn Lesson Exercise 3 (d3 → d4 → e5 → f6 → e7) ──
+    if (pieceType === 'p' && currentLevel === 2) {
+      const parsed = parseFen(level.initialFen);
+      const hasPawnOnD3 = parsed.squares['d3']?.type === 'p' && parsed.squares['d3']?.color === 'w';
+      const hasStarD4 = stars.includes('d4');
+      const hasStarE5 = stars.includes('e5');
+      const hasStarF6 = stars.includes('f6');
+      const hasStarE7 = stars.includes('e7');
+      if (hasPawnOnD3 && hasStarD4 && hasStarE5 && hasStarF6 && hasStarE7) {
+        return [
+          {from: 'd3', to: 'd4'},
+          {from: 'd4', to: 'e5'},
+          {from: 'e5', to: 'f6'},
+          {from: 'f6', to: 'e7'},
+        ];
+      }
+    }
+
+    // ── Special case: Pawn Lesson Exercise 7 (d2 → d4) ──
+    if (pieceType === 'p' && currentLevel === 6) {
+      const parsed = parseFen(level.initialFen);
+      const hasPawnOnD2 = parsed.squares['d2']?.type === 'p' && parsed.squares['d2']?.color === 'w';
+      const hasStarD4 = stars.includes('d4');
+      if (hasPawnOnD2 && hasStarD4) {
+        return [{from: 'd2', to: 'd4'}];
+      }
+    }
+
     return [];
   }, [level, pieceType, stars, currentLevel]);
 
