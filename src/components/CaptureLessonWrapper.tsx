@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { RotateCcw, Lightbulb, ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { RotateCcw, Lightbulb, Star } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 const CaptureBoard = dynamic(() => import('./CaptureBoard'), { ssr: false });
@@ -76,13 +76,6 @@ export default function CaptureLessonWrapper({
   const totalLevels = levels.length;
   const earned = levelStars[currentLevel];
   const starCount = typeof earned === 'number' ? earned : (earned ? 1 : 0);
-
-  // Find prev/next lesson
-  const currentIndex = allLessons?.findIndex((l: any) => l.id === lesson.id) ?? -1;
-  const prevLesson = currentIndex > 0 ? allLessons?.[currentIndex - 1] : null;
-  const nextLesson = currentIndex >= 0 && currentIndex < (allLessons?.length ?? 0) - 1
-    ? allLessons?.[currentIndex + 1]
-    : null;
 
   return (
     <div className="flex flex-col w-full max-w-3xl mx-auto gap-4">
@@ -224,31 +217,6 @@ export default function CaptureLessonWrapper({
         </button>
       </div>
 
-      {/* ── Lesson navigation ── */}
-      <div className="flex items-center justify-between pt-2 border-t border-[rgba(92,64,51,0.08)]">
-        {prevLesson ? (
-          <a
-            href={`/lessons/${prevLesson.id}?course=${courseId}`}
-            className="flex items-center gap-1 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition"
-          >
-            <ChevronLeft size={16} />
-            Предыдущий урок
-          </a>
-        ) : (
-          <div />
-        )}
-        {nextLesson ? (
-          <a
-            href={`/lessons/${nextLesson.id}?course=${courseId}`}
-            className="flex items-center gap-1 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition"
-          >
-            Следующий урок
-            <ChevronRight size={16} />
-          </a>
-        ) : (
-          <div />
-        )}
-      </div>
     </div>
   );
 }
