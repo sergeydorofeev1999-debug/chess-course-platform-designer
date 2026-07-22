@@ -812,43 +812,54 @@ function InlineChessBoard({
       {promotionPending && onPromotion && (
         <div className="absolute z-50 pointer-events-auto promotion-panel" style={{
           left: `${(FILES.indexOf(promotionPending.to[0])) * sqSize}px`,
-          top: 0,
-          width: sqSize + 16,
-          marginLeft: -8,
-          height: 4 * sqSize + 16,
-          padding: '8px',
-          backgroundColor: 'rgba(30,30,30,0.92)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderRadius: '12px',
+          top: (promotionPending.from[1] === '7' || promotionPending.from[1] === '2') && squares[promotionPending.from]?.color === 'b'
+            ? 4 * sqSize
+            : 0,
+          width: sqSize,
+          height: 4 * sqSize,
+          padding: '4px 0',
+          backgroundColor: 'rgba(44, 36, 27, 0.88)',
+          backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
+          borderRadius: '8px',
+          border: '1px solid rgba(201, 168, 76, 0.2)',
+          boxShadow: '0 4px 16px rgba(0, 0, 0, 0.35)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '4px',
+          gap: '2px',
           alignItems: 'center',
           justifyContent: 'center',
-          transition: 'all 200ms ease-out',
+          transition: 'opacity 200ms ease-out',
         }}>
           {PROMOTION_PIECES.map(({ code }) => (
             <button
               key={code}
               onClick={() => onPromotion?.(code)}
-              className="w-full aspect-square rounded-lg flex items-center justify-center transition-all duration-150 hover:scale-105 active:scale-95"
+              className="w-full aspect-square rounded-md flex items-center justify-center transition-all duration-150"
               style={{
-                backgroundColor: '#2C241B',
+                backgroundColor: 'rgba(255, 255, 255, 0.06)',
                 border: '2px solid transparent',
               }}
               onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
                 e.currentTarget.style.borderColor = '#C9A84C';
               }}
               onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.06)';
                 e.currentTarget.style.borderColor = 'transparent';
+              }}
+              onMouseDown={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.25)';
+              }}
+              onMouseUp={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
               }}
             >
               <img
                 src={`/pieces/cburnett/w${code.toUpperCase()}.svg`}
                 alt={code}
                 draggable={false}
-                style={{ width: '70%', height: '70%', objectFit: 'contain' }}
+                style={{ width: '72%', height: '72%', objectFit: 'contain' }}
               />
             </button>
           ))}
