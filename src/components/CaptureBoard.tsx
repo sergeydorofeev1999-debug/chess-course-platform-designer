@@ -869,6 +869,12 @@ interface Props {
   onAllComplete?: () => void;
   onLevelComplete?: (level: number, earned: number) => void;
   currentLessonId?: string;
+  embedded?: boolean;
+  onFail?: () => void;
+  externalCurrentLevel?: number;
+  onExternalLevelChange?: (level: number) => void;
+  externalLevelStars?: Record<number, number>;
+  onExternalStarsChange?: (stars: Record<number, number>) => void;
 }
 
 export default function CaptureBoard({
@@ -877,19 +883,65 @@ export default function CaptureBoard({
   successMessage,
   onAllComplete,
   onLevelComplete,
+  embedded,
+  onFail,
+  externalCurrentLevel,
+  onExternalLevelChange,
+  externalLevelStars,
+  onExternalStarsChange,
 }: Props) {
   const router = useRouter();
   const savedKey = `lesson_capture_${lessonId}`;
 
-  const [currentLevel, setCurrentLevel] = useState(0);
+  const [currentLevelInternal, setCurrentLevelInternal] = useState(0);
   const [collected, setCollected] = useState<string[]>([]);
-  const [levelStars, setLevelStars] = useState<Record<number, number>>({});
+  const [levelStarsInternal, setLevelStarsInternal] = useState<Record<number, number>>({});
   const [position, setPosition] = useState(levels[0].initialFen);
   const [gameOver, setGameOver] = useState(false);
   const [failed, setFailed] = useState(false);
   const [msg, setMsg] = useState('');
   const [moves, setMoves] = useState(0);
   const [allDone, setAllDone] = useState(false);
+
+  // Use external state when embedded, internal otherwise
+  const currentLevel = embedded && externalCurrentLevel !== undefined ? externalCurrentLevel : currentLevelInternal;
+  const levelStars = embedded && externalLevelStars ? externalLevelStars : levelStarsInternal;
+
+  // Normalize setCurrentLevel to accept either value or callback
+  const setCurrentLevel = useCallback((updater: any) => {
+    if (typeof updater === 'function') {
+      if (embedded && onExternalLevelChange) {
+        const next = updater(currentLevel);
+        onExternalLevelChange(next);
+      } else {
+        setCurrentLevelInternal(updater);
+      }
+    } else {
+      if (embedded && onExternalLevelChange) {
+        onExternalLevelChange(updater);
+      } else {
+        setCurrentLevelInternal(updater);
+      }
+    }
+  }, [embedded, onExternalLevelChange, currentLevel]);
+
+  // Normalize setLevelStars to accept either value or callback
+  const setLevelStars = useCallback((updater: any) => {
+    if (typeof updater === 'function') {
+      if (embedded && onExternalStarsChange) {
+        const next = updater(levelStars);
+        onExternalStarsChange(next);
+      } else {
+        setLevelStarsInternal(updater);
+      }
+    } else {
+      if (embedded && onExternalStarsChange) {
+        onExternalStarsChange(updater);
+      } else {
+        setLevelStarsInternal(updater);
+      }
+    }
+  }, [embedded, onExternalStarsChange, levelStars]);
 
   const positionRef = useRef(position);
   const movesRef = useRef(moves);
@@ -1200,7 +1252,7 @@ export default function CaptureBoard({
           if (m <= max) earned = 3;
           else if (m <= max + 1) earned = 2;
           else earned = 1;
-          setLevelStars((prevStars) => {
+          setLevelStars((prevStars: Record<number, number>) => {
             const prev = prevStars[currentLevel] || 0;
             const nextStars = { ...prevStars, [currentLevel]: Math.max(prev, earned) };
             localStorage.setItem(savedKey, JSON.stringify({ levelStars: nextStars, currentLevel }));
@@ -1209,7 +1261,7 @@ export default function CaptureBoard({
           onLevelComplete?.(currentLevel, earned);
           setTimeout(() => {
             if (currentLevel + 1 < totalLevels) {
-              setCurrentLevel((l) => l + 1);
+              setCurrentLevel(currentLevel + 1);
               setMsg('');
             } else {
               setAllDone(true);
@@ -1300,7 +1352,7 @@ export default function CaptureBoard({
         if (m <= max) earned = 3;
         else if (m <= max + 1) earned = 2;
         else earned = 1;
-        setLevelStars((prevStars) => {
+        setLevelStars((prevStars: Record<number, number>) => {
           const prev = prevStars[currentLevel] || 0;
           const nextStars = { ...prevStars, [currentLevel]: Math.max(prev, earned) };
           localStorage.setItem(savedKey, JSON.stringify({ levelStars: nextStars, currentLevel }));
@@ -1309,7 +1361,7 @@ export default function CaptureBoard({
         onLevelComplete?.(currentLevel, earned);
         setTimeout(() => {
           if (currentLevel + 1 < totalLevels) {
-            setCurrentLevel((l) => l + 1);
+            setCurrentLevel(currentLevel + 1);
             setMsg('');
           } else {
             setAllDone(true);
@@ -1351,7 +1403,7 @@ export default function CaptureBoard({
         if (m <= max) earned = 3;
         else if (m <= max + 1) earned = 2;
         else earned = 1;
-        setLevelStars((prevStars) => {
+        setLevelStars((prevStars: Record<number, number>) => {
           const prev = prevStars[currentLevel] || 0;
           const nextStars = { ...prevStars, [currentLevel]: Math.max(prev, earned) };
           localStorage.setItem(savedKey, JSON.stringify({ levelStars: nextStars, currentLevel }));
@@ -1360,7 +1412,7 @@ export default function CaptureBoard({
         onLevelComplete?.(currentLevel, earned);
         setTimeout(() => {
           if (currentLevel + 1 < totalLevels) {
-            setCurrentLevel((l) => l + 1);
+            setCurrentLevel(currentLevel + 1);
             setMsg('');
           } else {
             setAllDone(true);
@@ -1385,7 +1437,7 @@ export default function CaptureBoard({
             if (m <= max) earned = 3;
             else if (m <= max + 1) earned = 2;
             else earned = 1;
-            setLevelStars((prevStars) => {
+            setLevelStars((prevStars: Record<number, number>) => {
               const prev = prevStars[currentLevel] || 0;
               const nextStars = { ...prevStars, [currentLevel]: Math.max(prev, earned) };
               localStorage.setItem(savedKey, JSON.stringify({ levelStars: nextStars, currentLevel }));
@@ -1394,7 +1446,7 @@ export default function CaptureBoard({
             onLevelComplete?.(currentLevel, earned);
             setTimeout(() => {
               if (currentLevel + 1 < totalLevels) {
-                setCurrentLevel((l) => l + 1);
+                setCurrentLevel(currentLevel + 1);
                 setMsg('');
               } else {
                 setAllDone(true);
