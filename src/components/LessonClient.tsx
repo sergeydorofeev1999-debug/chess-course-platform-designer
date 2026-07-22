@@ -1019,7 +1019,6 @@ function MultiLevelStarBoard({
   const totalLevels = levels.length;
 
   const guideArrows = useMemo(() => {
-    if (currentLevel !== 0) return [];
     if (level.guideArrows != null) return level.guideArrows;
 
     // ── Special case: Lesson 3 Exercise 1 (queen d2 → d5 → g8) ──
@@ -1030,6 +1029,37 @@ function MultiLevelStarBoard({
       const hasStarG8 = stars.includes('g8');
       if (hasQueenOnD2 && hasStarD5 && hasStarG8) {
         return [{from: 'd2', to: 'd5'}, {from: 'd5', to: 'g8'}];
+      }
+    }
+
+    // ── Special case: Lesson 4 Exercise 1 (king e3 → e4 → e5 → d6) ──
+    if (pieceType === 'k' && currentLevel === 0) {
+      const parsed = parseFen(level.initialFen);
+      const hasKingOnE3 = parsed.squares['e3']?.type === 'k' && parsed.squares['e3']?.color === 'w';
+      if (hasKingOnE3) {
+        return [{from: 'e3', to: 'e4'}, {from: 'e4', to: 'e5'}, {from: 'e5', to: 'd6'}];
+      }
+    }
+
+    // ── Special case: Lesson 2 Exercise 1 (bishop c3 → e5 → b8) ──
+    if (pieceType === 'b' && currentLevel === 0) {
+      const parsed = parseFen(level.initialFen);
+      const hasBishopOnC3 = parsed.squares['c3']?.type === 'b' && parsed.squares['c3']?.color === 'w';
+      const hasStarE5 = stars.includes('e5');
+      const hasStarB8 = stars.includes('b8');
+      if (hasBishopOnC3 && hasStarE5 && hasStarB8) {
+        return [{from: 'c3', to: 'e5'}, {from: 'e5', to: 'b8'}];
+      }
+    }
+
+    // ── Special case: Lesson 1 Exercise 2 (rook f7 → f5 → b5) ──
+    if (pieceType === 'r' && currentLevel === 1) {
+      const parsed = parseFen(level.initialFen);
+      const hasRookOnF7 = parsed.squares['f7']?.type === 'r' && parsed.squares['f7']?.color === 'w';
+      const hasStarF5 = stars.includes('f5');
+      const hasStarB5 = stars.includes('b5');
+      if (hasRookOnF7 && hasStarF5 && hasStarB5) {
+        return [{from: 'f7', to: 'f5'}, {from: 'f5', to: 'b5'}];
       }
     }
 

@@ -93,23 +93,23 @@ function parseFenSimple(fen: string) {
     setCurrentPosition(initialPos);
   }, [levels, currentLevel]);
 
-  const handleLevelComplete = useCallback((levelIndex: number, stars: number) => {
+  const handleLevelComplete = (levelIndex: number, stars: number) => {
     setLevelStars(prev => ({ ...prev, [levelIndex]: stars }));
     onLevelComplete?.(levelIndex, stars);
-  }, [onLevelComplete]);
+  };
 
-  const handleAllComplete = useCallback(() => {
+  const handleAllComplete = () => {
     onAllComplete?.();
-  }, [onAllComplete]);
+  };
 
-  const goToLevel = useCallback((idx: number) => {
+  const goToLevel = (idx: number) => {
     if (idx < 0 || idx >= levels.length) return;
     setCurrentLevel(idx);
     setShowHint(false);
     setHintArrows([]);
     setResetKey(k => k + 1);
-    setCurrentPosition(levels[idx].initialFen || '');
-  }, [levels.length]);
+    setCurrentPosition(levels[idx]?.initialFen || '');
+  };
 
   // Hint: from current position, find arrow to nearest remaining target
   const computeHintArrow = () => {
@@ -195,7 +195,7 @@ function parseFenSimple(fen: string) {
       <div className="flex justify-center w-full">
         <div className="relative inline-block rounded-sm">
           <CaptureBoard
-            key={resetKey}
+            key={`${resetKey}-${currentLevel}`}
             lessonId={lesson.id}
             levels={levels}
             successMessage="Молодец!"
@@ -229,6 +229,7 @@ function parseFenSimple(fen: string) {
               <button
                 key={i}
                 onClick={() => {
+                  console.log('Button clicked:', i, 'isCurrent:', isCurrent);
                   if (isCurrent) return;
                   goToLevel(i);
                 }}

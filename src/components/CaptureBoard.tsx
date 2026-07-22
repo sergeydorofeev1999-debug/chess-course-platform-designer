@@ -1008,7 +1008,10 @@ export default function CaptureBoard({
   const [currentLevelInternal, setCurrentLevelInternal] = useState(0);
   const [collected, setCollected] = useState<string[]>([]);
   const [levelStarsInternal, setLevelStarsInternal] = useState<Record<number, number>>({});
-  const [position, setPosition] = useState(levels[0].initialFen);
+  const [position, setPosition] = useState(() => {
+    const lvl = levels[currentLevel] || levels[0];
+    return lvl?.initialFen || levels[0]?.initialFen || '';
+  });
   const [gameOver, setGameOver] = useState(false);
   const [failed, setFailed] = useState(false);
   const [msg, setMsg] = useState('');
@@ -1019,6 +1022,21 @@ export default function CaptureBoard({
   // Use external state when embedded, internal otherwise
   const currentLevel = embedded && externalCurrentLevel !== undefined ? externalCurrentLevel : currentLevelInternal;
   const levelStars = embedded && externalLevelStars ? externalLevelStars : levelStarsInternal;
+
+  // Sync position when currentLevel changes
+  useEffect(() => {
+    const lvl = levels[currentLevel];
+    if (lvl) {
+      setPosition(lvl.initialFen);
+      setCollected([]);
+      setMoves(0);
+      setAllDone(false);
+      setGameOver(false);
+      setFailed(false);
+      setMsg('');
+      setPromotionPending(null);
+    }
+  }, [currentLevel, levels]);
 
   // Normalize setCurrentLevel to accept either value or callback
   const setCurrentLevel = useCallback((updater: any) => {
