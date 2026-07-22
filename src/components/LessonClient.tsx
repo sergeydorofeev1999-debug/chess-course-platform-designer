@@ -999,6 +999,7 @@ function MultiLevelStarBoard({
     }
   }, [currentLessonId]);
   const [hintLevel, setHintLevel] = useState(0);
+  const [hintLoading, setHintLoading] = useState(false);
   const [promotionPending, setPromotionPending] = useState<{from: string, to: string} | null>(null);
   const [levelStars, setLevelStars] = useState<Record<number, number>>(() => savedProgress);
   const movesRef = useRef(moves);
@@ -1066,7 +1067,11 @@ function MultiLevelStarBoard({
     if (allFroms.length === 0 || visibleStars.length === 0) return [];
 
     /* ── BFS shortest path from → to (chess-legal, returns path array or null) ── */
+    const pathCache = new Map<string, string[] | null>();
     const getPath = (start: string, target: string, blockedStars: string[]) => {
+      const cacheKey = `${start}|${target}|${blockedStars.slice().sort().join(',')}`;
+      const cached = pathCache.get(cacheKey);
+      if (cached !== undefined) return cached;
       const passableBlocked = blockedStars.filter((s: string) => s !== target);
       // Удаляем ВСЕ белые фигуры того же типа (для multi-piece TSP другие фигуры того типа
       // должны считаться "отошедшими" и не блокировать диагонали)
@@ -1097,13 +1102,17 @@ function MultiLevelStarBoard({
         }
         delete virtualSquares[cur];
       }
-      if (!prev.has(target)) return null;
+      if (!prev.has(target)) {
+        pathCache.set(cacheKey, null);
+        return null;
+      }
       const path: string[] = [];
       let node: string | null = target;
       while (node !== null) {
         path.unshift(node);
         node = prev.get(node) ?? null;
       }
+      pathCache.set(cacheKey, path);
       return path;
     };
 
@@ -1811,10 +1820,26 @@ function MultiLevelStarBoard({
         <LevelPills />
         <div className="flex flex-col gap-2">
           <button
-            onClick={() => { setHintLevel(0); if (hintArrows.length === 0) { const arrows = computeHintArrow(); setHintArrows(arrows); setShowHint(arrows.length > 0); } else { setHintArrows([]); setShowHint(false); } }}
-            className={`w-full flex items-center justify-center gap-1.5 h-9 rounded-lg border text-xs font-medium transition-all duration-200 ${showHint ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}
+            onClick={() => {
+              setHintLevel(0);
+              if (hintArrows.length === 0) {
+                if (hintLoading) return;
+                setHintLoading(true);
+                window.setTimeout(() => {
+                  const arrows = computeHintArrow();
+                  setHintArrows(arrows);
+                  setShowHint(arrows.length > 0);
+                  setHintLoading(false);
+                }, 0);
+              } else {
+                setHintArrows([]);
+                setShowHint(false);
+              }
+            }}
+            disabled={hintLoading}
+            className={`w-full flex items-center justify-center gap-1.5 h-9 rounded-lg border text-xs font-medium transition-all duration-200 ${showHint ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'} ${hintLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
           >
-            <Lightbulb size={14} /> Подсказка
+            <Lightbulb size={14} /> {hintLoading ? 'Думаю...' : 'Подсказка'}
           </button>
           <button
             onClick={reset}
@@ -1890,10 +1915,26 @@ function MultiLevelStarBoard({
               {(phase === 'playing' || phase === 'fail') && (
                 <>
                   <button
-                    onClick={() => { setHintLevel(0); if (hintArrows.length === 0) { const arrows = computeHintArrow(); setHintArrows(arrows); setShowHint(arrows.length > 0); } else { setHintArrows([]); setShowHint(false); } }}
-                    className={`flex-1 h-10 flex items-center justify-center gap-1 rounded-lg border text-xs font-medium transition-all ${showHint ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)]'}`}
+                    onClick={() => {
+                      setHintLevel(0);
+                      if (hintArrows.length === 0) {
+                        if (hintLoading) return;
+                        setHintLoading(true);
+                        window.setTimeout(() => {
+                          const arrows = computeHintArrow();
+                          setHintArrows(arrows);
+                          setShowHint(arrows.length > 0);
+                          setHintLoading(false);
+                        }, 0);
+                      } else {
+                        setHintArrows([]);
+                        setShowHint(false);
+                      }
+                    }}
+                    disabled={hintLoading}
+                    className={`flex-1 h-10 flex items-center justify-center gap-1 rounded-lg border text-xs font-medium transition-all ${showHint ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)]'} ${hintLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
                   >
-                    <Lightbulb size={14} /> Подсказка
+                    <Lightbulb size={14} /> {hintLoading ? 'Думаю...' : 'Подсказка'}
                   </button>
                   <button
                     onClick={reset}

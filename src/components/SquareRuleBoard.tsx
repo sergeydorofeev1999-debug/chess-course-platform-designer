@@ -308,7 +308,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
       if (mode === 'king') {
         // King chase: auto-promote to queen, then USER must move black king to capture
         try {
-          g.move({ from: ps, to: `${ps[0]}8`, promotion: 'q' });
+          g.move({ from: ps, to: `${ps[0]}8` });
           setGame(new Chess(g.fen()));
 
           // Check if black king CAN capture the new queen
