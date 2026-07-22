@@ -167,7 +167,11 @@ function makeMove(squares: Record<string, Piece>, enPassant: string | null, from
 
   const rank = to[1];
   if (p.type === 'p' && (rank === '8' || rank === '1')) {
-    next[to] = { type: 'q', color: p.color };
+    if (p.color === 'w' && rank === '8') {
+      next[to] = { type: 'p', color: 'w' }; // white pawn stays until promotion chosen
+    } else {
+      next[to] = { type: 'q', color: p.color }; // black auto-promotes
+    }
   } else {
     next[to] = p;
   }

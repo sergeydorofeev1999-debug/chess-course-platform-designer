@@ -516,31 +516,6 @@ export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete
 
         {/* Board */}
         <div className="flex justify-center w-full relative">
-          {/* Promotion Modal */}
-          {promotionPending && (
-            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/30 rounded-lg">
-              <div className="bg-white rounded-lg p-4 shadow-xl text-center space-y-3 max-w-[260px]">
-                <p className="font-bold text-sm">Превращение пешки!</p>
-                <p className="text-xs text-gray-500">Ваша пешка достигла края доски</p>
-                <div className="flex gap-2 justify-center">
-                  {PROMOTION_PIECES.map(({ code, name }) => (
-                    <button
-                      key={code}
-                      onClick={() => {
-                        processMove(promotionPending.from, promotionPending.to, code);
-                        setPromotionPending(null);
-                      }}
-                      className="w-12 h-12 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition border border-gray-300"
-                      title={name}
-                    >
-                      <img src={`/pieces/cburnett/w${code.toUpperCase()}.svg`} className="w-8 h-8" draggable={false} alt={name} />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
           <div
             data-board
             className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none"
