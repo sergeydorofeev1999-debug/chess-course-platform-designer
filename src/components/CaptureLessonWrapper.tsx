@@ -75,7 +75,6 @@ export default function CaptureLessonWrapper({
   const level = levels[currentLevel];
   const totalLevels = levels.length;
   const earned = levelStars[currentLevel];
-  const starCount = typeof earned === 'number' ? earned : (earned ? 1 : 0);
 
   return (
     <div className="flex flex-col w-full max-w-3xl mx-auto gap-4">
