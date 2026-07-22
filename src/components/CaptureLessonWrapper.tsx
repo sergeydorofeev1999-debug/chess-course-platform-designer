@@ -232,7 +232,6 @@ function parseFenSimple(fen: string) {
               <button
                 key={i}
                 onClick={() => {
-                  console.log('Button clicked:', i, 'isCurrent:', isCurrent);
                   if (isCurrent) return;
                   goToLevel(i);
                 }}

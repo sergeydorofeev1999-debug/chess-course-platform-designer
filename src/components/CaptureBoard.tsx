@@ -1009,8 +1009,7 @@ export default function CaptureBoard({
   const [collected, setCollected] = useState<string[]>([]);
   const [levelStarsInternal, setLevelStarsInternal] = useState<Record<number, number>>({});
   const [position, setPosition] = useState(() => {
-    const lvl = levels[currentLevel] || levels[0];
-    return lvl?.initialFen || levels[0]?.initialFen || '';
+    return levels[0]?.initialFen || '';
   });
   const [gameOver, setGameOver] = useState(false);
   const [failed, setFailed] = useState(false);
