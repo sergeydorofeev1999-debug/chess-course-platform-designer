@@ -1479,7 +1479,28 @@ export default function CaptureBoard({
   };
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
+    <div className="w-full">
+      {embedded ? (
+        /* Minimal mode: only the board + fail callback */
+        <div className="flex flex-col items-center gap-3">
+          <InlineChessBoard key={currentLevel} fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} />
+          {failed && onFail && (
+            <div className="w-full">
+              <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
+                <p className="text-white font-bold text-lg">Задание провалено!</p>
+                <button
+                  onClick={resetLevel}
+                  className="bg-white text-[#c62828] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
+                >
+                  ЕЩЁ РАЗ
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Full mode: original UI */
+        <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
       {/* LEFT COLUMN: Stars + Figure menu + reset */}
       <div className="w-full lg:w-[140px] flex-shrink-0 space-y-2">
         <div className="hidden lg:flex flex-col rounded overflow-hidden border border-gray-200">
@@ -1607,6 +1628,8 @@ export default function CaptureBoard({
           <div className="mt-2 text-emerald-700 font-bold text-lg">{successMessage}</div>
         )}
       </div>
+    </div>
+      )}
     </div>
   );
 }

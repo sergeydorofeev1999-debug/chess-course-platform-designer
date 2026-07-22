@@ -1039,6 +1039,15 @@ function MultiLevelStarBoard({
   const computeHintArrow = useCallback(() => {
     const parsed = parseFen(positionRef.current);
 
+    // ── Special case: promoted pawn (now queen) ──
+    let effectivePieceType = pieceType;
+    if (pieceType === 'p') {
+      const hasPawn = Object.values(parsed.squares).some((p: any) => p?.color === 'w' && p?.type === 'p');
+      if (!hasPawn) {
+        effectivePieceType = 'q';
+      }
+    }
+
     // ── Special case: Lesson 3 Exercise 1 (queen d2 → d5 → g8) ──
     if (pieceType === 'q' && currentLevel === 0) {
       const hasStarD5 = stars.includes('d5');
@@ -1058,7 +1067,7 @@ function MultiLevelStarBoard({
     const allFroms: string[] = [];
     for (const sq of Object.keys(parsed.squares)) {
       const p = parsed.squares[sq];
-      if (p.color === 'w' && p.type === pieceType) { allFroms.push(sq); }
+      if (p.color === 'w' && p.type === effectivePieceType) { allFroms.push(sq); }
     }
     // Fallback: любая белая фигура
     if (allFroms.length === 0) {
@@ -1067,6 +1076,23 @@ function MultiLevelStarBoard({
       }
     }
     if (allFroms.length === 0 || visibleStars.length === 0) return [];
+
+    // ── Special case: pawn — show first step toward promotion ──
+    if (pieceType === 'p') {
+      const pawnSq = allFroms[0];
+      if (pawnSq) {
+        const file = pawnSq[0];
+        const rank = parseInt(pawnSq[1]);
+        let firstStep: string | null = null;
+        if (rank === 5) firstStep = `${file}6`;
+        else if (rank === 4) firstStep = `${file}5`;
+        else if (rank === 3) firstStep = `${file}4`;
+        else if (rank === 2) firstStep = `${file}4`;
+        if (firstStep) {
+          return [{ from: pawnSq, to: firstStep }];
+        }
+      }
+    }
 
     /* ── BFS shortest path from → to (chess-legal, returns path array or null) ── */
     const pathCache = new Map<string, string[] | null>();
@@ -1079,11 +1105,11 @@ function MultiLevelStarBoard({
       // должны считаться "отошедшими" и не блокировать диагонали)
       const virtualSquares = {...parsed.squares};
       for (const sq of Object.keys(virtualSquares)) {
-        if (virtualSquares[sq]?.color === 'w' && virtualSquares[sq]?.type === pieceType) {
+        if (virtualSquares[sq]?.color === 'w' && virtualSquares[sq]?.type === effectivePieceType) {
           delete virtualSquares[sq];
         }
       }
-      virtualSquares[start] = {type: pieceType, color: 'w'};
+      virtualSquares[start] = {type: effectivePieceType, color: 'w'};
       const q: string[] = [];
       const prev = new Map<string, string | null>();
       q.push(start);
@@ -1092,12 +1118,12 @@ function MultiLevelStarBoard({
         const cur = q.shift()!;
         if (cur === target) break;
         // Временно размещаем фигуру на cur, чтобы isValidMove принял ход отсюда
-        virtualSquares[cur] = {type: pieceType, color: 'w'};
+        virtualSquares[cur] = {type: effectivePieceType, color: 'w'};
         for (let f = 0; f < 8; f++) {
           for (let r = 0; r < 8; r++) {
             const dest = `${FILES[f]}${RANKS[r]}`;
             if (dest === cur || prev.has(dest)) continue;
-            if (!isValidMove(pieceType, cur, dest, virtualSquares, passableBlocked, parsed.enPassant)) continue;
+            if (!isValidMove(effectivePieceType, cur, dest, virtualSquares, passableBlocked, parsed.enPassant)) continue;
             prev.set(dest, cur);
             q.push(dest);
           }
@@ -1192,10 +1218,10 @@ function MultiLevelStarBoard({
       if (firstStep && total !== null) {
         const sameFile = from[0] === firstStep[0];
         const sameRank = from[1] === firstStep[1];
-        if (pieceType === 'r' && (sameFile || sameRank)) {
+        if (effectivePieceType === 'r' && (sameFile || sameRank)) {
           return [{ from, to: firstStep }];
         }
-        if (pieceType !== 'r') {
+        if (effectivePieceType !== 'r') {
           return [{ from, to: firstStep }];
         }
       }
@@ -1251,10 +1277,10 @@ function MultiLevelStarBoard({
       if (globalBestFirstStep && globalBestFrom) {
         const sameFile = globalBestFrom[0] === globalBestFirstStep[0];
         const sameRank = globalBestFrom[1] === globalBestFirstStep[1];
-        if (pieceType === 'r' && (sameFile || sameRank)) {
+        if (effectivePieceType === 'r' && (sameFile || sameRank)) {
           return [{ from: globalBestFrom, to: globalBestFirstStep }];
         }
-        if (pieceType !== 'r') {
+        if (effectivePieceType !== 'r') {
           return [{ from: globalBestFrom, to: globalBestFirstStep }];
         }
       }
@@ -1266,7 +1292,7 @@ function MultiLevelStarBoard({
     let fallbackDist = Infinity;
     for (const startSq of allFroms) {
       for (const star of visibleStars) {
-        if (!isValidMove(pieceType, startSq, star, parsed.squares, visibleStars, parsed.enPassant)) continue;
+        if (!isValidMove(effectivePieceType, startSq, star, parsed.squares, visibleStars, parsed.enPassant)) continue;
         const sFile = FILES.indexOf(startSq[0]);
         const sRank = RANKS.indexOf(startSq[1]);
         const tFile = FILES.indexOf(star[0]);
