@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { RotateCcw, Lightbulb } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
@@ -42,6 +42,9 @@ export default function CaptureLessonWrapper({
     // SSR-safe: initialize synchronously with the initial level's FEN
     return levels[0]?.initialFen || '';
   });
+
+  const boardRef = useRef<HTMLDivElement>(null);
+  const [boardSize, setBoardSize] = useState(352);
 
   const savedKey = `lesson_capture_${lesson.id}`;
 
@@ -329,7 +332,7 @@ function parseFenSimple(fen: string) {
       <div className="flex justify-center w-full">
         <div className="relative inline-block rounded-sm">
           <CaptureBoard
-            key={`${resetKey}-${currentLevel}-${JSON.stringify(hintArrows)}`}
+            key={`${resetKey}-${currentLevel}`}
             lessonId={lesson.id}
             levels={levels}
             successMessage="Молодец!"
@@ -343,6 +346,7 @@ function parseFenSimple(fen: string) {
             hintArrows={hintArrows}
             onAnyMove={() => {
               setHintArrows([]);
+              setShowHint(false);
               setCurrentPosition('');
             }}
             onPositionChange={setCurrentPosition}

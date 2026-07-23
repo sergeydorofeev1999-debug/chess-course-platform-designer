@@ -859,8 +859,8 @@ function InlineChessBoard({
             <PieceImg type={dragState.type} color={dragState.color as 'w' | 'b'} />
           </div>
         )}
-        {/* Hint arrows SVG - always render container */}
-        <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize, opacity: hintArrows.length > 0 ? 1 : 0 }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
+        {/* Hint arrows SVG - always rendered, high visibility */}
+        <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize, display: hintArrows.length > 0 ? 'block' : 'none' }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
           {hintArrows.map((arrow, i) => {
               const fromF = FILES.indexOf(arrow.from[0]);
               const fromR = RANKS.indexOf(arrow.from[1]);
@@ -1698,7 +1698,7 @@ export default function CaptureBoard({
       {embedded ? (
         /* Minimal mode: only the board + fail callback */
         <div className="flex flex-col items-center gap-3">
-          <InlineChessBoard key={currentLevel} fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} promotionPending={promotionPending} onPromotion={handlePromotion} />
+          <InlineChessBoard key={`${currentLevel}-${JSON.stringify(hintArrows)}`} fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} promotionPending={promotionPending} onPromotion={handlePromotion} />
           {failed && onFail && (
             <div className="w-full">
               <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
