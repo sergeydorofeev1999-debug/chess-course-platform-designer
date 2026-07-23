@@ -31,6 +31,8 @@ export default function CaptureLessonWrapper({
   onAllComplete,
   onLevelComplete,
 }: Props) {
+  // DEBUG: Verify component loaded in production
+  console.log('CaptureLessonWrapper LOADED');
   const [currentLevel, setCurrentLevel] = useState(0);
   const [levelStars, setLevelStars] = useState<Record<number, number>>({});
   const [showHint, setShowHint] = useState(false);
@@ -207,6 +209,7 @@ function parseFenSimple(fen: string) {
 
   const computeHintArrow = () => {
     // HINT_ALGORITHM_V4_SETUP_CAPTURE_2026
+    console.log('HINT_V4_ACTIVE_MARKER');
     const level = levels[currentLevel];
     if (!level) return [];
     const fen = currentPosition || level.initialFen || '';
@@ -293,6 +296,11 @@ function parseFenSimple(fen: string) {
 
     return bestSetup ? [bestSetup] : [];
   };
+
+  // DEBUG: force inclusion in bundle
+  if (typeof window !== 'undefined') {
+    (window as any).computeHintArrow = computeHintArrow;
+  }
 
   const level = levels[currentLevel];
   const totalLevels = levels.length;
