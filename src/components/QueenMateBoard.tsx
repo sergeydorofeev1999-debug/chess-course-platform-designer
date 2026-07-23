@@ -688,47 +688,120 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
   const turnText = game ? (game.turn() === 'w' ? 'Ваш ход (белые)' : 'Ход чёрных...') : '';
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
-      {/* LEFT COLUMN: exercise pills (desktop) */}
-      <div className="w-full lg:w-[140px] flex-shrink-0 space-y-2">
-        <div className="hidden lg:flex flex-col rounded overflow-hidden border border-gray-200">
+    <div className="flex flex-col lg:flex-row gap-4 w-full">
+      {/* LEFT COLUMN — Desktop sidebar */}
+      <div className="hidden lg:flex lg:w-[180px] flex-shrink-0 flex-col gap-3">
+        {/* Avatar + Speech bubble */}
+        <div className="flex items-start gap-2">
+          <div className="w-10 h-10 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
+            <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
+          </div>
+          <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2.5 shadow-sm border border-[rgba(92,64,51,0.06)]">
+            <p className="text-sm text-[var(--text-primary)] leading-snug">
+              Используйте ферзя для ограничения пространства и короля для поддержки.
+            </p>
+          </div>
+        </div>
+
+        {/* Demo button */}
+        {currentExercise === 1 && !demoMode && !isComplete && (
+          <button
+            onClick={() => { reset(); setDemoMode(true); setDemoStep(0); }}
+            className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
+          >
+            <Eye size={14} /> Посмотреть как ставить мат
+          </button>
+        )}
+
+        {/* Exercise pills */}
+        <div className="w-full flex items-stretch gap-[1px]">
           {EXERCISES.map((ex) => {
-            const earnedStars = exerciseStars[ex.id] || 0;
+            const earned = exerciseStars[ex.id] || 0;
             const isCurrent = ex.id === currentExercise;
-            const isDone = earnedStars > 0;
+            const isDone = earned > 0;
+            const isLocked = !isCurrent && !isDone;
             return (
               <button
                 key={ex.id}
-                onClick={() => switchExercise(ex.id)}
-                className={`flex items-center justify-center px-2 py-1.5 transition ${
+                onClick={() => { if (!isCurrent) switchExercise(ex.id); }}
+                disabled={isCurrent}
+                className={`flex-1 flex flex-col items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 ${
                   isCurrent
-                    ? 'bg-blue-500 text-white'
+                    ? 'bg-[#2C241B] shadow-md'
                     : isDone
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-gray-200 text-gray-500'
-                } cursor-pointer hover:brightness-110`}
+                    ? 'bg-[#C9A84C]'
+                    : 'bg-[#F0EBE4] border border-[#D4C5B5]'
+                } ${isCurrent ? 'cursor-not-allowed' : isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
+                title={isDone ? `Упражнение ${ex.id} — пройдено` : `Упражнение ${ex.id}`}
               >
-                <div className="flex gap-0.5">
-                  {[1, 2, 3].map((s) => (
-                    <StarPng key={s} filled={earnedStars > 0 && s <= earnedStars} size={14} />
-                  ))}
-                </div>
-                <span className="ml-2 text-xs font-medium">{ex.id}</span>
+                {isDone && earned > 0 ? (
+                  earned === 3 ? (
+                    <>
+                      <div className="flex">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                      </div>
+                      <div className="flex gap-[1px]">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex gap-[2px] justify-center w-full">
+                      {Array.from({ length: earned }, (_, s) => (
+                        <svg key={s} width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                        </svg>
+                      ))}
+                    </div>
+                  )
+                ) : (
+                  <span className={`text-sm font-bold leading-none ${
+                    isCurrent ? 'text-white' : 'text-[#9CA3AF]'
+                  }`}>{ex.id}</span>
+                )}
               </button>
             );
           })}
         </div>
 
+        {/* Задание N из M + progress bar */}
+        <div className="flex flex-col gap-1.5">
+          <span className="text-xs font-bold text-[var(--text-primary)]">
+            Задание {currentExercise} из {EXERCISES.length}
+          </span>
+          <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+            <div
+              className="h-full bg-[var(--accent)] rounded-full transition-all duration-500"
+              style={{ width: `${((currentExercise) / EXERCISES.length) * 100}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Reset button */}
         <button
           onClick={reset}
-          className="hidden lg:flex items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition w-full justify-center"
+          className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
         >
           <RotateCcw size={14} /> Заново
         </button>
       </div>
 
-      {/* CENTER COLUMN: board + stats */}
+      {/* CENTER — Board */}
       <div className="flex-1 flex flex-col items-center gap-3">
+        {/* Mobile avatar + speech bubble */}
+        <div className="lg:hidden w-full flex flex-col gap-2">
+          <div className="flex items-start gap-3">
+            <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
+              <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
+            </div>
+            <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
+              <p className="text-sm text-[var(--text-primary)] leading-snug line-clamp-3">
+                Используйте ферзя для ограничения пространства и короля для поддержки.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Mat-in-1 label for exercises 4-7 */}
         {ex.matIn1 && (
           <div className="text-[#2b2b2b] text-[15px] font-medium mb-2 text-center leading-snug w-full">
@@ -738,32 +811,30 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
 
         {/* Timer for exercise 8 */}
         {ex.timeLimit && !isComplete && !isStalemate && (
-          <div className={`text-2xl font-bold font-mono ${timerStarted && timeLeft !== null && timeLeft <= 10 ? 'text-red-500' : 'text-slate-700'}`}>
+          <div className={`text-2xl font-bold font-mono ${timerStarted && timeLeft !== null && timeLeft <= 10 ? 'text-red-500' : 'text-[var(--text-primary)]'}`}>
             {timerStarted && timeLeft !== null
               ? `${Math.floor(timeLeft / 60)}:${String(timeLeft % 60).padStart(2, '0')}`
               : `1:00`}
           </div>
         )}
 
-        {currentExercise === 1 && !demoMode && !isComplete && (
-          <button
-            onClick={() => { reset(); setDemoMode(true); setDemoStep(0); }}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors"
-          >
-            <Eye className="w-4 h-4" />
-            Посмотреть, как ставить мат
-          </button>
-        )}
+        {/* Demo button — mobile only, desktop in sidebar */}
+        <div className="lg:hidden w-full">
+          {currentExercise === 1 && !demoMode && !isComplete && (
+            <button
+              onClick={() => { reset(); setDemoMode(true); setDemoStep(0); }}
+              className="w-full flex items-center justify-center gap-1.5 h-9 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
+            >
+              <Eye size={14} /> Посмотреть как ставить мат
+            </button>
+          )}
+        </div>
 
         {demoComment && (
-          <div className="px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800 text-center max-w-sm">
+          <div className="px-4 py-2 bg-[#5A4A3A]/10 border border-[#5A4A3A]/20 rounded-lg text-sm text-[#5A4A3A] text-center max-w-sm">
             {demoComment}
           </div>
         )}
-
-        <div className={`text-sm font-bold ${game && game.turn() === 'w' ? 'text-blue-600' : 'text-slate-400'}`}>
-          {demoMode ? 'Демонстрация...' : turnText}
-        </div>
 
         {/* Stalemate / fail banner */}
         {isStalemate && (
@@ -790,7 +861,7 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
           </div>
         )}
 
-        {/* Board */}
+        {/* Board wrapper */}
         <div className="flex justify-center w-full relative">
           <div
             className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none"
@@ -892,64 +963,86 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
           )}
         </div>
 
-        {/* Mobile exercise pills — 2 rows × 4 */}
-        <div className="flex lg:hidden flex-col gap-1 items-center w-full">
-          <div className="flex gap-1 justify-center w-full">
-            {EXERCISES.slice(0, 4).map((ex) => {
-              const earnedStars = exerciseStars[ex.id] || 0;
-              const isCurrent = ex.id === currentExercise;
-              const isDone = earnedStars > 0;
-              return (
-                <button
-                  key={ex.id}
-                  onClick={() => switchExercise(ex.id)}
-                  className={`flex items-center gap-0.5 px-1.5 py-1 rounded text-xs transition ${
-                    isCurrent ? 'bg-blue-500 text-white' : isDone ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'
-                  } cursor-pointer`}
-                >
-                  <div className="flex gap-0.5">
-                    {[1, 2, 3].map((s) => (
-                      <StarPng key={s} filled={earnedStars > 0 && s <= earnedStars} size={12} />
-                    ))}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-          <div className="flex gap-1 justify-center w-full">
-            {EXERCISES.slice(4).map((ex) => {
-              const earnedStars = exerciseStars[ex.id] || 0;
-              const isCurrent = ex.id === currentExercise;
-              const isDone = earnedStars > 0;
-              return (
-                <button
-                  key={ex.id}
-                  onClick={() => switchExercise(ex.id)}
-                  className={`flex items-center gap-0.5 px-1.5 py-1 rounded text-xs transition ${
-                    isCurrent ? 'bg-blue-500 text-white' : isDone ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'
-                  } cursor-pointer`}
-                >
-                  <div className="flex gap-0.5">
-                    {[1, 2, 3].map((s) => (
-                      <StarPng key={s} filled={earnedStars > 0 && s <= earnedStars} size={12} />
-                    ))}
-                  </div>
-                </button>
-              );
-            })}
+        {/* Mobile exercise pills */}
+        <div className="flex lg:hidden w-full items-stretch gap-[1px]">
+          {EXERCISES.map((ex) => {
+            const earned = exerciseStars[ex.id] || 0;
+            const isCurrent = ex.id === currentExercise;
+            const isDone = earned > 0;
+            const isLocked = !isCurrent && !isDone;
+            return (
+              <button
+                key={ex.id}
+                onClick={() => { if (!isCurrent) switchExercise(ex.id); }}
+                disabled={isCurrent}
+                className={`flex-1 flex flex-col items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 ${
+                  isCurrent
+                    ? 'bg-[#2C241B] shadow-md'
+                    : isDone
+                    ? 'bg-[#C9A84C]'
+                    : 'bg-[#F0EBE4] border border-[#D4C5B5]'
+                } ${isCurrent ? 'cursor-not-allowed' : isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
+                title={isDone ? `Упражнение ${ex.id} — пройдено` : `Упражнение ${ex.id}`}
+              >
+                {isDone && earned > 0 ? (
+                  earned === 3 ? (
+                    <>
+                      <div className="flex">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                      </div>
+                      <div className="flex gap-[1px]">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex gap-[2px] justify-center w-full">
+                      {Array.from({ length: earned }, (_, s) => (
+                        <svg key={s} width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                        </svg>
+                      ))}
+                    </div>
+                  )
+                ) : (
+                  <span className={`text-sm font-bold leading-none ${
+                    isCurrent ? 'text-white' : 'text-[#9CA3AF]'
+                  }`}>{ex.id}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Mobile: Задание N из M + progress bar */}
+        <div className="lg:hidden flex flex-col gap-1.5 w-full">
+          <span className="text-xs font-bold text-[var(--text-primary)]">
+            Задание {currentExercise} из {EXERCISES.length}
+          </span>
+          <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+            <div
+              className="h-full bg-[var(--accent)] rounded-full transition-all duration-500"
+              style={{ width: `${((currentExercise) / EXERCISES.length) * 100}%` }}
+            />
           </div>
         </div>
 
-        <button
-          onClick={reset}
-          className="flex lg:hidden items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition"
-        >
-          <RotateCcw size={14} /> Заново
-        </button>
-
-        <div className="text-center text-sm text-slate-600 max-w-sm px-4">
-          <p className="font-medium mb-1">Цель:</p>
-          <p>Поставьте мат чёрному королю ферзём.</p>
+        {/* Mobile buttons */}
+        <div className="flex lg:hidden gap-2 w-full">
+          {currentExercise === 1 && !demoMode && !isComplete && (
+            <button
+              onClick={() => { reset(); setDemoMode(true); setDemoStep(0); }}
+              className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
+            >
+              <Eye size={14} /> Посмотреть как ставить мат
+            </button>
+          )}
+          <button
+            onClick={reset}
+            className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
+          >
+            <RotateCcw size={14} /> Заново
+          </button>
         </div>
       </div>
     </div>
