@@ -939,7 +939,7 @@ const handleSquareClick = useCallback((square: string) => {
                     onDragStart={(e) => e.preventDefault()}
                   >
                     {sel && (
-                      <div className="absolute inset-[1px] rounded-[5px] bg-[rgba(100,160,60,0.45)] pointer-events-none z-10" />
+                      <div className="absolute inset-[1px] rounded-[5px] bg-[rgba(201,168,76,0.45)] pointer-events-none z-10" />
                     )}
                     {(exercise === 5 || exercise === 6 || exercise === 7 || exercise === 8 ? fi === 7 : fi === 0) && (
                       <span className={`absolute top-0.5 ${exercise === 5 || exercise === 6 || exercise === 7 || exercise === 8 ? 'right-1' : 'left-1'} text-[10px] font-bold ${light ? 'text-[#b58863]' : 'text-[#f0d9b5]'}`}>
@@ -953,15 +953,29 @@ const handleSquareClick = useCallback((square: string) => {
                     )}
                     {isValidMove && (
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                        <div
-                          style={{
-                            width: Math.round(sqSize * 0.3),
-                            height: Math.round(sqSize * 0.3),
-                            backgroundColor: pieceObj ? '#c41e3a' : '#5d9040',
-                            borderRadius: pieceObj ? '4px' : '50%',
-                            opacity: 0.85,
-                          }}
-                        />
+                        {pieceObj ? (
+                          // Золотое кольцо вокруг вражеской фигуры
+                          <div
+                            className="absolute rounded-full"
+                            style={{ 
+                              width: Math.round(sqSize * 0.85), 
+                              height: Math.round(sqSize * 0.85), 
+                              border: '3px solid #C9A84C', 
+                              boxShadow: '0 0 8px rgba(201,168,76,0.4)', 
+                            }}
+                          />
+                        ) : (
+                          // Золотая точка на пустой клетке
+                          <div
+                            style={{ 
+                              width: Math.round(sqSize * 0.3), 
+                              height: Math.round(sqSize * 0.3), 
+                              backgroundColor: '#C9A84C', 
+                              borderRadius: '50%', 
+                              opacity: 0.85, 
+                            }}
+                          />
+                        )}
                       </div>
                     )}
                     {pieceObj && !isDragSource && (

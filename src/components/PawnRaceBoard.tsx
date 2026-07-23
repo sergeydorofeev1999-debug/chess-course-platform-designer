@@ -872,7 +872,7 @@ export default function PawnRaceBoard({ onComplete, lessonId }: { onComplete: ()
                 >
                   {/* Selected square highlight */}
                   {sel && (
-                    <div className="absolute inset-[1px] rounded-[5px] bg-[rgba(100,160,60,0.45)] pointer-events-none z-10" />
+                    <div className="absolute inset-[1px] rounded-[5px] bg-[rgba(201,168,76,0.45)] pointer-events-none z-10" />
                   )}
                   {/* Coordinates */}
                   {fi === 0 && (
@@ -892,7 +892,7 @@ export default function PawnRaceBoard({ onComplete, lessonId }: { onComplete: ()
                         style={{
                           width: Math.round(sqSize * 0.3),
                           height: Math.round(sqSize * 0.3),
-                          backgroundColor: '#5d9040',
+                          backgroundColor: '#C9A84C',
                           borderRadius: '50%',
                           opacity: 0.85,
                         }}

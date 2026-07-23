@@ -840,7 +840,7 @@ export default function ChessFootballBoard({ onComplete, lessonId }: { onComplet
                   onDragStart={(e) => e.preventDefault()}
                 >
                   {sel && (
-                    <div className="absolute inset-[1px] rounded-[5px] bg-[rgba(100,160,60,0.45)] pointer-events-none z-10" />
+                    <div className="absolute inset-[1px] rounded-[5px] bg-[rgba(201,168,76,0.45)] pointer-events-none z-10" />
                   )}
                   {fi === 0 && (
                     <span className={`absolute top-0.5 left-1 text-[10px] font-bold ${light ? 'text-[#b58863]' : 'text-[#f0d9b5]'}`}>
@@ -858,7 +858,7 @@ export default function ChessFootballBoard({ onComplete, lessonId }: { onComplet
                         style={{
                           width: Math.round(sqSize * 0.3),
                           height: Math.round(sqSize * 0.3),
-                          backgroundColor: '#5d9040',
+                          backgroundColor: '#C9A84C',
                           borderRadius: '50%',
                           opacity: 0.85,
                         }}

@@ -198,8 +198,8 @@ export default function SimpleChessBoard({
                 className={`
                   flex items-center justify-center relative cursor-pointer
                   select-none
-                  ${isSelected ? 'ring-2 ring-blue-500 ring-inset' : ''}
-                  ${isHighlighted ? 'ring-2 ring-green-500 ring-inset' : ''}
+                  ${isSelected ? 'ring-2 ring-[#3D8B8B] ring-inset' : ''}
+                  ${isHighlighted ? 'ring-2 ring-[#C9A84C] ring-inset' : ''}
                   hover:opacity-90 transition
                 `}
                 style={{ width: 52, height: 52, backgroundColor: isLight ? '#f0d9b5' : '#b58863' }}

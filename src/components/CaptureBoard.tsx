@@ -1736,9 +1736,9 @@ export default function CaptureBoard({
                 disabled={isFuture}
                 className={`flex items-center justify-center px-2 py-1.5 transition ${
                   isCurrent
-                    ? 'bg-blue-500 text-white'
+                    ? 'bg-[#5A4A3A] text-white'
                     : isDone
-                    ? 'bg-emerald-500 text-white'
+                    ? 'bg-[#C9A84C] text-white'
                     : 'bg-gray-200 text-gray-500'
                 } ${isFuture ? 'cursor-not-allowed' : 'cursor-pointer hover:brightness-110'}`}
               >
@@ -1813,7 +1813,7 @@ export default function CaptureBoard({
                 }}
                 disabled={isFuture}
                 className={`flex items-center gap-0.5 px-1.5 py-1 rounded text-xs transition ${
-                  isCurrent ? 'bg-blue-500 text-white' : isDone ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'
+                  isCurrent ? 'bg-[#5A4A3A] text-white' : isDone ? 'bg-[#C9A84C] text-white' : 'bg-gray-200 text-gray-500'
                 } ${isFuture ? 'cursor-not-allowed' : 'cursor-pointer'}`}
               >
                 <div className="flex gap-0.5">
