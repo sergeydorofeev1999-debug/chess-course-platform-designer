@@ -1080,7 +1080,7 @@ const getExerciseGoal = (ex: number) => {
                               width: sqSize, 
                               height: sqSize, 
                               borderRadius: '50%', 
-                              border: '4px solid #C9A84C', 
+                              border: '4px solid var(--square-valid)', 
                               boxSizing: 'border-box', 
                             }}
                           />
@@ -1090,7 +1090,7 @@ const getExerciseGoal = (ex: number) => {
                             style={{ 
                               width: Math.round(sqSize * 0.3), 
                               height: Math.round(sqSize * 0.3), 
-                              backgroundColor: '#C9A84C', 
+                              backgroundColor: 'var(--square-valid)', 
                               borderRadius: '50%', 
                               opacity: 0.85, 
                             }}

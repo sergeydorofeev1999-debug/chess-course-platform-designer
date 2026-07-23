@@ -199,7 +199,7 @@ export default function SimpleChessBoard({
                   flex items-center justify-center relative cursor-pointer
                   select-none
                   ${isSelected ? 'ring-2 ring-[#3D8B8B] ring-inset' : ''}
-                  ${isHighlighted ? 'ring-2 ring-[#C9A84C] ring-inset' : ''}
+                  ${isHighlighted ? 'ring-2 ring-[rgba(184,149,106,0.6)] ring-inset' : ''}
                   hover:opacity-90 transition
                 `}
                 style={{ width: 52, height: 52, backgroundColor: isLight ? '#f0d9b5' : '#b58863' }}

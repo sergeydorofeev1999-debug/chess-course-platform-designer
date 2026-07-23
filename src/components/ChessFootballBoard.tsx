@@ -858,7 +858,7 @@ export default function ChessFootballBoard({ onComplete, lessonId }: { onComplet
                         style={{
                           width: Math.round(sqSize * 0.3),
                           height: Math.round(sqSize * 0.3),
-                          backgroundColor: '#C9A84C',
+                          backgroundColor: 'var(--square-valid)',
                           borderRadius: '50%',
                           opacity: 0.85,
                         }}
