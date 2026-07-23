@@ -427,7 +427,10 @@ function parseFenSimple(fen: string) {
           <Lightbulb size={14} /> Подсказка
         </button>
         <button
-          onClick={() => goToLevel(currentLevel)}
+          onClick={() => {
+            setResetKey((prev) => prev + 1);
+            goToLevel(currentLevel);
+          }}
           className="flex-1 h-10 flex items-center justify-center gap-1 rounded-lg border text-xs font-medium transition-all duration-200 border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]"
         >
           <RotateCcw size={14} /> Заново

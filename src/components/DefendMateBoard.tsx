@@ -513,31 +513,30 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
                         {isFlipped ? FILES[7 - fi] : file}
                       </span>
                     )}
-                    {isValidMove && (
+                    {isValidMove && !pieceObj && (
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                        {pieceObj ? (
-                          // Золотое кольцо вокруг вражеской фигуры
-                          <div
-                            style={{ 
-                              width: sqSize, 
-                              height: sqSize, 
-                              borderRadius: '50%', 
-                              border: '4px solid var(--square-valid)', 
-                              boxSizing: 'border-box', 
-                            }}
-                          />
-                        ) : (
-                          // Золотая точка на пустой клетке
-                          <div
-                            style={{ 
-                              width: Math.round(sqSize * 0.3), 
-                              height: Math.round(sqSize * 0.3), 
-                              backgroundColor: 'var(--square-valid)', 
-                              borderRadius: '50%', 
-                              opacity: 0.85, 
-                            }}
-                          />
-                        )}
+                        <div
+                          style={{ 
+                            width: Math.round(sqSize * 0.3), 
+                            height: Math.round(sqSize * 0.3), 
+                            backgroundColor: 'var(--square-valid)', 
+                            borderRadius: '50%', 
+                            opacity: 0.85, 
+                          }}
+                        />
+                      </div>
+                    )}
+                    {isValidMove && pieceObj && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 50 }}>
+                        <div
+                          style={{ 
+                            width: sqSize, 
+                            height: sqSize, 
+                            borderRadius: '50%', 
+                            border: '4px solid var(--square-valid)', 
+                            boxSizing: 'border-box', 
+                          }}
+                        />
                       </div>
                     )}
                     {pieceObj && !isDragSource && (
