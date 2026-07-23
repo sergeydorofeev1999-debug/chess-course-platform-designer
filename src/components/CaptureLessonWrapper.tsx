@@ -351,6 +351,36 @@ function parseFenSimple(fen: string) {
             }}
             onPositionChange={setCurrentPosition}
           />
+          {/* Hint arrows overlay — rendered above the board without remounting it */}
+          {hintArrows.length > 0 && (
+            <svg className="absolute inset-0 pointer-events-none z-50" style={{ width: '100%', height: '100%' }} viewBox="0 0 8 8" preserveAspectRatio="none">
+              {hintArrows.map((arrow, i) => {
+                const fromF = FILES.indexOf(arrow.from[0]);
+                const fromR = RANKS.indexOf(arrow.from[1]);
+                const toF = FILES.indexOf(arrow.to[0]);
+                const toR = RANKS.indexOf(arrow.to[1]);
+                const x1 = fromF + 0.5;
+                const y1 = fromR + 0.5;
+                const x2 = toF + 0.5;
+                const y2 = toR + 0.5;
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                const len = Math.sqrt(dx * dx + dy * dy) || 1;
+                const nx = -dy / len;
+                const ny = dx / len;
+                const hb = 0.3;
+                const hx = x2 - (dx / len) * hb;
+                const hy = y2 - (dy / len) * hb;
+                const hw = 0.25;
+                const hlx = hx + nx * hw;
+                const hly = hy + ny * hw;
+                const hrx = hx - nx * hw;
+                const hry = hy - ny * hw;
+                const pathD = `M ${x1} ${y1} L ${hx} ${hy} L ${hlx} ${hly} L ${x2} ${y2} L ${hrx} ${hry} Z`;
+                return <path key={i} d={pathD} fill="rgba(44, 36, 27, 0.35)" className="arrow-hint-line" />;
+              })}
+            </svg>
+          )}
         </div>
       </div>
 
