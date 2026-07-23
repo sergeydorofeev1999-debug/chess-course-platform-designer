@@ -297,7 +297,7 @@ export default function PieceValueBoard({ onComplete, onLevelComplete }: Props) 
                   onClick={() => !isFuture && goToLevel(idx)}
                   disabled={isFuture}
                   className={`flex items-center justify-center px-2 py-1.5 transition font-medium text-sm ${
-                    isCurrent ? 'bg-blue-500 text-white' : isDone ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'
+                    isCurrent ? 'bg-[#5A4A3A] text-[#F9F8F6]' : isDone ? 'bg-[#8B7355] text-[#F9F8F6]' : 'bg-[#E8E0D4] text-[#8B7355]'
                   } ${isFuture ? 'cursor-not-allowed' : 'cursor-pointer hover:brightness-110'}`}
                 >
                   <span className="hidden sm:inline">{idx}</span>
@@ -363,7 +363,7 @@ export default function PieceValueBoard({ onComplete, onLevelComplete }: Props) 
                 onClick={() => !isFuture && goToLevel(idx)}
                 disabled={isFuture}
                 className={`flex items-center justify-center px-2 py-1.5 transition font-medium text-sm ${
-                  isCurrent ? 'bg-blue-500 text-white' : isDone ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'
+                  isCurrent ? 'bg-[#5A4A3A] text-[#F9F8F6]' : isDone ? 'bg-[#8B7355] text-[#F9F8F6]' : 'bg-[#E8E0D4] text-[#8B7355]'
                 } ${isFuture ? 'cursor-not-allowed' : 'cursor-pointer hover:brightness-110'}`}
               >
                 <span className="hidden sm:inline">{idx}</span>
@@ -454,7 +454,7 @@ export default function PieceValueBoard({ onComplete, onLevelComplete }: Props) 
 
         {/* Success message */}
         {success && (
-          <div className="px-6 py-3 bg-green-50 border border-green-200 rounded-xl text-green-700 font-medium">
+          <div className="px-6 py-3 bg-[#E8E0D4] border border-[#8B7355] rounded-xl text-[#4A3F35] font-medium">
             Правильно! 🎉
           </div>
         )}
@@ -465,7 +465,7 @@ export default function PieceValueBoard({ onComplete, onLevelComplete }: Props) 
             onClick={() => goToLevel(currentLevel - 1)}
             disabled={currentLevel <= 0}
             className={`flex items-center gap-1 px-4 py-2 rounded-lg font-medium transition
-              ${currentLevel <= 0 ? 'text-gray-300 bg-gray-100 cursor-not-allowed' : 'text-slate-600 bg-slate-100 hover:bg-slate-200'}
+              ${currentLevel <= 0 ? 'text-[#B8AFA3] bg-[#F0ECE4] cursor-not-allowed' : 'text-[#3E3228] bg-[#E8E0D4] hover:bg-[#D4C5B5]'}
             `}
           >
             <ChevronLeft size={18} /> Назад
@@ -475,7 +475,7 @@ export default function PieceValueBoard({ onComplete, onLevelComplete }: Props) 
             onClick={() => goToLevel(currentLevel + 1)}
             disabled={currentLevel >= LEVELS.length - 1}
             className={`flex items-center gap-1 px-4 py-2 rounded-lg font-medium transition
-              ${currentLevel >= LEVELS.length - 1 ? 'text-gray-300 bg-gray-100 cursor-not-allowed' : 'text-slate-600 bg-slate-100 hover:bg-slate-200'}
+              ${currentLevel >= LEVELS.length - 1 ? 'text-[#B8AFA3] bg-[#F0ECE4] cursor-not-allowed' : 'text-[#3E3228] bg-[#E8E0D4] hover:bg-[#D4C5B5]'}
             `}
           >
             Вперёд <ChevronRight size={18} />
@@ -485,12 +485,12 @@ export default function PieceValueBoard({ onComplete, onLevelComplete }: Props) 
         {/* Error message */}
         {error && (
           <div className="flex flex-col items-center gap-3">
-            <div className="px-6 py-3 bg-red-50 border border-red-200 rounded-xl text-red-700 font-medium">
+            <div className="px-6 py-3 bg-[#F2DEDA] border border-[#8B7355] rounded-xl text-[#7A3A32] font-medium">
               Неверно! Суммы не равны. Попробуй ещё раз.
             </div>
             <button
               onClick={reset}
-              className="px-6 py-2 rounded-lg font-medium text-white bg-red-500 hover:bg-red-600 transition"
+              className="px-6 py-2 rounded-lg font-medium text-white bg-[#8B7355] hover:bg-[#6B5B3D] transition"
             >
               Попробовать снова
             </button>
