@@ -1453,7 +1453,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
                       <div className="absolute inset-0 pointer-events-none z-[5]" style={{ backgroundColor: SQUARE_FILL }} />
                     )}
                     {sel && (
-                      <div className="absolute inset-[1px] rounded-[5px] bg-[rgba(201,168,76,0.45)] pointer-events-none z-10" />
+                      <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
                     )}
                     {fi === 0 && (
                       <span className={`absolute top-0.5 left-1 text-[10px] font-bold ${light ? 'text-[#b58863]' : 'text-[#f0d9b5]'}`}>
