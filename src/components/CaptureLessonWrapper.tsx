@@ -206,7 +206,7 @@ function parseFenSimple(fen: string) {
   }
 
   const computeHintArrow = () => {
-    // HINT_ALGORITHM_V3_SAFE_CAPTURE_2026
+    // HINT_ALGORITHM_V3_SAFE_CAPTURE_2026 - DEPLOYED
     const level = levels[currentLevel];
     if (!level) return [];
     const fen = currentPosition || level.initialFen || '';
