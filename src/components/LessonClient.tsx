@@ -1107,12 +1107,16 @@ function MultiLevelStarBoard({
   const computeHintArrow = useCallback(() => {
     const parsed = parseFen(positionRef.current);
 
-    // ── Special case: promoted pawn (now queen) ──
+    // ── Special case: promoted pawn ──
     let effectivePieceType = pieceType;
     if (pieceType === 'p') {
       const hasPawn = Object.values(parsed.squares).some((p: any) => p?.color === 'w' && p?.type === 'p');
       if (!hasPawn) {
-        effectivePieceType = 'q';
+        // Pawn was promoted — find the promoted piece type from the board
+        const promoted = Object.values(parsed.squares).find((p: any) => p?.color === 'w');
+        if (promoted) {
+          effectivePieceType = promoted.type;
+        }
       }
     }
 
