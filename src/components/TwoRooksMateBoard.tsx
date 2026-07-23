@@ -626,26 +626,67 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
         )}
 
         {/* Exercise pills */}
-        <div className="flex flex-col gap-1">
+        <div className="w-full flex items-stretch gap-[1px]">
           {EXERCISES.map((ex) => {
-            const earnedStars = exerciseStars[ex.id] || 0;
+            const earned = exerciseStars[ex.id] || 0;
             const isCurrent = ex.id === currentExercise;
-            const isDone = earnedStars > 0;
+            const isDone = earned > 0;
             const isLocked = !isCurrent && !isDone;
             return (
               <button
                 key={ex.id}
                 onClick={() => { if (!isLocked) switchExercise(ex.id); }}
-                className={`h-9 px-3 rounded-lg text-sm font-bold transition-all ${
-                  isCurrent ? 'bg-[#5A4A3A] text-white' :
-                  isDone ? 'bg-[#C9A84C] text-white' :
-                  'bg-[#F0EDE8] text-[#8B7D6B]'
-                } ${isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:brightness-105'}`}
+                disabled={isCurrent}
+                className={`flex-1 flex flex-col items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 ${
+                  isCurrent
+                    ? 'bg-[#2C241B] shadow-md'
+                    : isDone
+                    ? 'bg-[#C9A84C]'
+                    : 'bg-[#F0EBE4] border border-[#D4C5B5]'
+                } ${isCurrent ? 'cursor-not-allowed' : isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
+                title={isDone ? `Упражнение ${ex.id} — пройдено` : `Упражнение ${ex.id}`}
               >
-                {ex.id}
+                {isDone && earned > 0 ? (
+                  earned === 3 ? (
+                    <>
+                      <div className="flex">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                      </div>
+                      <div className="flex gap-[1px]">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex gap-[2px] justify-center w-full">
+                      {Array.from({ length: earned }, (_, s) => (
+                        <svg key={s} width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                        </svg>
+                      ))}
+                    </div>
+                  )
+                ) : (
+                  <span className={`text-sm font-bold leading-none ${
+                    isCurrent ? 'text-white' : 'text-[#9CA3AF]'
+                  }`}>{ex.id}</span>
+                )}
               </button>
             );
           })}
+        </div>
+
+        {/* Задание N из 5 + progress bar */}
+        <div className="flex flex-col gap-1.5">
+          <span className="text-xs font-bold text-[var(--text-primary)]">
+            Задание {currentExercise} из {EXERCISES.length}
+          </span>
+          <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+            <div
+              className="h-full bg-[var(--accent)] rounded-full transition-all duration-500"
+              style={{ width: `${((currentExercise) / EXERCISES.length) * 100}%` }}
+            />
+          </div>
         </div>
 
         {/* Action buttons */}
