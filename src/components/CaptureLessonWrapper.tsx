@@ -211,158 +211,78 @@ function parseFenSimple(fen: string) {
   }
 
   const computeHintArrow = () => {
-    // HINT_ALGORITHM_V4_SETUP_CAPTURE_2026
-    console.log('HINT_V4_ACTIVE_MARKER');
+    // HINT_ALGORITHM_V6_BFS_SHORTEST_PATH_2026
+    console.log('HINT_V6_ACTIVE_MARKER');
     const level = levels[currentLevel];
     if (!level) return [];
     const fen = currentPosition || level.initialFen || '';
     if (!fen) return [];
 
-    const squares = parseFenBoard(fen);
-    const targets = (level.stars || level.targets || []).filter((t: string) => squares[t]?.color === 'b');
+    const initialSquares = parseFenBoard(fen);
+    const targets = (level.stars || level.targets || []).filter((t: string) => initialSquares[t]?.color === 'b');
     if (targets.length === 0) return [];
 
-    const whiteSquares = Object.keys(squares).filter(s => squares[s]?.color === 'w');
+    // BFS to find shortest safe-capture path
+    // State: { squares, depth, firstMove }
+    // firstMove = the first move in the chain (what we show to user)
+    const queue: { squares: Record<string, any>; depth: number; firstMove: { from: string; to: string } | null }[] = [];
+    queue.push({ squares: initialSquares, depth: 0, firstMove: null });
 
-    // ── Phase 1: Direct safe capture ──
-    let bestCapture: { from: string; to: string } | null = null;
-    let bestCaptureDist = Infinity;
+    const visited = new Set<string>();
+    visited.add(JSON.stringify(initialSquares));
 
-    for (const wSq of whiteSquares) {
-      const piece = squares[wSq];
-      for (const target of targets) {
-        if (!canMove(piece.type, wSq, target, squares, 'w')) continue;
+    while (queue.length > 0) {
+      const state = queue.shift()!;
 
-        const next = { ...squares };
-        next[target] = next[wSq];
-        delete next[wSq];
+      // Try all possible captures from this state
+      const whiteSquares = Object.keys(state.squares).filter(s => state.squares[s]?.color === 'w');
+      for (const wSq of whiteSquares) {
+        const piece = state.squares[wSq];
+        for (const target of targets) {
+          if (!canMove(piece.type, wSq, target, state.squares, 'w')) continue;
 
-        const unsafe = anyBlackCanCaptureWhite(next);
-        const dist = Math.abs(FILES.indexOf(target[0]) - FILES.indexOf(wSq[0])) +
-                     Math.abs(RANKS.indexOf(target[1]) - RANKS.indexOf(wSq[1]));
+          const nextSquares = { ...state.squares };
+          nextSquares[target] = nextSquares[wSq];
+          delete nextSquares[wSq];
 
-        if (!unsafe && dist < bestCaptureDist) {
-          bestCaptureDist = dist;
-          bestCapture = { from: wSq, to: target };
+          if (!anyBlackCanCaptureWhite(nextSquares)) {
+            // Found safe capture! Return first move of the chain
+            const moveToShow = state.firstMove || { from: wSq, to: target };
+            return [moveToShow];
+          }
         }
       }
-    }
 
-    if (bestCapture) return [bestCapture];
+      // If not at max depth, try all empty-square moves (setup moves)
+      if (state.depth < 3) {
+        for (const wSq of whiteSquares) {
+          const piece = state.squares[wSq];
+          for (const file of FILES) {
+            for (const rank of RANKS) {
+              const to = file + rank;
+              if (to === wSq) continue;
+              if (state.squares[to]) continue; // must be empty
+              if (!canMove(piece.type, wSq, to, state.squares, 'w')) continue;
 
-    // ── Phase 2: Setup move — move to empty square that enables future safe capture ──
-    let bestSetup: { from: string; to: string } | null = null;
-    let bestSetupDist = Infinity;
+              const nextSquares = { ...state.squares };
+              nextSquares[to] = nextSquares[wSq];
+              delete nextSquares[wSq];
 
-    for (const wSq of whiteSquares) {
-      const piece = squares[wSq];
-      for (const file of FILES) {
-        for (const rank of RANKS) {
-          const to = file + rank;
-          if (to === wSq) continue;
-          if (squares[to]) continue; // must be empty
-          if (!canMove(piece.type, wSq, to, squares, 'w')) continue;
+              if (anyBlackCanCaptureWhite(nextSquares)) continue;
 
-          // Simulate setup move
-          const afterSetup = { ...squares };
-          afterSetup[to] = afterSetup[wSq];
-          delete afterSetup[wSq];
+              const key = JSON.stringify(nextSquares);
+              if (visited.has(key)) continue;
+              visited.add(key);
 
-          // Setup move must be safe
-          if (anyBlackCanCaptureWhite(afterSetup)) continue;
-
-          // Check if this setup enables any safe capture on next turn
-          const newWhiteSquares = Object.keys(afterSetup).filter(s => afterSetup[s]?.color === 'w');
-          for (const newWSq of newWhiteSquares) {
-            for (const target of targets) {
-              if (!canMove(afterSetup[newWSq].type, newWSq, target, afterSetup, 'w')) continue;
-
-              const afterCapture = { ...afterSetup };
-              afterCapture[target] = afterCapture[newWSq];
-              delete afterCapture[newWSq];
-
-              if (!anyBlackCanCaptureWhite(afterCapture)) {
-                const dist = Math.abs(FILES.indexOf(to[0]) - FILES.indexOf(wSq[0])) +
-                             Math.abs(RANKS.indexOf(to[1]) - RANKS.indexOf(wSq[1]));
-                if (dist < bestSetupDist) {
-                  bestSetupDist = dist;
-                  bestSetup = { from: wSq, to };
-                }
-                break;
-              }
+              const firstMove = state.firstMove || { from: wSq, to };
+              queue.push({ squares: nextSquares, depth: state.depth + 1, firstMove });
             }
-            if (bestSetup) break;
           }
         }
       }
     }
 
-    // ── Phase 3: Two setup moves + capture (for positions needing 3-move chains) ──
-    let bestSetup2: { from: string; to: string } | null = null;
-    let bestSetup2Dist = Infinity;
-
-    for (const wSq of whiteSquares) {
-      const piece = squares[wSq];
-      for (const file1 of FILES) {
-        for (const rank1 of RANKS) {
-          const to1 = file1 + rank1;
-          if (to1 === wSq) continue;
-          if (squares[to1]) continue;
-          if (!canMove(piece.type, wSq, to1, squares, 'w')) continue;
-
-          const afterSetup1 = { ...squares };
-          afterSetup1[to1] = afterSetup1[wSq];
-          delete afterSetup1[wSq];
-          if (anyBlackCanCaptureWhite(afterSetup1)) continue;
-
-          // Second setup move
-          const whiteSquares2 = Object.keys(afterSetup1).filter(s => afterSetup1[s]?.color === 'w');
-          for (const wSq2 of whiteSquares2) {
-            for (const file2 of FILES) {
-              for (const rank2 of RANKS) {
-                const to2 = file2 + rank2;
-                if (to2 === wSq2) continue;
-                if (afterSetup1[to2]) continue;
-                if (!canMove(afterSetup1[wSq2].type, wSq2, to2, afterSetup1, 'w')) continue;
-
-                const afterSetup2 = { ...afterSetup1 };
-                afterSetup2[to2] = afterSetup2[wSq2];
-                delete afterSetup2[wSq2];
-                if (anyBlackCanCaptureWhite(afterSetup2)) continue;
-
-                // Try capture from afterSetup2
-                const whiteSquares3 = Object.keys(afterSetup2).filter(s => afterSetup2[s]?.color === 'w');
-                for (const wSq3 of whiteSquares3) {
-                  for (const target of targets) {
-                    if (!canMove(afterSetup2[wSq3].type, wSq3, target, afterSetup2, 'w')) continue;
-                    const afterCapture = { ...afterSetup2 };
-                    afterCapture[target] = afterCapture[wSq3];
-                    delete afterCapture[wSq3];
-                    if (!anyBlackCanCaptureWhite(afterCapture)) {
-                      const dist = Math.abs(FILES.indexOf(to1[0]) - FILES.indexOf(wSq[0])) +
-                                   Math.abs(RANKS.indexOf(to1[1]) - RANKS.indexOf(wSq[1]));
-                      if (dist < bestSetup2Dist) {
-                        bestSetup2Dist = dist;
-                        bestSetup2 = { from: wSq, to: to1 };
-                      }
-                      break;
-                    }
-                  }
-                  if (bestSetup2) break;
-                }
-                if (bestSetup2) break;
-              }
-              if (bestSetup2) break;
-            }
-            if (bestSetup2) break;
-          }
-        }
-      }
-    }
-
-    if (bestSetup2) return [bestSetup2];
-
-    return bestSetup ? [bestSetup] : [];
+    return [];
   };
 
   // DEBUG: force inclusion in bundle
