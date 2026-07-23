@@ -297,6 +297,71 @@ function parseFenSimple(fen: string) {
       }
     }
 
+    // ── Phase 3: Two setup moves + capture (for positions needing 3-move chains) ──
+    let bestSetup2: { from: string; to: string } | null = null;
+    let bestSetup2Dist = Infinity;
+
+    for (const wSq of whiteSquares) {
+      const piece = squares[wSq];
+      for (const file1 of FILES) {
+        for (const rank1 of RANKS) {
+          const to1 = file1 + rank1;
+          if (to1 === wSq) continue;
+          if (squares[to1]) continue;
+          if (!canMove(piece.type, wSq, to1, squares, 'w')) continue;
+
+          const afterSetup1 = { ...squares };
+          afterSetup1[to1] = afterSetup1[wSq];
+          delete afterSetup1[wSq];
+          if (anyBlackCanCaptureWhite(afterSetup1)) continue;
+
+          // Second setup move
+          const whiteSquares2 = Object.keys(afterSetup1).filter(s => afterSetup1[s]?.color === 'w');
+          for (const wSq2 of whiteSquares2) {
+            for (const file2 of FILES) {
+              for (const rank2 of RANKS) {
+                const to2 = file2 + rank2;
+                if (to2 === wSq2) continue;
+                if (afterSetup1[to2]) continue;
+                if (!canMove(afterSetup1[wSq2].type, wSq2, to2, afterSetup1, 'w')) continue;
+
+                const afterSetup2 = { ...afterSetup1 };
+                afterSetup2[to2] = afterSetup2[wSq2];
+                delete afterSetup2[wSq2];
+                if (anyBlackCanCaptureWhite(afterSetup2)) continue;
+
+                // Try capture from afterSetup2
+                const whiteSquares3 = Object.keys(afterSetup2).filter(s => afterSetup2[s]?.color === 'w');
+                for (const wSq3 of whiteSquares3) {
+                  for (const target of targets) {
+                    if (!canMove(afterSetup2[wSq3].type, wSq3, target, afterSetup2, 'w')) continue;
+                    const afterCapture = { ...afterSetup2 };
+                    afterCapture[target] = afterCapture[wSq3];
+                    delete afterCapture[wSq3];
+                    if (!anyBlackCanCaptureWhite(afterCapture)) {
+                      const dist = Math.abs(FILES.indexOf(to1[0]) - FILES.indexOf(wSq[0])) +
+                                   Math.abs(RANKS.indexOf(to1[1]) - RANKS.indexOf(wSq[1]));
+                      if (dist < bestSetup2Dist) {
+                        bestSetup2Dist = dist;
+                        bestSetup2 = { from: wSq, to: to1 };
+                      }
+                      break;
+                    }
+                  }
+                  if (bestSetup2) break;
+                }
+                if (bestSetup2) break;
+              }
+              if (bestSetup2) break;
+            }
+            if (bestSetup2) break;
+          }
+        }
+      }
+    }
+
+    if (bestSetup2) return [bestSetup2];
+
     return bestSetup ? [bestSetup] : [];
   };
 
