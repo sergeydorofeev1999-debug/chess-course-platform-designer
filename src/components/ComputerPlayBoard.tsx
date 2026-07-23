@@ -15,11 +15,11 @@ const ITALIAN_LINE = [
 ];
 
 const LEVELS = [
-  { id: 0, elo: 200,  label: 'Начинающий', description: 'Компьютер почти не думает и часто ходит случайно', color: 'bg-[#D4C5B5]', depth: 1, blunder: 80 },
-  { id: 1, elo: 400,  label: 'Любитель',   description: 'Компьютер думает немного, но всё ещё ошибается', color: 'bg-[#8B7355]', depth: 2, blunder: 50 },
-  { id: 2, elo: 650,  label: 'Средний',    description: 'Компьютер играет осторожно, ошибки редки',     color: 'bg-[#C9A84C]', depth: 3, blunder: 25 },
-  { id: 3, elo: 900,  label: 'Опытный',    description: 'Компьютер почти не ошибается',                 color: 'bg-[#6B5B3D]', depth: 4, blunder: 5 },
-  { id: 4, elo: 1200, label: 'Мастер',     description: 'Компьютер играет сильно, никаких слабостей',   color: 'bg-[#4A3F35]', depth: 5, blunder: 0 },
+  { id: 0, elo: 200,  label: 'Начинающий', description: 'Компьютер почти не думает и часто ходит случайно', color: '#D4A84C', depth: 1, blunder: 80 },
+  { id: 1, elo: 400,  label: 'Любитель',   description: 'Компьютер думает немного, но всё ещё ошибается', color: '#C29850', depth: 2, blunder: 50 },
+  { id: 2, elo: 650,  label: 'Средний',    description: 'Компьютер играет осторожно, ошибки редки',     color: '#B07838', depth: 3, blunder: 25 },
+  { id: 3, elo: 900,  label: 'Опытный',    description: 'Компьютер почти не ошибается',                 color: '#8A6040', depth: 4, blunder: 5 },
+  { id: 4, elo: 1200, label: 'Мастер',     description: 'Компьютер играет сильно, никаких слабостей',   color: '#4A2A1A', depth: 5, blunder: 0 },
 ];
 
 const PROMOTION_PIECES = [
@@ -400,9 +400,9 @@ export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete
     const allCompleted = LEVELS.every(l => levelStars[l.id] > 0);
     return (
       <div className="flex flex-col items-center gap-6 w-full px-4 py-6">
-        <div className="px-6 py-3 rounded-xl text-center font-bold text-white bg-[#C9A84C] mb-2 w-full max-w-md">
+        <h3 className="text-[20px] font-bold text-[#2C241B] text-center">
           Выберите уровень сложности
-        </div>
+        </h3>
         <p className="text-[#6B5B3D] text-center max-w-sm px-4">
           Сыграйте с компьютером от начальной позиции. Вы играете белыми.
         </p>
@@ -410,24 +410,35 @@ export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete
           {LEVELS.map((lvl) => {
             const earned = levelStars[lvl.id] || 0;
             const isDone = earned > 0;
+            const circleColor = lvl.color;
+            const borderColor = isDone
+              ? circleColor
+              : (lvl.id === 0 ? '#F5EFE0' : lvl.id === 1 ? '#F2EBD8' : lvl.id === 2 ? '#F0E8DA' : lvl.id === 3 ? '#EBE0D4' : '#E8DCD4');
+            const titleColor  = lvl.id === 0 ? '#A07820' : lvl.id === 1 ? '#906820' : lvl.id === 2 ? '#805820' : lvl.id === 3 ? '#704820' : '#3A1A0A';
+            const descColor   = lvl.id === 0 ? '#B89A60' : lvl.id === 1 ? '#A88A60' : lvl.id === 2 ? '#A08860' : lvl.id === 3 ? '#907860' : '#7A5A4A';
             return (
               <button
                 key={lvl.id}
                 onClick={() => startGame(lvl.id)}
-                className={`flex items-center gap-4 px-5 py-4 rounded-xl border-2 transition text-left ${
-                  isDone
-                    ? 'border-[#C9A84C] bg-green-50 hover:bg-[#F5EFE6]'
-                    : 'border-[#D4C5B5] bg-[#F9F8F6] hover:bg-slate-50 hover:border-slate-300'
-                }`}
+                className="flex items-center gap-3.5 px-4 py-4 rounded-2xl bg-white transition hover:-translate-y-px text-left"
+                style={{ border: `2px solid ${borderColor}` }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = circleColor; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = borderColor; }}
               >
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${lvl.color}`}>
+                <div
+                  className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0"
+                  style={{
+                    backgroundColor: circleColor,
+                    boxShadow: `0 2px 8px ${circleColor}4D`,
+                  }}
+                >
                   {isDone ? <Trophy size={20} /> : <StarPng filled={false} size={20} />}
                 </div>
                 <div className="flex-1">
-                  <div className="font-bold text-[#3E3228]">{lvl.elo} Elo — {lvl.label}</div>
-                  <div className="text-sm text-slate-500">{lvl.description}</div>
+                  <div className="font-bold text-base" style={{ color: titleColor }}>{lvl.elo} Elo — {lvl.label}</div>
+                  <div className="text-[13px]" style={{ color: descColor }}>{lvl.description}</div>
                 </div>
-                <ChevronRight size={20} className="text-slate-400" />
+                <ChevronRight size={20} style={{ color: circleColor }} className="flex-shrink-0" />
               </button>
             );
           })}
