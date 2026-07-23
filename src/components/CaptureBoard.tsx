@@ -859,10 +859,9 @@ function InlineChessBoard({
             <PieceImg type={dragState.type} color={dragState.color as 'w' | 'b'} />
           </div>
         )}
-        {/* Hint arrows SVG */}
-        {hintArrows.length > 0 && (
-          <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
-            {hintArrows.map((arrow, i) => {
+        {/* Hint arrows SVG - always render container */}
+        <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize, opacity: hintArrows.length > 0 ? 1 : 0 }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
+          {hintArrows.map((arrow, i) => {
               const fromF = FILES.indexOf(arrow.from[0]);
               const fromR = RANKS.indexOf(arrow.from[1]);
               const toF = FILES.indexOf(arrow.to[0]);
@@ -901,7 +900,6 @@ function InlineChessBoard({
               );
             })}
           </svg>
-        )}
         {promotionPending && onPromotion && (
           <div className="absolute z-50 pointer-events-auto" style={{
             left: `${(FILES.indexOf(promotionPending.to[0])) * sqSize}px`,
