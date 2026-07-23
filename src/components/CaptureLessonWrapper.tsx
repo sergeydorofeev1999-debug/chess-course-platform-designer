@@ -277,120 +277,7 @@ function parseFenSimple(fen: string) {
     const initialSquares = parseFenBoard(fen);
     const allTargets = level.stars || level.targets || [];
 
-    // ── CAPTURE MODE: targets are black pieces (Lesson 7 style)
-    const blackTargets = allTargets.filter((t: string) => initialSquares[t]?.color === 'b');
-    if (blackTargets.length > 0) {
-      const queue: { squares: Record<string, any>; depth: number; firstMove: { from: string; to: string } | null }[] = [];
-      queue.push({ squares: initialSquares, depth: 0, firstMove: null });
-
-      const visited = new Set<string>();
-      visited.add(JSON.stringify(initialSquares));
-
-      while (queue.length > 0) {
-        const state = queue.shift()!;
-
-        const whiteSquares = Object.keys(state.squares).filter(s => state.squares[s]?.color === 'w');
-        for (const wSq of whiteSquares) {
-          const piece = state.squares[wSq];
-          for (const target of blackTargets) {
-            if (!canMove(piece.type, wSq, target, state.squares, 'w')) continue;
-
-            const nextSquares = { ...state.squares };
-            nextSquares[target] = nextSquares[wSq];
-            delete nextSquares[wSq];
-
-            if (!anyBlackCanCaptureWhite(nextSquares)) {
-              const moveToShow = state.firstMove || { from: wSq, to: target };
-              return [moveToShow];
-            }
-          }
-        }
-
-        if (state.depth < 3) {
-          for (const wSq of whiteSquares) {
-            const piece = state.squares[wSq];
-            for (const file of FILES) {
-              for (const rank of RANKS) {
-                const to = file + rank;
-                if (to === wSq) continue;
-                if (state.squares[to]) continue;
-                if (!canMove(piece.type, wSq, to, state.squares, 'w')) continue;
-
-                const nextSquares = { ...state.squares };
-                nextSquares[to] = nextSquares[wSq];
-                delete nextSquares[wSq];
-
-                if (anyBlackCanCaptureWhite(nextSquares)) continue;
-
-                const key = JSON.stringify(nextSquares);
-                if (visited.has(key)) continue;
-                visited.add(key);
-
-                const firstMove = state.firstMove || { from: wSq, to };
-                queue.push({ squares: nextSquares, depth: state.depth + 1, firstMove });
-              }
-            }
-          }
-        }
-      }
-      return [];
-    }
-
-    // ── CHECK MODE: requireCheck = true (Lesson 9 style — give check to black king)
-    if (level.requireCheck) {
-      // Find black king
-      let blackKingSq = '';
-      for (const s in initialSquares) {
-        if (initialSquares[s]?.type === 'k' && initialSquares[s]?.color === 'b') {
-          blackKingSq = s;
-          break;
-        }
-      }
-      if (blackKingSq) {
-        const whiteSquares = Object.keys(initialSquares).filter(s => initialSquares[s]?.color === 'w');
-        for (const wSq of whiteSquares) {
-          const piece = initialSquares[wSq];
-          // Try all empty squares as destinations
-          for (const file of FILES) {
-            for (const rank of RANKS) {
-              const target = file + rank;
-              if (initialSquares[target]?.color === 'w') continue; // can't move to own piece
-              if (!canMove(piece.type, wSq, target, initialSquares, 'w')) continue;
-              if (level.forbiddenSquares?.includes(target)) continue;
-
-              // Simulate move
-              const nextSquares = { ...initialSquares };
-              nextSquares[target] = nextSquares[wSq];
-              delete nextSquares[wSq];
-
-              // Does ANY white piece attack the black king after this move?
-              let givesCheck = false;
-              for (const s in nextSquares) {
-                const p = nextSquares[s];
-                if (p.color !== 'w') continue;
-                if (attacksSquare(p.type, s, blackKingSq, nextSquares, 'w')) {
-                  givesCheck = true;
-                  break;
-                }
-              }
-              if (givesCheck) {
-                // Safety: reject if moved piece is immediately capturable and undefended
-                let moveIsSafe = true;
-                if (canEnemyCapture(nextSquares, target, 'b') && !isDefended(nextSquares, target, 'w')) {
-                  moveIsSafe = false;
-                }
-                if (moveIsSafe) {
-                  return [{ from: wSq, to: target }];
-                }
-              }
-            }
-          }
-        }
-      }
-      return [];
-    }
-
-    // ── ESCAPE CHECK MODE: white king is in check — find best defense
+    // ── ESCAPE CHECK MODE: white king is in check — find best defense (Lesson 10 priority)
     if (level.requireEscapeCheck || isKingInCheck(initialSquares, 'w')) {
       // Find white king
       let whiteKingSq = '';
@@ -474,6 +361,60 @@ function parseFenSimple(fen: string) {
       validDefenses.sort((a, b) => b.score - a.score);
       if (validDefenses.length > 0) {
         return [{ from: validDefenses[0].from, to: validDefenses[0].to }];
+      }
+      return [];
+    }
+
+    // ── CHECK MODE: requireCheck = true (Lesson 9 style — give check to black king)
+    if (level.requireCheck) {
+      // Find black king
+      let blackKingSq = '';
+      for (const s in initialSquares) {
+        if (initialSquares[s]?.type === 'k' && initialSquares[s]?.color === 'b') {
+          blackKingSq = s;
+          break;
+        }
+      }
+      if (blackKingSq) {
+        const whiteSquares = Object.keys(initialSquares).filter(s => initialSquares[s]?.color === 'w');
+        for (const wSq of whiteSquares) {
+          const piece = initialSquares[wSq];
+          // Try all empty squares as destinations
+          for (const file of FILES) {
+            for (const rank of RANKS) {
+              const target = file + rank;
+              if (initialSquares[target]?.color === 'w') continue; // can't move to own piece
+              if (!canMove(piece.type, wSq, target, initialSquares, 'w')) continue;
+              if (level.forbiddenSquares?.includes(target)) continue;
+
+              // Simulate move
+              const nextSquares = { ...initialSquares };
+              nextSquares[target] = nextSquares[wSq];
+              delete nextSquares[wSq];
+
+              // Does ANY white piece attack the black king after this move?
+              let givesCheck = false;
+              for (const s in nextSquares) {
+                const p = nextSquares[s];
+                if (p.color !== 'w') continue;
+                if (attacksSquare(p.type, s, blackKingSq, nextSquares, 'w')) {
+                  givesCheck = true;
+                  break;
+                }
+              }
+              if (givesCheck) {
+                // Safety: reject if moved piece is immediately capturable and undefended
+                let moveIsSafe = true;
+                if (canEnemyCapture(nextSquares, target, 'b') && !isDefended(nextSquares, target, 'w')) {
+                  moveIsSafe = false;
+                }
+                if (moveIsSafe) {
+                  return [{ from: wSq, to: target }];
+                }
+              }
+            }
+          }
+        }
       }
       return [];
     }
