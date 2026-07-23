@@ -600,47 +600,88 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
   const turnText = game ? (game.turn() === 'w' ? 'Ваш ход (белые)' : 'Ход чёрных...') : '';
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
-      {/* LEFT COLUMN: exercise pills (desktop) */}
-      <div className="w-full lg:w-[140px] flex-shrink-0 space-y-2">
-        <div className="hidden lg:flex flex-col rounded overflow-hidden border border-gray-200">
+    <div className="flex flex-col lg:flex-row gap-4 w-full">
+      {/* LEFT COLUMN — Desktop sidebar */}
+      <div className="hidden lg:flex lg:w-[180px] flex-shrink-0 flex-col gap-3">
+        {/* Avatar + Speech bubble */}
+        <div className="flex items-start gap-2">
+          <div className="w-10 h-10 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
+            <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
+          </div>
+          <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2.5 shadow-sm border border-[rgba(92,64,51,0.06)]">
+            <p className="text-sm text-[var(--text-primary)] leading-snug">
+              Ход белых. Используйте одну ладью для ограничения пространства, вторую — для шаха и мата.
+            </p>
+          </div>
+        </div>
+
+        {/* Demo button */}
+        {currentExercise === 1 && !demoMode && !isComplete && (
+          <button
+            onClick={() => { reset(); setDemoMode(true); setDemoStep(0); }}
+            className="flex items-center justify-center gap-1.5 h-10 px-3 rounded-lg border border-[#5A4A3A] text-[#5A4A3A] hover:bg-[#5A4A3A]/5 text-xs font-medium transition-all"
+          >
+            <Eye size={14} /> Посмотреть как ставить мат
+          </button>
+        )}
+
+        {/* Exercise pills */}
+        <div className="flex flex-col gap-1">
           {EXERCISES.map((ex) => {
             const earnedStars = exerciseStars[ex.id] || 0;
             const isCurrent = ex.id === currentExercise;
             const isDone = earnedStars > 0;
+            const isLocked = !isCurrent && !isDone;
             return (
               <button
                 key={ex.id}
-                onClick={() => switchExercise(ex.id)}
-                className={`flex items-center justify-center px-2 py-1.5 transition ${
-                  isCurrent
-                    ? 'bg-blue-500 text-white'
-                    : isDone
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-gray-200 text-gray-500'
-                } cursor-pointer hover:brightness-110`}
+                onClick={() => { if (!isLocked) switchExercise(ex.id); }}
+                className={`h-9 px-3 rounded-lg text-sm font-bold transition-all ${
+                  isCurrent ? 'bg-[#5A4A3A] text-white' :
+                  isDone ? 'bg-[#C9A84C] text-white' :
+                  'bg-[#F0EDE8] text-[var(--text-tertiary)]'
+                } ${isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:brightness-105'}`}
               >
-                <div className="flex gap-0.5">
-                  {[1, 2, 3].map((s) => (
-                    <StarPng key={s} filled={earnedStars > 0 && s <= earnedStars} size={14} />
-                  ))}
-                </div>
-                <span className="ml-2 text-xs font-medium">{ex.id}</span>
+                {ex.id}
               </button>
             );
           })}
         </div>
 
-        <button
-          onClick={reset}
-          className="hidden lg:flex items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition w-full justify-center"
-        >
-          <RotateCcw size={14} /> Заново
-        </button>
+        {/* Action buttons */}
+        <div className="flex flex-col gap-2">
+          {currentExercise === 1 && !demoMode && !isComplete && (
+            <button
+              onClick={() => { reset(); setDemoMode(true); setDemoStep(0); }}
+              className="flex items-center justify-center gap-1.5 h-10 px-3 rounded-lg border border-[#5A4A3A] text-[#5A4A3A] hover:bg-[#5A4A3A]/5 text-xs font-medium transition-all"
+            >
+              <Eye size={14} /> Посмотреть как ставить мат
+            </button>
+          )}
+          <button
+            onClick={reset}
+            className="flex items-center justify-center gap-1.5 h-10 px-3 rounded-lg border border-[#5A4A3A] text-[#5A4A3A] hover:bg-[#5A4A3A]/5 text-xs font-medium transition-all"
+          >
+            <RotateCcw size={14} /> Заново
+          </button>
+        </div>
       </div>
 
-      {/* CENTER COLUMN: board + stats */}
+      {/* CENTER — Board */}
       <div className="flex-1 flex flex-col items-center gap-3">
+        {/* Mobile avatar + speech bubble */}
+        <div className="lg:hidden w-full flex flex-col gap-2">
+          <div className="flex items-start gap-3">
+            <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
+              <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
+            </div>
+            <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
+              <p className="text-sm text-[var(--text-primary)] leading-snug line-clamp-3">
+                Ход белых. Используйте одну ладью для ограничения пространства, вторую — для шаха и мата.
+              </p>
+            </div>
+          </div>
+        </div>
 
         {/* Timer for exercise 5 */}
         {currentEx.timeLimit && !isComplete && !isStalemate && (
@@ -651,25 +692,17 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
           </div>
         )}
 
-        {currentExercise === 1 && !demoMode && !isComplete && (
-          <button
-            onClick={() => { reset(); setDemoMode(true); setDemoStep(0); }}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors"
-          >
-            <Eye className="w-4 h-4" />
-            Посмотреть как ставить мат
-          </button>
-        )}
+        {/* Turn text */}
+        <div className={`text-sm font-bold ${game && game.turn() === 'w' ? 'text-[#5A4A3A]' : 'text-[var(--text-tertiary)]'}`}>
+          {demoMode ? 'Демонстрация...' : turnText}
+        </div>
 
+        {/* Demo comment */}
         {demoComment && (
-          <div className="px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-800 text-center max-w-sm">
+          <div className="px-4 py-2 bg-[#5A4A3A]/10 border border-[#5A4A3A]/20 rounded-lg text-sm text-[#5A4A3A] text-center max-w-sm">
             {demoComment}
           </div>
         )}
-
-        <div className={`text-sm font-bold ${game && game.turn() === 'w' ? 'text-blue-600' : 'text-slate-400'}`}>
-          {demoMode ? 'Демонстрация...' : turnText}
-        </div>
 
         {/* Stalemate / fail banner */}
         {isStalemate && (
@@ -748,12 +781,12 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
                     {isValidMove && !pieceObj && (
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
                         <div
-                          style={{ 
-                            width: Math.round(sqSize * 0.3), 
-                            height: Math.round(sqSize * 0.3), 
-                            backgroundColor: 'var(--square-valid)', 
-                            borderRadius: '50%', 
-                            opacity: 0.85, 
+                          style={{
+                            width: Math.round(sqSize * 0.3),
+                            height: Math.round(sqSize * 0.3),
+                            backgroundColor: 'var(--square-valid)',
+                            borderRadius: '50%',
+                            opacity: 0.85,
                           }}
                         />
                       </div>
@@ -761,12 +794,12 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
                     {isValidMove && pieceObj && (
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 50 }}>
                         <div
-                          style={{ 
-                            width: sqSize, 
-                            height: sqSize, 
-                            borderRadius: '50%', 
-                            border: '4px solid var(--square-valid)', 
-                            boxSizing: 'border-box', 
+                          style={{
+                            width: sqSize,
+                            height: sqSize,
+                            borderRadius: '50%',
+                            border: '4px solid var(--square-valid)',
+                            boxSizing: 'border-box',
                           }}
                         />
                       </div>
@@ -804,32 +837,43 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
             const earnedStars = exerciseStars[ex.id] || 0;
             const isCurrent = ex.id === currentExercise;
             const isDone = earnedStars > 0;
+            const isLocked = !isCurrent && !isDone;
             return (
               <button
                 key={ex.id}
-                onClick={() => switchExercise(ex.id)}
-                className={`flex items-center gap-0.5 px-1.5 py-1 rounded text-xs transition ${
-                  isCurrent ? 'bg-blue-500 text-white' : isDone ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'
-                } cursor-pointer`}
+                onClick={() => { if (!isLocked) switchExercise(ex.id); }}
+                className={`flex-shrink-0 h-9 px-3 rounded-lg text-sm font-bold transition-all ${
+                  isCurrent ? 'bg-[#5A4A3A] text-white' :
+                  isDone ? 'bg-[#C9A84C] text-white' :
+                  'bg-[#F0EDE8] text-[var(--text-tertiary)]'
+                } ${isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
               >
-                <div className="flex gap-0.5">
-                  {[1, 2, 3].map((s) => (
-                    <StarPng key={s} filled={earnedStars > 0 && s <= earnedStars} size={12} />
-                  ))}
-                </div>
+                {ex.id}
               </button>
             );
           })}
         </div>
 
-        <button
-          onClick={reset}
-          className="flex lg:hidden items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition"
-        >
-          <RotateCcw size={14} /> Заново
-        </button>
+        {/* Mobile buttons */}
+        <div className="flex lg:hidden gap-2 w-full">
+          {currentExercise === 1 && !demoMode && !isComplete && (
+            <button
+              onClick={() => { reset(); setDemoMode(true); setDemoStep(0); }}
+              className="flex-1 h-10 flex items-center justify-center gap-1.5 rounded-lg border border-[#5A4A3A] text-[#5A4A3A] hover:bg-[#5A4A3A]/5 text-xs font-medium transition-all"
+            >
+              <Eye size={14} /> Посмотреть
+            </button>
+          )}
+          <button
+            onClick={reset}
+            className="flex-1 h-10 flex items-center justify-center gap-1.5 rounded-lg border border-[#5A4A3A] text-[#5A4A3A] hover:bg-[#5A4A3A]/5 text-xs font-medium transition-all"
+          >
+            <RotateCcw size={14} /> Заново
+          </button>
+        </div>
+
         {/* Info */}
-        <div className="text-center text-sm text-slate-600 max-w-sm px-4">
+        <div className="text-center text-sm text-[var(--text-secondary)] max-w-sm px-4">
           <p>Используйте одну ладью для ограничения пространства, вторую — для шаха и мата.</p>
         </div>
       </div>
