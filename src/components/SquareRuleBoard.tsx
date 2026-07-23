@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
-import { RotateCcw, Eye, Trophy } from 'lucide-react';
+import { RotateCcw, Eye, Trophy, ChevronRight } from 'lucide-react';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const RANKS = ['8','7','6','5','4','3','2','1'];
@@ -1516,110 +1516,154 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
           )}
         </div>
 
-        {/* Mobile bottom toolbar — Heirloom style */}
-        <div className="lg:hidden w-full flex gap-2">
-          {exercise === 1 && !demoMode && !isComplete && !isFail && (
-            <>
+        {/* Mobile bottom toolbar — Lesson 25 style */}
+        <div className="lg:hidden w-full">
+          {exercise === 1 && !demoMode && !isComplete && !isFail ? (
+            <div className="flex flex-col gap-3 w-full max-w-sm">
+              {/* Показать квадрат */}
               <button
                 onClick={handleShowSquare}
-                className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all ${showSquare ? 'border-[rgba(92,64,51,0.25)] bg-[rgba(92,64,51,0.08)] text-[#5A4A3A]' : 'border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}
+                className="flex items-center gap-3.5 px-4 py-4 rounded-2xl bg-white text-left border-2 transition-all hover:-translate-y-px"
+                style={{ borderColor: '#E8D5A8' }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#D4A84C'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#E8D5A8'; }}
               >
-                <Eye size={14} /> {showSquare ? 'Скрыть квадрат' : 'Квадрат'}
+                <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0" style={{ backgroundColor: '#D4A84C', boxShadow: '0 2px 8px rgba(212,168,76,0.3)' }}>
+                  <Eye size={20} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-base" style={{ color: '#A07820' }}>Показать квадрат</div>
+                  <div className="text-[13px]" style={{ color: '#B89A60' }}>Визуально увидеть квадрат пешки</div>
+                </div>
+                <ChevronRight size={20} style={{ color: '#D4A84C' }} />
               </button>
+
+              {/* Сыграть a5 */}
               <button
                 onClick={startDemo}
+                className="flex items-center gap-3.5 px-4 py-4 rounded-2xl bg-white text-left border-2 transition-all hover:-translate-y-px"
+                style={{ borderColor: '#D4B898' }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#B07838'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#D4B898'; }}
+              >
+                <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0" style={{ backgroundColor: '#B07838', boxShadow: '0 2px 8px rgba(176,120,56,0.3)' }}>
+                  <Eye size={20} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-base" style={{ color: '#805820' }}>Сыграть a5</div>
+                  <div className="text-[13px]" style={{ color: '#A08860' }}>Посмотреть демо-прохождение</div>
+                </div>
+                <ChevronRight size={20} style={{ color: '#B07838' }} />
+              </button>
+
+              {/* Заново */}
+              <button
+                onClick={reset}
+                className="flex items-center gap-3.5 px-4 py-4 rounded-2xl bg-white text-left border-2 transition-all hover:-translate-y-px"
+                style={{ borderColor: '#7A5A4A' }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#4A2A1A'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#7A5A4A'; }}
+              >
+                <div className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0" style={{ backgroundColor: '#4A2A1A', boxShadow: '0 2px 8px rgba(74,42,26,0.3)' }}>
+                  <RotateCcw size={20} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-bold text-base" style={{ color: '#3A1A0A' }}>Заново</div>
+                  <div className="text-[13px]" style={{ color: '#7A5A4A' }}>Начать упражнение заново</div>
+                </div>
+                <ChevronRight size={20} style={{ color: '#4A2A1A' }} />
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              {exercise === 2 && !ex2Mode && !isComplete && !isFail && (
+                <>
+                  <button
+                    onClick={startEx2KingChase}
+                    className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
+                  >
+                    Король догонит
+                  </button>
+                  <button
+                    onClick={startEx2PawnRun}
+                    className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
+                  >
+                    Пешка пройдёт
+                  </button>
+                </>
+              )}
+              {exercise === 3 && !ex3Mode && !isComplete && !isFail && (
+                <>
+                  <button
+                    onClick={startEx3KingChase}
+                    className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
+                  >
+                    Король догонит
+                  </button>
+                  <button
+                    onClick={startEx3PawnRun}
+                    className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
+                  >
+                    Пешка пройдёт
+                  </button>
+                </>
+              )}
+              {exercise === 4 && !ex4Mode && !isComplete && !isFail && (
+                <>
+                  <button
+                    onClick={startEx4KingChase}
+                    className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
+                  >
+                    Король догонит
+                  </button>
+                  <button
+                    onClick={startEx4PawnRun}
+                    className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
+                  >
+                    Пешка пройдёт
+                  </button>
+                </>
+              )}
+              {exercise === 5 && !ex5Mode && !isComplete && !isFail && (
+                <>
+                  <button
+                    onClick={startEx5KingChase}
+                    className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
+                  >
+                    Король догонит
+                  </button>
+                  <button
+                    onClick={startEx5PawnRun}
+                    className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
+                  >
+                    Пешка пройдёт
+                  </button>
+                </>
+              )}
+              {exercise === 6 && !ex6Mode && !isComplete && !isFail && (
+                <>
+                  <button
+                    onClick={startEx6KingChase}
+                    className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
+                  >
+                    Король догонит
+                  </button>
+                  <button
+                    onClick={startEx6PawnRun}
+                    className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
+                  >
+                    Пешка пройдёт
+                  </button>
+                </>
+              )}
+              <button
+                onClick={reset}
                 className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
               >
-                <Eye size={14} /> Сыграть a5
+                <RotateCcw size={14} /> Заново
               </button>
-            </>
+            </div>
           )}
-          {exercise === 2 && !ex2Mode && !isComplete && !isFail && (
-            <>
-              <button
-                onClick={startEx2KingChase}
-                className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
-              >
-                Король догонит
-              </button>
-              <button
-                onClick={startEx2PawnRun}
-                className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
-              >
-                Пешка пройдёт
-              </button>
-            </>
-          )}
-          {exercise === 3 && !ex3Mode && !isComplete && !isFail && (
-            <>
-              <button
-                onClick={startEx3KingChase}
-                className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
-              >
-                Король догонит
-              </button>
-              <button
-                onClick={startEx3PawnRun}
-                className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
-              >
-                Пешка пройдёт
-              </button>
-            </>
-          )}
-          {exercise === 4 && !ex4Mode && !isComplete && !isFail && (
-            <>
-              <button
-                onClick={startEx4KingChase}
-                className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
-              >
-                Король догонит
-              </button>
-              <button
-                onClick={startEx4PawnRun}
-                className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
-              >
-                Пешка пройдёт
-              </button>
-            </>
-          )}
-          {exercise === 5 && !ex5Mode && !isComplete && !isFail && (
-            <>
-              <button
-                onClick={startEx5KingChase}
-                className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
-              >
-                Король догонит
-              </button>
-              <button
-                onClick={startEx5PawnRun}
-                className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
-              >
-                Пешка пройдёт
-              </button>
-            </>
-          )}
-          {exercise === 6 && !ex6Mode && !isComplete && !isFail && (
-            <>
-              <button
-                onClick={startEx6KingChase}
-                className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
-              >
-                Король догонит
-              </button>
-              <button
-                onClick={startEx6PawnRun}
-                className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
-              >
-                Пешка пройдёт
-              </button>
-            </>
-          )}
-          <button
-            onClick={reset}
-            className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
-          >
-            <RotateCcw size={14} /> Заново
-          </button>
         </div>
 
         {/* Mobile exercise pills */}
@@ -1646,13 +1690,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
           })}
         </div>
 
-        <div className="text-center text-sm text-slate-600 max-w-sm px-4">
-          {exercise === 6 ? (
-            <p>Если в позиции присутствуют «помехи», другие пешки, то правило квадрата не работает в полной мере. В данном примере чёрная пешка f6 в какой-то момент заблокирует передвижение собственного короля.</p>
-          ) : (
-            <p>Квадрат от пешки до последней горизонтали. Король внутри — догонит, снаружи — пешка проходит.</p>
-          )}
-        </div>
+
       </div>
     </div>
   );
