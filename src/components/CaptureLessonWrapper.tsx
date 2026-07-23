@@ -206,30 +206,27 @@ function parseFenSimple(fen: string) {
   }
 
   const computeHintArrow = () => {
-    // HINT_ALGORITHM_V3_SAFE_CAPTURE_2026 - DEPLOYED
+    // HINT_ALGORITHM_V4_SETUP_CAPTURE_2026
     const level = levels[currentLevel];
     if (!level) return [];
     const fen = currentPosition || level.initialFen || '';
     if (!fen) return [];
 
     const squares = parseFenBoard(fen);
-    // Only target squares that still have a black piece
     const targets = (level.stars || level.targets || []).filter((t: string) => squares[t]?.color === 'b');
     if (targets.length === 0) return [];
 
     const whiteSquares = Object.keys(squares).filter(s => squares[s]?.color === 'w');
 
-    let safeBest: { from: string; to: string } | null = null;
-    let safeBestDist = Infinity;
-    let fallbackBest: { from: string; to: string } | null = null;
-    let fallbackBestDist = Infinity;
+    // ── Phase 1: Direct safe capture ──
+    let bestCapture: { from: string; to: string } | null = null;
+    let bestCaptureDist = Infinity;
 
     for (const wSq of whiteSquares) {
       const piece = squares[wSq];
       for (const target of targets) {
         if (!canMove(piece.type, wSq, target, squares, 'w')) continue;
 
-        // Simulate capture
         const next = { ...squares };
         next[target] = next[wSq];
         delete next[wSq];
@@ -238,21 +235,63 @@ function parseFenSimple(fen: string) {
         const dist = Math.abs(FILES.indexOf(target[0]) - FILES.indexOf(wSq[0])) +
                      Math.abs(RANKS.indexOf(target[1]) - RANKS.indexOf(wSq[1]));
 
-        if (!unsafe) {
-          if (dist < safeBestDist) {
-            safeBestDist = dist;
-            safeBest = { from: wSq, to: target };
-          }
-        } else {
-          if (dist < fallbackBestDist) {
-            fallbackBestDist = dist;
-            fallbackBest = { from: wSq, to: target };
+        if (!unsafe && dist < bestCaptureDist) {
+          bestCaptureDist = dist;
+          bestCapture = { from: wSq, to: target };
+        }
+      }
+    }
+
+    if (bestCapture) return [bestCapture];
+
+    // ── Phase 2: Setup move — move to empty square that enables future safe capture ──
+    let bestSetup: { from: string; to: string } | null = null;
+    let bestSetupDist = Infinity;
+
+    for (const wSq of whiteSquares) {
+      const piece = squares[wSq];
+      for (const file of FILES) {
+        for (const rank of RANKS) {
+          const to = file + rank;
+          if (to === wSq) continue;
+          if (squares[to]) continue; // must be empty
+          if (!canMove(piece.type, wSq, to, squares, 'w')) continue;
+
+          // Simulate setup move
+          const afterSetup = { ...squares };
+          afterSetup[to] = afterSetup[wSq];
+          delete afterSetup[wSq];
+
+          // Setup move must be safe
+          if (anyBlackCanCaptureWhite(afterSetup)) continue;
+
+          // Check if this setup enables any safe capture on next turn
+          const newWhiteSquares = Object.keys(afterSetup).filter(s => afterSetup[s]?.color === 'w');
+          for (const newWSq of newWhiteSquares) {
+            for (const target of targets) {
+              if (!canMove(afterSetup[newWSq].type, newWSq, target, afterSetup, 'w')) continue;
+
+              const afterCapture = { ...afterSetup };
+              afterCapture[target] = afterCapture[newWSq];
+              delete afterCapture[newWSq];
+
+              if (!anyBlackCanCaptureWhite(afterCapture)) {
+                const dist = Math.abs(FILES.indexOf(to[0]) - FILES.indexOf(wSq[0])) +
+                             Math.abs(RANKS.indexOf(to[1]) - RANKS.indexOf(wSq[1]));
+                if (dist < bestSetupDist) {
+                  bestSetupDist = dist;
+                  bestSetup = { from: wSq, to };
+                }
+                break;
+              }
+            }
+            if (bestSetup) break;
           }
         }
       }
     }
 
-    return safeBest ? [safeBest] : (fallbackBest ? [fallbackBest] : []);
+    return bestSetup ? [bestSetup] : [];
   };
 
   const level = levels[currentLevel];
