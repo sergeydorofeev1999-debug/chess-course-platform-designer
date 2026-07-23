@@ -1088,17 +1088,19 @@ export default function CaptureBoard({
     movesRef.current = moves;
   }, [moves]);
 
-  // Load progress
+  // Load progress — only restore saved level when NOT controlled externally
   useEffect(() => {
     try {
       const saved = localStorage.getItem(savedKey);
       if (saved) {
         const data = JSON.parse(saved);
         if (data.levelStars) setLevelStars(data.levelStars);
-        if (typeof data.currentLevel === 'number') setCurrentLevel(data.currentLevel);
+        if (typeof data.currentLevel === 'number' && !(embedded && externalCurrentLevel !== undefined)) {
+          setCurrentLevel(data.currentLevel);
+        }
       }
     } catch {}
-  }, [savedKey]);
+  }, [savedKey, embedded, externalCurrentLevel]);
 
   // Reset on level change
   useEffect(() => {

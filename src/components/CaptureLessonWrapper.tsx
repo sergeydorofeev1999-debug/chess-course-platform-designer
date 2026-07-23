@@ -4,6 +4,9 @@ import { useState, useCallback, useEffect } from 'react';
 import { RotateCcw, Lightbulb } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
+const FILES = ['a','b','c','d','e','f','g','h'];
+const RANKS = ['8','7','6','5','4','3','2','1'];
+
 const CaptureBoard = dynamic(() => import('./CaptureBoard'), { ssr: false });
 
 function MassiveStar({ filled }: { filled: boolean }) {
@@ -42,30 +45,6 @@ export default function CaptureLessonWrapper({
   });
 
   const savedKey = `lesson_capture_${lesson.id}`;
-
-// Simple FEN parse (placement only)
-function parseFenSimple(fen: string) {
-  const squares: Record<string, { type: string; color: 'w' | 'b' }> = {};
-  const parts = fen.split(' ');
-  const placement = parts[0];
-  const rows = placement.split('/');
-  const files = ['a','b','c','d','e','f','g','h'];
-  const ranks = ['8','7','6','5','4','3','2','1'];
-  for (let ri = 0; ri < 8; ri++) {
-    let fi = 0;
-    for (const ch of rows[ri]) {
-      if (ch >= '1' && ch <= '8') {
-        fi += parseInt(ch);
-      } else {
-        const color = ch === ch.toUpperCase() ? 'w' : 'b';
-        const type = ch.toLowerCase();
-        squares[`${files[fi]}${ranks[ri]}`] = { type, color };
-        fi++;
-      }
-    }
-  }
-  return squares;
-}
 
   // Load progress
   useEffect(() => {
@@ -113,61 +92,186 @@ function parseFenSimple(fen: string) {
     setCurrentPosition(levels[idx]?.initialFen || '');
   };
 
-  // Hint: from current position, find arrow to nearest remaining target
-  const computeHintArrow = () => {
-    const level = levels[currentLevel];
-    if (!level) return [];
-    
-    const fen = currentPosition || level.initialFen || '';
-    if (!fen) return [];
-    
-    const targets = level.stars || level.targets || [];
-    if (targets.length === 0) return [];
-
-    const squares = parseFenSimple(fen);
-    const files = ['a','b','c','d','e','f','g','h'];
-    const ranks = ['8','7','6','5','4','3','2','1'];
-
-    for (const target of targets) {
-      for (const sq of Object.keys(squares)) {
-        const piece = squares[sq];
-        if (piece.color !== 'w') continue;
-        const pf = files.indexOf(sq[0]);
-        const pr = ranks.indexOf(sq[1]);
-        const tf = files.indexOf(target[0]);
-        const tr = ranks.indexOf(target[1]);
-        const df = Math.abs(tf - pf);
-        const dr = Math.abs(tr - pr);
-        let valid = false;
-        switch (piece.type) {
-          case 'r':
-            if (pf === tf || pr === tr) valid = true;
-            break;
-          case 'b':
-            if (df === dr) valid = true;
-            break;
-          case 'q':
-            if (pf === tf || pr === tr || df === dr) valid = true;
-            break;
-          case 'n':
-            if ((df === 2 && dr === 1) || (df === 1 && dr === 2)) valid = true;
-            break;
-          case 'k':
-            if (df <= 1 && dr <= 1) valid = true;
-            break;
-          case 'p': {
-            const forwardDir = -1;
-            if (tf === pf && tr === pr + forwardDir) valid = true;
-            if (Math.abs(tf - pf) === 1 && tr === pr + forwardDir) valid = true;
-            break;
-          }
-        }
-        if (valid) {
-          return [{ from: sq, to: target }];
+  // ====== Chess helpers for safe-capture hint algorithm ======
+  function parseFenBoard(fen: string) {
+    const squares: Record<string, { type: string; color: 'w' | 'b' }> = {};
+    const parts = fen.split(' ');
+    const placement = parts[0];
+    const rows = placement.split('/');
+    for (let ri = 0; ri < 8; ri++) {
+      let fi = 0;
+      for (const ch of rows[ri]) {
+        if (ch >= '1' && ch <= '8') {
+          fi += parseInt(ch);
+        } else {
+          const color = ch === ch.toUpperCase() ? 'w' : 'b';
+          const type = ch.toLowerCase();
+          squares[`${FILES[fi]}${RANKS[ri]}`] = { type, color };
+          fi++;
         }
       }
     }
-    return [];
+    return squares;
+  }
+
+  function isValidMoveSimple(
+    pieceType: string,
+    from: string,
+    to: string,
+    squares: Record<string, { type: string; color: 'w' | 'b' }>,
+    movingColor: 'w' | 'b'
+  ) {
+    if (squares[from]?.color !== movingColor) return false;
+    if (squares[to]?.color === movingColor) return false;
+    if (from === to) return false;
+    const ff = FILES.indexOf(from[0]);
+    const tf = FILES.indexOf(to[0]);
+    const fr = RANKS.indexOf(from[1]);
+    const tr = RANKS.indexOf(to[1]);
+    const df = tf - ff;
+    const dr = tr - fr;
+    const adf = Math.abs(df);
+    const adr = Math.abs(dr);
+
+    switch (pieceType) {
+      case 'r': {
+        if (ff !== tf && fr !== tr) return false;
+        if (ff === tf) {
+          const min = Math.min(fr, tr);
+          const max = Math.max(fr, tr);
+          for (let r = min + 1; r < max; r++) {
+            if (squares[`${FILES[ff]}${RANKS[r]}`]) return false;
+          }
+        } else {
+          const min = Math.min(ff, tf);
+          const max = Math.max(ff, tf);
+          for (let f = min + 1; f < max; f++) {
+            if (squares[`${FILES[f]}${RANKS[fr]}`]) return false;
+          }
+        }
+        return true;
+      }
+      case 'b': {
+        if (adf !== adr) return false;
+        const stepF = df > 0 ? 1 : -1;
+        const stepR = dr > 0 ? 1 : -1;
+        for (let i = 1; i < adf; i++) {
+          if (squares[`${FILES[ff + stepF * i]}${RANKS[fr + stepR * i]}`]) return false;
+        }
+        return true;
+      }
+      case 'q': {
+        if (ff !== tf && fr !== tr && adf !== adr) return false;
+        if (ff === tf) {
+          const min = Math.min(fr, tr);
+          const max = Math.max(fr, tr);
+          for (let r = min + 1; r < max; r++) {
+            if (squares[`${FILES[ff]}${RANKS[r]}`]) return false;
+          }
+        } else if (fr === tr) {
+          const min = Math.min(ff, tf);
+          const max = Math.max(ff, tf);
+          for (let f = min + 1; f < max; f++) {
+            if (squares[`${FILES[f]}${RANKS[fr]}`]) return false;
+          }
+        } else {
+          const stepF = df > 0 ? 1 : -1;
+          const stepR = dr > 0 ? 1 : -1;
+          for (let i = 1; i < adf; i++) {
+            if (squares[`${FILES[ff + stepF * i]}${RANKS[fr + stepR * i]}`]) return false;
+          }
+        }
+        return true;
+      }
+      case 'n': {
+        return (adf === 2 && adr === 1) || (adf === 1 && adr === 2);
+      }
+      case 'k': {
+        return adf <= 1 && adr <= 1;
+      }
+      case 'p': {
+        const forwardDir = movingColor === 'w' ? -1 : 1;
+        if (tf === ff && tr === fr + forwardDir && !squares[to]) return true;
+        if (Math.abs(tf - ff) === 1 && tr === fr + forwardDir && squares[to]?.color !== movingColor && squares[to]) return true;
+        return false;
+      }
+    }
+    return false;
+  }
+
+  function canAnyBlackCaptureWhite(squares: Record<string, { type: string; color: 'w' | 'b' }>) {
+    const blackSquares = Object.keys(squares).filter(sq => squares[sq].color === 'b');
+    const whiteSquares = Object.keys(squares).filter(sq => squares[sq].color === 'w');
+    for (const bSq of blackSquares) {
+      for (const wSq of whiteSquares) {
+        if (isValidMoveSimple(squares[bSq].type, bSq, wSq, squares, 'b')) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  function simulateMove(squares: Record<string, any>, from: string, to: string) {
+    const next = { ...squares };
+    next[to] = next[from];
+    delete next[from];
+    return next;
+  }
+
+  // ====== Hint: find ONE safe capture arrow ======
+  const computeHintArrow = () => {
+    const level = levels[currentLevel];
+    if (!level) return [];
+
+    const fen = currentPosition || level.initialFen || '';
+    if (!fen) return [];
+
+    const squares = parseFenBoard(fen);
+
+    // Targets: squares that currently hold black pieces
+    const targets = (level.stars || level.targets || []).filter((t: string) => squares[t]?.color === 'b');
+    if (targets.length === 0) return [];
+
+    const whiteSquares = Object.keys(squares).filter(sq => squares[sq].color === 'w');
+
+    // Try all white pieces -> all targets, prefer safe captures
+    let bestSafeArrow: { from: string; to: string } | null = null;
+    let bestSafeDist = Infinity;
+    let bestFallbackArrow: { from: string; to: string } | null = null;
+    let bestFallbackDist = Infinity;
+
+    for (const wSq of whiteSquares) {
+      const piece = squares[wSq];
+      for (const target of targets) {
+        if (!isValidMoveSimple(piece.type, wSq, target, squares, 'w')) continue;
+
+        // Simulate the capture
+        const nextSquares = simulateMove(squares, wSq, target);
+
+        // Check if any black can capture any remaining white after this move
+        const stillUnsafe = canAnyBlackCaptureWhite(nextSquares);
+
+        const dist = Math.abs(FILES.indexOf(target[0]) - FILES.indexOf(wSq[0])) +
+                     Math.abs(RANKS.indexOf(target[1]) - RANKS.indexOf(wSq[1]));
+
+        if (!stillUnsafe) {
+          // Safe capture — prioritize by distance
+          if (dist < bestSafeDist) {
+            bestSafeDist = dist;
+            bestSafeArrow = { from: wSq, to: target };
+          }
+        } else {
+          // Unsafe fallback — keep only if no safe found yet
+          if (dist < bestFallbackDist) {
+            bestFallbackDist = dist;
+            bestFallbackArrow = { from: wSq, to: target };
+          }
+        }
+      }
+    }
+
+    return bestSafeArrow ? [bestSafeArrow] : (bestFallbackArrow ? [bestFallbackArrow] : []);
   };
 
   const level = levels[currentLevel];
