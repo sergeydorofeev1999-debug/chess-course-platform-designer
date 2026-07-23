@@ -1011,6 +1011,7 @@ function MultiLevelStarBoard({
 
   useEffect(() => {
     setMovedPieces(new Set());
+    setPromotionPending(null);
   }, [currentLevel]);
 
   const level = levels[currentLevel];
