@@ -8,8 +8,8 @@ import { CheckCircle, ArrowLeft, ArrowRight, Star, RotateCcw, ChevronRight, Ligh
 import { markLessonCompleteAuth } from '@/lib/data';
 import dynamic from 'next/dynamic';
 
-const CaptureBoard = dynamic(() => import('./CaptureBoard'), { ssr: false });
-const CaptureLessonWrapper = dynamic(() => import('./CaptureLessonWrapper'), { ssr: false });
+import CaptureBoard from './CaptureBoard';
+import CaptureLessonWrapper from './CaptureLessonWrapper';
 const PieceValueBoard = dynamic(() => import('./PieceValueBoard'), { ssr: false });
 const PawnRaceBoard = dynamic(() => import('./PawnRaceBoard'), { ssr: false });
 const RookPawnBoard = dynamic(() => import('./RookPawnBoard'), { ssr: false });
