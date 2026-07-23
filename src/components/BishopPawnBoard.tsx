@@ -359,9 +359,9 @@ function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
 const START_FEN = '2b2b2/pppppppp/8/8/8/8/PPPPPPPP/2B2B2 w - - 0 1';
 
 const LEVELS: { id: Difficulty; label: string; description: string; color: string; stars: number }[] = [
-  { id: 'easy', label: 'Лёгкий', description: 'Чёрные часто ошибаются', color: 'bg-green-500', stars: 1 },
-  { id: 'medium', label: 'Средний', description: 'Чёрные играют осторожно', color: 'bg-yellow-500', stars: 2 },
-  { id: 'hard', label: 'Продвинутый', description: 'Чёрные почти не ошибаются', color: 'bg-red-500', stars: 3 },
+  { id: 'easy', label: 'Лёгкий', description: 'Чёрные часто ошибаются', color: 'bg-[#8B7355]', stars: 1 },
+  { id: 'medium', label: 'Средний', description: 'Чёрные играют осторожно', color: 'bg-[#C9A84C]', stars: 2 },
+  { id: 'hard', label: 'Продвинутый', description: 'Чёрные почти не ошибаются', color: 'bg-[#4A3F35]', stars: 3 },
 ];
 
 export default function BishopPawnBoard({ onComplete, lessonId }: { onComplete: () => void; lessonId?: string }) {
@@ -682,7 +682,7 @@ export default function BishopPawnBoard({ onComplete, lessonId }: { onComplete: 
     const allCompleted = LEVELS.every(l => completedLevels[l.id]);
     return (
       <div className="flex flex-col items-center gap-6 w-full px-4 py-6">
-        <h3 className="text-xl font-bold text-slate-800">Выберите уровень сложности</h3>
+        <h3 className="text-xl font-bold text-[#3E3228]">Выберите уровень сложности</h3>
         <div className="flex flex-col gap-3 w-full max-w-sm">
           {LEVELS.map(level => {
             const isCompleted = completedLevels[level.id];
@@ -692,24 +692,24 @@ export default function BishopPawnBoard({ onComplete, lessonId }: { onComplete: 
                 onClick={() => startLevel(level.id)}
                 className={`flex items-center gap-4 px-5 py-4 rounded-xl border-2 transition text-left ${
                   isCompleted
-                    ? 'border-green-300 bg-green-50 hover:bg-green-100'
-                    : 'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300'
+                    ? 'border-[#C9A84C] bg-[#F5EFE6] hover:bg-[#F5EFE6]'
+                    : 'border-[#D4C5B5] bg-[#F9F8F6] hover:bg-[#F5EFE6] hover:border-[#C9A84C]'
                 }`}
               >
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${level.color}`}>
                   {isCompleted ? <Trophy size={20} /> : level.stars}
                 </div>
                 <div className="flex-1">
-                  <div className="font-bold text-slate-800">{level.label}</div>
-                  <div className="text-sm text-slate-500">{level.description}</div>
+                  <div className="font-bold text-[#3E3228]">{level.label}</div>
+                  <div className="text-sm text-[#8B7355]">{level.description}</div>
                 </div>
-                <ChevronRight size={20} className="text-slate-400" />
+                <ChevronRight size={20} className="text-[#B8AFA3]" />
               </button>
             );
           })}
         </div>
         {allCompleted && (
-          <div className="mt-4 px-6 py-3 bg-green-100 border border-green-300 rounded-xl text-green-800 font-bold flex items-center gap-2">
+          <div className="mt-4 px-6 py-3 bg-[#F5EFE6] border border-[#C9A84C] rounded-xl text-[#3E3228] font-bold flex items-center gap-2">
             <Trophy size={20} /> Все уровни пройдены!
           </div>
         )}
@@ -730,7 +730,7 @@ export default function BishopPawnBoard({ onComplete, lessonId }: { onComplete: 
           {currentLevel.label}
         </span>
         {completedLevels[difficulty] && (
-          <span className="flex items-center gap-1 text-green-600 text-sm font-bold">
+          <span className="flex items-center gap-1 text-[#6B5B3D] text-sm font-bold">
             <Star size={14} fill="currentColor" /> Пройдено
           </span>
         )}
@@ -739,28 +739,28 @@ export default function BishopPawnBoard({ onComplete, lessonId }: { onComplete: 
       {/* Status */}
       <div className="flex items-center justify-between w-full max-w-sm gap-4 px-2">
         <div className="text-sm font-medium">
-          Белые: <span className="text-blue-600 font-bold">{Object.values(squares).filter(p => p.color === 'w').length}</span>
+          Белые: <span className="text-[#5A4A3A] font-bold">{Object.values(squares).filter(p => p.color === 'w').length}</span>
         </div>
-        <div className={`text-sm font-bold ${turn === 'w' ? 'text-blue-600' : 'text-slate-400'}`}>
+        <div className={`text-sm font-bold ${turn === 'w' ? 'text-[#5A4A3A]' : 'text-[#B8AFA3]'}`}>
           {computerThinking ? 'Ход компьютера...' : 'Ваш ход'}
         </div>
         <div className="text-sm font-medium">
-          Чёрные: <span className="text-red-600 font-bold">{Object.values(squares).filter(p => p.color === 'b').length}</span>
+          Чёрные: <span className="text-[#8B7355] font-bold">{Object.values(squares).filter(p => p.color === 'b').length}</span>
         </div>
       </div>
 
       {winner && (
         <div className={`px-6 py-4 border rounded-xl font-bold text-lg text-center ${
           winner.includes('Белые')
-            ? 'bg-green-50 border-green-200 text-green-700'
+            ? 'bg-[#F5EFE6] border-[#D4C5B5] text-[#4A3F35]'
             : winner === 'Ничья'
-              ? 'bg-amber-50 border-amber-200 text-amber-700'
-              : 'bg-red-50 border-red-200 text-red-700'
+              ? 'bg-[#F5EFE6] border-[#D4C5B5] text-[#4A3F35]'
+              : 'bg-[#F2DEDA] border-[#C9A84C] text-[#7A3A32]'
         }`}>
           <div className="text-xl mb-2">{winner}</div>
           <button
             onClick={reset}
-            className="mt-2 px-6 py-2 bg-white border-2 border-current rounded-lg font-bold text-sm hover:bg-opacity-80 transition"
+            className="mt-2 px-6 py-2 bg-[#F9F8F6] border-2 border-current rounded-lg font-bold text-sm hover:bg-opacity-80 transition"
           >
             Начать заново
           </button>
@@ -860,22 +860,22 @@ export default function BishopPawnBoard({ onComplete, lessonId }: { onComplete: 
       )}
 
       {/* Info */}
-      <div className="text-center text-sm text-slate-600 max-w-sm px-4">
+      <div className="text-center text-sm text-[#6B5B3D] max-w-sm px-4">
         <p className="font-medium mb-1">Цель игры:</p>
         <p>Съешь все фигуры соперника или проведи пешку до последней линии.</p>
-        <p className="text-xs text-slate-400 mt-1">Слон ходит по диагонали на любое расстояние.</p>
+        <p className="text-xs text-[#B8AFA3] mt-1">Слон ходит по диагонали на любое расстояние.</p>
       </div>
 
       <div className="flex gap-3">
         <button
           onClick={reset}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 transition"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-[#6B5B3D] bg-[#E8E0D4] hover:bg-[#D4C5B5] transition"
         >
           <RotateCcw size={16} /> Начать заново
         </button>
         <button
           onClick={() => setDifficulty(null)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 transition"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-[#6B5B3D] bg-[#E8E0D4] hover:bg-[#D4C5B5] transition"
         >
           <ChevronRight size={16} className="rotate-180" /> Уровни
         </button>

@@ -265,9 +265,9 @@ function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
 }
 
 const LEVELS: { id: Difficulty; label: string; description: string; color: string; stars: number }[] = [
-  { id: 'easy', label: 'Лёгкий', description: 'Чёрные часто ошибаются', color: 'bg-green-500', stars: 1 },
-  { id: 'medium', label: 'Средний', description: 'Чёрные иногда ошибаются', color: 'bg-yellow-500', stars: 2 },
-  { id: 'hard', label: 'Продвинутый', description: 'Чёрные почти не ошибаются', color: 'bg-red-500', stars: 3 },
+  { id: 'easy', label: 'Лёгкий', description: 'Чёрные часто ошибаются', color: 'bg-[#8B7355]', stars: 1 },
+  { id: 'medium', label: 'Средний', description: 'Чёрные иногда ошибаются', color: 'bg-[#C9A84C]', stars: 2 },
+  { id: 'hard', label: 'Продвинутый', description: 'Чёрные почти не ошибаются', color: 'bg-[#4A3F35]', stars: 3 },
 ];
 
 const START_W_KING = 'e1';
@@ -697,7 +697,7 @@ export default function ChessFootballBoard({ onComplete, lessonId }: { onComplet
     const allCompleted = LEVELS.every(l => completedLevels[l.id]);
     return (
       <div className="flex flex-col items-center gap-6 w-full px-4 py-6">
-        <h3 className="text-xl font-bold text-slate-800">Выберите уровень сложности</h3>
+        <h3 className="text-xl font-bold text-[#3E3228]">Выберите уровень сложности</h3>
         <div className="flex flex-col gap-3 w-full max-w-sm">
           {LEVELS.map(level => {
             const isCompleted = completedLevels[level.id];
@@ -707,24 +707,24 @@ export default function ChessFootballBoard({ onComplete, lessonId }: { onComplet
                 onClick={() => startLevel(level.id)}
                 className={`flex items-center gap-4 px-5 py-4 rounded-xl border-2 transition text-left ${
                   isCompleted
-                    ? 'border-green-300 bg-green-50 hover:bg-green-100'
-                    : 'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300'
+                    ? 'border-[#C9A84C] bg-[#F5EFE6] hover:bg-[#F5EFE6]'
+                    : 'border-[#D4C5B5] bg-[#F9F8F6] hover:bg-[#F5EFE6] hover:border-[#C9A84C]'
                 }`}
               >
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${level.color}`}>
                   {isCompleted ? <Trophy size={20} /> : level.stars}
                 </div>
                 <div className="flex-1">
-                  <div className="font-bold text-slate-800">{level.label}</div>
-                  <div className="text-sm text-slate-500">{level.description}</div>
+                  <div className="font-bold text-[#3E3228]">{level.label}</div>
+                  <div className="text-sm text-[#8B7355]">{level.description}</div>
                 </div>
-                <ChevronRight size={20} className="text-slate-400" />
+                <ChevronRight size={20} className="text-[#B8AFA3]" />
               </button>
             );
           })}
         </div>
         {allCompleted && (
-          <div className="mt-4 px-6 py-3 bg-green-100 border border-green-300 rounded-xl text-green-800 font-bold flex items-center gap-2">
+          <div className="mt-4 px-6 py-3 bg-[#F5EFE6] border border-[#C9A84C] rounded-xl text-[#3E3228] font-bold flex items-center gap-2">
             <Trophy size={20} /> Все уровни пройдены!
           </div>
         )}
@@ -740,7 +740,7 @@ export default function ChessFootballBoard({ onComplete, lessonId }: { onComplet
           <img src="/pieces/cburnett/wK.svg" alt="" width={24} height={24} draggable={false} />
           <span>{wScore}</span>
         </div>
-        <span className="text-slate-400">:</span>
+        <span className="text-[#B8AFA3]">:</span>
         <div className="flex items-center gap-2">
           <span>{bScore}</span>
           <img src="/pieces/cburnett/bK.svg" alt="" width={24} height={24} draggable={false} />
@@ -753,19 +753,19 @@ export default function ChessFootballBoard({ onComplete, lessonId }: { onComplet
           {LEVELS.find(l => l.id === difficulty)?.label}
         </span>
         {computerThinking && (
-          <span className="text-xs text-slate-500">Думает...</span>
+          <span className="text-xs text-[#8B7355]">Думает...</span>
         )}
       </div>
 
       {/* Turn */}
-      <div className={`text-sm font-bold ${turn === 'w' ? 'text-blue-600' : 'text-slate-400'}`}>
+      <div className={`text-sm font-bold ${turn === 'w' ? 'text-[#5A4A3A]' : 'text-[#B8AFA3]'}`}>
         {computerThinking ? 'Ход компьютера...' : 'Ваш ход'}
       </div>
 
       {/* Winner */}
       {winner && (
         <div className={`px-6 py-3 rounded-xl text-center font-bold text-white ${
-          winner === 'Белые победили!' ? 'bg-green-500' : winner === 'Чёрные победили!' ? 'bg-red-500' : 'bg-yellow-500'
+          winner === 'Белые победили!' ? 'bg-[#8B7355]' : winner === 'Чёрные победили!' ? 'bg-[#4A3F35]' : 'bg-[#C9A84C]'
         }`}>
           {winner}
           <div className="text-sm font-normal mt-1">
@@ -776,7 +776,7 @@ export default function ChessFootballBoard({ onComplete, lessonId }: { onComplet
 
       {/* Draw message */}
       {drawMessage && (
-        <div className="px-6 py-3 rounded-xl text-center font-bold text-white bg-yellow-500">
+        <div className="px-6 py-3 rounded-xl text-center font-bold text-white bg-[#C9A84C]">
           {drawMessage}
           <div className="text-sm font-normal mt-1">
             Счёт: {wScore} : {bScore}
@@ -787,7 +787,7 @@ export default function ChessFootballBoard({ onComplete, lessonId }: { onComplet
               setTurn('w');
               turnRef.current = 'w';
             }}
-            className="mt-2 px-4 py-2 bg-white text-yellow-600 rounded-lg text-sm font-bold hover:bg-yellow-50 transition-colors"
+            className="mt-2 px-4 py-2 bg-[#F9F8F6] text-yellow-600 rounded-lg text-sm font-bold hover:bg-yellow-50 transition-colors"
           >
             Продолжить сначала
           </button>
@@ -882,7 +882,7 @@ export default function ChessFootballBoard({ onComplete, lessonId }: { onComplet
       )}
 
       {/* Goal indicators */}
-      <div className="flex justify-between w-full max-w-sm px-4 text-xs text-slate-500">
+      <div className="flex justify-between w-full max-w-sm px-4 text-xs text-[#8B7355]">
         <span>Гол чёрных ↓</span>
         <span>↑ Гол белых</span>
       </div>
@@ -891,24 +891,24 @@ export default function ChessFootballBoard({ onComplete, lessonId }: { onComplet
       <div className="flex gap-3">
         <button
           onClick={reset}
-          className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-[#E8E0D4] hover:bg-[#D4C5B5] rounded-lg text-sm font-medium transition-colors"
         >
           <RotateCcw className="w-4 h-4" />
           Начать заново
         </button>
         <button
           onClick={() => { setDifficulty(null); reset(); }}
-          className="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium transition-colors"
+          className="px-4 py-2 bg-[#E8E0D4] hover:bg-[#D4C5B5] rounded-lg text-sm font-medium transition-colors"
         >
           Сменить уровень
         </button>
       </div>
 
       {/* Info */}
-      <div className="text-center text-sm text-slate-600 max-w-sm px-4">
+      <div className="text-center text-sm text-[#6B5B3D] max-w-sm px-4">
         <p className="font-medium mb-1">Цель игры:</p>
         <p>Дойди королём до 8 ряда (для белых) или 1 ряда (для чёрных) — это гол. Игра до 3 голов.</p>
-        <p className="text-xs text-slate-400 mt-1">Короли не могут стоять рядом. Пешки блокируют диагональные клетки.</p>
+        <p className="text-xs text-[#B8AFA3] mt-1">Короли не могут стоять рядом. Пешки блокируют диагональные клетки.</p>
       </div>
     </div>
   );

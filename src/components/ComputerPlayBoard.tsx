@@ -15,11 +15,11 @@ const ITALIAN_LINE = [
 ];
 
 const LEVELS = [
-  { id: 0, elo: 200,  label: 'Начинающий', description: 'Компьютер почти не думает и часто ходит случайно', color: 'bg-gray-400', depth: 1, blunder: 80 },
-  { id: 1, elo: 400,  label: 'Любитель',   description: 'Компьютер думает немного, но всё ещё ошибается', color: 'bg-blue-400', depth: 2, blunder: 50 },
-  { id: 2, elo: 650,  label: 'Средний',    description: 'Компьютер играет осторожно, ошибки редки',     color: 'bg-yellow-500', depth: 3, blunder: 25 },
-  { id: 3, elo: 900,  label: 'Опытный',    description: 'Компьютер почти не ошибается',                 color: 'bg-orange-500', depth: 4, blunder: 5 },
-  { id: 4, elo: 1200, label: 'Мастер',     description: 'Компьютер играет сильно, никаких слабостей',   color: 'bg-red-500', depth: 5, blunder: 0 },
+  { id: 0, elo: 200,  label: 'Начинающий', description: 'Компьютер почти не думает и часто ходит случайно', color: 'bg-[#D4C5B5]', depth: 1, blunder: 80 },
+  { id: 1, elo: 400,  label: 'Любитель',   description: 'Компьютер думает немного, но всё ещё ошибается', color: 'bg-[#8B7355]', depth: 2, blunder: 50 },
+  { id: 2, elo: 650,  label: 'Средний',    description: 'Компьютер играет осторожно, ошибки редки',     color: 'bg-[#C9A84C]', depth: 3, blunder: 25 },
+  { id: 3, elo: 900,  label: 'Опытный',    description: 'Компьютер почти не ошибается',                 color: 'bg-[#6B5B3D]', depth: 4, blunder: 5 },
+  { id: 4, elo: 1200, label: 'Мастер',     description: 'Компьютер играет сильно, никаких слабостей',   color: 'bg-[#4A3F35]', depth: 5, blunder: 0 },
 ];
 
 const PROMOTION_PIECES = [
@@ -400,10 +400,10 @@ export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete
     const allCompleted = LEVELS.every(l => levelStars[l.id] > 0);
     return (
       <div className="flex flex-col items-center gap-6 w-full px-4 py-6">
-        <div className="px-6 py-3 rounded-xl text-center font-bold text-white bg-yellow-500 mb-2 w-full max-w-md">
+        <div className="px-6 py-3 rounded-xl text-center font-bold text-white bg-[#C9A84C] mb-2 w-full max-w-md">
           Выберите уровень сложности
         </div>
-        <p className="text-slate-600 text-center max-w-sm px-4">
+        <p className="text-[#6B5B3D] text-center max-w-sm px-4">
           Сыграйте с компьютером от начальной позиции. Вы играете белыми.
         </p>
         <div className="flex flex-col gap-3 w-full max-w-sm">
@@ -416,15 +416,15 @@ export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete
                 onClick={() => startGame(lvl.id)}
                 className={`flex items-center gap-4 px-5 py-4 rounded-xl border-2 transition text-left ${
                   isDone
-                    ? 'border-green-300 bg-green-50 hover:bg-green-100'
-                    : 'border-slate-200 bg-white hover:bg-slate-50 hover:border-slate-300'
+                    ? 'border-[#C9A84C] bg-green-50 hover:bg-[#F5EFE6]'
+                    : 'border-[#D4C5B5] bg-[#F9F8F6] hover:bg-slate-50 hover:border-slate-300'
                 }`}
               >
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${lvl.color}`}>
                   {isDone ? <Trophy size={20} /> : <StarPng filled={false} size={20} />}
                 </div>
                 <div className="flex-1">
-                  <div className="font-bold text-slate-800">{lvl.elo} Elo — {lvl.label}</div>
+                  <div className="font-bold text-[#3E3228]">{lvl.elo} Elo — {lvl.label}</div>
                   <div className="text-sm text-slate-500">{lvl.description}</div>
                 </div>
                 <ChevronRight size={20} className="text-slate-400" />
@@ -433,7 +433,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete
           })}
         </div>
         {allCompleted && (
-          <div className="mt-4 px-6 py-3 bg-green-100 border border-green-300 rounded-xl text-green-800 font-bold flex items-center gap-2">
+          <div className="mt-4 px-6 py-3 bg-[#F5EFE6] border border-[#C9A84C] rounded-xl text-[#3E3228] font-bold flex items-center gap-2">
             <Trophy size={20} /> Все уровни пройдены!
           </div>
         )}
@@ -452,7 +452,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete
         <div className="hidden lg:flex flex-col gap-2">
           <button
             onClick={() => setSelectedLevel(null)}
-            className="flex items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition w-full justify-center"
+            className="flex items-center gap-1 px-3 py-1.5 text-xs text-[#6B5B3D] bg-[#E8E0D4] rounded hover:bg-[#D4C5B5] transition w-full justify-center"
           >
             ← Выбрать уровень
           </button>
@@ -461,7 +461,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete
           </div>
         </div>
 
-        <div className="hidden lg:grid grid-cols-5 gap-1 rounded p-1 border border-gray-200">
+        <div className="hidden lg:grid grid-cols-5 gap-1 rounded p-1 border border-[#D4C5B5]">
           {LEVELS.map((lvl, idx) => {
             const earned = levelStars[idx] || 0;
             const isCurrent = idx === selectedLevel;
@@ -489,7 +489,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete
 
         <button
           onClick={reset}
-          className="hidden lg:flex items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition w-full justify-center"
+          className="hidden lg:flex items-center gap-1 px-3 py-1.5 text-xs text-[#6B5B3D] bg-[#E8E0D4] rounded hover:bg-[#D4C5B5] transition w-full justify-center"
         >
           <RotateCcw size={14} /> Заново
         </button>
@@ -497,7 +497,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete
 
       {/* CENTER COLUMN */}
       <div className="flex-1 flex flex-col items-center gap-3">
-        <div className="px-6 py-3 rounded-xl text-center font-bold text-white bg-yellow-500 mb-2 w-full">
+        <div className="px-6 py-3 rounded-xl text-center font-bold text-white bg-[#C9A84C] mb-2 w-full">
           Игра против компьютера — {currentLevel.label} ({currentLevel.elo} Elo)
         </div>
 
@@ -507,7 +507,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete
 
         {message && (
           <div className={`px-6 py-3 rounded-xl text-center font-bold text-white ${
-            message.includes('Победа') ? 'bg-green-500' : message.includes('Поражение') ? 'bg-red-500' : 'bg-yellow-500'
+            message.includes('Победа') ? 'bg-[#8B7355]' : message.includes('Поражение') ? 'bg-[#4A3F35]' : 'bg-[#C9A84C]'
           }`}>
             {message.includes('Победа') && <Trophy className="w-5 h-5 inline-block mr-2" />}
             {message}
@@ -663,14 +663,14 @@ export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete
 
         <button
           onClick={reset}
-          className="flex lg:hidden items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition"
+          className="flex lg:hidden items-center gap-1 px-3 py-1.5 text-xs text-[#6B5B3D] bg-[#E8E0D4] rounded hover:bg-[#D4C5B5] transition"
         >
           <RotateCcw size={14} /> Заново
         </button>
 
         <button
           onClick={() => setSelectedLevel(null)}
-          className="flex lg:hidden items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition"
+          className="flex lg:hidden items-center gap-1 px-3 py-1.5 text-xs text-[#6B5B3D] bg-[#E8E0D4] rounded hover:bg-[#D4C5B5] transition"
         >
           ← Выбрать уровень
         </button>
