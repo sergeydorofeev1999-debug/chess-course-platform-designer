@@ -233,6 +233,18 @@ function isSquareAttackedBy(square: string, squares: Record<string, any>, attack
   return false;
 }
 
+function isKingInCheck(squares: Record<string, any>, kingColor: 'w' | 'b') {
+  let kingSq = '';
+  for (const s in squares) {
+    if (squares[s]?.type === 'k' && squares[s]?.color === kingColor) {
+      kingSq = s;
+      break;
+    }
+  }
+  if (!kingSq) return false;
+  return isSquareAttackedBy(kingSq, squares, kingColor === 'w' ? 'b' : 'w');
+}
+
 function getValidSquares(pieceType: string, from: string, squares: Record<string, any>, starSquares: string[], movedPieces?: Set<string>, enPassantTarget?: string | null): string[] {
   if (squares[from]?.color !== 'w') return [];
   const ff = FILES.indexOf(from[0]);
@@ -1107,6 +1119,76 @@ function MultiLevelStarBoard({
 
   const computeHintArrow = useCallback(() => {
     const parsed = parseFen(positionRef.current);
+
+    // ── ESCAPE CHECK MODE (Lesson 10): white king is in check — find best defense ──
+    if (level.requireEscapeCheck || isKingInCheck(parsed.squares, 'w')) {
+      let whiteKingSq = '';
+      for (const s in parsed.squares) {
+        if (parsed.squares[s]?.type === 'k' && parsed.squares[s]?.color === 'w') {
+          whiteKingSq = s;
+          break;
+        }
+      }
+      if (!whiteKingSq) return [];
+
+      // Find attackers
+      const attackers: string[] = [];
+      for (const s in parsed.squares) {
+        const p = parsed.squares[s];
+        if (p.color !== 'b') continue;
+        if (isValidMove(p.type, s, whiteKingSq, parsed.squares, [])) attackers.push(s);
+      }
+      if (attackers.length === 0) return [];
+
+      const whiteSquares = Object.keys(parsed.squares).filter(s => parsed.squares[s]?.color === 'w');
+      const validDefenses: { from: string; to: string; score: number }[] = [];
+
+      for (const wSq of whiteSquares) {
+        const piece = parsed.squares[wSq];
+        for (let f = 0; f < 8; f++) {
+          for (let r = 0; r < 8; r++) {
+            const target = `${FILES[f]}${RANKS[r]}`;
+            if (wSq === target) continue;
+            if (parsed.squares[target]?.color === 'w') continue;
+            if (!isValidMove(piece.type, wSq, target, parsed.squares, [])) continue;
+            if (level.forbiddenSquares?.includes(target)) continue;
+
+            const nextSquares = { ...parsed.squares };
+            nextSquares[target] = nextSquares[wSq];
+            delete nextSquares[wSq];
+
+            if (isKingInCheck(nextSquares, 'w')) continue;
+
+            let score = 0;
+            if (attackers.includes(target)) score += 1000; // capture attacker
+            if (piece.type === 'k') score += 500; // king escape
+            if (attackers.length === 1 && piece.type !== 'k') {
+              // Block sliding attack
+              const atkSq = attackers[0];
+              const kf = FILES.indexOf(whiteKingSq[0]), kr = RANKS.indexOf(whiteKingSq[1]);
+              const af = FILES.indexOf(atkSq[0]), ar = RANKS.indexOf(atkSq[1]);
+              const tf = FILES.indexOf(target[0]), tr = RANKS.indexOf(target[1]);
+              const sameLine = (kf === af && kf === tf) || (kr === ar && kr === tr) ||
+                               (Math.abs(kf - af) === Math.abs(kr - ar) &&
+                                Math.abs(kf - tf) === Math.abs(kr - tr) &&
+                                Math.abs(af - tf) === Math.abs(ar - tr));
+              if (sameLine) {
+                const minF = Math.min(kf, af), maxF = Math.max(kf, af);
+                const minR = Math.min(kr, ar), maxR = Math.max(kr, ar);
+                if (tf > minF && tf < maxF && tr > minR && tr < maxR) score += 200;
+              }
+            }
+            validDefenses.push({ from: wSq, to: target, score });
+          }
+        }
+      }
+
+      validDefenses.sort((a, b) => b.score - a.score);
+      if (validDefenses.length > 0) {
+        return [{ from: validDefenses[0].from, to: validDefenses[0].to }];
+      }
+      return [];
+    }
 
     // ── Detect actual piece type on board ──
     let effectivePieceType = pieceType;
