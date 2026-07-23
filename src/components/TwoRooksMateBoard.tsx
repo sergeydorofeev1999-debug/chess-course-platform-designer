@@ -635,7 +635,7 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
             return (
               <button
                 key={ex.id}
-                onClick={() => { if (!isLocked) switchExercise(ex.id); }}
+                onClick={() => { if (!isCurrent) switchExercise(ex.id); }}
                 disabled={isCurrent}
                 className={`flex-1 flex flex-col items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 ${
                   isCurrent
@@ -877,7 +877,7 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
             return (
               <button
                 key={ex.id}
-                onClick={() => { if (!isLocked) switchExercise(ex.id); }}
+                onClick={() => { if (!isCurrent) switchExercise(ex.id); }}
                 disabled={isCurrent}
                 className={`flex-1 flex flex-col items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 ${
                   isCurrent
@@ -938,7 +938,7 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
               onClick={() => { reset(); setDemoMode(true); setDemoStep(0); }}
               className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
             >
-              <Eye size={14} /> Посмотреть
+              <Eye size={14} /> Посмотреть как ставить мат
             </button>
           )}
           <button
