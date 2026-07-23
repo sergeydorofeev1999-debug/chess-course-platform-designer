@@ -807,7 +807,7 @@ export default function RookPawnBoard({ onComplete, lessonId }: { onComplete: ()
                     height: sqSize,
                     cursor: pieceObj && pieceObj.color === 'w' ? 'grab' : 'default',
                     touchAction: 'none',
-                    backgroundColor: light ? '#f0d9b5' : '#b58863',
+                    backgroundColor: light ? 'var(--square-light)' : 'var(--square-dark)',
                   }}
                   onPointerDown={(e) => handlePointerDown(e, sq)}
                   onClick={() => click(sq)}
@@ -819,12 +819,12 @@ export default function RookPawnBoard({ onComplete, lessonId }: { onComplete: ()
                   )}
                   {/* Coordinates */}
                   {fi === 0 && (
-                    <span className={`absolute top-0.5 left-1 text-[10px] font-bold ${light ? 'text-[#b58863]' : 'text-[#f0d9b5]'}`}>
+                    <span className={`absolute top-0.5 left-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>
                       {rank}
                     </span>
                   )}
                   {ri === 7 && (
-                    <span className={`absolute bottom-0.5 right-1 text-[10px] font-bold ${light ? 'text-[#b58863]' : 'text-[#f0d9b5]'}`}>
+                    <span className={`absolute bottom-0.5 right-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>
                       {file}
                     </span>
                   )}

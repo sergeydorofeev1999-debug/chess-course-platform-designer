@@ -1724,7 +1724,7 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
                       height: sqSize,
                       cursor: pieceObj && pieceObj.color === 'b' && !isFail && !isComplete ? 'grab' : 'default',
                       touchAction: 'none',
-                      backgroundColor: light ? '#f0d9b5' : '#b58863',
+                      backgroundColor: light ? 'var(--square-light)' : 'var(--square-dark)',
                       opacity: isDragSource ? 0.3 : 1,
                     }}
                     onClick={() => handleSquareClick(sq)}
@@ -1736,13 +1736,13 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
                     )}
                     {/* Rank numbers on the right side (a-file) */}
                     {fi === 7 && (
-                      <span className={`absolute top-0.5 right-1 text-[10px] font-bold ${light ? 'text-[#b58863]' : 'text-[#f0d9b5]'}`}>
+                      <span className={`absolute top-0.5 right-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>
                         {rank}
                       </span>
                     )}
                     {/* File letters on the bottom (rank 8) */}
                     {ri === 7 && (
-                      <span className={`absolute bottom-0.5 right-1 text-[10px] font-bold ${light ? 'text-[#b58863]' : 'text-[#f0d9b5]'}`}>
+                      <span className={`absolute bottom-0.5 right-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>
                         {file}
                       </span>
                     )}

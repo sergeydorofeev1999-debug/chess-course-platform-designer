@@ -206,12 +206,12 @@ export default function SimpleChessBoard({
               >
                 {/* Coordinate labels */}
                 {fileIdx === 0 && (
-                  <span className={`absolute top-0.5 left-1 text-[10px] font-bold ${isLight ? 'text-[#b58863]' : 'text-[#f0d9b5]'}`}>
+                  <span className={`absolute top-0.5 left-1 text-[10px] font-bold ${isLight ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>
                     {rank}
                   </span>
                 )}
                 {rankIdx === 7 && (
-                  <span className={`absolute bottom-0.5 right-1 text-[10px] font-bold ${isLight ? 'text-[#b58863]' : 'text-[#f0d9b5]'}`}>
+                  <span className={`absolute bottom-0.5 right-1 text-[10px] font-bold ${isLight ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>
                     {file}
                   </span>
                 )}
