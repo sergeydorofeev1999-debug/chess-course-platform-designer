@@ -329,7 +329,7 @@ function parseFenSimple(fen: string) {
       <div className="flex justify-center w-full">
         <div className="relative inline-block rounded-sm">
           <CaptureBoard
-            key={`${resetKey}-${currentLevel}`}
+            key={`${resetKey}-${currentLevel}-${JSON.stringify(hintArrows)}`}
             lessonId={lesson.id}
             levels={levels}
             successMessage="Молодец!"
