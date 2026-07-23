@@ -317,14 +317,14 @@ export default function PieceValueBoard({ onComplete, onLevelComplete }: Props) 
             {INTRO_PIECES.map((p) => (
               <div
                 key={p.type}
-                className="flex flex-col items-center gap-2 p-4 bg-white rounded-2xl border border-slate-200 shadow-sm"
+                className="flex flex-col items-center gap-2 p-4 bg-[#F9F8F6] rounded-2xl border border-[#D4C5B5] shadow-sm"
               >
                 <div className="w-14 h-14">
                   <PieceImg type={p.type} color="w" size="w-full h-full" />
                 </div>
                 <div className="text-center">
-                  <p className="font-bold text-slate-800 text-sm">{p.label}</p>
-                  <p className="text-xs text-amber-600 font-semibold mt-0.5">= {p.value}</p>
+                  <p className="font-bold text-[#1A1816] text-sm">{p.label}</p>
+                  <p className="text-xs text-[#8B7355] font-semibold mt-0.5">= {p.value}</p>
                 </div>
               </div>
             ))}
@@ -386,7 +386,7 @@ export default function PieceValueBoard({ onComplete, onLevelComplete }: Props) 
               key={piece.id}
               onClick={() => selectPiece(piece)}
               className={`${slotSize} rounded-xl border-2 transition hover:scale-105 flex items-center justify-center
-                ${selectedPiece?.id === piece.id ? 'border-amber-500 bg-amber-100 ring-2 ring-amber-300' : 'border-slate-200 bg-white'}
+                ${selectedPiece?.id === piece.id ? 'border-[#C9A84C] bg-[#F5EFE6] ring-2 ring-[#D4B96A]' : 'border-slate-200 bg-white'}
               `}
             >
               <PieceImg type={piece.type} color="w" />
@@ -394,8 +394,8 @@ export default function PieceValueBoard({ onComplete, onLevelComplete }: Props) 
           ))}
         </div>
 
-        {/* Equation */}
-        <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-center">
+        {/* Equation — single row, no wrap */}
+        <div className="flex items-center gap-2 justify-center flex-nowrap">
           {/* Left side */}
           <div className="flex items-center gap-2">
             {leftSlots.map((slot, i) => (
@@ -405,7 +405,7 @@ export default function PieceValueBoard({ onComplete, onLevelComplete }: Props) 
                   slot ? removeFromSlot('left', i) : placePiece('left', i)
                 }
                 className={`${slotSize} rounded-xl border-2 border-dashed flex items-center justify-center transition
-                  ${slot ? 'border-amber-400 bg-amber-50' : 'border-slate-300 bg-slate-50 hover:border-amber-300'}
+                  ${slot ? 'border-[#C9A84C] bg-[#F5EFE6]' : 'border-slate-300 bg-[#F9F8F6] hover:border-[#C9A84C]'}
                 `}
               >
                 {slot ? (
@@ -428,7 +428,7 @@ export default function PieceValueBoard({ onComplete, onLevelComplete }: Props) 
                   slot ? removeFromSlot('right', i) : placePiece('right', i)
                 }
                 className={`${slotSize} rounded-xl border-2 border-dashed flex items-center justify-center transition
-                  ${slot ? 'border-amber-400 bg-amber-50' : 'border-slate-300 bg-slate-50 hover:border-amber-300'}
+                  ${slot ? 'border-[#C9A84C] bg-[#F5EFE6]' : 'border-slate-300 bg-[#F9F8F6] hover:border-[#C9A84C]'}
                 `}
               >
                 {slot ? (
