@@ -177,67 +177,67 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
     return (
       <div className="flex flex-col items-center gap-4 w-full max-w-lg mx-auto">
         <div className="bg-white rounded-xl shadow p-4 w-full">
-          <h2 className="text-xl font-light text-slate-800 mb-2">Координаты</h2>
-          <p className="text-sm text-slate-600 mb-2">
+          <h2 className="text-xl font-light text-[#2C241B] mb-2">Координаты</h2>
+          <p className="text-sm text-[#5A4A3A] mb-2">
             Знание координат на шахматной доске — очень важный навык для шахматиста:
           </p>
-          <ul className="text-sm text-slate-600 list-disc pl-5 space-y-1 mb-3">
+          <ul className="text-sm text-[#5A4A3A] list-disc pl-5 space-y-1 mb-3">
             <li>В большинстве шахматных курсов и упражнений широко используется шахматная нотация.</li>
             <li>Вам будет проще общаться с другом-шахматистом, если вы оба будете понимать «язык шахмат».</li>
             <li>Анализировать игры гораздо проще, когда не тратится время на поиск полей по их координатам.</li>
           </ul>
-          <h3 className="font-bold text-slate-800 mb-1">{mode === 'find' ? 'Найти поле' : 'Обозначить поле'}</h3>
-          <p className="text-sm text-slate-600">
+          <h3 className="font-bold text-[#2C241B] mb-1">{mode === 'find' ? 'Найти поле' : 'Обозначить поле'}</h3>
+          <p className="text-sm text-[#5A4A3A]">
             {mode === 'find'
               ? 'Координаты появляются на доске, и вам нужно отметить соответствующее им поле.'
               : 'Поля подсвечиваются на доске, и вам нужно выбрать правильную координату.'}
           </p>
-          <p className="text-sm text-slate-600 mt-1">
+          <p className="text-sm text-[#5A4A3A] mt-1">
             {timeMode === '30' ? 'У вас есть 30 секунд на то, чтобы правильно ответить как можно больше раз!' : 'Тренируйтесь без ограничения по времени.'}
           </p>
         </div>
 
         <div className="flex w-full gap-2">
-          <button onClick={() => setMode('find')} className={`flex-1 py-2 rounded-lg font-medium text-sm transition ${mode==='find'?'bg-[#c75b2a] text-white':'bg-white text-slate-700 border'}`}>Найти поле</button>
-          <button onClick={() => setMode('name')} className={`flex-1 py-2 rounded-lg font-medium text-sm transition ${mode==='name'?'bg-[#c75b2a] text-white':'bg-white text-slate-700 border'}`}>Обозначить поле</button>
+          <button onClick={() => setMode('find')} className={`flex-1 py-2 rounded-lg font-medium text-sm transition ${mode==='find'?'bg-[#5A4A3A] text-white':'bg-[#F9F8F6] text-[#5A4A3A] border'}`}>Найти поле</button>
+          <button onClick={() => setMode('name')} className={`flex-1 py-2 rounded-lg font-medium text-sm transition ${mode==='name'?'bg-[#5A4A3A] text-white':'bg-[#F9F8F6] text-[#5A4A3A] border'}`}>Обозначить поле</button>
         </div>
 
         <div className="flex w-full gap-2">
-          <button onClick={() => setTime('unlimited')} className={`flex-1 py-2 rounded-lg font-medium text-sm transition ${timeMode==='unlimited'?'bg-[#c75b2a] text-white':'bg-white text-slate-700 border'}`}>∞ Без ограничения</button>
-          <button onClick={() => setTime('30')} className={`flex-1 py-2 rounded-lg font-medium text-sm transition ${timeMode==='30'?'bg-[#c75b2a] text-white':'bg-white text-slate-700 border'}`}>0:30</button>
+          <button onClick={() => setTime('unlimited')} className={`flex-1 py-2 rounded-lg font-medium text-sm transition ${timeMode==='unlimited'?'bg-[#5A4A3A] text-white':'bg-[#F9F8F6] text-[#5A4A3A] border'}`}>∞ Без ограничения</button>
+          <button onClick={() => setTime('30')} className={`flex-1 py-2 rounded-lg font-medium text-sm transition ${timeMode==='30'?'bg-[#5A4A3A] text-white':'bg-[#F9F8F6] text-[#5A4A3A] border'}`}>0:30</button>
         </div>
 
         <div className="flex w-full gap-2 justify-center">
-          <button onClick={() => setSide('white')} className={`w-14 h-14 rounded-lg flex items-center justify-center border transition ${side==='white'?'bg-[#c75b2a] border-[#c75b2a]':'bg-white border-slate-300'}`}>
+          <button onClick={() => setSide('white')} className={`w-14 h-14 rounded-lg flex items-center justify-center border transition ${side==='white'?'bg-[#5A4A3A] border-[#5A4A3A]':'bg-white border-[#D4C5B5]'}`}>
             <div className="w-8 h-8"><PieceImg type="k" color="w" size={32} /></div>
           </button>
-          <button onClick={() => setSide('random')} className={`w-14 h-14 rounded-lg flex items-center justify-center border transition ${side==='random'?'bg-[#c75b2a] border-[#c75b2a]':'bg-white border-slate-300'}`}>
+          <button onClick={() => setSide('random')} className={`w-14 h-14 rounded-lg flex items-center justify-center border transition ${side==='random'?'bg-[#5A4A3A] border-[#5A4A3A]':'bg-white border-[#D4C5B5]'}`}>
             <div className="flex -space-x-1">
               <div className="w-5 h-5"><PieceImg type="k" color="b" size={20} /></div>
               <div className="w-5 h-5"><PieceImg type="k" color="w" size={20} /></div>
             </div>
           </button>
-          <button onClick={() => setSide('black')} className={`w-14 h-14 rounded-lg flex items-center justify-center border transition ${side==='black'?'bg-[#c75b2a] border-[#c75b2a]':'bg-white border-slate-300'}`}>
+          <button onClick={() => setSide('black')} className={`w-14 h-14 rounded-lg flex items-center justify-center border transition ${side==='black'?'bg-[#5A4A3A] border-[#5A4A3A]':'bg-white border-[#D4C5B5]'}`}>
             <div className="w-8 h-8"><PieceImg type="k" color="b" size={32} /></div>
           </button>
         </div>
 
         <div className="flex flex-col w-full gap-2 bg-white rounded-xl p-3 shadow">
-          <label className="flex items-center justify-between text-sm text-slate-700">
+          <label className="flex items-center justify-between text-sm text-[#5A4A3A]">
             <span>Показывать координаты</span>
-            <button onClick={() => setCoords(v => !v)} className={`w-12 h-6 rounded-full transition ${showCoords ? 'bg-green-500' : 'bg-slate-300'}`}>
+            <button onClick={() => setCoords(v => !v)} className={`w-12 h-6 rounded-full transition ${showCoords ? 'bg-[#C9A84C]' : 'bg-[#D4C5B5]'}`}>
               <span className={`block w-5 h-5 bg-white rounded-full mt-0.5 ml-0.5 transition ${showCoords ? 'translate-x-6' : ''}`} />
             </button>
           </label>
-          <label className="flex items-center justify-between text-sm text-slate-700">
+          <label className="flex items-center justify-between text-sm text-[#5A4A3A]">
             <span>Показывать фигуры</span>
-            <button onClick={() => setPieces(v => !v)} className={`w-12 h-6 rounded-full transition ${showPieces ? 'bg-green-500' : 'bg-slate-300'}`}>
+            <button onClick={() => setPieces(v => !v)} className={`w-12 h-6 rounded-full transition ${showPieces ? 'bg-[#C9A84C]' : 'bg-[#D4C5B5]'}`}>
               <span className={`block w-5 h-5 bg-white rounded-full mt-0.5 ml-0.5 transition ${showPieces ? 'translate-x-6' : ''}`} />
             </button>
           </label>
         </div>
 
-        <button onClick={startGame} className="w-full py-3 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg uppercase tracking-wide transition">
+        <button onClick={startGame} className="w-full py-3 bg-[#5A4A3A] hover:bg-[#4A3A2A] text-white font-bold rounded-lg uppercase tracking-wide transition">
           Начать тренировку
         </button>
       </div>
@@ -249,22 +249,22 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
     return (
       <div className="flex flex-col items-center gap-4 w-full max-w-lg mx-auto">
         <div className="bg-white rounded-xl shadow p-6 w-full text-center">
-          <Trophy className="w-12 h-12 text-yellow-500 mx-auto mb-2" />
-          <h2 className="text-2xl font-bold text-slate-800 mb-4">Результат</h2>
-          <div className="text-5xl font-mono font-bold text-slate-800 mb-2">{score}</div>
-          <div className="text-sm text-slate-500 mb-4">правильных ответов</div>
-          {errors > 0 && <div className="text-sm text-red-500 mb-4">Ошибок: {errors}</div>}
+          <Trophy className="w-12 h-12 text-[#C9A84C] mx-auto mb-2" />
+          <h2 className="text-2xl font-bold text-[#2C241B] mb-4">Результат</h2>
+          <div className="text-5xl font-mono font-bold text-[#2C241B] mb-2">{score}</div>
+          <div className="text-sm text-[#5A4A3A] mb-4">правильных ответов</div>
+          {errors > 0 && <div className="text-sm text-[#8B3A3A] mb-4">Ошибок: {errors}</div>}
           <div className="flex gap-3 justify-center">
-            <button onClick={() => setPhase('settings')} className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium text-sm flex items-center gap-1">
+            <button onClick={() => setPhase('settings')} className="px-4 py-2 bg-[#E8E0D4] hover:bg-[#D4C5B5] text-[#5A4A3A] rounded-lg font-medium text-sm flex items-center gap-1">
               <ArrowLeft className="w-4 h-4" /> Настройки
             </button>
-            <button onClick={startGame} className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-medium text-sm flex items-center gap-1">
+            <button onClick={startGame} className="px-4 py-2 bg-[#5A4A3A] hover:bg-[#4A3A2A] text-white rounded-lg font-medium text-sm flex items-center gap-1">
               <RotateCcw className="w-4 h-4" /> Заново
             </button>
           </div>
         </div>
         {onComplete && score >= 5 && (
-          <button onClick={onComplete} className="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg uppercase transition">
+          <button onClick={onComplete} className="w-full py-3 bg-[#C9A84C] hover:bg-[#B8983C] text-white font-bold rounded-lg uppercase transition">
             Урок пройден ✓
           </button>
         )}
@@ -277,9 +277,9 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
     <div className="flex flex-col items-center gap-2 w-full">
       {/* progress */}
       {timeMode === '30' && (
-        <div className="w-full h-1 bg-slate-200 rounded">
+        <div className="w-full h-1 bg-[#E8E0D4] rounded">
           <div
-            className="h-full bg-green-500 rounded"
+            className="h-full bg-[#C9A84C] rounded"
             style={{
               width: `${((30 - timeLeft) / 30) * 100}%`,
               transition: 'width 1s linear',
@@ -289,15 +289,15 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
       )}
 
       {/* score / time */}
-      <div className="flex w-full justify-between px-2 text-sm text-slate-600">
-        <span>Результат: <span className="font-bold text-slate-800">{score}</span></span>
-        {timeMode === '30' && <span>Время: <span className="font-mono font-bold text-slate-800">{timeLeft.toFixed(1)}</span></span>}
+      <div className="flex w-full justify-between px-2 text-sm text-[#5A4A3A]">
+        <span>Результат: <span className="font-bold text-[#2C241B]">{score}</span></span>
+        {timeMode === '30' && <span>Время: <span className="font-mono font-bold text-[#2C241B]">{timeLeft.toFixed(1)}</span></span>}
       </div>
 
       {/* prompt (find mode) */}
       {mode === 'find' && target && (
         <div className="text-center py-2">
-          <span className="text-5xl font-bold text-slate-800 drop-shadow-sm">{target}</span>
+          <span className="text-5xl font-bold text-[#2C241B] drop-shadow-sm">{target}</span>
         </div>
       )}
 
@@ -318,8 +318,8 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
               const isFlash = flashSq === sq;
               const flashBg = isFlash
                 ? flashOk === true
-                  ? 'rgba(34,197,94,0.55)'
-                  : 'rgba(239,68,68,0.55)'
+                  ? 'rgba(201,168,76,0.55)'
+                  : 'rgba(139,58,58,0.55)'
                 : null;
               const isTarget = mode === 'name' && target === sq;
 
@@ -347,7 +347,7 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
                   {/* name-mode target highlight */}
                   {isTarget && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="w-3/4 h-3/4 rounded-full bg-green-500/40 animate-pulse" />
+                      <div className="w-3/4 h-3/4 rounded-full bg-[#C9A84C]/40 animate-pulse" />
                     </div>
                   )}
 
@@ -369,7 +369,7 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
         <div className="grid grid-cols-2 gap-2 w-full max-w-sm mt-2">
           {nameOpts.map(opt => (
             <button key={opt} onClick={() => handleName(opt)}
-              className="py-3 bg-white border-2 border-slate-200 rounded-lg font-bold text-lg text-slate-800 hover:bg-slate-50 active:bg-slate-100 transition"
+              className="py-3 bg-white border-2 border-[#D4C5B5] rounded-lg font-bold text-lg text-[#2C241B] hover:bg-[#F5EFE6] active:bg-[#E8E0D4] transition"
             >
               {opt}
             </button>
@@ -379,7 +379,7 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
 
       {/* stop */}
       <div className="flex gap-2 mt-2 w-full max-w-sm">
-        <button onClick={stopGame} className="flex-1 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm font-medium">Стоп</button>
+        <button onClick={stopGame} className="flex-1 py-2 bg-[#E8E0D4] text-[#5A4A3A] rounded-lg text-sm font-medium">Стоп</button>
       </div>
     </div>
   );
