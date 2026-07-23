@@ -868,26 +868,67 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
         </div>
 
         {/* Mobile exercise pills */}
-        <div className="flex lg:hidden gap-1 justify-center w-full overflow-x-auto">
+        <div className="flex lg:hidden w-full items-stretch gap-[1px]">
           {EXERCISES.map((ex) => {
-            const earnedStars = exerciseStars[ex.id] || 0;
+            const earned = exerciseStars[ex.id] || 0;
             const isCurrent = ex.id === currentExercise;
-            const isDone = earnedStars > 0;
+            const isDone = earned > 0;
             const isLocked = !isCurrent && !isDone;
             return (
               <button
                 key={ex.id}
                 onClick={() => { if (!isLocked) switchExercise(ex.id); }}
-                className={`flex-shrink-0 h-9 px-3 rounded-lg text-sm font-bold transition-all ${
-                  isCurrent ? 'bg-[#5A4A3A] text-white' :
-                  isDone ? 'bg-[#C9A84C] text-white' :
-                  'bg-[#F0EDE8] text-[var(--text-tertiary)]'
-                } ${isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                disabled={isCurrent}
+                className={`flex-1 flex flex-col items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 ${
+                  isCurrent
+                    ? 'bg-[#2C241B] shadow-md'
+                    : isDone
+                    ? 'bg-[#C9A84C]'
+                    : 'bg-[#F0EBE4] border border-[#D4C5B5]'
+                } ${isCurrent ? 'cursor-not-allowed' : isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
+                title={isDone ? `Упражнение ${ex.id} — пройдено` : `Упражнение ${ex.id}`}
               >
-                {ex.id}
+                {isDone && earned > 0 ? (
+                  earned === 3 ? (
+                    <>
+                      <div className="flex">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                      </div>
+                      <div className="flex gap-[1px]">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex gap-[2px] justify-center w-full">
+                      {Array.from({ length: earned }, (_, s) => (
+                        <svg key={s} width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                        </svg>
+                      ))}
+                    </div>
+                  )
+                ) : (
+                  <span className={`text-sm font-bold leading-none ${
+                    isCurrent ? 'text-white' : 'text-[#9CA3AF]'
+                  }`}>{ex.id}</span>
+                )}
               </button>
             );
           })}
+        </div>
+
+        {/* Mobile: Задание N из 5 + progress bar */}
+        <div className="lg:hidden flex flex-col gap-1.5 w-full">
+          <span className="text-xs font-bold text-[var(--text-primary)]">
+            Задание {currentExercise} из {EXERCISES.length}
+          </span>
+          <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+            <div
+              className="h-full bg-[var(--accent)] rounded-full transition-all duration-500"
+              style={{ width: `${((currentExercise) / EXERCISES.length) * 100}%` }}
+            />
+          </div>
         </div>
 
         {/* Mobile buttons */}
@@ -895,14 +936,14 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
           {currentExercise === 1 && !demoMode && !isComplete && (
             <button
               onClick={() => { reset(); setDemoMode(true); setDemoStep(0); }}
-              className="flex-1 h-10 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
+              className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
             >
               <Eye size={14} /> Посмотреть
             </button>
           )}
           <button
             onClick={reset}
-            className="flex-1 h-10 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
+            className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
           >
             <RotateCcw size={14} /> Заново
           </button>
