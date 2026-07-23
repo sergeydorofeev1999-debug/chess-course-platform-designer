@@ -783,9 +783,9 @@ function InlineChessBoard({
             );
           })
         )}
-        {((guideArrows.length > 0 && moves === 0) || hintArrows.length > 0) && !selectedSquare && !dragPiece && (
+        {hintArrows.length > 0 && !selectedSquare && !dragPiece && (
           <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
-            {(hintArrows.length > 0 ? hintArrows : guideArrows).map((arrow, i) => {
+            {hintArrows.map((arrow, i) => {
               const fromF = FILES.indexOf(arrow.from[0]);
               const fromR = RANKS.indexOf(arrow.from[1]);
               const toF = FILES.indexOf(arrow.to[0]);
@@ -1122,6 +1122,11 @@ function MultiLevelStarBoard({
 
   const computeHintArrow = useCallback(() => {
     const parsed = parseFen(positionRef.current);
+
+    // ── GUIDE ARROWS MODE: return level.guideArrows when hint button pressed ──
+    if (level.guideArrows != null && level.guideArrows.length > 0) {
+      return level.guideArrows;
+    }
 
     // ── ESCAPE CHECK MODE (Lesson 10): white king is in check — find best defense ──
     if (level.requireEscapeCheck || isKingInCheck(parsed.squares, 'w')) {
