@@ -1076,12 +1076,12 @@ const getExerciseGoal = (ex: number) => {
                         {pieceObj ? (
                           // Золотое кольцо вокруг вражеской фигуры
                           <div
-                            className="absolute rounded-full"
                             style={{ 
-                              width: Math.round(sqSize * 0.85), 
-                              height: Math.round(sqSize * 0.85), 
-                              border: '3px solid #C9A84C', 
-                              boxShadow: '0 0 8px rgba(201,168,76,0.4)', 
+                              width: sqSize, 
+                              height: sqSize, 
+                              borderRadius: '50%', 
+                              border: '4px solid #C9A84C', 
+                              boxSizing: 'border-box', 
                             }}
                           />
                         ) : (

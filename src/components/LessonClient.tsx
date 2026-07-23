@@ -513,6 +513,7 @@ function InlineChessBoard({
 
   const click = useCallback(
     (square: string) => {
+      if (promotionPending) return;
       const sqs = squaresRef.current;
       const sel = selectedSquareRef.current;
       const piece = sqs[square];
@@ -1404,6 +1405,7 @@ function MultiLevelStarBoard({
     setShowHint(false);
     setHintArrows([]);
     setHintLevel(0);
+    setPromotionPending(null);
   }, [level]);
 
   useEffect(() => {
