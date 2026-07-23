@@ -818,18 +818,6 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
           </div>
         )}
 
-        {/* Demo button — mobile only, desktop in sidebar */}
-        <div className="lg:hidden w-full">
-          {currentExercise === 1 && !demoMode && !isComplete && (
-            <button
-              onClick={() => { reset(); setDemoMode(true); setDemoStep(0); }}
-              className="w-full flex items-center justify-center gap-1.5 h-9 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
-            >
-              <Eye size={14} /> Посмотреть как ставить мат
-            </button>
-          )}
-        </div>
-
         {demoComment && (
           <div className="px-4 py-2 bg-[#5A4A3A]/10 border border-[#5A4A3A]/20 rounded-lg text-sm text-[#5A4A3A] text-center max-w-sm">
             {demoComment}
