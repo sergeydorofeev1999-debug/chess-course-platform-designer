@@ -118,9 +118,11 @@ function parseFen(fen: string) {
 }
 
 function isValidMove(pieceType: string, from: string, to: string, squares: Record<string, any>, starSquares: string[] = [], enPassantTarget: string | null = null) {
-  if (squares[from]?.color !== 'w') return false;
-  if (squares[to]?.color === 'w') return false;
+  if (!squares[from]) return false;
   if (from === to) return false;
+  const pieceColor = squares[from].color;
+  if (!pieceColor) return false;
+  if (squares[to]?.color === pieceColor) return false;
 
   const ff = FILES.indexOf(from[0]);
   const tf = FILES.indexOf(to[0]);
@@ -203,17 +205,18 @@ function isValidMove(pieceType: string, from: string, to: string, squares: Recor
       return (Math.abs(df) === 2 && Math.abs(dr) === 1) || (Math.abs(df) === 1 && Math.abs(dr) === 2);
     }
     case 'p': {
-      const forwardDir = -1;
+      const forwardDir = pieceColor === 'w' ? -1 : 1;
+      const startRank = pieceColor === 'w' ? '2' : '7';
       if (df === 0 && dr === forwardDir) return !squares[to] && !starSquares.includes(to);
       if (df === 0 && dr === 2 * forwardDir) {
-        if (from[1] !== '2') return false;
+        if (from[1] !== startRank) return false;
         const middleSq = `${FILES[ff]}${RANKS[fr + forwardDir]}`;
         if (squares[middleSq] || starSquares.includes(middleSq)) return false;
         return !squares[to] && !starSquares.includes(to);
       }
       if (Math.abs(df) === 1 && dr === forwardDir) {
         if (starSquares.includes(to)) return true;
-        if (squares[to] && squares[to].color !== 'w') return true;
+        if (squares[to] && squares[to].color !== pieceColor) return true;
         if (enPassantTarget && to === enPassantTarget) return true;
         return false;
       }
