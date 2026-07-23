@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { RotateCcw, Lightbulb } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
-const CaptureBoard = dynamic(() => import('./CaptureBoard'), { ssr: false });
+import CaptureBoard from './CaptureBoard';
 
 function MassiveStar({ filled }: { filled: boolean }) {
   return (
