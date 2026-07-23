@@ -1123,15 +1123,9 @@ function MultiLevelStarBoard({
   const computeHintArrow = useCallback(() => {
     const parsed = parseFen(positionRef.current);
 
-    // ── GUIDE ARROWS MODE: sequential, fall back to algorithm if deviated ──
+    // ── GUIDE ARROWS MODE: return level.guideArrows when hint button pressed ──
     if (level.guideArrows != null && level.guideArrows.length > 0) {
-      // Still on standard path? Return next sequential arrow
-      for (const arrow of level.guideArrows) {
-        if (parsed.squares[arrow.from]?.color === 'w') {
-          return [arrow];
-        }
-      }
-      // Deviation — fall through to BFS algorithm below
+      return level.guideArrows;
     }
 
     // ── ESCAPE CHECK MODE (Lesson 10): white king is in check — find best defense ──
@@ -2075,7 +2069,7 @@ function MultiLevelStarBoard({
               fen={position}
               stars={visibleStars}
               onMove={handleMove}
-              pieceType={level.allowedPieces && level.allowedPieces.length > 0 ? level.allowedPieces[0] : pieceType}
+              pieceType={pieceType}
               pieceName={pieceName}
               guideArrows={guideArrows}
               hintArrows={hintArrows}
