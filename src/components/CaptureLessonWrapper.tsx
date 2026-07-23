@@ -140,15 +140,15 @@ function parseFenSimple(fen: string) {
     return squares;
   }
 
-  function canMove(pieceType: string, from: string, to: string, squares: Record<string, any>, color: 'w' | 'b') {
+  function canMove(pieceType: string, from: string, to: string, squares: Record<string, any>, color: 'w' | 'b', ignoreTargetColor?: boolean) {
     if (squares[from]?.color !== color) return false;
-    if (squares[to]?.color === color) return false;
+    if (!ignoreTargetColor && squares[to]?.color === color) return false;
     if (from === to) return false;
     const ff = FILES.indexOf(from[0]), tf = FILES.indexOf(to[0]);
     const fr = RANKS.indexOf(from[1]), tr = RANKS.indexOf(to[1]);
     const df = tf - ff, dr = tr - fr, adf = Math.abs(df), adr = Math.abs(dr);
 
-    const blocked = (stepF: number, stepR: number, count: number) => {
+    let blocked = (stepF: number, stepR: number, count: number) => {
       for (let i = 1; i < count; i++)
         if (squares[`${FILES[ff + stepF * i]}${RANKS[fr + stepR * i]}`]) return true;
       return false;
@@ -191,12 +191,31 @@ function parseFenSimple(fen: string) {
       case 'k': return adf <= 1 && adr <= 1;
       case 'p': {
         const dir = color === 'w' ? -1 : 1;
+        const startRank = color === 'w' ? '2' : '7';
+        // Forward 1
         if (tf === ff && tr === fr + dir && !squares[to]) return true;
+        // Forward 2 from start
+        if (tf === ff && tr === fr + 2 * dir && from[1] === startRank && !squares[to]) {
+          const middleSq = `${FILES[ff]}${RANKS[fr + dir]}`;
+          if (!squares[middleSq]) return true;
+        }
+        // Diagonal capture
         if (Math.abs(tf - ff) === 1 && tr === fr + dir && squares[to]?.color !== color && squares[to]) return true;
         return false;
       }
     }
     return false;
+  }
+
+  function attacksSquare(pieceType: string, from: string, to: string, squares: Record<string, any>, color: 'w' | 'b') {
+    // For pawns: diagonal forward is always an attack, regardless of occupancy
+    if (pieceType === 'p') {
+      const ff = FILES.indexOf(from[0]), tf = FILES.indexOf(to[0]);
+      const fr = RANKS.indexOf(from[1]), tr = RANKS.indexOf(to[1]);
+      const dir = color === 'w' ? -1 : 1;
+      return Math.abs(tf - ff) === 1 && tr === fr + dir;
+    }
+    return canMove(pieceType, from, to, squares, color, true);
   }
 
   function anyBlackCanCaptureWhite(squares: Record<string, any>) {
@@ -210,8 +229,45 @@ function parseFenSimple(fen: string) {
     return false;
   }
 
+  function isDefended(squares: Record<string, any>, sq: string, color: 'w' | 'b') {
+    for (const s in squares) {
+      if (s === sq) continue;
+      const p = squares[s];
+      if (p.color !== color) continue;
+      if (attacksSquare(p.type, s, sq, squares, color)) return true;
+    }
+    return false;
+  }
+
+  function isKingInCheck(squares: Record<string, any>, kingColor: 'w' | 'b') {
+    let kingSq = '';
+    for (const s in squares) {
+      if (squares[s]?.type === 'k' && squares[s]?.color === kingColor) {
+        kingSq = s;
+        break;
+      }
+    }
+    if (!kingSq) return false;
+    const enemyColor = kingColor === 'w' ? 'b' : 'w';
+    for (const s in squares) {
+      const p = squares[s];
+      if (p.color !== enemyColor) continue;
+      if (attacksSquare(p.type, s, kingSq, squares, enemyColor)) return true;
+    }
+    return false;
+  }
+
+  function canEnemyCapture(squares: Record<string, any>, sq: string, enemyColor: 'w' | 'b') {
+    for (const s in squares) {
+      const p = squares[s];
+      if (p.color !== enemyColor) continue;
+      if (attacksSquare(p.type, s, sq, squares, enemyColor)) return true;
+    }
+    return false;
+  }
+
   const computeHintArrow = () => {
-    // HINT_ALGORITHM_V6_BFS_SHORTEST_PATH_2026
+    // HINT_ALGORITHM_V6_BFS_SHORTEST_PATH_2026 + DEFENSE_MODE + ESCAPE_CHECK_MODE
     console.log('HINT_V6_ACTIVE_MARKER');
     const level = levels[currentLevel];
     if (!level) return [];
@@ -219,65 +275,239 @@ function parseFenSimple(fen: string) {
     if (!fen) return [];
 
     const initialSquares = parseFenBoard(fen);
-    const targets = (level.stars || level.targets || []).filter((t: string) => initialSquares[t]?.color === 'b');
-    if (targets.length === 0) return [];
+    const allTargets = level.stars || level.targets || [];
 
-    // BFS to find shortest safe-capture path
-    // State: { squares, depth, firstMove }
-    // firstMove = the first move in the chain (what we show to user)
-    const queue: { squares: Record<string, any>; depth: number; firstMove: { from: string; to: string } | null }[] = [];
-    queue.push({ squares: initialSquares, depth: 0, firstMove: null });
+    // ── CAPTURE MODE: targets are black pieces (Lesson 7 style)
+    const blackTargets = allTargets.filter((t: string) => initialSquares[t]?.color === 'b');
+    if (blackTargets.length > 0) {
+      const queue: { squares: Record<string, any>; depth: number; firstMove: { from: string; to: string } | null }[] = [];
+      queue.push({ squares: initialSquares, depth: 0, firstMove: null });
 
-    const visited = new Set<string>();
-    visited.add(JSON.stringify(initialSquares));
+      const visited = new Set<string>();
+      visited.add(JSON.stringify(initialSquares));
 
-    while (queue.length > 0) {
-      const state = queue.shift()!;
+      while (queue.length > 0) {
+        const state = queue.shift()!;
 
-      // Try all possible captures from this state
-      const whiteSquares = Object.keys(state.squares).filter(s => state.squares[s]?.color === 'w');
+        const whiteSquares = Object.keys(state.squares).filter(s => state.squares[s]?.color === 'w');
+        for (const wSq of whiteSquares) {
+          const piece = state.squares[wSq];
+          for (const target of blackTargets) {
+            if (!canMove(piece.type, wSq, target, state.squares, 'w')) continue;
+
+            const nextSquares = { ...state.squares };
+            nextSquares[target] = nextSquares[wSq];
+            delete nextSquares[wSq];
+
+            if (!anyBlackCanCaptureWhite(nextSquares)) {
+              const moveToShow = state.firstMove || { from: wSq, to: target };
+              return [moveToShow];
+            }
+          }
+        }
+
+        if (state.depth < 3) {
+          for (const wSq of whiteSquares) {
+            const piece = state.squares[wSq];
+            for (const file of FILES) {
+              for (const rank of RANKS) {
+                const to = file + rank;
+                if (to === wSq) continue;
+                if (state.squares[to]) continue;
+                if (!canMove(piece.type, wSq, to, state.squares, 'w')) continue;
+
+                const nextSquares = { ...state.squares };
+                nextSquares[to] = nextSquares[wSq];
+                delete nextSquares[wSq];
+
+                if (anyBlackCanCaptureWhite(nextSquares)) continue;
+
+                const key = JSON.stringify(nextSquares);
+                if (visited.has(key)) continue;
+                visited.add(key);
+
+                const firstMove = state.firstMove || { from: wSq, to };
+                queue.push({ squares: nextSquares, depth: state.depth + 1, firstMove });
+              }
+            }
+          }
+        }
+      }
+      return [];
+    }
+
+    // ── CHECK MODE: requireCheck = true (Lesson 9 style — give check to black king)
+    if (level.requireCheck) {
+      // Find black king
+      let blackKingSq = '';
+      for (const s in initialSquares) {
+        if (initialSquares[s]?.type === 'k' && initialSquares[s]?.color === 'b') {
+          blackKingSq = s;
+          break;
+        }
+      }
+      if (blackKingSq) {
+        const whiteSquares = Object.keys(initialSquares).filter(s => initialSquares[s]?.color === 'w');
+        for (const wSq of whiteSquares) {
+          const piece = initialSquares[wSq];
+          // Try all empty squares as destinations
+          for (const file of FILES) {
+            for (const rank of RANKS) {
+              const target = file + rank;
+              if (initialSquares[target]?.color === 'w') continue; // can't move to own piece
+              if (!canMove(piece.type, wSq, target, initialSquares, 'w')) continue;
+              if (level.forbiddenSquares?.includes(target)) continue;
+
+              // Simulate move
+              const nextSquares = { ...initialSquares };
+              nextSquares[target] = nextSquares[wSq];
+              delete nextSquares[wSq];
+
+              // Does ANY white piece attack the black king after this move?
+              let givesCheck = false;
+              for (const s in nextSquares) {
+                const p = nextSquares[s];
+                if (p.color !== 'w') continue;
+                if (attacksSquare(p.type, s, blackKingSq, nextSquares, 'w')) {
+                  givesCheck = true;
+                  break;
+                }
+              }
+              if (givesCheck) {
+                // Safety: reject if moved piece is immediately capturable and undefended
+                let moveIsSafe = true;
+                if (canEnemyCapture(nextSquares, target, 'b') && !isDefended(nextSquares, target, 'w')) {
+                  moveIsSafe = false;
+                }
+                if (moveIsSafe) {
+                  return [{ from: wSq, to: target }];
+                }
+              }
+            }
+          }
+        }
+      }
+      return [];
+    }
+
+    // ── ESCAPE CHECK MODE: white king is in check — find best defense
+    if (level.requireEscapeCheck || isKingInCheck(initialSquares, 'w')) {
+      // Find white king
+      let whiteKingSq = '';
+      for (const s in initialSquares) {
+        if (initialSquares[s]?.type === 'k' && initialSquares[s]?.color === 'w') {
+          whiteKingSq = s;
+          break;
+        }
+      }
+      if (!whiteKingSq) return [];
+
+      // Find attackers of the white king
+      const attackers: string[] = [];
+      for (const s in initialSquares) {
+        const p = initialSquares[s];
+        if (p.color !== 'b') continue;
+        if (attacksSquare(p.type, s, whiteKingSq, initialSquares, 'b')) attackers.push(s);
+      }
+      if (attackers.length === 0) return []; // not actually in check
+
+      const whiteSquares = Object.keys(initialSquares).filter(s => initialSquares[s]?.color === 'w');
+      const validDefenses: { from: string; to: string; score: number }[] = [];
+
       for (const wSq of whiteSquares) {
-        const piece = state.squares[wSq];
-        for (const target of targets) {
-          if (!canMove(piece.type, wSq, target, state.squares, 'w')) continue;
+        const piece = initialSquares[wSq];
+        for (const file of FILES) {
+          for (const rank of RANKS) {
+            const target = file + rank;
+            if (wSq === target) continue;
+            if (initialSquares[target]?.color === 'w') continue;
+            if (!canMove(piece.type, wSq, target, initialSquares, 'w')) continue;
+            if (level.forbiddenSquares?.includes(target)) continue;
 
-          const nextSquares = { ...state.squares };
-          nextSquares[target] = nextSquares[wSq];
-          delete nextSquares[wSq];
+            // Simulate move
+            const nextSquares = { ...initialSquares };
+            nextSquares[target] = nextSquares[wSq];
+            delete nextSquares[wSq];
 
-          if (!anyBlackCanCaptureWhite(nextSquares)) {
-            // Found safe capture! Return first move of the chain
-            const moveToShow = state.firstMove || { from: wSq, to: target };
-            return [moveToShow];
+            // After the move, is white king still in check?
+            if (isKingInCheck(nextSquares, 'w')) continue;
+
+            let score = 0;
+            // Priority 1: capture the attacker (NxN, KxR, etc.)
+            if (attackers.includes(target)) score += 1000;
+            // Priority 2: king move to safety
+            if (piece.type === 'k') score += 500;
+            // Priority 3: block the attack (piece moves between king and attacker)
+            // Only relevant for sliding attackers
+            if (attackers.length === 1 && piece.type !== 'k') {
+              const attackerSq = attackers[0];
+              const atkFile = FILES.indexOf(attackerSq[0]);
+              const atkRank = RANKS.indexOf(attackerSq[1]);
+              const kingFile = FILES.indexOf(whiteKingSq[0]);
+              const kingRank = RANKS.indexOf(whiteKingSq[1]);
+              const targetFile = FILES.indexOf(target[0]);
+              const targetRank = RANKS.indexOf(target[1]);
+              // Same line?
+              const sameLine = (kingFile === atkFile && kingFile === targetFile) ||
+                               (kingRank === atkRank && kingRank === targetRank) ||
+                               (Math.abs(kingFile - atkFile) === Math.abs(kingRank - atkRank) &&
+                                Math.abs(kingFile - targetFile) === Math.abs(kingRank - targetRank) &&
+                                Math.abs(atkFile - targetFile) === Math.abs(atkRank - targetRank));
+              if (sameLine) {
+                // Is target between king and attacker?
+                const minFile = Math.min(kingFile, atkFile);
+                const maxFile = Math.max(kingFile, atkFile);
+                const minRank = Math.min(kingRank, atkRank);
+                const maxRank = Math.max(kingRank, atkRank);
+                if (targetFile > minFile && targetFile < maxFile && targetRank > minRank && targetRank < maxRank) {
+                  score += 200;
+                }
+              }
+            }
+
+            validDefenses.push({ from: wSq, to: target, score });
           }
         }
       }
 
-      // If not at max depth, try all empty-square moves (setup moves)
-      if (state.depth < 3) {
-        for (const wSq of whiteSquares) {
-          const piece = state.squares[wSq];
-          for (const file of FILES) {
-            for (const rank of RANKS) {
-              const to = file + rank;
-              if (to === wSq) continue;
-              if (state.squares[to]) continue; // must be empty
-              if (!canMove(piece.type, wSq, to, state.squares, 'w')) continue;
+      // Sort by score descending, return best
+      validDefenses.sort((a, b) => b.score - a.score);
+      if (validDefenses.length > 0) {
+        return [{ from: validDefenses[0].from, to: validDefenses[0].to }];
+      }
+      return [];
+    }
 
-              const nextSquares = { ...state.squares };
-              nextSquares[to] = nextSquares[wSq];
-              delete nextSquares[wSq];
+    // ── DEFENSE MODE: targets are empty squares (Lesson 8 style)
+    const defenseTargets = allTargets.filter((t: string) => !initialSquares[t]);
+    if (defenseTargets.length > 0) {
+      const whiteSquares = Object.keys(initialSquares).filter(s => initialSquares[s]?.color === 'w');
+      for (const wSq of whiteSquares) {
+        const piece = initialSquares[wSq];
+        for (const target of defenseTargets) {
+          if (!canMove(piece.type, wSq, target, initialSquares, 'w')) continue;
+          if (level.forbiddenSquares?.includes(target)) continue;
 
-              if (anyBlackCanCaptureWhite(nextSquares)) continue;
+          // Simulate the move and verify the moved piece stays safe
+          const nextSquares = { ...initialSquares };
+          nextSquares[target] = nextSquares[wSq];
+          delete nextSquares[wSq];
 
-              const key = JSON.stringify(nextSquares);
-              if (visited.has(key)) continue;
-              visited.add(key);
-
-              const firstMove = state.firstMove || { from: wSq, to };
-              queue.push({ squares: nextSquares, depth: state.depth + 1, firstMove });
+          // After moving, check if any white piece is capturable by black
+          let moveIsSafe = true;
+          for (const s in nextSquares) {
+            if (nextSquares[s]?.color !== 'w') continue;
+            if (canEnemyCapture(nextSquares, s, 'b')) {
+              // If the piece we just moved is now capturable and undefended, reject
+              if (s === target && !isDefended(nextSquares, target, 'w')) {
+                moveIsSafe = false;
+                break;
+              }
             }
           }
+
+          if (!moveIsSafe) continue;
+          return [{ from: wSq, to: target }];
         }
       }
     }
@@ -317,7 +547,7 @@ function parseFenSimple(fen: string) {
       <div className="flex justify-center w-full">
         <div className="relative inline-block rounded-sm">
           <CaptureBoard
-            key={`${resetKey}-${currentLevel}`}
+            key={String(resetKey)}
             lessonId={lesson.id}
             levels={levels}
             successMessage="Молодец!"
@@ -422,7 +652,7 @@ function parseFenSimple(fen: string) {
               setShowHint(false);
             }
           }}
-          className="flex-1 h-10 flex items-center justify-center gap-1 rounded-lg border text-xs font-medium transition-all duration-200 border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]"
+          className={`flex-1 h-10 flex items-center justify-center gap-1 rounded-lg border text-xs font-medium transition-all duration-200 ${showHint ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}
         >
           <Lightbulb size={14} /> Подсказка
         </button>

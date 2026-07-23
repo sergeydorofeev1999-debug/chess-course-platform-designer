@@ -556,6 +556,8 @@ function InlineChessBoard({
   const justDraggedRef = useRef(false);
   const onMoveRef = useRef(onMove);
   const [sqSize, setSqSize] = useState(44);
+  const sqSizeRef = useRef(sqSize);
+  const pointerIdRef = useRef(0);
 
   useEffect(() => {
     const update = () => {
@@ -573,9 +575,16 @@ function InlineChessBoard({
   }, []);
 
   useEffect(() => {
+    sqSizeRef.current = sqSize;
+  }, [sqSize]);
+
+  useEffect(() => {
     const p = parseFen(fen);
     setSquares(p.squares);
     squaresRef.current = p.squares;
+    // Reset selection when FEN changes (level switch / reset)
+    selectedSquareRef.current = null;
+    setSelectedSquare(null);
   }, [fen]);
 
   useEffect(() => {
@@ -652,14 +661,16 @@ function InlineChessBoard({
     if (!piece || piece.color !== 'w') return;
     pointerStartRef.current = sq;
     justDraggedRef.current = false;
+    pointerIdRef.current = e.pointerId;
     // Select piece immediately like LessonClient
     selectedSquareRef.current = sq;
     setSelectedSquare(sq);
     const rect = containerRef.current.getBoundingClientRect();
     const fi = FILES.indexOf(sq[0]);
     const ri = RANKS.indexOf(sq[1]);
-    const centerX = fi * sqSize + sqSize / 2;
-    const centerY = ri * sqSize + sqSize / 2;
+    const size = sqSizeRef.current;
+    const centerX = fi * size + size / 2;
+    const centerY = ri * size + size / 2;
     const offsetX = e.clientX - rect.left - centerX;
     const offsetY = e.clientY - rect.top - centerY;
     const initState = {
@@ -680,6 +691,7 @@ function InlineChessBoard({
 
   const handleGlobalMove = (e: PointerEvent) => {
     if (!dragStateRef.current) return;
+    if (e.pointerId !== pointerIdRef.current) return;
     const dx = e.clientX - dragStateRef.current.startX;
     const dy = e.clientY - dragStateRef.current.startY;
     if (!justDraggedRef.current && Math.abs(dx) <= 20 && Math.abs(dy) <= 20) {
@@ -710,6 +722,7 @@ function InlineChessBoard({
       justDraggedRef.current = false;
       return;
     }
+    if (e.pointerId !== pointerIdRef.current) return;
     if (!justDraggedRef.current) {
       // It was a click, not a drag — process it through the click handler
       click(dragStateRef.current.square);
@@ -717,8 +730,9 @@ function InlineChessBoard({
       const rect = containerRef.current.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
-      const fi = Math.floor(x / sqSize);
-      const ri = Math.floor(y / sqSize);
+      const size = sqSizeRef.current;
+      const fi = Math.floor(x / size);
+      const ri = Math.floor(y / size);
       if (fi >= 0 && fi < 8 && ri >= 0 && ri < 8) {
         const targetSquare = `${FILES[fi]}${RANKS[ri]}`;
         const start = dragStateRef.current.square;
