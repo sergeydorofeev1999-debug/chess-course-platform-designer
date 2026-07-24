@@ -267,12 +267,22 @@ function parseFenSimple(fen: string) {
   }
 
   const computeHintArrow = () => {
-    // HINT_ALGORITHM_V6_BFS + DEFENSE_MODE + ESCAPE_CHECK_MODE + MATE_MODE
+    // HINT_ALGORITHM_V6_BFS + DEFENSE_MODE + ESCAPE_CHECK_MODE + MATE_MODE + CHECK_IN_TWO_MODE
     console.log('HINT_V6_ACTIVE_MARKER');
     const level = levels[currentLevel];
-    if (!level) return [];
+    if (!level) { console.log('HINT: no level'); return []; }
     const fen = currentPosition || level.initialFen || '';
-    if (!fen) return [];
+    if (!fen) { console.log('HINT: no fen'); return []; }
+
+    console.log('HINT: level', {
+      currentLevel,
+      requireCheck: level.requireCheck,
+      checkOnMove: level.checkOnMove,
+      requireStalemate: level.requireStalemate,
+      requireMate: level.requireMate,
+      fen,
+      initialFen: level.initialFen,
+    });
 
     const initialSquares = parseFenBoard(fen);
     const allTargets = level.stars || level.targets || [];
@@ -814,7 +824,7 @@ function parseFenSimple(fen: string) {
             onAnyMove={() => {
               setHintArrows([]);
               setShowHint(false);
-              setCurrentPosition('');
+              // DO NOT reset currentPosition here — onPositionChange handles it
             }}
             onPositionChange={setCurrentPosition}
           />
