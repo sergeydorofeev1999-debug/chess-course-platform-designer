@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
-import { RotateCcw, Trophy } from 'lucide-react';
+import { RotateCcw, Trophy, Eye } from 'lucide-react';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const RANKS = ['8','7','6','5','4','3','2','1'];
@@ -964,6 +964,19 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
     <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
       {/* LEFT SIDEBAR (desktop) */}
       <div className="hidden lg:flex lg:w-[180px] flex-shrink-0 flex-col gap-3">
+
+        {/* Avatar + speech bubble */}
+        <div className="flex items-start gap-2">
+          <div className="w-10 h-10 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
+            <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
+          </div>
+          <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2.5 shadow-sm border border-[rgba(92,64,51,0.06)]">
+            <p className="text-sm text-[var(--text-primary)] leading-snug">
+              Поставьте двойной удар, а затем съешьте фигуру соперника.
+            </p>
+          </div>
+        </div>
+
         {/* Exercise pills */}
         <div className="w-full flex flex-col gap-[1px]">
           {[1,2,3,4,5,6,7,8,9,10,11,12].map((num) => {
@@ -1024,6 +1037,21 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
 
       {/* CENTER COLUMN */}
       <div className="flex-1 flex flex-col items-center gap-3">
+
+        {/* Mobile avatar + speech bubble */}
+        <div className="lg:hidden w-full flex flex-col gap-2">
+          <div className="flex items-start gap-3">
+            <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
+              <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
+            </div>
+            <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
+              <p className="text-sm text-[var(--text-primary)] leading-snug line-clamp-3">
+                Поставьте двойной удар, а затем съешьте фигуру соперника.
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="text-center font-bold text-slate-700 text-lg">
           {turnText}
         </div>
@@ -1243,7 +1271,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           </div>
         </div>
 
-        {/* Mobile progress + Заново */}
+        {/* Mobile progress + buttons row */}
         <div className="flex lg:hidden flex-col gap-2 w-full">
           <div className="flex flex-col gap-1.5">
             <span className="text-xs font-bold text-[var(--text-primary)]">Задание {exercise} из 12</span>
@@ -1251,9 +1279,14 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
               <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${(exercise / 12) * 100}%` }} />
             </div>
           </div>
-          <button onClick={reset} className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all">
-            <RotateCcw size={14} /> Заново
-          </button>
+          <div className="flex gap-2 w-full">
+            <button className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all">
+              <Eye size={14} /> Подсказка
+            </button>
+            <button onClick={reset} className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all">
+              <RotateCcw size={14} /> Заново
+            </button>
+          </div>
         </div>
 
         {/* Goal text */}
