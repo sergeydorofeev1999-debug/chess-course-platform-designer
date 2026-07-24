@@ -21,6 +21,7 @@ interface Props {
   levels: any[];
   onAllComplete?: () => void;
   onLevelComplete?: (level: number, stars: number) => void;
+  onPositionChange?: (fen: string) => void;
 }
 
 export default function CaptureLessonWrapper({
@@ -30,6 +31,7 @@ export default function CaptureLessonWrapper({
   levels,
   onAllComplete,
   onLevelComplete,
+  onPositionChange: onPositionChangeProp,
 }: Props) {
   // DEBUG: Verify component loaded in production
   console.log('CaptureLessonWrapper LOADED');
@@ -42,10 +44,6 @@ export default function CaptureLessonWrapper({
     // SSR-safe: initialize synchronously with the initial level's FEN
     return levels[0]?.initialFen || '';
   });
-  const currentPositionRef = useRef(currentPosition);
-  useEffect(() => {
-    currentPositionRef.current = currentPosition;
-  }, [currentPosition]);
 
   const boardRef = useRef<HTMLDivElement>(null);
   const [boardSize, setBoardSize] = useState(352);
@@ -273,16 +271,13 @@ function parseFenSimple(fen: string) {
   const computeHintArrow = () => {
     const level = levels[currentLevel];
     if (!level) return [];
-    const fen = currentPositionRef.current || level.initialFen || '';
+    const fen = currentPosition || level.initialFen || '';
     if (!fen) return [];
 
-    console.log('HINT_DEBUG: level', currentLevel, 'fen', fen.substring(0, 50), 'initialFen', (level.initialFen || '').substring(0, 50));
+    console.log('CAPTURE_WRAPPER_HINT: level', currentLevel, 'fen', fen.substring(0, 50), 'requireCheck', level.requireCheck, 'checkOnMove', level.checkOnMove);
 
     const initialSquares = parseFenBoard(fen);
     const allTargets = level.stars || level.targets || [];
-
-    const isInitialPosition = fen.split(' ')[0] === (level.initialFen || '').split(' ')[0];
-    console.log('HINT_DEBUG: isInitialPosition', isInitialPosition, 'requireCheck', level.requireCheck, 'checkOnMove', level.checkOnMove);
 
     // ── EN PASSANT HINT: auto-detect from any FEN with enPassant field ──
     const parts = fen.split(' ');
@@ -461,6 +456,7 @@ function parseFenSimple(fen: string) {
 
     // ── CHECK_IN_TWO_MODE: requireCheck + checkOnMove = 2 (Lesson 16 — check in two moves)
     // Only run on the initial position; after first move, fall through to CHECK_MODE
+    const isInitialPosition = fen.split(' ')[0] === (level.initialFen || '').split(' ')[0];
     if (level.requireCheck && level.checkOnMove === 2 && isInitialPosition) {
       // Find black king
       let blackKingSq = '';
@@ -823,7 +819,10 @@ function parseFenSimple(fen: string) {
               setShowHint(false);
               // DO NOT reset currentPosition here — onPositionChange handles it
             }}
-            onPositionChange={setCurrentPosition}
+            onPositionChange={(fen) => {
+              setCurrentPosition(fen);
+              onPositionChangeProp?.(fen);
+            }}
           />
         </div>
       </div>
