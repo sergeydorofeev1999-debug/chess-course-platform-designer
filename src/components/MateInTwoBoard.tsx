@@ -235,34 +235,33 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
   }, [game, exercise, stage, saveStars, onComplete]);
 
   // ──── CLICK ────
-  const handleSquareClick = useCallback((visualSq: string) => {
+  const handleSquareClick = useCallback((square: string) => {
     if (isCompleteRef.current || isFailRef.current) return;
     if (!game) return;
-    const sq = toChessSquare(visualSq, exercise);
-    const piece = game.get(sq as any);
+    const g = game;
+    const piece = game.get(square as any);
 
-    if (selectedSquare === sq) {
+    if (selectedSquare === square) {
       setSelectedSquare(null);
     } else if (selectedSquare) {
-      processMove(selectedSquare, sq);
+      processMove(selectedSquare, square);
     } else {
       if (piece && piece.color === game.turn()) {
-        setSelectedSquare(sq);
+        setSelectedSquare(square);
       }
     }
-  }, [game, selectedSquare, processMove, exercise]);
+  }, [game, selectedSquare, processMove]);
 
   // ──── DRAG & DROP ────
-  const handlePointerDown = useCallback((e: React.PointerEvent, visualSq: string) => {
+  const handlePointerDown = useCallback((e: React.PointerEvent, square: string) => {
     if (isCompleteRef.current || isFailRef.current) return;
     if (!game) return;
-    const sq = toChessSquare(visualSq, exercise);
-    const piece = game.get(sq as any);
+    const piece = game.get(square as any);
     if (!piece || piece.color !== game.turn()) return;
     if (e.pointerType === 'touch' && !(e as any).isPrimary) return;
 
-    pointerStartRef.current = { x: e.clientX, y: e.clientY, square: sq, moved: false, pointerId: e.pointerId };
-  }, [game, exercise]);
+    pointerStartRef.current = { x: e.clientX, y: e.clientY, square, moved: false, pointerId: e.pointerId };
+  }, [game]);
 
   useEffect(() => {
     const handleGlobalMove = (e: PointerEvent) => {
@@ -293,12 +292,9 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
       } else {
         const el = document.elementFromPoint(e.clientX, e.clientY);
         const cell = el?.closest('[data-square]') as HTMLElement | null;
-        const targetVisualSq = cell?.dataset.square || null;
-        if (targetVisualSq) {
-          const targetChessSq = toChessSquare(targetVisualSq, exercise);
-          if (targetChessSq !== start.square) {
-            processMove(start.square, targetChessSq);
-          }
+        const targetSquare = cell?.dataset.square || null;
+        if (targetSquare && targetSquare !== start.square) {
+          processMove(start.square, targetSquare);
         }
         setDragPiece(null);
       }
@@ -320,41 +316,23 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
       window.removeEventListener('pointerup', handleGlobalUp);
       window.removeEventListener('pointercancel', handleGlobalCancel);
     };
-  }, [game, processMove, exercise]);
-  const isLight = (f: number, r: number) => (f + r) % 2 === 0;
+  }, [game, processMove]);
 
-  const isReversed = (ex: number) => ex === 2 || ex === 6;
-  const toChessSquare = (visualSq: string, ex: number) => {
-    if (!isReversed(ex)) return visualSq;
-    const file = visualSq[0];
-    const rank = visualSq[1];
-    const chessFile = String.fromCharCode('a'.charCodeAt(0) + ('h'.charCodeAt(0) - file.charCodeAt(0)));
-    const chessRank = String.fromCharCode('1'.charCodeAt(0) + ('8'.charCodeAt(0) - rank.charCodeAt(0)));
-    return `${chessFile}${chessRank}`;
-  };
-  const toVisualSquare = (chessSq: string, ex: number) => {
-    if (!isReversed(ex)) return chessSq;
-    const file = chessSq[0];
-    const rank = chessSq[1];
-    const visualFile = String.fromCharCode('a'.charCodeAt(0) + ('h'.charCodeAt(0) - file.charCodeAt(0)));
-    const visualRank = String.fromCharCode('1'.charCodeAt(0) + ('8'.charCodeAt(0) - rank.charCodeAt(0)));
-    return `${visualFile}${visualRank}`;
-  };
-
-  const getPieceAt = (visualSq: string) => {
+  // ──── HELPERS ────
+  const getPieceAt = (sq: string) => {
     if (!game) return null;
-    const chessSq = toChessSquare(visualSq, exercise);
-    const p = game.get(chessSq as any);
+    const p = game.get(sq as any);
     if (!p) return null;
     return { type: p.type.toUpperCase(), color: p.color as 'w' | 'b' };
   };
 
-  const validMovesChess = selectedSquare && game
+  const isLight = (f: number, r: number) => (f + r) % 2 === 0;
+
+  const validMoves = selectedSquare && game
     ? (game.moves({ square: selectedSquare as any, verbose: true }).map(m => m.to) as string[])
     : dragPiece && game
       ? (game.moves({ square: dragPiece.square as any, verbose: true }).map(m => m.to) as string[])
       : [];
-  const validMoves = validMovesChess.map(sq => toVisualSquare(sq, exercise));
 
   const turnText = game ? (game.turn() === 'w' ? 'Ход белых' : 'Ход чёрных') : '';
 
@@ -496,11 +474,11 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
               touchAction: 'none',
             }}
           >
-            {(exercise === 2 || exercise === 6 ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).map((rank, ri) => (
-              (exercise === 2 || exercise === 6 ? REVERSED_FILES : FILES).map((file, fi) => {
+            {(exercise === 6 ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).map((rank, ri) => (
+              (exercise === 6 ? REVERSED_FILES : FILES).map((file, fi) => {
                 const sq = `${file}${rank}`;
                 const pieceObj = getPieceAt(sq);
-                const light = isLight(exercise === 2 || exercise === 6 ? 7-fi : fi, exercise === 2 || exercise === 6 ? 7-ri : ri);
+                const light = isLight(exercise === 6 ? 7-fi : fi, exercise === 6 ? 7-ri : ri);
                 const sel = selectedSquare === sq || dragPiece?.square === sq;
                 const isValidMove = validMoves.includes(sq);
                 const isDragSource = dragPiece?.square === sq;
@@ -580,7 +558,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
               return (
                 <svg className="absolute inset-0 pointer-events-none z-[35]" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
                   {arrows.map((arrow, i) => {
-                    const isReversed = exercise === 2 || exercise === 6;
+                    const isReversed = exercise === 6;
                     const fromF = (isReversed ? REVERSED_FILES : FILES).indexOf(arrow.from[0]);
                     const fromR = (isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).indexOf(arrow.from[1]);
                     const toF = (isReversed ? REVERSED_FILES : FILES).indexOf(arrow.to[0]);
