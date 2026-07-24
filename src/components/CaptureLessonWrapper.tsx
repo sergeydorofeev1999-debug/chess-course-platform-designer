@@ -459,7 +459,9 @@ function parseFenSimple(fen: string) {
     }
 
     // ── CHECK_IN_TWO_MODE: requireCheck + checkOnMove = 2 (Lesson 16 — check in two moves)
-    if (level.requireCheck && level.checkOnMove === 2) {
+    // Only run on the initial position; after first move, fall through to CHECK_MODE
+    const isInitialPosition = fen.split(' ')[0] === (level.initialFen || '').split(' ')[0];
+    if (level.requireCheck && level.checkOnMove === 2 && isInitialPosition) {
       // Find black king
       let blackKingSq = '';
       for (const s in initialSquares) {
