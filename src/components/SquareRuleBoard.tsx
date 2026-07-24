@@ -227,7 +227,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
   const runDemoSequence = useCallback(() => {
     setShowSquare(true);
     setDemoPhase(0);
-    setMessage('Квадрат от пешки a4. Король на e4 — на границе.');
+    setMessage('');
     const g1 = new Chess(START_FEN_1);
 
     schedule(() => {
