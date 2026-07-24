@@ -166,6 +166,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
 
   const switchExercise = useCallback((num: 1 | 2 | 3 | 4 | 5 | 6) => {
     setExercise(num);
+    setHintVisible(false);
     const fen = num === 1 ? START_FEN_1 : num === 2 ? START_FEN_2 : num === 3 ? START_FEN_3 : num === 4 ? START_FEN_4 : num === 5 ? START_FEN_5 : START_FEN_6;
     setGame(new Chess(fen));
     setSelectedSquare(null);
