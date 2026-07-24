@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
-import { RotateCcw, Trophy } from 'lucide-react';
+import { RotateCcw, Trophy, Eye } from 'lucide-react';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const DISPLAY_RANKS = ['8','7','6','5','4','3','2','1'];
@@ -36,6 +36,17 @@ const EXERCISE_FENS: Record<1|2|3|4|5|6|7|8, string> = {
   6: START_FEN_6,
   7: START_FEN_7,
   8: START_FEN_8,
+};
+
+const HINTS: Record<number, { from: string; to: string }[]> = {
+  1: [{ from: 'g1', to: 'f1' }],
+  2: [{ from: 'd5', to: 'f6' }],
+  3: [{ from: 'h2', to: 'h3' }],
+  4: [{ from: 'g2', to: 'g3' }],
+  5: [{ from: 'h8', to: 'c8' }],
+  6: [{ from: 'g8', to: 'f8' }],
+  7: [{ from: 'd3', to: 'f1' }],
+  8: [{ from: 'b7', to: 'g2' }],
 };
 
 function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
@@ -75,6 +86,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
   const [sqSize, setSqSize] = useState(52);
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
   const [sequenceStep, setSequenceStep] = useState(0);
+  const [hintVisible, setHintVisible] = useState(false);
 
   const isCompleteRef = useRef(false);
   const isFailRef = useRef(false);

@@ -267,22 +267,10 @@ function parseFenSimple(fen: string) {
   }
 
   const computeHintArrow = () => {
-    // HINT_ALGORITHM_V6_BFS + DEFENSE_MODE + ESCAPE_CHECK_MODE + MATE_MODE + CHECK_IN_TWO_MODE
-    console.log('HINT_V6_ACTIVE_MARKER');
     const level = levels[currentLevel];
-    if (!level) { console.log('HINT: no level'); return []; }
+    if (!level) return [];
     const fen = currentPosition || level.initialFen || '';
-    if (!fen) { console.log('HINT: no fen'); return []; }
-
-    console.log('HINT: level', {
-      currentLevel,
-      requireCheck: level.requireCheck,
-      checkOnMove: level.checkOnMove,
-      requireStalemate: level.requireStalemate,
-      requireMate: level.requireMate,
-      fen,
-      initialFen: level.initialFen,
-    });
+    if (!fen) return [];
 
     const initialSquares = parseFenBoard(fen);
     const allTargets = level.stars || level.targets || [];
@@ -292,19 +280,13 @@ function parseFenSimple(fen: string) {
     const enPassant = parts.length > 3 && parts[3] !== '-' ? parts[3] : null;
     if (enPassant) {
       const epFile = enPassant[0];
-      const epRank = parseInt(enPassant[1]);
-      const fromRank = `${epRank - 1}`;
-      const leftFile = FILES[FILES.indexOf(epFile) - 1];
-      const rightFile = FILES[FILES.indexOf(epFile) + 1];
-      const candidates: string[] = [];
-      if (leftFile) candidates.push(`${leftFile}${fromRank}`);
-      if (rightFile) candidates.push(`${rightFile}${fromRank}`);
-      console.log('EP debug:', { lessonId: lesson.id, level: currentLevel, fen, enPassant, candidates, initialSquares });
+      const epRank = enPassant[1];
+      const captureRank = epRank === '3' ? '4' : '5';
+      const candidates = [`${FILES[FILES.indexOf(epFile) - 1]}${captureRank}`, `${FILES[FILES.indexOf(epFile) + 1]}${captureRank}`];
       for (const sq of candidates) {
         const p = initialSquares[sq];
         if (p?.type === 'p' && p?.color === 'w') {
-          console.log('EP arrow found:', { from: sq, to: enPassant });
-          return [{ from: sq, to: enPassant }];
+          return [{ from: sq, to: enPassant, color: '#e74c3c' }];
         }
       }
     }
@@ -499,6 +481,9 @@ function parseFenSimple(fen: string) {
             afterFirst[target] = afterFirst[wSq];
             delete afterFirst[wSq];
 
+            // CRITICAL: first move must NOT give check (it's check-in-TWO, not one)
+            if (isKingInCheck(afterFirst, 'b')) continue;
+
             // Check: no undefended white piece is capturable by black after first move
             let safeAfterFirst = true;
             for (const s in afterFirst) {
@@ -506,12 +491,10 @@ function parseFenSimple(fen: string) {
               if (p?.color !== 'w') continue;
               if (canEnemyCapture(afterFirst, s, 'b') && !isDefended(afterFirst, s, 'w')) {
                 safeAfterFirst = false;
-                console.log('CHECK_IN_TWO: rejecting first move', wSq, '->', target, 'because', s, 'is undefended and capturable');
                 break;
               }
             }
-            // TEMPORARILY DISABLE safeAfterFirst to see if algorithm finds correct moves
-            // if (!safeAfterFirst) continue;
+            if (!safeAfterFirst) continue;
 
             // Now check if white can give check on the next move
             const whiteSquares2 = Object.keys(afterFirst).filter(s => afterFirst[s]?.color === 'w');
@@ -530,15 +513,19 @@ function parseFenSimple(fen: string) {
                   delete afterSecond[wSq2];
 
                   // Does ANY white piece attack the black king after second move?
+                  let givesCheck = false;
                   for (const s in afterSecond) {
                     const p = afterSecond[s];
                     if (p?.color !== 'w') continue;
                     if (attacksSquare(p.type, s, blackKingSq, afterSecond, 'w')) {
-                      canGiveCheckNext = true;
+                      givesCheck = true;
                       break;
                     }
                   }
-                  if (canGiveCheckNext) break;
+                  if (givesCheck) {
+                    canGiveCheckNext = true;
+                    break;
+                  }
                 }
                 if (canGiveCheckNext) break;
               }
@@ -552,7 +539,6 @@ function parseFenSimple(fen: string) {
                 moveIsSafe = false;
               }
               if (moveIsSafe) {
-                console.log('CHECK_IN_TWO: first move found:', { from: wSq, to: target, piece: piece.type });
                 return [{ from: wSq, to: target }];
               }
             }

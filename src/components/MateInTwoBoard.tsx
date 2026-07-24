@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
-import { RotateCcw, Trophy } from 'lucide-react';
+import { RotateCcw, Trophy, Eye } from 'lucide-react';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const REVERSED_FILES = ['h','g','f','e','d','c','b','a'];
@@ -38,6 +38,17 @@ const EXERCISE_FENS: Record<1|2|3|4|5|6|7|8, string> = {
   6: START_FEN_6,
   7: START_FEN_7,
   8: START_FEN_8,
+};
+
+const HINTS: Record<number, { from: string; to: string }[]> = {
+  1: [{ from: 'e2', to: 'e8' }],
+  2: [{ from: 'a5', to: 'a2' }],
+  3: [{ from: 'd6', to: 'd8' }],
+  4: [{ from: 'h4', to: 'e1' }],
+  5: [{ from: 'd7', to: 'd5' }],
+  6: [{ from: 'e4', to: 'd2' }],
+  7: [{ from: 'e8', to: 'e1' }],
+  8: [{ from: 'c7', to: 'c8' }],
 };
 
 function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
@@ -76,6 +87,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
   const [isComplete, setIsComplete] = useState(false);
   const [sqSize, setSqSize] = useState(52);
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
+  const [hintVisible, setHintVisible] = useState(false);
 
   const isCompleteRef = useRef(false);
   const isFailRef = useRef(false);
@@ -129,6 +141,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
     initialColorRef.current = g.turn();
     setSelectedSquare(null);
     setMessage('');
+    setHintVisible(false);
     setIsFail(false);
     setIsComplete(false);
     setDragPiece(null);
@@ -142,8 +155,13 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
     });
   }, [storageKey]);
 
+  const handleHint = useCallback(() => {
+    setHintVisible(prev => !prev);
+  }, []);
+
   const switchExercise = useCallback((num: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8) => {
     setExercise(num);
+    setHintVisible(false);
     const g = new Chess(EXERCISE_FENS[num]);
     setGame(g);
     initialColorRef.current = g.turn();
@@ -393,6 +411,11 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
         <button onClick={reset} className="w-full flex items-center justify-center gap-1.5 h-9 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200">
           <RotateCcw size={14} /> Заново
         </button>
+
+        {/* Подсказка */}
+        <button onClick={handleHint} className={`w-full flex items-center justify-center gap-1.5 h-9 rounded-lg border text-xs font-medium transition-all duration-200 ${hintVisible ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
+          <Eye size={14} /> Подсказка
+        </button>
       </div>
 
       {/* CENTER COLUMN */}
@@ -527,6 +550,57 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
             ))}
           </div>
 
+          {/* Hint arrows SVG overlay */}
+          {hintVisible && !isFail && !isComplete && !selectedSquare && !dragPiece && (
+            (() => {
+              const arrows = HINTS[exercise] || [];
+              if (arrows.length === 0) return null;
+              return (
+                <svg className="absolute inset-0 pointer-events-none z-[35]" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
+                  {arrows.map((arrow, i) => {
+                    const isReversed = exercise === 6;
+                    const fromF = (isReversed ? REVERSED_FILES : FILES).indexOf(arrow.from[0]);
+                    const fromR = (isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).indexOf(arrow.from[1]);
+                    const toF = (isReversed ? REVERSED_FILES : FILES).indexOf(arrow.to[0]);
+                    const toR = (isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).indexOf(arrow.to[1]);
+                    const x1 = (fromF + 0.5) * sqSize;
+                    const y1 = (fromR + 0.5) * sqSize;
+                    const x2 = (toF + 0.5) * sqSize;
+                    const y2 = (toR + 0.5) * sqSize;
+                    const strokeW = sqSize < 60 ? 14 : 18;
+                    const halfW = strokeW / 2;
+                    const dx = x2 - x1;
+                    const dy = y2 - y1;
+                    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+                    const headHeight = sqSize * 0.6;
+                    const headBase = strokeW * 3;
+                    const nx = -dy / len;
+                    const ny = dx / len;
+                    const blx = x1 + nx * halfW;   const bly = y1 + ny * halfW;
+                    const brx = x1 - nx * halfW;   const bry = y1 - ny * halfW;
+                    const tailX = x2 - (dx / len) * headHeight;
+                    const tailY = y2 - (dy / len) * headHeight;
+                    const tlx = tailX + nx * halfW; const tly = tailY + ny * halfW;
+                    const trx = tailX - nx * halfW; const try_ = tailY - ny * halfW;
+                    const hlx = tailX + nx * headBase / 2; const hly = tailY + ny * headBase / 2;
+                    const hrx = tailX - nx * headBase / 2; const hry = tailY - ny * headBase / 2;
+                    const cross = (brx - blx) * (-dy / len) - (bry - bly) * (-dx / len);
+                    const sweep = cross > 0 ? 1 : 0;
+                    const pathD = `M ${blx} ${bly} L ${tlx} ${tly} L ${hlx} ${hly} L ${x2} ${y2} L ${hrx} ${hry} L ${trx} ${try_} L ${brx} ${bry} A ${halfW} ${halfW} 0 1 ${sweep} ${blx} ${bly} Z`;
+                    return (
+                      <path
+                        key={i}
+                        d={pathD}
+                        fill="rgba(44, 36, 27, 0.35)"
+                        className="arrow-hint-line"
+                      />
+                    );
+                  })}
+                </svg>
+              );
+            })()
+          )}
+
           {/* Dragged piece overlay */}
           {dragPiece && (
             <div
@@ -542,13 +616,6 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
             </div>
           )}
         </div>
-
-        <button
-          onClick={reset}
-          className="flex lg:hidden items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition"
-        >
-          <RotateCcw size={14} /> Заново
-        </button>
 
         {/* Mobile exercise pills */}
         <div className="flex lg:hidden gap-[1px] w-full">
@@ -603,6 +670,9 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
             </div>
           </div>
           <div className="flex gap-2 w-full">
+            <button onClick={handleHint} className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all duration-200 ${hintVisible ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
+              <Eye size={14} /> Подсказка
+            </button>
             <button onClick={reset} className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200">
               <RotateCcw size={14} /> Заново
             </button>
