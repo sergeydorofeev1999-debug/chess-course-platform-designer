@@ -1227,7 +1227,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
               })
             ))}
           {/* Hint arrows SVG overlay */}
-          {hintVisible && !isFail && !isComplete && (
+          {hintVisible && !isFail && !isComplete && !selectedSquare && !dragPiece && (
             (() => {
               const arrows = FORK_HINTS[exercise] || [];
               const phaseArrows = arrows.filter(a => a.phase === whiteMoves);
