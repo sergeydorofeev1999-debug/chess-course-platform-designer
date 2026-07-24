@@ -1603,6 +1603,13 @@ function MultiLevelStarBoard({
         }
       }
 
+      // ── Lesson 13: white pawns can only move to rank 4 or below ──
+      const isCastlingLesson = currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2';
+      if (isCastlingLesson && fromType === 'p' && to[1] > '4') {
+        setMsg('В уроке про рокировку пешки ходят только до 4-й горизонтали');
+        return false;
+      }
+
       if (!isValidMove(fromType, from, to, parsed.squares, visibleStars, parsed.enPassant)) return false;
 
       // ── King safety: reject move if king would end up in check ──

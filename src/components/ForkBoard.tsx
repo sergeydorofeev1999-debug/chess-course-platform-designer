@@ -302,6 +302,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           }
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);
+          setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
           setTimeout(() => {
@@ -357,6 +358,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           }
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);
+          setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
           setTimeout(() => {
@@ -413,6 +415,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           }
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);
+          setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
           setTimeout(() => {
@@ -468,6 +471,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           }
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);
+          setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
           setTimeout(() => {
@@ -528,6 +532,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           }
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);
+          setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
           setTimeout(() => {
@@ -577,6 +582,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           }
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);
+          setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
           setTimeout(() => {
@@ -624,6 +630,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           }
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);
+          setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
           setTimeout(() => {
@@ -673,6 +680,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           }
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);
+          setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
           setTimeout(() => {
@@ -720,6 +728,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           }
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);
+          setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
           setTimeout(() => {
@@ -767,6 +776,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           }
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);
+          setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
           setTimeout(() => {
@@ -816,6 +826,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           }
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);
+          setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
           setTimeout(() => {
@@ -878,6 +889,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           }
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);
+          setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
           setTimeout(() => {
@@ -1091,13 +1103,6 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         <button onClick={reset} className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all w-full">
           <RotateCcw size={14} /> Заново
         </button>
-
-        {/* Hint in sidebar — arrows on board, no text here */}
-        {hintVisible && (
-          <div className="px-3 py-2 rounded-lg bg-[#F0EBE4] border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] text-xs text-center">
-            Стрелка на доске показывает ход
-          </div>
-        )}
       </div>
 
       {/* CENTER COLUMN */}
@@ -1398,11 +1403,6 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
               <RotateCcw size={14} /> Заново
             </button>
           </div>
-          {hintVisible && (
-            <div className="px-3 py-2 rounded-lg bg-[#F0EBE4] border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] text-xs text-center">
-              Стрелка на доске показывает ход
-            </div>
-          )}
         </div>
 
         {/* Completion banner */}
