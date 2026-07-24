@@ -26,7 +26,7 @@ const START_FEN_8 = '6rk/6bp/6pN/8/1pp5/q1P3PP/5P2/2R1R1K1 w - - 0 1';
 const HINTS: Record<number, { from: string; to: string }[]> = {
   1: [{ from: 'h5', to: 'f7' }],
   2: [{ from: 'd3', to: 'h7' }],
-  3: [{ from: 'h5', to: 'h7' }],
+  3: [{ from: 'd3', to: 'h7' }],
   4: [{ from: 'd1', to: 'd8' }],
   5: [{ from: 'a4', to: 'e8' }],
   6: [{ from: 'd4', to: 'f2' }],
