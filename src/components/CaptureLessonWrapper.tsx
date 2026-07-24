@@ -42,6 +42,10 @@ export default function CaptureLessonWrapper({
     // SSR-safe: initialize synchronously with the initial level's FEN
     return levels[0]?.initialFen || '';
   });
+  const currentPositionRef = useRef(currentPosition);
+  useEffect(() => {
+    currentPositionRef.current = currentPosition;
+  }, [currentPosition]);
 
   const boardRef = useRef<HTMLDivElement>(null);
   const [boardSize, setBoardSize] = useState(352);
@@ -269,7 +273,7 @@ function parseFenSimple(fen: string) {
   const computeHintArrow = () => {
     const level = levels[currentLevel];
     if (!level) return [];
-    const fen = currentPosition || level.initialFen || '';
+    const fen = currentPositionRef.current || level.initialFen || '';
     if (!fen) return [];
 
     console.log('HINT_DEBUG: level', currentLevel, 'fen', fen.substring(0, 50), 'initialFen', (level.initialFen || '').substring(0, 50));
