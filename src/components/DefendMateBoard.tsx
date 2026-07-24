@@ -253,7 +253,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
     }
   }, [game, exercise, saveStars, onComplete, sequenceStep]);
 
-  const isFlipped = exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7;
+  const isFlipped = exercise === 2 || exercise === 6 || exercise === 8;
 
   // Convert visual square (what user sees on flipped board) to chess.js square
   const toChessSquare = useCallback((visualSq: string) => {
