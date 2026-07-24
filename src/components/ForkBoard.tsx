@@ -1052,10 +1052,6 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           </div>
         </div>
 
-        <div className="text-center font-bold text-slate-700 text-lg">
-          {turnText}
-        </div>
-
         {/* Fail banner */}
         {isFail && (
           <div className="w-full max-w-sm">
@@ -1287,12 +1283,6 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
               <RotateCcw size={14} /> Заново
             </button>
           </div>
-        </div>
-
-        {/* Goal text */}
-        <div className="text-center text-sm text-slate-600 max-w-sm px-4">
-          <p className="font-medium mb-1">Цель:</p>
-          <p>Поставьте двойной удар, а затем съешьте фигуру соперника.</p>
         </div>
 
         {/* Completion banner */}
