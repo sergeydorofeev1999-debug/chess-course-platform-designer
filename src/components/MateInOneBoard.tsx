@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
-import { RotateCcw, Trophy } from 'lucide-react';
+import { RotateCcw, Trophy, Eye } from 'lucide-react';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const REVERSED_FILES = ['h','g','f','e','d','c','b','a'];
@@ -22,6 +22,18 @@ const START_FEN_6 = 'r3k2r/ppp2ppp/2n5/2b1p3/3qP1P1/1PN2PR1/PB1P4/R2QK1N1 b Qkq 
 const START_FEN_7 = 'r4r2/k1p5/ppQ5/1P4B1/3P4/2N5/1PP1KP2/q7 w - - 0 1';
 
 const START_FEN_8 = '6rk/6bp/6pN/8/1pp5/q1P3PP/5P2/2R1R1K1 w - - 0 1';
+
+
+const HINTS: Record<number, { from: string; to: string }[]> = {
+  1: [{ from: 'h5', to: 'f7' }],
+  2: [{ from: 'd3', to: 'h7' }],
+  3: [{ from: 'g5', to: 'f7' }],
+  4: [{ from: 'd1', to: 'd8' }],
+  5: [{ from: 'a4', to: 'e8' }],
+  6: [{ from: 'd4', to: 'd1' }],
+  7: [{ from: 'c6', to: 'b7' }],
+  8: [{ from: 'h6', to: 'f7' }],
+};
 
 const EXERCISE_FENS: Record<1|2|3|4|5|6|7|8, string> = {
   1: START_FEN_1,
@@ -88,6 +100,7 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
   const [isComplete, setIsComplete] = useState(false);
   const [sqSize, setSqSize] = useState(52);
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
+  const [hintVisible, setHintVisible] = useState(false);
 
   const isCompleteRef = useRef(false);
   const isFailRef = useRef(false);
@@ -146,11 +159,17 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
     });
   }, [storageKey]);
 
+  const handleHint = useCallback(() => {
+    setHintVisible(prev => !prev);
+  }, []);
+
   const switchExercise = useCallback((num: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8) => {
     setExercise(num);
+    setHintVisible(false);
     setGame(new Chess(EXERCISE_FENS[num]));
     setSelectedSquare(null);
     setMessage('');
+    setHintVisible(false);
     setIsFail(false);
     setIsComplete(false);
     setDragPiece(null);
@@ -334,10 +353,6 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
           Поставьте мат в 1 ход!
         </div>
 
-        <div className="text-center font-bold text-slate-700 text-lg">
-          {turnText}
-        </div>
-
         {/* Fail banner */}
         {isFail && (
           <div className="w-full max-w-sm">
@@ -448,7 +463,56 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
                 );
               })
             ))}
-          </div>
+          {/* Hint arrows SVG overlay */}
+          {hintVisible && !isFail && !isComplete && !selectedSquare && !dragPiece && (
+            (() => {
+              const arrows = HINTS[exercise] || [];
+              if (arrows.length === 0) return null;
+              return (
+                <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
+                  {arrows.map((arrow, i) => {
+                    const fromF = REVERSED_FILES.indexOf(arrow.from[0]);
+                    const fromR = DISPLAY_RANKS.indexOf(arrow.from[1]);
+                    const toF = REVERSED_FILES.indexOf(arrow.to[0]);
+                    const toR = DISPLAY_RANKS.indexOf(arrow.to[1]);
+                    const x1 = (fromF + 0.5) * sqSize;
+                    const y1 = (fromR + 0.5) * sqSize;
+                    const x2 = (toF + 0.5) * sqSize;
+                    const y2 = (toR + 0.5) * sqSize;
+                    const strokeW = sqSize < 60 ? 14 : 18;
+                    const halfW = strokeW / 2;
+                    const dx = x2 - x1;
+                    const dy = y2 - y1;
+                    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+                    const headHeight = sqSize * 0.6;
+                    const headBase = strokeW * 3;
+                    const nx = -dy / len;
+                    const ny = dx / len;
+                    const blx = x1 + nx * halfW;   const bly = y1 + ny * halfW;
+                    const brx = x1 - nx * halfW;   const bry = y1 - ny * halfW;
+                    const tailX = x2 - (dx / len) * headHeight;
+                    const tailY = y2 - (dy / len) * headHeight;
+                    const tlx = tailX + nx * halfW; const tly = tailY + ny * halfW;
+                    const trx = tailX - nx * halfW; const try_ = tailY - ny * halfW;
+                    const hlx = tailX + nx * headBase / 2; const hly = tailY + ny * headBase / 2;
+                    const hrx = tailX - nx * headBase / 2; const hry = tailY - ny * headBase / 2;
+                    const cross = (brx - blx) * (-dy / len) - (bry - bly) * (-dx / len);
+                    const sweep = cross > 0 ? 1 : 0;
+                    const pathD = `M ${blx} ${bly} L ${tlx} ${tly} L ${hlx} ${hly} L ${x2} ${y2} L ${hrx} ${hry} L ${trx} ${try_} L ${brx} ${bry} A ${halfW} ${halfW} 0 1 ${sweep} ${blx} ${bly} Z`;
+                    return (
+                      <path
+                        key={i}
+                        d={pathD}
+                        fill="rgba(44, 36, 27, 0.35)"
+                        className="arrow-hint-line"
+                      />
+                    );
+                  })}
+                </svg>
+              );
+            })()
+          )}
+        </div>
 
           {/* Dragged piece overlay */}
           {dragPiece && (
@@ -466,12 +530,7 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
           )}
         </div>
 
-        <button
-          onClick={reset}
-          className="flex lg:hidden items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition"
-        >
-          <RotateCcw size={14} /> Заново
-        </button>
+
 
         {/* Mobile exercise pills — 2 rows of 4 */}
         <div className="flex lg:hidden flex-col items-center gap-1 w-full">
