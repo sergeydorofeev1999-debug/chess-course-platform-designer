@@ -512,6 +512,74 @@ function parseFenSimple(fen: string) {
       return [];
     }
 
+    // ── STALEMATE MODE: requireStalemate = true (Lesson 15 — deliver stalemate)
+    if (level.requireStalemate) {
+      // Find black king
+      let blackKingSq = '';
+      for (const s in initialSquares) {
+        if (initialSquares[s]?.type === 'k' && initialSquares[s]?.color === 'b') {
+          blackKingSq = s;
+          break;
+        }
+      }
+      if (!blackKingSq) return [];
+
+      const whiteSquares = Object.keys(initialSquares).filter(s => initialSquares[s]?.color === 'w');
+
+      for (const wSq of whiteSquares) {
+        const piece = initialSquares[wSq];
+        for (const file of FILES) {
+          for (const rank of RANKS) {
+            const target = file + rank;
+            if (wSq === target) continue;
+            if (initialSquares[target]?.color === 'w') continue;
+            if (!canMove(piece.type, wSq, target, initialSquares, 'w')) continue;
+            if (level.forbiddenSquares?.includes(target)) continue;
+
+            // Simulate white move
+            const nextSquares = { ...initialSquares };
+            nextSquares[target] = nextSquares[wSq];
+            delete nextSquares[wSq];
+
+            // Is black king in check? If yes, it's NOT stalemate
+            if (isKingInCheck(nextSquares, 'b')) continue;
+
+            // Try ALL black moves — if ANY is legal, it's NOT stalemate
+            let isStalemate = true;
+            const blackSquares = Object.keys(nextSquares).filter(s => nextSquares[s]?.color === 'b');
+            for (const bSq of blackSquares) {
+              const bPiece = nextSquares[bSq];
+              for (const bFile of FILES) {
+                for (const bRank of RANKS) {
+                  const bTo = bFile + bRank;
+                  if (bSq === bTo) continue;
+                  if (nextSquares[bTo]?.color === 'b') continue;
+                  if (!canMove(bPiece.type, bSq, bTo, nextSquares, 'b')) continue;
+
+                  const afterBlack = { ...nextSquares };
+                  afterBlack[bTo] = afterBlack[bSq];
+                  delete afterBlack[bSq];
+
+                  // Is black king in check after this move?
+                  if (!isKingInCheck(afterBlack, 'b')) {
+                    isStalemate = false;
+                    break;
+                  }
+                }
+                if (!isStalemate) break;
+              }
+              if (!isStalemate) break;
+            }
+
+            if (isStalemate) {
+              return [{ from: wSq, to: target }];
+            }
+          }
+        }
+      }
+      return [];
+    }
+
     // ── CAPTURE MODE: targets are black pieces (Lesson 7 style)
     const blackTargets = allTargets.filter((t: string) => initialSquares[t]?.color === 'b');
     if (blackTargets.length > 0) {
