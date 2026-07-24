@@ -1151,6 +1151,27 @@ function MultiLevelStarBoard({
       }
     }
 
+    // ── EN PASSANT HINT (Lesson 14): show en passant capture arrow ──
+    if (currentLessonId === '14' || currentLessonId === 'b244d9da-23d9-438f-a81d-64b050b3b32e') {
+      const ep = parsed.enPassant;
+      if (ep) {
+        const epFile = ep[0];
+        const epRank = parseInt(ep[1]);
+        const fromRank = `${epRank - 1}`;
+        const leftFile = FILES[FILES.indexOf(epFile) - 1];
+        const rightFile = FILES[FILES.indexOf(epFile) + 1];
+        const candidates: string[] = [];
+        if (leftFile) candidates.push(`${leftFile}${fromRank}`);
+        if (rightFile) candidates.push(`${rightFile}${fromRank}`);
+        for (const sq of candidates) {
+          const p = parsed.squares[sq];
+          if (p?.type === 'p' && p?.color === 'w') {
+            return [{ from: sq, to: ep }];
+          }
+        }
+      }
+    }
+
     // ── ESCAPE CHECK MODE (Lesson 10): white king is in check — find best defense ──
     if (level.requireEscapeCheck || isKingInCheck(parsed.squares, 'w')) {
       let whiteKingSq = '';
