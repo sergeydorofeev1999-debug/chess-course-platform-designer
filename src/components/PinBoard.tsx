@@ -1355,7 +1355,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
               const phaseArrows = arrows.filter(a => a.phase === whiteMoves);
               if (phaseArrows.length === 0) return null;
               return (
-                <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
+                <svg className="absolute inset-0 pointer-events-none z-[35]" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
                   {phaseArrows.map((arrow, i) => {
                     const fromF = FILES.indexOf(arrow.from[0]);
                     const fromR = RANKS.indexOf(arrow.from[1]);

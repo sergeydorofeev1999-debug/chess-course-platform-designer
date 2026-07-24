@@ -1172,6 +1172,7 @@ export default function CaptureBoard({
         }
         positionRef.current = newFen;
         setPosition(newFen);
+        onPositionChange?.(newFen); // Notify parent about en passant field update
       }, delayMs);
       timers.push(timer);
     });
@@ -1260,6 +1261,7 @@ export default function CaptureBoard({
               }
               positionRef.current = newFen2;
               setPosition(newFen2);
+              onPositionChange?.(newFen2); // Notify parent about trigger auto-move update
             }
             nextTriggerIdxRef.current = idx + 1;
           }, delayMs);

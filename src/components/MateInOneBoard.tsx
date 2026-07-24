@@ -520,7 +520,7 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
               const arrows = HINTS[exercise] || [];
               if (arrows.length === 0) return null;
               return (
-                <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
+                <svg className="absolute inset-0 pointer-events-none z-[35]" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
                   {arrows.map((arrow, i) => {
                     const isReversed = exercise === 6;
                     const fromF = (isReversed ? REVERSED_FILES : FILES).indexOf(arrow.from[0]);
