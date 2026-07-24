@@ -1206,12 +1206,17 @@ function MultiLevelStarBoard({
 
     // ── Detect actual piece type on board ──
     let effectivePieceType = pieceType;
-    const hasPieceOfType = Object.values(parsed.squares).some((p: any) => p?.color === 'w' && p?.type === pieceType);
-    if (!hasPieceOfType) {
-      // Lesson pieceType doesn't match board — find actual white piece
-      const actualPiece = Object.values(parsed.squares).find((p: any) => p?.color === 'w');
-      if (actualPiece) {
-        effectivePieceType = actualPiece.type;
+    // If level specifies allowedPieces with single type, use that (Lesson 12+)
+    if (level.allowedPieces && level.allowedPieces.length === 1) {
+      effectivePieceType = level.allowedPieces[0];
+    } else {
+      const hasPieceOfType = Object.values(parsed.squares).some((p: any) => p?.color === 'w' && p?.type === pieceType);
+      if (!hasPieceOfType) {
+        // Lesson pieceType doesn't match board — find actual white piece
+        const actualPiece = Object.values(parsed.squares).find((p: any) => p?.color === 'w');
+        if (actualPiece) {
+          effectivePieceType = actualPiece.type;
+        }
       }
     }
 
