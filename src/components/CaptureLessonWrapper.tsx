@@ -458,6 +458,95 @@ function parseFenSimple(fen: string) {
       return [];
     }
 
+    // ── CHECK_IN_TWO_MODE: requireCheck + checkOnMove = 2 (Lesson 16 — check in two moves)
+    if (level.requireCheck && level.checkOnMove === 2) {
+      // Find black king
+      let blackKingSq = '';
+      for (const s in initialSquares) {
+        if (initialSquares[s]?.type === 'k' && initialSquares[s]?.color === 'b') {
+          blackKingSq = s;
+          break;
+        }
+      }
+      if (!blackKingSq) return [];
+
+      const whiteSquares = Object.keys(initialSquares).filter(s => initialSquares[s]?.color === 'w');
+
+      for (const wSq of whiteSquares) {
+        const piece = initialSquares[wSq];
+        for (const file of FILES) {
+          for (const rank of RANKS) {
+            const target = file + rank;
+            if (wSq === target) continue;
+            if (initialSquares[target]?.color === 'w') continue;
+            if (!canMove(piece.type, wSq, target, initialSquares, 'w')) continue;
+            if (level.forbiddenSquares?.includes(target)) continue;
+
+            // Simulate first white move
+            const afterFirst = { ...initialSquares };
+            afterFirst[target] = afterFirst[wSq];
+            delete afterFirst[wSq];
+
+            // Check: no undefended white piece is capturable by black after first move
+            let safeAfterFirst = true;
+            for (const s in afterFirst) {
+              const p = afterFirst[s];
+              if (p?.color !== 'w') continue;
+              if (canEnemyCapture(afterFirst, s, 'b') && !isDefended(afterFirst, s, 'w')) {
+                safeAfterFirst = false;
+                break;
+              }
+            }
+            if (!safeAfterFirst) continue;
+
+            // Now check if white can give check on the next move
+            const whiteSquares2 = Object.keys(afterFirst).filter(s => afterFirst[s]?.color === 'w');
+            let canGiveCheckNext = false;
+            for (const wSq2 of whiteSquares2) {
+              const piece2 = afterFirst[wSq2];
+              for (const file2 of FILES) {
+                for (const rank2 of RANKS) {
+                  const target2 = file2 + rank2;
+                  if (wSq2 === target2) continue;
+                  if (afterFirst[target2]?.color === 'w') continue;
+                  if (!canMove(piece2.type, wSq2, target2, afterFirst, 'w')) continue;
+
+                  const afterSecond = { ...afterFirst };
+                  afterSecond[target2] = afterSecond[wSq2];
+                  delete afterSecond[wSq2];
+
+                  // Does ANY white piece attack the black king after second move?
+                  for (const s in afterSecond) {
+                    const p = afterSecond[s];
+                    if (p?.color !== 'w') continue;
+                    if (attacksSquare(p.type, s, blackKingSq, afterSecond, 'w')) {
+                      canGiveCheckNext = true;
+                      break;
+                    }
+                  }
+                  if (canGiveCheckNext) break;
+                }
+                if (canGiveCheckNext) break;
+              }
+              if (canGiveCheckNext) break;
+            }
+
+            if (canGiveCheckNext) {
+              // Safety: reject if moved piece is immediately capturable and undefended
+              let moveIsSafe = true;
+              if (canEnemyCapture(afterFirst, target, 'b') && !isDefended(afterFirst, target, 'w')) {
+                moveIsSafe = false;
+              }
+              if (moveIsSafe) {
+                return [{ from: wSq, to: target }];
+              }
+            }
+          }
+        }
+      }
+      return [];
+    }
+
     // ── CHECK_MODE: requireCheck = true (Lesson 9 style — give check to black king)
     if (level.requireCheck) {
       // Find black king
