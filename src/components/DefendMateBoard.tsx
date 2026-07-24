@@ -38,24 +38,6 @@ const EXERCISE_FENS: Record<1|2|3|4|5|6|7|8, string> = {
   8: START_FEN_8,
 };
 
-function StarPng({ filled, size = 14 }: { filled: boolean; size?: number }) {
-  return (
-    <img
-      src="/images/learn/star.png"
-      alt=""
-      className="shrink-0"
-      style={{
-        width: size,
-        height: size,
-        filter: filled
-          ? 'brightness(1.2) drop-shadow(0 0 1px rgba(255,255,255,0.6))'
-          : 'grayscale(100%) brightness(0.4)',
-      }}
-      draggable={false}
-    />
-  );
-}
-
 function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
   const pieceKey = `${color}${type.toUpperCase()}`;
   return (
@@ -389,51 +371,96 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
-      {/* LEFT COLUMN */}
-      <div className="w-full lg:w-[300px] flex-shrink-0 space-y-2">
-        <div className="hidden lg:grid gap-1 rounded p-1 border border-gray-200" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
-          {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => {
-            const earnedStars = exerciseStars[num] || 0;
+      {/* LEFT SIDEBAR (desktop) */}
+      <div className="hidden lg:flex lg:w-[180px] flex-shrink-0 flex-col gap-3">
+
+        {/* Avatar + speech bubble */}
+        <div className="flex items-start gap-2">
+          <div className="w-10 h-10 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
+            <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
+          </div>
+          <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2.5 shadow-sm border border-[rgba(92,64,51,0.06)]">
+            <p className="text-sm text-[var(--text-primary)] leading-snug">
+              Защититесь от мата!
+            </p>
+          </div>
+        </div>
+
+        {/* Exercise pills */}
+        <div className="w-full flex flex-col gap-[1px]">
+          {[1,2,3,4,5,6,7,8].map((num) => {
+            const earned = exerciseStars[num] || 0;
             const isCurrent = num === exercise;
-            const isDone = earnedStars > 0;
+            const isDone = earned > 0;
+            const isLocked = !isCurrent && !isDone;
             return (
               <button
                 key={num}
-                onClick={() => switchExercise(num as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8)}
-                className={`flex items-center justify-center px-1 py-1 rounded transition ${
-                  isCurrent
-                    ? 'bg-blue-500 text-white'
-                    : isDone
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-gray-200 text-gray-500'
-                } cursor-pointer hover:brightness-110`}
+                onClick={() => { if (!isCurrent) switchExercise(num as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8); }}
+                disabled={isCurrent}
+                className={`flex items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 px-2 ${
+                  isCurrent ? 'bg-[#2C241B] shadow-md'
+                  : isDone ? 'bg-[#C9A84C]'
+                  : 'bg-[#F0EBE4] border border-[#D4C5B5]'
+                } ${isCurrent ? 'cursor-not-allowed' : isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
               >
-                <div className="flex gap-0.5">
-                  {[1, 2, 3].map(s => (
-                    <StarPng key={s} filled={earnedStars > 0 && s <= earnedStars} size={16} />
-                  ))}
-                </div>
-                <span className="ml-1 text-xs font-medium">{num}</span>
+                {isDone && earned > 0 ? (
+                  earned === 3 ? (
+                    <>
+                      <div className="flex"><svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></div>
+                      <div className="flex gap-[1px]">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex gap-[2px] justify-center w-full">
+                      {Array.from({ length: earned }, (_, s) => (
+                        <svg key={s} width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                        </svg>
+                      ))}
+                    </div>
+                  )
+                ) : (
+                  <span className={`text-sm font-bold leading-none ${isCurrent ? 'text-white' : 'text-[#9CA3AF]'}`}>{num}</span>
+                )}
               </button>
             );
           })}
         </div>
 
-        <button
-          onClick={reset}
-          className="hidden lg:flex items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition w-full justify-center"
-        >
+        {/* Progress */}
+        <div className="flex flex-col gap-1.5">
+          <span className="text-xs font-bold text-[var(--text-primary)]">Задание {exercise} из 8</span>
+          <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+            <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${(exercise / 8) * 100}%` }} />
+          </div>
+        </div>
+
+        {/* Заново */}
+        <button onClick={reset} className="w-full flex items-center justify-center gap-1.5 h-9 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200">
           <RotateCcw size={14} /> Заново
         </button>
       </div>
 
       {/* CENTER COLUMN */}
       <div className="flex-1 flex flex-col items-center gap-3">
-        <div className="px-6 py-3 rounded-xl text-center font-bold text-white bg-yellow-500 mb-2 w-full">
-          Защититесь от угрозы мата!
+        {/* Mobile avatar + speech bubble */}
+        <div className="lg:hidden w-full flex flex-col gap-2">
+          <div className="flex items-start gap-3">
+            <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
+              <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
+            </div>
+            <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
+              <p className="text-sm text-[var(--text-primary)] leading-snug line-clamp-3">
+                Защититесь от угрозы мата!
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="text-center font-bold text-slate-700 text-lg">
+        <div className="hidden lg:block text-center font-bold text-slate-700 text-lg">
           {turnText}
         </div>
 
@@ -573,51 +600,62 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
           <RotateCcw size={14} /> Заново
         </button>
 
-        {/* Mobile exercise pills — 2 rows of 4 */}
-        <div className="flex lg:hidden flex-col items-center gap-1 w-full">
-          <div className="flex gap-1 justify-center w-full">
-            {[1, 2, 3, 4].map((num) => {
-              const earnedStars = exerciseStars[num] || 0;
-              const isCurrent = num === exercise;
-              const isDone = earnedStars > 0;
-              return (
-                <button
-                  key={num}
-                  onClick={() => switchExercise(num as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8)}
-                  className={`flex items-center gap-0.5 px-1.5 py-1 rounded text-xs transition ${
-                    isCurrent ? 'bg-blue-500 text-white' : isDone ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'
-                  } cursor-pointer`}
-                >
-                  <div className="flex gap-0.5">
-                    {[1, 2, 3].map(s => (
-                      <StarPng key={s} filled={earnedStars > 0 && s <= earnedStars} size={14} />
-                    ))}
-                  </div>
-                </button>
-              );
-            })}
+        {/* Mobile exercise pills */}
+        <div className="flex lg:hidden gap-[1px] w-full">
+          {[1,2,3,4,5,6,7,8].map((num) => {
+            const earned = exerciseStars[num] || 0;
+            const isCurrent = num === exercise;
+            const isDone = earned > 0;
+            const isLocked = !isCurrent && !isDone;
+            return (
+              <button
+                key={num}
+                onClick={() => { if (!isCurrent) switchExercise(num as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8); }}
+                disabled={isCurrent}
+                className={`flex-1 flex flex-col items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 min-w-[36px] ${
+                  isCurrent ? 'bg-[#2C241B] shadow-md'
+                  : isDone ? 'bg-[#C9A84C]'
+                  : 'bg-[#F0EBE4] border border-[#D4C5B5]'
+                } ${isCurrent ? 'cursor-not-allowed' : isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
+              >
+                {isDone && earned > 0 ? (
+                  earned === 3 ? (
+                    <>
+                      <div className="flex"><svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></div>
+                      <div className="flex gap-[1px]">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex gap-[2px] justify-center w-full">
+                      {Array.from({ length: earned }, (_, s) => (
+                        <svg key={s} width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                        </svg>
+                      ))}
+                    </div>
+                  )
+                ) : (
+                  <span className={`text-sm font-bold leading-none ${isCurrent ? 'text-white' : 'text-[#9CA3AF]'}`}>{num}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Mobile progress + buttons row */}
+        <div className="flex lg:hidden flex-col gap-2 w-full">
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs font-bold text-[var(--text-primary)]">Задание {exercise} из 8</span>
+            <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+              <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${(exercise / 8) * 100}%` }} />
+            </div>
           </div>
-          <div className="flex gap-1 justify-center w-full">
-            {[5, 6, 7, 8].map((num) => {
-              const earnedStars = exerciseStars[num] || 0;
-              const isCurrent = num === exercise;
-              const isDone = earnedStars > 0;
-              return (
-                <button
-                  key={num}
-                  onClick={() => switchExercise(num as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8)}
-                  className={`flex items-center gap-0.5 px-1.5 py-1 rounded text-xs transition ${
-                    isCurrent ? 'bg-blue-500 text-white' : isDone ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'
-                  } cursor-pointer`}
-                >
-                  <div className="flex gap-0.5">
-                    {[1, 2, 3].map(s => (
-                      <StarPng key={s} filled={earnedStars > 0 && s <= earnedStars} size={14} />
-                    ))}
-                  </div>
-                </button>
-              );
-            })}
+          <div className="flex gap-2 w-full">
+            <button onClick={reset} className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200">
+              <RotateCcw size={14} /> Заново
+            </button>
           </div>
         </div>
       </div>
