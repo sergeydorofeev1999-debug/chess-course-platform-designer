@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
-import { RotateCcw, Trophy } from 'lucide-react';
+import { RotateCcw, Trophy, Eye } from 'lucide-react';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const RANKS = ['8','7','6','5','4','3','2','1'];
@@ -14,6 +14,16 @@ const START_FEN_3 = '2k4r/1pp2r2/p7/4P3/3B4/2N5/PP6/1K1R4 w - - 0 1';
 const START_FEN_4 = '8/2p1r1pk/3n2p1/8/4N1P1/1P4KP/8/4R3 w - - 0 1';
 const START_FEN_5 = '1k5r/p1pq2p1/1p5p/5R2/6Q1/6P1/PP3PKP/8 w - - 0 1';
 const START_FEN_6 = '8/1kp3rp/1p4p1/4R3/1P6/1b5P/1B3PP1/6K1 w - - 0 1';
+
+
+const HINTS: Record<number, { from: string; to: string; phase: 0 | 1 }[]> = {
+  1: [{ from: 'f3', to: 'd4', phase: 0 }, { from: 'f1', to: 'f8', phase: 1 }],
+  2: [{ from: 'f3', to: 'e5', phase: 0 }, { from: 'e5', to: 'd7', phase: 1 }],
+  3: [{ from: 'e5', to: 'e6', phase: 0 }, { from: 'd4', to: 'h8', phase: 1 }],
+  4: [{ from: 'e4', to: 'd6', phase: 0 }, { from: 'e1', to: 'e7', phase: 1 }],
+  5: [{ from: 'f5', to: 'f8', phase: 0 }, { from: 'g4', to: 'd7', phase: 1 }],
+  6: [{ from: 'e5', to: 'e3', phase: 0 }, { from: 'e3', to: 'b3', phase: 1 }],
+};
 
 function getBestBlackCapture(game: Chess): { from: string; to: string } | null {
   const pieceValues: Record<string, number> = { q: 9, r: 5, b: 3, n: 3, p: 1 };
@@ -89,6 +99,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
   const [whiteMoves, setWhiteMoves] = useState(0);
   const [sqSize, setSqSize] = useState(52);
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
+  const [hintVisible, setHintVisible] = useState(false);
 
   const isCompleteRef = useRef(false);
   const isFailRef = useRef(false);
@@ -130,11 +141,16 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
     return () => window.removeEventListener('resize', update);
   }, []);
 
+  const handleHint = useCallback(() => {
+    setHintVisible(prev => !prev);
+  }, []);
+
   const reset = useCallback(() => {
     const fen = exercise === 1 ? START_FEN_1 : exercise === 2 ? START_FEN_2 : exercise === 3 ? START_FEN_3 : exercise === 4 ? START_FEN_4 : exercise === 5 ? START_FEN_5 : START_FEN_6;
     setGame(new Chess(fen));
     setSelectedSquare(null);
     setMessage('');
+    setHintVisible(false);
     setIsFail(false);
     setIsComplete(false);
     setWhiteMoves(0);
@@ -678,8 +694,18 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
       {/* CENTER COLUMN */}
       <div className="flex-1 flex flex-col items-center gap-3">
 
-        <div className="text-center font-bold text-slate-700 text-lg">
-          {turnText}
+        {/* Mobile avatar + speech bubble */}
+        <div className="lg:hidden w-full flex flex-col gap-2">
+          <div className="flex items-start gap-3">
+            <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
+              <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
+            </div>
+            <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
+              <p className="text-sm text-[var(--text-primary)] leading-snug line-clamp-3">
+                Используйте вскрытое нападение, чтобы выиграть фигуру соперника.
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Fail banner */}
@@ -791,7 +817,57 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
                 );
               })
             ))}
-          </div>
+          {/* Hint arrows SVG overlay */}
+          {hintVisible && !isFail && !isComplete && !selectedSquare && !dragPiece && (
+            (() => {
+              const arrows = HINTS[exercise] || [];
+              const phaseArrows = arrows.filter(a => a.phase === whiteMoves);
+              if (phaseArrows.length === 0) return null;
+              return (
+                <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
+                  {phaseArrows.map((arrow, i) => {
+                    const fromF = FILES.indexOf(arrow.from[0]);
+                    const fromR = RANKS.indexOf(arrow.from[1]);
+                    const toF = FILES.indexOf(arrow.to[0]);
+                    const toR = RANKS.indexOf(arrow.to[1]);
+                    const x1 = (fromF + 0.5) * sqSize;
+                    const y1 = (fromR + 0.5) * sqSize;
+                    const x2 = (toF + 0.5) * sqSize;
+                    const y2 = (toR + 0.5) * sqSize;
+                    const strokeW = sqSize < 60 ? 14 : 18;
+                    const halfW = strokeW / 2;
+                    const dx = x2 - x1;
+                    const dy = y2 - y1;
+                    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+                    const headHeight = sqSize * 0.6;
+                    const headBase = strokeW * 3;
+                    const nx = -dy / len;
+                    const ny = dx / len;
+                    const blx = x1 + nx * halfW;   const bly = y1 + ny * halfW;
+                    const brx = x1 - nx * halfW;   const bry = y1 - ny * halfW;
+                    const tailX = x2 - (dx / len) * headHeight;
+                    const tailY = y2 - (dy / len) * headHeight;
+                    const tlx = tailX + nx * halfW; const tly = tailY + ny * halfW;
+                    const trx = tailX - nx * halfW; const try_ = tailY - ny * halfW;
+                    const hlx = tailX + nx * headBase / 2; const hly = tailY + ny * headBase / 2;
+                    const hrx = tailX - nx * headBase / 2; const hry = tailY - ny * headBase / 2;
+                    const cross = (brx - blx) * (-dy / len) - (bry - bly) * (-dx / len);
+                    const sweep = cross > 0 ? 1 : 0;
+                    const pathD = `M ${blx} ${bly} L ${tlx} ${tly} L ${hlx} ${hly} L ${x2} ${y2} L ${hrx} ${hry} L ${trx} ${try_} L ${brx} ${bry} A ${halfW} ${halfW} 0 1 ${sweep} ${blx} ${bly} Z`;
+                    return (
+                      <path
+                        key={i}
+                        d={pathD}
+                        fill="rgba(44, 36, 27, 0.35)"
+                        className="arrow-hint-line"
+                      />
+                    );
+                  })}
+                </svg>
+              );
+            })()
+          )}
+        </div>
 
           {/* Dragged piece overlay */}
           {dragPiece && (
@@ -809,40 +885,70 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
           )}
         </div>
 
-        <button
-          onClick={reset}
-          className="flex lg:hidden items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition"
-        >
-          <RotateCcw size={14} /> Заново
-        </button>
 
-        <div className="text-center text-sm text-slate-600 max-w-sm px-4">
-          <p className="font-medium mb-1">Цель:</p>
-          <p>Используйте вскрытое нападение, чтобы выиграть фигуру соперника.</p>
-        </div>
+
+
 
         {/* Mobile exercise pills */}
         <div className="flex lg:hidden flex-wrap justify-center gap-1 w-full">
-          {[1, 2, 3, 4, 5, 6].map((num) => {
-            const earnedStars = exerciseStars[num] || 0;
+          {[1,2,3,4,5,6].map((num) => {
+            const earned = exerciseStars[num] || 0;
             const isCurrent = num === exercise;
-            const isDone = earnedStars > 0;
+            const isDone = earned > 0;
+            const isLocked = !isCurrent && !isDone;
             return (
               <button
                 key={num}
-                onClick={() => switchExercise(num as 1)}
-                className={`flex items-center gap-0.5 px-1.5 py-1 rounded text-xs transition ${
-                  isCurrent ? 'bg-blue-500 text-white' : isDone ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'
-                } cursor-pointer`}
+                onClick={() => { if (!isCurrent) switchExercise(num as 1); }}
+                disabled={isCurrent}
+                className={`flex flex-col items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 w-12 ${
+                  isCurrent ? 'bg-[#2C241B] shadow-md'
+                  : isDone ? 'bg-[#C9A84C]'
+                  : 'bg-[#F0EBE4] border border-[#D4C5B5]'
+                } ${isCurrent ? 'cursor-not-allowed' : isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
               >
-                <div className="flex gap-0.5">
-                  {[1, 2, 3].map(s => (
-                    <StarPng key={s} filled={earnedStars > 0 && s <= earnedStars} size={12} />
-                  ))}
-                </div>
+                {isDone && earned > 0 ? (
+                  earned === 3 ? (
+                    <>
+                      <div className="flex"><svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></div>
+                      <div className="flex gap-[1px]">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex gap-[2px] justify-center w-full">
+                      {Array.from({ length: earned }, (_, s) => (
+                        <svg key={s} width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                        </svg>
+                      ))}
+                    </div>
+                  )
+                ) : (
+                  <span className={`text-sm font-bold leading-none ${isCurrent ? 'text-white' : 'text-[#9CA3AF]'}`}>{num}</span>
+                )}
               </button>
             );
           })}
+        </div>
+
+        {/* Mobile progress + buttons row */}
+        <div className="flex lg:hidden flex-col gap-2 w-full">
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs font-bold text-[var(--text-primary)]">Задание {exercise} из 6</span>
+            <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+              <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${(exercise / 6) * 100}%` }} />
+            </div>
+          </div>
+          <div className="flex gap-2 w-full">
+            <button onClick={handleHint} className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all duration-200 ${hintVisible ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
+              <Eye size={14} /> Подсказка
+            </button>
+            <button onClick={reset} className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200">
+              <RotateCcw size={14} /> Заново
+            </button>
+          </div>
         </div>
 
         {/* Completion banner */}

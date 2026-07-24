@@ -1556,6 +1556,13 @@ function MultiLevelStarBoard({
         const rook = parsed.squares['h1'];
         if (rook && rook.type === 'r' && rook.color === 'w') {
           if (!parsed.squares['f1'] && !parsed.squares['g1']) {
+            // King must not pass through attacked squares (e1, f1, g1)
+            if (isSquareAttackedBy('e1', parsed.squares, 'b') ||
+                isSquareAttackedBy('f1', parsed.squares, 'b') ||
+                isSquareAttackedBy('g1', parsed.squares, 'b')) {
+              setMsg('Король не может рокироваться через битое поле!');
+              return false;
+            }
             const castlingSquares = { ...parsed.squares };
             delete castlingSquares['e1'];
             castlingSquares['g1'] = { type: 'k', color: 'w' };
@@ -1583,6 +1590,13 @@ function MultiLevelStarBoard({
         const rook = parsed.squares['a1'];
         if (rook && rook.type === 'r' && rook.color === 'w') {
           if (!parsed.squares['d1'] && !parsed.squares['c1'] && !parsed.squares['b1']) {
+            // King must not pass through attacked squares (e1, d1, c1)
+            if (isSquareAttackedBy('e1', parsed.squares, 'b') ||
+                isSquareAttackedBy('d1', parsed.squares, 'b') ||
+                isSquareAttackedBy('c1', parsed.squares, 'b')) {
+              setMsg('Король не может рокироваться через битое поле!');
+              return false;
+            }
             const castlingSquares = { ...parsed.squares };
             delete castlingSquares['e1'];
             castlingSquares['c1'] = { type: 'k', color: 'w' };

@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
-import { RotateCcw, Trophy } from 'lucide-react';
+import { RotateCcw, Trophy, Eye } from 'lucide-react';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const RANKS = ['8','7','6','5','4','3','2','1'];
@@ -20,6 +20,21 @@ const START_FEN_9 = '3r3r/pp3Rpk/4p1p1/6Q1/2q1N1P1/3nP2P/8/3R2K1 w - - 0 1';
 const START_FEN_10 = '2kr3r/pp3ppp/4p3/2Np2q1/3P4/4P2P/PP3PP1/2R2RK1 w - - 0 1';
 const START_FEN_11 = 'rnb1k2r/ppp2ppp/3q4/b3N3/3Pp3/2P5/PP1B1PPP/R2QKB1R w KQkq - 0 1';
 const START_FEN_12 = '4r2r/ppQqk1b1/2p5/6Pp/2BP1B1P/2P5/PP3P2/2K5 w - - 0 1';
+
+const HINTS: Record<number, { from: string; to: string; phase: 0 | 1 | 2 }[]> = {
+  1: [{ from: 'f1', to: 'f5', phase: 0 }, { from: 'f5', to: 'g5', phase: 1 }],
+  2: [{ from: 'e2', to: 'f3', phase: 0 }, { from: 'b4', to: 'b5', phase: 1 }, { from: 'f3', to: 'c6', phase: 2 }],
+  3: [{ from: 'c4', to: 'c5', phase: 0 }, { from: 'c5', to: 'b6', phase: 1 }],
+  4: [{ from: 'b6', to: 'd7', phase: 0 }, { from: 'd7', to: 'f8', phase: 1 }],
+  5: [{ from: 'c2', to: 'h7', phase: 0 }, { from: 'c1', to: 'c8', phase: 1 }],
+  6: [{ from: 'c2', to: 'c5', phase: 0 }, { from: 'c5', to: 'e5', phase: 1 }],
+  7: [{ from: 'e4', to: 'e7', phase: 0 }, { from: 'e7', to: 'd7', phase: 1 }],
+  8: [{ from: 'e4', to: 'f6', phase: 0 }, { from: 'g2', to: 'c6', phase: 1 }],
+  9: [{ from: 'c5', to: 'e6', phase: 0 }, { from: 'e6', to: 'g5', phase: 1 }],
+  10: [{ from: 'd1', to: 'a4', phase: 0 }, { from: 'a4', to: 'a5', phase: 1 }],
+  11: [{ from: 'e4', to: 'f6', phase: 0 }, { from: 'f6', to: 'd7', phase: 1 }],
+  12: [{ from: 'c5', to: 'e7', phase: 0 }, { from: 'c5', to: 'd6', phase: 1 }],
+};
 
 function StarPng({ filled, size = 14 }: { filled: boolean; size?: number }) {
 
@@ -104,6 +119,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
   const [whiteMoves, setWhiteMoves] = useState(0);
   const [sqSize, setSqSize] = useState(52);
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
+  const [hintVisible, setHintVisible] = useState(false);
 
   const isCompleteRef = useRef(false);
   const isFailRef = useRef(false);
@@ -145,11 +161,16 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
     return () => window.removeEventListener('resize', update);
   }, []);
 
+  const handleHint = useCallback(() => {
+    setHintVisible(prev => !prev);
+  }, []);
+
   const reset = useCallback(() => {
     const fen = exercise === 1 ? START_FEN_1 : exercise === 2 ? START_FEN_2 : exercise === 3 ? START_FEN_3 : exercise === 4 ? START_FEN_4 : exercise === 5 ? START_FEN_5 : exercise === 6 ? START_FEN_6 : exercise === 7 ? START_FEN_7 : exercise === 8 ? START_FEN_8 : exercise === 9 ? START_FEN_9 : exercise === 10 ? START_FEN_10 : exercise === 11 ? START_FEN_11 : START_FEN_12;
     setGame(new Chess(fen));
     setSelectedSquare(null);
     setMessage('');
+    setHintVisible(false);
     setIsFail(false);
     setIsComplete(false);
     setWhiteMoves(0);
@@ -207,6 +228,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
           }
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);
+          setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
           setTimeout(() => {
@@ -264,6 +286,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
           }
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);
+          setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
           setTimeout(() => {
@@ -292,6 +315,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
           }
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);
+          setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
           setTimeout(() => {
@@ -348,6 +372,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
           }
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);
+          setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
           setTimeout(() => {
@@ -404,6 +429,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
           }
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);
+          setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
           setTimeout(() => {
@@ -455,6 +481,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
           }
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);
+          setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
           setTimeout(() => {
@@ -506,6 +533,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
           }
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);
+          setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
           setTimeout(() => {
@@ -562,6 +590,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
           }
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);
+          setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
           setTimeout(() => {
@@ -617,6 +646,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
           }
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);
+          setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
           setTimeout(() => {
@@ -690,6 +720,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
           }
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);
+          setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
           setTimeout(() => {
@@ -746,6 +777,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
           }
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);
+          setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
           setTimeout(() => {
@@ -952,40 +984,79 @@ const getExerciseGoal = (ex: number) => {
   };
   return (
     <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
-      {/* LEFT COLUMN */}
-      <div className="w-full lg:w-[300px] flex-shrink-0 space-y-2">
-        <div className="hidden lg:grid grid-cols-6 gap-1 rounded p-1 border border-gray-200">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((num) => {
-            const earnedStars = exerciseStars[num] || 0;
+      {/* LEFT SIDEBAR (desktop) */}
+      <div className="hidden lg:flex lg:w-[180px] flex-shrink-0 flex-col gap-3">
+
+        {/* Avatar + speech bubble */}
+        <div className="flex items-start gap-2">
+          <div className="w-10 h-10 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
+            <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
+          </div>
+          <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2.5 shadow-sm border border-[rgba(92,64,51,0.06)]">
+            <p className="text-sm text-[var(--text-primary)] leading-snug">
+              Найдите лучший ход!\n            </p>
+          </div>
+        </div>
+
+        {/* Exercise pills */}
+        <div className="w-full flex flex-col gap-[1px]">
+          {[1,2,3,4,5,6,7,8,9,10,11,12].map((num) => {
+            const earned = exerciseStars[num] || 0;
             const isCurrent = num === exercise;
-            const isDone = earnedStars > 0;
+            const isDone = earned > 0;
+            const isLocked = !isCurrent && !isDone;
             return (
               <button
                 key={num}
-                onClick={() => switchExercise(num as 1)}
-                className={`flex items-center justify-center px-1 py-1 rounded transition ${
-                  isCurrent
-                    ? 'bg-blue-500 text-white'
-                    : isDone
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-gray-200 text-gray-500'
-                } cursor-pointer hover:brightness-110`}
+                onClick={() => { if (!isCurrent) switchExercise(num as 1); }}
+                disabled={isCurrent}
+                className={`flex items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 px-2 ${
+                  isCurrent ? 'bg-[#2C241B] shadow-md'
+                  : isDone ? 'bg-[#C9A84C]'
+                  : 'bg-[#F0EBE4] border border-[#D4C5B5]'
+                } ${isCurrent ? 'cursor-not-allowed' : isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
               >
-                <div className="flex gap-0.5">
-                  {[1, 2, 3].map(s => (
-                    <StarPng key={s} filled={earnedStars > 0 && s <= earnedStars} size={14} />
-                  ))}
-                </div>
-                <span className="ml-1 text-xs font-medium">{num}</span>
+                {isDone && earned > 0 ? (
+                  earned === 3 ? (
+                    <>
+                      <div className="flex"><svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></div>
+                      <div className="flex gap-[1px]">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex gap-[2px] justify-center w-full">
+                      {Array.from({ length: earned }, (_, s) => (
+                        <svg key={s} width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                        </svg>
+                      ))}
+                    </div>
+                  )
+                ) : (
+                  <span className={`text-sm font-bold leading-none ${isCurrent ? 'text-white' : 'text-[#9CA3AF]'}`}>{num}</span>
+                )}
               </button>
             );
           })}
         </div>
 
-        <button
-          onClick={reset}
-          className="hidden lg:flex items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition w-full justify-center"
-        >
+        {/* Progress */}
+        <div className="flex flex-col gap-1.5">
+          <span className="text-xs font-bold text-[var(--text-primary)]">Задание {exercise} из 12</span>
+          <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+            <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${(exercise / 12) * 100}%` }} />
+          </div>
+        </div>
+
+        {/* Подсказка */}
+        <button onClick={handleHint} className={`w-full flex items-center justify-center gap-1.5 h-9 rounded-lg border text-xs font-medium transition-all duration-200 ${hintVisible ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
+          <Eye size={14} /> Подсказка
+        </button>
+
+        {/* Заново */}
+        <button onClick={reset} className="w-full flex items-center justify-center gap-1.5 h-9 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200">
           <RotateCcw size={14} /> Заново
         </button>
       </div>
@@ -993,8 +1064,18 @@ const getExerciseGoal = (ex: number) => {
       {/* CENTER COLUMN */}
       <div className="flex-1 flex flex-col items-center gap-3">
 
-        <div className="text-center font-bold text-slate-700 text-lg">
-          {turnText}
+        {/* Mobile avatar + speech bubble */}
+        <div className="lg:hidden w-full flex flex-col gap-2">
+          <div className="flex items-start gap-3">
+            <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
+              <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
+            </div>
+            <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
+              <p className="text-sm text-[var(--text-primary)] leading-snug line-clamp-3">
+                Найдите лучший ход!
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Fail banner */}
@@ -1106,7 +1187,57 @@ const getExerciseGoal = (ex: number) => {
                 );
               })
             ))}
-          </div>
+          {/* Hint arrows SVG overlay */}
+          {hintVisible && !isFail && !isComplete && !selectedSquare && !dragPiece && (
+            (() => {
+              const arrows = HINTS[exercise] || [];
+              const phaseArrows = arrows.filter(a => a.phase === whiteMoves);
+              if (phaseArrows.length === 0) return null;
+              return (
+                <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
+                  {phaseArrows.map((arrow, i) => {
+                    const fromF = FILES.indexOf(arrow.from[0]);
+                    const fromR = RANKS.indexOf(arrow.from[1]);
+                    const toF = FILES.indexOf(arrow.to[0]);
+                    const toR = RANKS.indexOf(arrow.to[1]);
+                    const x1 = (fromF + 0.5) * sqSize;
+                    const y1 = (fromR + 0.5) * sqSize;
+                    const x2 = (toF + 0.5) * sqSize;
+                    const y2 = (toR + 0.5) * sqSize;
+                    const strokeW = sqSize < 60 ? 14 : 18;
+                    const halfW = strokeW / 2;
+                    const dx = x2 - x1;
+                    const dy = y2 - y1;
+                    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+                    const headHeight = sqSize * 0.6;
+                    const headBase = strokeW * 3;
+                    const nx = -dy / len;
+                    const ny = dx / len;
+                    const blx = x1 + nx * halfW;   const bly = y1 + ny * halfW;
+                    const brx = x1 - nx * halfW;   const bry = y1 - ny * halfW;
+                    const tailX = x2 - (dx / len) * headHeight;
+                    const tailY = y2 - (dy / len) * headHeight;
+                    const tlx = tailX + nx * halfW; const tly = tailY + ny * halfW;
+                    const trx = tailX - nx * halfW; const try_ = tailY - ny * halfW;
+                    const hlx = tailX + nx * headBase / 2; const hly = tailY + ny * headBase / 2;
+                    const hrx = tailX - nx * headBase / 2; const hry = tailY - ny * headBase / 2;
+                    const cross = (brx - blx) * (-dy / len) - (bry - bly) * (-dx / len);
+                    const sweep = cross > 0 ? 1 : 0;
+                    const pathD = `M ${blx} ${bly} L ${tlx} ${tly} L ${hlx} ${hly} L ${x2} ${y2} L ${hrx} ${hry} L ${trx} ${try_} L ${brx} ${bry} A ${halfW} ${halfW} 0 1 ${sweep} ${blx} ${bly} Z`;
+                    return (
+                      <path
+                        key={i}
+                        d={pathD}
+                        fill="rgba(44, 36, 27, 0.35)"
+                        className="arrow-hint-line"
+                      />
+                    );
+                  })}
+                </svg>
+              );
+            })()
+          )}
+        </div>
 
           {/* Dragged piece overlay */}
           {dragPiece && (
@@ -1124,63 +1255,113 @@ const getExerciseGoal = (ex: number) => {
           )}
         </div>
 
-        <button
-          onClick={reset}
-          className="flex lg:hidden items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition"
-        >
-          <RotateCcw size={14} /> Заново
-        </button>
 
-        <div className="text-center text-sm text-slate-600 max-w-sm px-4">
-          <p className="font-medium mb-1">Цель:</p>
-          <p>Найдите лучший ход!</p>
-        </div>
+
+
 
         {/* Mobile exercise pills — 2 rows of 6 */}
-        <div className="flex lg:hidden flex-col items-center gap-1 w-full">
-          <div className="flex gap-1 justify-center w-full">
-            {[1, 2, 3, 4, 5, 6].map((num) => {
-              const earnedStars = exerciseStars[num] || 0;
+        <div className="flex lg:hidden flex-col gap-[1px] w-full">
+          <div className="flex w-full items-stretch gap-[1px]">
+            {[1,2,3,4,5,6].map((num) => {
+              const earned = exerciseStars[num] || 0;
               const isCurrent = num === exercise;
-              const isDone = earnedStars > 0;
+              const isDone = earned > 0;
+              const isLocked = !isCurrent && !isDone;
               return (
                 <button
                   key={num}
-                  onClick={() => switchExercise(num as 1)}
-                  className={`flex items-center gap-0.5 px-1.5 py-1 rounded text-xs transition ${
-                    isCurrent ? 'bg-blue-500 text-white' : isDone ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'
-                  } cursor-pointer`}
+                  onClick={() => { if (!isCurrent) switchExercise(num as 1); }}
+                  disabled={isCurrent}
+                  className={`flex-1 flex flex-col items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 ${
+                    isCurrent ? 'bg-[#2C241B] shadow-md'
+                    : isDone ? 'bg-[#C9A84C]'
+                    : 'bg-[#F0EBE4] border border-[#D4C5B5]'
+                  } ${isCurrent ? 'cursor-not-allowed' : isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
                 >
-                  <div className="flex gap-0.5">
-                    {[1, 2, 3].map(s => (
-                      <StarPng key={s} filled={earnedStars > 0 && s <= earnedStars} size={12} />
-                    ))}
-                  </div>
+                  {isDone && earned > 0 ? (
+                    earned === 3 ? (
+                      <>
+                        <div className="flex"><svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></div>
+                        <div className="flex gap-[1px]">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex gap-[2px] justify-center w-full">
+                        {Array.from({ length: earned }, (_, s) => (
+                          <svg key={s} width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                          </svg>
+                        ))}
+                      </div>
+                    )
+                  ) : (
+                    <span className={`text-sm font-bold leading-none ${isCurrent ? 'text-white' : 'text-[#9CA3AF]'}`}>{num}</span>
+                  )}
                 </button>
               );
             })}
           </div>
-          <div className="flex gap-1 justify-center w-full">
-            {[7, 8, 9, 10, 11, 12].map((num) => {
-              const earnedStars = exerciseStars[num] || 0;
+          <div className="flex w-full items-stretch gap-[1px]">
+            {[7,8,9,10,11,12].map((num) => {
+              const earned = exerciseStars[num] || 0;
               const isCurrent = num === exercise;
-              const isDone = earnedStars > 0;
+              const isDone = earned > 0;
+              const isLocked = !isCurrent && !isDone;
               return (
                 <button
                   key={num}
-                  onClick={() => switchExercise(num as 1)}
-                  className={`flex items-center gap-0.5 px-1.5 py-1 rounded text-xs transition ${
-                    isCurrent ? 'bg-blue-500 text-white' : isDone ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'
-                  } cursor-pointer`}
+                  onClick={() => { if (!isCurrent) switchExercise(num as 1); }}
+                  disabled={isCurrent}
+                  className={`flex-1 flex flex-col items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 ${
+                    isCurrent ? 'bg-[#2C241B] shadow-md'
+                    : isDone ? 'bg-[#C9A84C]'
+                    : 'bg-[#F0EBE4] border border-[#D4C5B5]'
+                  } ${isCurrent ? 'cursor-not-allowed' : isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
                 >
-                  <div className="flex gap-0.5">
-                    {[1, 2, 3].map(s => (
-                      <StarPng key={s} filled={earnedStars > 0 && s <= earnedStars} size={12} />
-                    ))}
-                  </div>
+                  {isDone && earned > 0 ? (
+                    earned === 3 ? (
+                      <>
+                        <div className="flex"><svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></div>
+                        <div className="flex gap-[1px]">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex gap-[2px] justify-center w-full">
+                        {Array.from({ length: earned }, (_, s) => (
+                          <svg key={s} width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                          </svg>
+                        ))}
+                      </div>
+                    )
+                  ) : (
+                    <span className={`text-sm font-bold leading-none ${isCurrent ? 'text-white' : 'text-[#9CA3AF]'}`}>{num}</span>
+                  )}
                 </button>
               );
             })}
+          </div>
+        </div>
+
+        {/* Mobile progress + buttons row */}
+        <div className="flex lg:hidden flex-col gap-2 w-full">
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs font-bold text-[var(--text-primary)]">Задание {exercise} из 12</span>
+            <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+              <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${(exercise / 12) * 100}%` }} />
+            </div>
+          </div>
+          <div className="flex gap-2 w-full">
+            <button onClick={handleHint} className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all duration-200 ${hintVisible ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
+              <Eye size={14} /> Подсказка
+            </button>
+            <button onClick={reset} className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200">
+              <RotateCcw size={14} /> Заново
+            </button>
           </div>
         </div>
 
