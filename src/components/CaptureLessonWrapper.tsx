@@ -506,10 +506,12 @@ function parseFenSimple(fen: string) {
               if (p?.color !== 'w') continue;
               if (canEnemyCapture(afterFirst, s, 'b') && !isDefended(afterFirst, s, 'w')) {
                 safeAfterFirst = false;
+                console.log('CHECK_IN_TWO: rejecting first move', wSq, '->', target, 'because', s, 'is undefended and capturable');
                 break;
               }
             }
-            if (!safeAfterFirst) continue;
+            // TEMPORARILY DISABLE safeAfterFirst to see if algorithm finds correct moves
+            // if (!safeAfterFirst) continue;
 
             // Now check if white can give check on the next move
             const whiteSquares2 = Object.keys(afterFirst).filter(s => afterFirst[s]?.color === 'w');
@@ -550,6 +552,7 @@ function parseFenSimple(fen: string) {
                 moveIsSafe = false;
               }
               if (moveIsSafe) {
+                console.log('CHECK_IN_TWO: first move found:', { from: wSq, to: target, piece: piece.type });
                 return [{ from: wSq, to: target }];
               }
             }
