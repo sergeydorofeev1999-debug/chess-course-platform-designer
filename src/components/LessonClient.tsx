@@ -1135,7 +1135,7 @@ function MultiLevelStarBoard({
     }
 
     // ── CASTLING HINT (Lesson 13): direct castle arrow when path is clear ──
-    if (currentLessonId === '13') {
+    if (currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2') {
       const kingOnE1 = parsed.squares['e1']?.type === 'k' && parsed.squares['e1']?.color === 'w';
       if (kingOnE1) {
         // Short castle available?
@@ -1542,8 +1542,9 @@ function MultiLevelStarBoard({
       const fromType = parsed.squares[from]?.type || pieceType;
       
       if (level.allowedPieces && level.allowedPieces.length > 0) {
-        const effectiveAllowed = (currentLessonId === '13')
-          ? [...new Set([...level.allowedPieces, 'p'])] 
+        const isCastlingLesson = currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2';
+        const effectiveAllowed = isCastlingLesson
+          ? [...new Set([...level.allowedPieces, 'p'])]
           : level.allowedPieces;
         if (!effectiveAllowed.includes(fromType)) {
           setMsg(`Используйте только ${getAllowedPieceName(effectiveAllowed[0])}!`);
@@ -1711,8 +1712,11 @@ function MultiLevelStarBoard({
       }
 
       if (stars.length === 0) {
-        if (currentLessonId === '13') {
-          if (fromType === 'k' && (to === 'g1' || to === 'c1')) {
+        if (currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2') {
+          // For Lesson 13 (castling), ONLY accept actual castling moves (king moves 2 squares)
+          const isShortCastle = fromType === 'k' && from === 'e1' && to === 'g1';
+          const isLongCastle = fromType === 'k' && from === 'e1' && to === 'c1';
+          if (isShortCastle || isLongCastle) {
             let earned = 3;
             const max = level.maxMoves || 1;
             const m = movesRef.current + 1;
@@ -1724,11 +1728,13 @@ function MultiLevelStarBoard({
             setPhase('success');
             return true;
           } else if (fromType === 'k') {
+            // King moved but NOT castling → FAIL
             setFailed(true);
             setGameOver(true);
             setPhase('fail');
             return false;
           }
+          // Not a king move (intermediate piece like knight, bishop, pawn) → allow, continue level
           return true;
         }
 

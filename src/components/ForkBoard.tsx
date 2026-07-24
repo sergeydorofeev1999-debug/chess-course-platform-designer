@@ -22,19 +22,55 @@ const START_FEN_10 = 'r1bk1bnr/pp3ppp/1qn1p3/1N1p4/3P1B2/8/PPP2PPP/R2QKBNR w KQk
 const START_FEN_11 = '3k4/5p2/R2P4/3r4/PP1b3p/5KP1/6P1/8 w - - 0 1';
 const START_FEN_12 = 'R7/3b1kp1/2p1n1Np/7P/P1PpB1r1/3P4/1r6/R4K2 w - - 0 1';
 
-const FORK_HINTS: Record<number, string> = {
-  1: 'Ладья d1 даёт шах и атакует коня — Rd8+',
-  2: 'Конь b3 даёт шах и атакует ладью — Nd4+',
-  3: 'Конь a3 даёт шах и атакует ладью — Nb5+',
-  4: 'Конь f3 даёт шах и атакует ферзя — Nh4+',
-  5: 'Конь d2 даёт шах и атакует ферзя — Nf3+',
-  6: 'Конь c3 даёт шах и атакует ладью — Nb5+',
-  7: 'Конь f3 даёт шах и атакует ферзя — Nh4+',
-  8: 'Конь d5 даёт шах и атакует ладью — Nc7+',
-  9: 'Конь c3 даёт шах и атакует ферзя — Nd5+',
-  10: 'Конь b5 даёт шах и атакует ферзя — Nc7+',
-  11: 'Конь a3 даёт шах и атакует ладью — Nb5+',
-  12: 'Конь g5 даёт шах и атакует ладью — Ne4+',
+const FORK_HINTS: Record<number, { from: string; to: string; phase: 0 | 1 }[]> = {
+  1: [
+    { from: 'd1', to: 'd8', phase: 0 },
+    { from: 'd8', to: 'b8', phase: 1 },
+  ],
+  2: [
+    { from: 'g2', to: 'd5', phase: 0 },
+    { from: 'd5', to: 'f7', phase: 1 },
+  ],
+  3: [
+    { from: 'b3', to: 'f7', phase: 0 },
+    { from: 'f7', to: 'h5', phase: 1 },
+  ],
+  4: [
+    { from: 'd1', to: 'a4', phase: 0 },
+    { from: 'a4', to: 'e4', phase: 1 },
+  ],
+  5: [
+    { from: 'd1', to: 'd3', phase: 0 },
+    { from: 'd3', to: 'a6', phase: 1 },
+  ],
+  6: [
+    { from: 'e4', to: 'e5', phase: 0 },
+    { from: 'e5', to: 'f6', phase: 1 },
+  ],
+  7: [
+    { from: 'e4', to: 'e5', phase: 0 },
+    { from: 'e5', to: 'f6', phase: 1 },
+  ],
+  8: [
+    { from: 'd5', to: 'c7', phase: 0 },
+    { from: 'c7', to: 'a8', phase: 1 },
+  ],
+  9: [
+    { from: 'f5', to: 'e7', phase: 0 },
+    { from: 'e7', to: 'g6', phase: 1 },
+  ],
+  10: [
+    { from: 'f4', to: 'c7', phase: 0 },
+    { from: 'c7', to: 'b6', phase: 1 },
+  ],
+  11: [
+    { from: 'f3', to: 'e4', phase: 0 },
+    { from: 'e4', to: 'd5', phase: 1 },
+  ],
+  12: [
+    { from: 'g6', to: 'e5', phase: 0 },
+    { from: 'e5', to: 'g4', phase: 1 },
+  ],
 };
 
 function StarPng({ filled, size = 14 }: { filled: boolean; size?: number }) {
@@ -1056,10 +1092,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           <RotateCcw size={14} /> Заново
         </button>
 
-        {/* Hint in sidebar */}
+        {/* Hint in sidebar — arrows on board, no text here */}
         {hintVisible && (
-          <div className="px-3 py-2.5 rounded-lg bg-[#F0EBE4] border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] text-sm">
-            {FORK_HINTS[exercise] || 'Подсказка недоступна'}
+          <div className="px-3 py-2 rounded-lg bg-[#F0EBE4] border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] text-xs text-center">
+            Стрелка на доске показывает ход
           </div>
         )}
       </div>
@@ -1190,9 +1226,59 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
                 );
               })
             ))}
-          </div>
+          {/* Hint arrows SVG overlay */}
+          {hintVisible && !isFail && !isComplete && (
+            (() => {
+              const arrows = FORK_HINTS[exercise] || [];
+              const phaseArrows = arrows.filter(a => a.phase === whiteMoves);
+              if (phaseArrows.length === 0) return null;
+              return (
+                <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
+                  {phaseArrows.map((arrow, i) => {
+                    const fromF = FILES.indexOf(arrow.from[0]);
+                    const fromR = RANKS.indexOf(arrow.from[1]);
+                    const toF = FILES.indexOf(arrow.to[0]);
+                    const toR = RANKS.indexOf(arrow.to[1]);
+                    const x1 = (fromF + 0.5) * sqSize;
+                    const y1 = (fromR + 0.5) * sqSize;
+                    const x2 = (toF + 0.5) * sqSize;
+                    const y2 = (toR + 0.5) * sqSize;
+                    const strokeW = sqSize < 60 ? 14 : 18;
+                    const halfW = strokeW / 2;
+                    const dx = x2 - x1;
+                    const dy = y2 - y1;
+                    const len = Math.sqrt(dx * dx + dy * dy) || 1;
+                    const headHeight = sqSize * 0.6;
+                    const headBase = strokeW * 3;
+                    const nx = -dy / len;
+                    const ny = dx / len;
+                    const blx = x1 + nx * halfW;   const bly = y1 + ny * halfW;
+                    const brx = x1 - nx * halfW;   const bry = y1 - ny * halfW;
+                    const tailX = x2 - (dx / len) * headHeight;
+                    const tailY = y2 - (dy / len) * headHeight;
+                    const tlx = tailX + nx * halfW; const tly = tailY + ny * halfW;
+                    const trx = tailX - nx * halfW; const try_ = tailY - ny * halfW;
+                    const hlx = tailX + nx * headBase / 2; const hly = tailY + ny * headBase / 2;
+                    const hrx = tailX - nx * headBase / 2; const hry = tailY - ny * headBase / 2;
+                    const cross = (brx - blx) * (-dy / len) - (bry - bly) * (-dx / len);
+                    const sweep = cross > 0 ? 1 : 0;
+                    const pathD = `M ${blx} ${bly} L ${tlx} ${tly} L ${hlx} ${hly} L ${x2} ${y2} L ${hrx} ${hry} L ${trx} ${try_} L ${brx} ${bry} A ${halfW} ${halfW} 0 1 ${sweep} ${blx} ${bly} Z`;
+                    return (
+                      <path
+                        key={i}
+                        d={pathD}
+                        fill="rgba(44, 36, 27, 0.35)"
+                        className="arrow-hint-line"
+                      />
+                    );
+                  })}
+                </svg>
+              );
+            })()
+          )}
+        </div>
 
-          {/* Dragged piece overlay */}
+        {/* Dragged piece overlay */}
           {dragPiece && (
             <div
               className="fixed pointer-events-none z-50"
@@ -1313,8 +1399,8 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             </button>
           </div>
           {hintVisible && (
-            <div className="px-3 py-2.5 rounded-lg bg-[#F0EBE4] border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] text-sm">
-              {FORK_HINTS[exercise] || 'Подсказка недоступна'}
+            <div className="px-3 py-2 rounded-lg bg-[#F0EBE4] border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] text-xs text-center">
+              Стрелка на доске показывает ход
             </div>
           )}
         </div>
