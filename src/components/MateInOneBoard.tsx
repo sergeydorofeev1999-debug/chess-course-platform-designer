@@ -523,9 +523,9 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
                 <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
                   {arrows.map((arrow, i) => {
                     const isReversed = exercise === 6;
-                    const fromF = REVERSED_FILES.indexOf(arrow.from[0]);
+                    const fromF = (isReversed ? REVERSED_FILES : FILES).indexOf(arrow.from[0]);
                     const fromR = (isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).indexOf(arrow.from[1]);
-                    const toF = REVERSED_FILES.indexOf(arrow.to[0]);
+                    const toF = (isReversed ? REVERSED_FILES : FILES).indexOf(arrow.to[0]);
                     const toR = (isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).indexOf(arrow.to[1]);
                     const x1 = (fromF + 0.5) * sqSize;
                     const y1 = (fromR + 0.5) * sqSize;
