@@ -272,8 +272,15 @@ function parseFenSimple(fen: string) {
     const fen = currentPosition || level.initialFen || '';
     if (!fen) return [];
 
+    console.log('HINT_DEBUG: level', currentLevel, 'fen', fen.substring(0, 50), 'initialFen', (level.initialFen || '').substring(0, 50));
+
     const initialSquares = parseFenBoard(fen);
     const allTargets = level.stars || level.targets || [];
+
+    const isInitialPosition = fen.split(' ')[0] === (level.initialFen || '').split(' ')[0];
+    console.log('HINT_DEBUG: isInitialPosition', isInitialPosition, 'requireCheck', level.requireCheck, 'checkOnMove', level.checkOnMove);
+
+    // ── EN PASSANT HINT
 
     // ── EN PASSANT HINT: auto-detect from any FEN with enPassant field ──
     const parts = fen.split(' ');
