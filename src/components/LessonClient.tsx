@@ -1118,7 +1118,7 @@ function MultiLevelStarBoard({
     }
 
     return [];
-  }, [level, pieceType, stars, currentLevel]);
+  }, [level, pieceType, stars, currentLevel, currentLessonId]);
 
   const computeHintArrow = useCallback(() => {
     const parsed = parseFen(positionRef.current);
@@ -1132,6 +1132,23 @@ function MultiLevelStarBoard({
         }
       }
       // Deviation — fall through to BFS algorithm below
+    }
+
+    // ── CASTLING HINT (Lesson 13): direct castle arrow when path is clear ──
+    if (currentLessonId === '13') {
+      const kingOnE1 = parsed.squares['e1']?.type === 'k' && parsed.squares['e1']?.color === 'w';
+      if (kingOnE1) {
+        // Short castle available?
+        const rookH = parsed.squares['h1'];
+        if (rookH?.type === 'r' && rookH?.color === 'w' && !parsed.squares['f1'] && !parsed.squares['g1']) {
+          return [{ from: 'e1', to: 'g1' }];
+        }
+        // Long castle available?
+        const rookA = parsed.squares['a1'];
+        if (rookA?.type === 'r' && rookA?.color === 'w' && !parsed.squares['d1'] && !parsed.squares['c1'] && !parsed.squares['b1']) {
+          return [{ from: 'e1', to: 'c1' }];
+        }
+      }
     }
 
     // ── ESCAPE CHECK MODE (Lesson 10): white king is in check — find best defense ──

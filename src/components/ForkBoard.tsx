@@ -22,6 +22,21 @@ const START_FEN_10 = 'r1bk1bnr/pp3ppp/1qn1p3/1N1p4/3P1B2/8/PPP2PPP/R2QKBNR w KQk
 const START_FEN_11 = '3k4/5p2/R2P4/3r4/PP1b3p/5KP1/6P1/8 w - - 0 1';
 const START_FEN_12 = 'R7/3b1kp1/2p1n1Np/7P/P1PpB1r1/3P4/1r6/R4K2 w - - 0 1';
 
+const FORK_HINTS: Record<number, string> = {
+  1: 'Ладья d1 даёт шах и атакует коня — Rd8+',
+  2: 'Конь b3 даёт шах и атакует ладью — Nd4+',
+  3: 'Конь a3 даёт шах и атакует ладью — Nb5+',
+  4: 'Конь f3 даёт шах и атакует ферзя — Nh4+',
+  5: 'Конь d2 даёт шах и атакует ферзя — Nf3+',
+  6: 'Конь c3 даёт шах и атакует ладью — Nb5+',
+  7: 'Конь f3 даёт шах и атакует ферзя — Nh4+',
+  8: 'Конь d5 даёт шах и атакует ладью — Nc7+',
+  9: 'Конь c3 даёт шах и атакует ферзя — Nd5+',
+  10: 'Конь b5 даёт шах и атакует ферзя — Nc7+',
+  11: 'Конь a3 даёт шах и атакует ладью — Nb5+',
+  12: 'Конь g5 даёт шах и атакует ладью — Ne4+',
+};
+
 function StarPng({ filled, size = 14 }: { filled: boolean; size?: number }) {
   return (
     <img
@@ -134,6 +149,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
   const [whiteMoves, setWhiteMoves] = useState(0);
   const [sqSize, setSqSize] = useState(52);
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
+  const [hintVisible, setHintVisible] = useState(false);
 
   const isCompleteRef = useRef(false);
   const isFailRef = useRef(false);
@@ -152,6 +168,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
     setGame(new Chess(fen));
     setSelectedSquare(null);
     setMessage('');
+    setHintVisible(false);
     setIsFail(false);
     setIsComplete(false);
     setWhiteMoves(0);
@@ -203,10 +220,15 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
     setGame(new Chess(fen));
     setSelectedSquare(null);
     setMessage('');
+    setHintVisible(false);
     setIsFail(false);
     setIsComplete(false);
     setWhiteMoves(0);
   }, [exercise]);
+
+  const handleHint = useCallback(() => {
+    setHintVisible(prev => !prev);
+  }, []);
 
   const saveStars = useCallback((ex: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12, stars: number) => {
     setExerciseStars(prev => {
@@ -1033,6 +1055,13 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         <button onClick={reset} className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all w-full">
           <RotateCcw size={14} /> Заново
         </button>
+
+        {/* Hint in sidebar */}
+        {hintVisible && (
+          <div className="px-3 py-2.5 rounded-lg bg-[#F0EBE4] border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] text-sm">
+            {FORK_HINTS[exercise] || 'Подсказка недоступна'}
+          </div>
+        )}
       </div>
 
       {/* CENTER COLUMN */}
@@ -1276,13 +1305,18 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             </div>
           </div>
           <div className="flex gap-2 w-full">
-            <button className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all">
+            <button onClick={handleHint} className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all">
               <Eye size={14} /> Подсказка
             </button>
             <button onClick={reset} className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all">
               <RotateCcw size={14} /> Заново
             </button>
           </div>
+          {hintVisible && (
+            <div className="px-3 py-2.5 rounded-lg bg-[#F0EBE4] border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] text-sm">
+              {FORK_HINTS[exercise] || 'Подсказка недоступна'}
+            </div>
+          )}
         </div>
 
         {/* Completion banner */}
