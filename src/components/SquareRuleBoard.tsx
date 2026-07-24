@@ -282,7 +282,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
 
   const handleShowSquare = useCallback(() => {
     setShowSquare(prev => !prev);
-    setMessage(showSquare ? '' : 'Квадрат от пешки до последней горизонтали. Король внутри — догонит, снаружи — пешка проходит.');
+    setMessage(showSquare ? '' : '');
   }, [showSquare]);
 
   const startDemo = useCallback(() => {
