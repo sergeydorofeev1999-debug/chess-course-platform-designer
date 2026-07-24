@@ -1276,14 +1276,10 @@ function MultiLevelStarBoard({
       const cached = pathCache.get(cacheKey);
       if (cached !== undefined) return cached;
       const passableBlocked = blockedStars.filter((s: string) => s !== target);
-      // Удаляем ВСЕ белые фигуры того же типа (для multi-piece TSP другие фигуры того типа
-      // должны считаться "отошедшими" и не блокировать диагонали)
       const virtualSquares = {...parsed.squares};
-      for (const sq of Object.keys(virtualSquares)) {
-        if (virtualSquares[sq]?.color === 'w' && virtualSquares[sq]?.type === effectivePieceType) {
-          delete virtualSquares[sq];
-        }
-      }
+      // Удаляем только фигуру со стартовой позиции (она уходит оттуда)
+      delete virtualSquares[start];
+      // Оставляем все остальные фигуры на месте как реальные препятствия
       virtualSquares[start] = {type: effectivePieceType, color: 'w'};
       const q: string[] = [];
       const prev = new Map<string, string | null>();
@@ -1590,6 +1586,17 @@ function MultiLevelStarBoard({
       }
 
       if (!isValidMove(fromType, from, to, parsed.squares, visibleStars, parsed.enPassant)) return false;
+
+      // ── King safety: reject move if king would end up in check ──
+      if (fromType === 'k') {
+        const testSquares = { ...parsed.squares };
+        delete testSquares[from];
+        testSquares[to] = { type: 'k', color: 'w' };
+        if (isSquareAttackedBy(to, testSquares, 'b')) {
+          setMsg('Король не может ходить под шах!');
+          return false;
+        }
+      }
 
       if (fromType === 'p' && to[1] === '8') {
         setPromotionPending({ from, to });
