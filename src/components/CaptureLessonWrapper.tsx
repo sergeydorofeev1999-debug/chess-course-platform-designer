@@ -277,24 +277,24 @@ function parseFenSimple(fen: string) {
     const initialSquares = parseFenBoard(fen);
     const allTargets = level.stars || level.targets || [];
 
-    // ── EN PASSANT HINT (Lesson 14): direct en passant capture arrow ──
-    if (lesson.id === 'b244d9da-23d9-438f-a81d-64b050b3b32e' || lesson.id === '14') {
-      const parts = fen.split(' ');
-      const enPassant = parts[3] !== '-' ? parts[3] : null;
-      if (enPassant) {
-        const epFile = enPassant[0];
-        const epRank = parseInt(enPassant[1]);
-        const fromRank = `${epRank - 1}`;
-        const leftFile = FILES[FILES.indexOf(epFile) - 1];
-        const rightFile = FILES[FILES.indexOf(epFile) + 1];
-        const candidates: string[] = [];
-        if (leftFile) candidates.push(`${leftFile}${fromRank}`);
-        if (rightFile) candidates.push(`${rightFile}${fromRank}`);
-        for (const sq of candidates) {
-          const p = initialSquares[sq];
-          if (p?.type === 'p' && p?.color === 'w') {
-            return [{ from: sq, to: enPassant }];
-          }
+    // ── EN PASSANT HINT: auto-detect from any FEN with enPassant field ──
+    const parts = fen.split(' ');
+    const enPassant = parts.length > 3 && parts[3] !== '-' ? parts[3] : null;
+    if (enPassant) {
+      const epFile = enPassant[0];
+      const epRank = parseInt(enPassant[1]);
+      const fromRank = `${epRank - 1}`;
+      const leftFile = FILES[FILES.indexOf(epFile) - 1];
+      const rightFile = FILES[FILES.indexOf(epFile) + 1];
+      const candidates: string[] = [];
+      if (leftFile) candidates.push(`${leftFile}${fromRank}`);
+      if (rightFile) candidates.push(`${rightFile}${fromRank}`);
+      console.log('EP debug:', { lessonId: lesson.id, level: currentLevel, fen, enPassant, candidates, initialSquares });
+      for (const sq of candidates) {
+        const p = initialSquares[sq];
+        if (p?.type === 'p' && p?.color === 'w') {
+          console.log('EP arrow found:', { from: sq, to: enPassant });
+          return [{ from: sq, to: enPassant }];
         }
       }
     }
