@@ -962,47 +962,68 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
-      {/* LEFT COLUMN */}
-      <div className="w-full lg:w-[140px] flex-shrink-0 space-y-2">
-        <div className="hidden lg:flex flex-col rounded overflow-hidden border border-gray-200">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((num) => {
-            const earnedStars = exerciseStars[num] || 0;
+      {/* LEFT SIDEBAR (desktop) */}
+      <div className="hidden lg:flex lg:w-[180px] flex-shrink-0 flex-col gap-3">
+        {/* Exercise pills */}
+        <div className="w-full flex flex-col gap-[1px]">
+          {[1,2,3,4,5,6,7,8,9,10,11,12].map((num) => {
+            const earned = exerciseStars[num] || 0;
             const isCurrent = num === exercise;
-            const isDone = earnedStars > 0;
+            const isDone = earned > 0;
+            const isLocked = !isCurrent && !isDone;
             return (
               <button
                 key={num}
-                onClick={() => switchExercise(num as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12)}
-                className={`flex items-center justify-center px-2 py-1.5 transition ${
-                  isCurrent
-                    ? 'bg-blue-500 text-white'
-                    : isDone
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-gray-200 text-gray-500'
-                } cursor-pointer hover:brightness-110`}
+                onClick={() => { if (!isCurrent) switchExercise(num as 1|2|3|4|5|6|7|8|9|10|11|12); }}
+                disabled={isCurrent}
+                className={`flex items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 px-2 ${
+                  isCurrent ? 'bg-[#2C241B] shadow-md'
+                  : isDone ? 'bg-[#C9A84C]'
+                  : 'bg-[#F0EBE4] border border-[#D4C5B5]'
+                } ${isCurrent ? 'cursor-not-allowed' : isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
               >
-                <div className="flex gap-0.5">
-                  {[1, 2, 3].map(s => (
-                    <StarPng key={s} filled={earnedStars > 0 && s <= earnedStars} size={14} />
-                  ))}
-                </div>
-                <span className="ml-2 text-xs font-medium">{num}</span>
+                {isDone && earned > 0 ? (
+                  earned === 3 ? (
+                    <>
+                      <div className="flex"><svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></div>
+                      <div className="flex gap-[1px]">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex gap-[2px] justify-center w-full">
+                      {Array.from({ length: earned }, (_, s) => (
+                        <svg key={s} width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                        </svg>
+                      ))}
+                    </div>
+                  )
+                ) : (
+                  <span className={`text-sm font-bold leading-none ${isCurrent ? 'text-white' : 'text-[#9CA3AF]'}`}>{num}</span>
+                )}
               </button>
             );
           })}
         </div>
 
-        <button
-          onClick={reset}
-          className="hidden lg:flex items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition w-full justify-center"
-        >
+        {/* Progress */}
+        <div className="flex flex-col gap-1.5">
+          <span className="text-xs font-bold text-[var(--text-primary)]">Задание {exercise} из 12</span>
+          <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+            <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${(exercise / 12) * 100}%` }} />
+          </div>
+        </div>
+
+        {/* Заново */}
+        <button onClick={reset} className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all w-full">
           <RotateCcw size={14} /> Заново
         </button>
       </div>
 
       {/* CENTER COLUMN */}
       <div className="flex-1 flex flex-col items-center gap-3">
-
         <div className="text-center font-bold text-slate-700 text-lg">
           {turnText}
         </div>
@@ -1084,12 +1105,12 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
                     {isValidMove && !pieceObj && (
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
                         <div
-                          style={{ 
-                            width: Math.round(sqSize * 0.3), 
-                            height: Math.round(sqSize * 0.3), 
-                            backgroundColor: 'var(--square-valid)', 
-                            borderRadius: '50%', 
-                            opacity: 0.85, 
+                          style={{
+                            width: Math.round(sqSize * 0.3),
+                            height: Math.round(sqSize * 0.3),
+                            backgroundColor: 'var(--square-valid)',
+                            borderRadius: '50%',
+                            opacity: 0.85,
                           }}
                         />
                       </div>
@@ -1097,12 +1118,12 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
                     {isValidMove && pieceObj && (
                       <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 50 }}>
                         <div
-                          style={{ 
-                            width: sqSize, 
-                            height: sqSize, 
-                            borderRadius: '50%', 
-                            border: '4px solid var(--square-valid)', 
-                            boxSizing: 'border-box', 
+                          style={{
+                            width: sqSize,
+                            height: sqSize,
+                            borderRadius: '50%',
+                            border: '4px solid var(--square-valid)',
+                            boxSizing: 'border-box',
                           }}
                         />
                       </div>
@@ -1134,40 +1155,111 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           )}
         </div>
 
-        <button
-          onClick={reset}
-          className="flex lg:hidden items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition"
-        >
-          <RotateCcw size={14} /> Заново
-        </button>
+        {/* Mobile exercise pills — 2 rows of 6 */}
+        <div className="flex lg:hidden flex-col gap-[1px] w-full">
+          <div className="flex w-full items-stretch gap-[1px]">
+            {[1,2,3,4,5,6].map((num) => {
+              const earned = exerciseStars[num] || 0;
+              const isCurrent = num === exercise;
+              const isDone = earned > 0;
+              const isLocked = !isCurrent && !isDone;
+              return (
+                <button
+                  key={num}
+                  onClick={() => { if (!isCurrent) switchExercise(num as 1|2|3|4|5|6|7|8|9|10|11|12); }}
+                  disabled={isCurrent}
+                  className={`flex-1 flex flex-col items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 ${
+                    isCurrent ? 'bg-[#2C241B] shadow-md'
+                    : isDone ? 'bg-[#C9A84C]'
+                    : 'bg-[#F0EBE4] border border-[#D4C5B5]'
+                  } ${isCurrent ? 'cursor-not-allowed' : isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
+                >
+                  {isDone && earned > 0 ? (
+                    earned === 3 ? (
+                      <>
+                        <div className="flex"><svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></div>
+                        <div className="flex gap-[1px]">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex gap-[2px] justify-center w-full">
+                        {Array.from({ length: earned }, (_, s) => (
+                          <svg key={s} width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                          </svg>
+                        ))}
+                      </div>
+                    )
+                  ) : (
+                    <span className={`text-sm font-bold leading-none ${isCurrent ? 'text-white' : 'text-[#9CA3AF]'}`}>{num}</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex w-full items-stretch gap-[1px]">
+            {[7,8,9,10,11,12].map((num) => {
+              const earned = exerciseStars[num] || 0;
+              const isCurrent = num === exercise;
+              const isDone = earned > 0;
+              const isLocked = !isCurrent && !isDone;
+              return (
+                <button
+                  key={num}
+                  onClick={() => { if (!isCurrent) switchExercise(num as 1|2|3|4|5|6|7|8|9|10|11|12); }}
+                  disabled={isCurrent}
+                  className={`flex-1 flex flex-col items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 ${
+                    isCurrent ? 'bg-[#2C241B] shadow-md'
+                    : isDone ? 'bg-[#C9A84C]'
+                    : 'bg-[#F0EBE4] border border-[#D4C5B5]'
+                  } ${isCurrent ? 'cursor-not-allowed' : isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
+                >
+                  {isDone && earned > 0 ? (
+                    earned === 3 ? (
+                      <>
+                        <div className="flex"><svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></div>
+                        <div className="flex gap-[1px]">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex gap-[2px] justify-center w-full">
+                        {Array.from({ length: earned }, (_, s) => (
+                          <svg key={s} width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                          </svg>
+                        ))}
+                      </div>
+                    )
+                  ) : (
+                    <span className={`text-sm font-bold leading-none ${isCurrent ? 'text-white' : 'text-[#9CA3AF]'}`}>{num}</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
+        {/* Mobile progress + Заново */}
+        <div className="flex lg:hidden flex-col gap-2 w-full">
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs font-bold text-[var(--text-primary)]">Задание {exercise} из 12</span>
+            <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+              <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${(exercise / 12) * 100}%` }} />
+            </div>
+          </div>
+          <button onClick={reset} className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all">
+            <RotateCcw size={14} /> Заново
+          </button>
+        </div>
+
+        {/* Goal text */}
         <div className="text-center text-sm text-slate-600 max-w-sm px-4">
           <p className="font-medium mb-1">Цель:</p>
           <p>Поставьте двойной удар, а затем съешьте фигуру соперника.</p>
-        </div>
-
-        {/* Mobile exercise nav */}
-        <div className="flex lg:hidden flex-wrap gap-1 justify-center mt-2 max-w-[360px] mx-auto">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((num) => {
-            const earnedStars = exerciseStars[num] || 0;
-            const isCurrent = num === exercise;
-            const isDone = earnedStars > 0;
-            return (
-              <button
-                key={num}
-                onClick={() => switchExercise(num as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12)}
-                className={`flex items-center justify-center gap-0.5 px-1 py-1 rounded text-xs transition w-[calc(16.67%-4px)] ${
-                  isCurrent ? 'bg-blue-500 text-white' : isDone ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'
-                } cursor-pointer`}
-              >
-                <div className="flex gap-0.5">
-                  {[1, 2, 3].map(s => (
-                    <StarPng key={s} filled={earnedStars > 0 && s <= earnedStars} size={12} />
-                  ))}
-                </div>
-              </button>
-            );
-          })}
         </div>
 
         {/* Completion banner */}
@@ -1179,7 +1271,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             </div>
             {exercise < 12 && (
               <button
-                onClick={() => switchExercise((exercise + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12)}
+                onClick={() => switchExercise((exercise + 1) as 1|2|3|4|5|6|7|8|9|10|11|12)}
                 className="bg-blue-500 text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-blue-600 transition"
               >
                 Перейти к Упражнению {exercise + 1} →
