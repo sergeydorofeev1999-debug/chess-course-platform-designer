@@ -185,13 +185,16 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
 
       if (stage === 'first') {
         if (from === keyMove.from && to === keyMove.to) {
+          // Update board state immediately so React re-renders the user's move
+          setGame(new Chess(g.fen()));
           setMessage('Отличный ход! Продолжайте!');
           setIsFail(false);
           setStage('after_computer');
 
           setTimeout(() => {
-            if (!gameRef.current) return;
-            const cg = gameRef.current;
+            if (!mountedRef.current) return;
+            // Use the local g (already mutated with user move) instead of stale gameRef
+            const cg = new Chess(g.fen());
             const compMoves = cg.moves({ verbose: true });
             if (compMoves.length > 0) {
               const compMove = compMoves[0];
