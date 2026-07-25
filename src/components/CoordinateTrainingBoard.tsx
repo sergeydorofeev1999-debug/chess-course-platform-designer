@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { ArrowLeft, RotateCcw, Trophy } from 'lucide-react';
+import { ArrowLeft, RotateCcw, Trophy, Target, PenLine, Timer, Infinity } from 'lucide-react';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const RANKS   = ['8','7','6','5','4','3','2','1'];
-const LIGHT_SQ = '#f0d9b5';
-const DARK_SQ  = '#b58863';
+// board squares use CSS variables (Heirloom palette)
+// const LIGHT_SQ = '#f0d9b5'; // REMOVED — use var(--square-light)
+// const DARK_SQ  = '#b58863'; // REMOVED — use var(--square-dark)
 
 /* ═══ Piece image (cburnett PNGs, same as lesson 38) ═══ */
 function PieceImg({ type, color, size }: { type: string; color: 'w' | 'b'; size: number }) {
@@ -175,69 +176,152 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
   /* ═══════════════════════════ SETTINGS ═══════════════════════════ */
   if (phase === 'settings') {
     return (
-      <div className="flex flex-col items-center gap-4 w-full max-w-lg mx-auto">
-        <div className="bg-white rounded-xl shadow p-4 w-full">
-          <h2 className="text-xl font-light text-[#2C241B] mb-2">Координаты</h2>
-          <p className="text-sm text-[#5A4A3A] mb-2">
-            Знание координат на шахматной доске — очень важный навык для шахматиста:
+      <div className="flex flex-col items-center gap-5 w-full max-w-lg mx-auto px-4 py-6">
+        {/* Hero card */}
+        <div
+          className="rounded-2xl py-7 px-6 w-full text-center relative overflow-hidden mb-4"
+          style={{
+            background: 'linear-gradient(135deg, #2C241B 0%, #3A2E1F 50%, #2C241B 100%)',
+          }}
+        >
+          <h2 className="text-white text-2xl font-bold mb-2">Координаты</h2>
+          <p className="text-sm leading-relaxed" style={{ color: '#E8D5B5' }}>
+            Тренируйтесь находить и обозначать поля на шахматной доске.
+            Выберите режим, сторону и настройки.
           </p>
-          <ul className="text-sm text-[#5A4A3A] list-disc pl-5 space-y-1 mb-3">
-            <li>В большинстве шахматных курсов и упражнений широко используется шахматная нотация.</li>
-            <li>Вам будет проще общаться с другом-шахматистом, если вы оба будете понимать «язык шахмат».</li>
-            <li>Анализировать игры гораздо проще, когда не тратится время на поиск полей по их координатам.</li>
-          </ul>
-          <h3 className="font-bold text-[#2C241B] mb-1">{mode === 'find' ? 'Найти поле' : 'Обозначить поле'}</h3>
-          <p className="text-sm text-[#5A4A3A]">
-            {mode === 'find'
-              ? 'Координаты появляются на доске, и вам нужно отметить соответствующее им поле.'
-              : 'Поля подсвечиваются на доске, и вам нужно выбрать правильную координату.'}
-          </p>
-          <p className="text-sm text-[#5A4A3A] mt-1">
-            {timeMode === '30' ? 'У вас есть 30 секунд на то, чтобы правильно ответить как можно больше раз!' : 'Тренируйтесь без ограничения по времени.'}
-          </p>
+          <div
+            className="absolute bottom-0 left-[10%] right-[10%] h-[3px]"
+            style={{
+              background: 'linear-gradient(90deg, transparent, #C9A84C, transparent)',
+              opacity: 0.6,
+            }}
+          />
         </div>
 
+        {/* Mode selection */}
         <div className="flex w-full gap-2">
-          <button onClick={() => setMode('find')} className={`flex-1 py-2 rounded-lg font-medium text-sm transition ${mode==='find'?'bg-[#5A4A3A] text-white':'bg-[#F9F8F6] text-[#5A4A3A] border'}`}>Найти поле</button>
-          <button onClick={() => setMode('name')} className={`flex-1 py-2 rounded-lg font-medium text-sm transition ${mode==='name'?'bg-[#5A4A3A] text-white':'bg-[#F9F8F6] text-[#5A4A3A] border'}`}>Обозначить поле</button>
+          <button
+            onClick={() => setMode('find')}
+            className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-150 ease-out flex items-center justify-center gap-2 ${
+              mode === 'find'
+                ? 'bg-[#5A4A3A] text-white'
+                : 'bg-[#F9F8F6] text-[#5A4A3A] border border-[#D4C5B5] hover:bg-white hover:border-[#C9A84C]'
+            }`}
+          >
+            <Target className={`w-5 h-5 ${mode === 'find' ? 'text-white' : 'text-[#8B7355]'}`} />
+            Найти поле
+          </button>
+          <button
+            onClick={() => setMode('name')}
+            className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-150 ease-out flex items-center justify-center gap-2 ${
+              mode === 'name'
+                ? 'bg-[#5A4A3A] text-white'
+                : 'bg-[#F9F8F6] text-[#5A4A3A] border border-[#D4C5B5] hover:bg-white hover:border-[#C9A84C]'
+            }`}
+          >
+            <PenLine className={`w-5 h-5 ${mode === 'name' ? 'text-white' : 'text-[#8B7355]'}`} />
+            Обозначить поле
+          </button>
         </div>
 
+        {/* Time selection */}
         <div className="flex w-full gap-2">
-          <button onClick={() => setTime('unlimited')} className={`flex-1 py-2 rounded-lg font-medium text-sm transition ${timeMode==='unlimited'?'bg-[#5A4A3A] text-white':'bg-[#F9F8F6] text-[#5A4A3A] border'}`}>∞ Без ограничения</button>
-          <button onClick={() => setTime('30')} className={`flex-1 py-2 rounded-lg font-medium text-sm transition ${timeMode==='30'?'bg-[#5A4A3A] text-white':'bg-[#F9F8F6] text-[#5A4A3A] border'}`}>0:30</button>
+          <button
+            onClick={() => setTime('unlimited')}
+            className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-150 ease-out flex items-center justify-center gap-2 ${
+              timeMode === 'unlimited'
+                ? 'bg-[#5A4A3A] text-white'
+                : 'bg-[#F9F8F6] text-[#5A4A3A] border border-[#D4C5B5] hover:bg-white hover:border-[#C9A84C]'
+            }`}
+          >
+            <Infinity className={`w-5 h-5 ${timeMode === 'unlimited' ? 'text-white' : 'text-[#8B7355]'}`} />
+            Без ограничения
+          </button>
+          <button
+            onClick={() => setTime('30')}
+            className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-150 ease-out flex items-center justify-center gap-2 ${
+              timeMode === '30'
+                ? 'bg-[#5A4A3A] text-white'
+                : 'bg-[#F9F8F6] text-[#5A4A3A] border border-[#D4C5B5] hover:bg-white hover:border-[#C9A84C]'
+            }`}
+          >
+            <Timer className={`w-5 h-5 ${timeMode === '30' ? 'text-white' : 'text-[#8B7355]'}`} />
+            0:30
+          </button>
         </div>
 
+        {/* Side selection */}
         <div className="flex w-full gap-2 justify-center">
-          <button onClick={() => setSide('white')} className={`w-14 h-14 rounded-lg flex items-center justify-center border transition ${side==='white'?'bg-[#5A4A3A] border-[#5A4A3A]':'bg-white border-[#D4C5B5]'}`}>
+          <button
+            onClick={() => setSide('white')}
+            className={`w-14 h-14 rounded-lg flex items-center justify-center transition-all duration-150 ease-out ${
+              side === 'white'
+                ? 'bg-[#5A4A3A] border-2 border-[#5A4A3A] scale-105 shadow-[0_2px_8px_rgba(90,74,58,0.25)]'
+                : 'bg-white border-2 border-[#D4C5B5] hover:border-[#C9A84C] hover:bg-[#F9F8F6]'
+            }`}
+          >
             <div className="w-8 h-8"><PieceImg type="k" color="w" size={32} /></div>
           </button>
-          <button onClick={() => setSide('random')} className={`w-14 h-14 rounded-lg flex items-center justify-center border transition ${side==='random'?'bg-[#5A4A3A] border-[#5A4A3A]':'bg-white border-[#D4C5B5]'}`}>
+          <button
+            onClick={() => setSide('random')}
+            className={`w-14 h-14 rounded-lg flex items-center justify-center transition-all duration-150 ease-out ${
+              side === 'random'
+                ? 'bg-[#5A4A3A] border-2 border-[#5A4A3A] scale-105 shadow-[0_2px_8px_rgba(90,74,58,0.25)]'
+                : 'bg-white border-2 border-[#D4C5B5] hover:border-[#C9A84C] hover:bg-[#F9F8F6]'
+            }`}
+          >
             <div className="flex -space-x-1">
               <div className="w-5 h-5"><PieceImg type="k" color="b" size={20} /></div>
               <div className="w-5 h-5"><PieceImg type="k" color="w" size={20} /></div>
             </div>
           </button>
-          <button onClick={() => setSide('black')} className={`w-14 h-14 rounded-lg flex items-center justify-center border transition ${side==='black'?'bg-[#5A4A3A] border-[#5A4A3A]':'bg-white border-[#D4C5B5]'}`}>
+          <button
+            onClick={() => setSide('black')}
+            className={`w-14 h-14 rounded-lg flex items-center justify-center transition-all duration-150 ease-out ${
+              side === 'black'
+                ? 'bg-[#5A4A3A] border-2 border-[#5A4A3A] scale-105 shadow-[0_2px_8px_rgba(90,74,58,0.25)]'
+                : 'bg-white border-2 border-[#D4C5B5] hover:border-[#C9A84C] hover:bg-[#F9F8F6]'
+            }`}
+          >
             <div className="w-8 h-8"><PieceImg type="k" color="b" size={32} /></div>
           </button>
         </div>
 
-        <div className="flex flex-col w-full gap-2 bg-white rounded-xl p-3 shadow">
-          <label className="flex items-center justify-between text-sm text-[#5A4A3A]">
-            <span>Показывать координаты</span>
-            <button onClick={() => setCoords(v => !v)} className={`w-12 h-6 rounded-full transition ${showCoords ? 'bg-[#C9A84C]' : 'bg-[#D4C5B5]'}`}>
-              <span className={`block w-5 h-5 bg-white rounded-full mt-0.5 ml-0.5 transition ${showCoords ? 'translate-x-6' : ''}`} />
+        {/* Toggles */}
+        <div className="flex flex-col w-full gap-3 bg-white rounded-xl p-3 shadow-sm border border-[#E8E0D5]">
+          <label className="flex items-center justify-between text-sm">
+            <span className="text-[#2C241B] font-medium">Показывать координаты</span>
+            <button onClick={() => setCoords(v => !v)} className={`w-12 h-6 rounded-full transition-all duration-200 ${showCoords ? 'bg-[#C9A84C]' : 'bg-[#D4C5B5]'}`}>
+              <span className={`block w-5 h-5 bg-white rounded-full mt-0.5 transition-all duration-200 ${showCoords ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
           </label>
-          <label className="flex items-center justify-between text-sm text-[#5A4A3A]">
-            <span>Показывать фигуры</span>
-            <button onClick={() => setPieces(v => !v)} className={`w-12 h-6 rounded-full transition ${showPieces ? 'bg-[#C9A84C]' : 'bg-[#D4C5B5]'}`}>
-              <span className={`block w-5 h-5 bg-white rounded-full mt-0.5 ml-0.5 transition ${showPieces ? 'translate-x-6' : ''}`} />
+          <label className="flex items-center justify-between text-sm">
+            <span className="text-[#2C241B] font-medium">Показывать фигуры</span>
+            <button onClick={() => setPieces(v => !v)} className={`w-12 h-6 rounded-full transition-all duration-200 ${showPieces ? 'bg-[#C9A84C]' : 'bg-[#D4C5B5]'}`}>
+              <span className={`block w-5 h-5 bg-white rounded-full mt-0.5 transition-all duration-200 ${showPieces ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
           </label>
         </div>
 
-        <button onClick={startGame} className="w-full py-3 bg-[#5A4A3A] hover:bg-[#4A3A2A] text-white font-bold rounded-lg uppercase tracking-wide transition">
+        {/* CTA */}
+        <button
+          onClick={startGame}
+          className="w-full py-4 rounded-2xl text-base font-bold uppercase tracking-widest text-[#2C241B] transition-all duration-200 ease-out relative overflow-hidden active:scale-[0.98]"
+          style={{
+            background: 'linear-gradient(180deg, #D4A84C 0%, #C9A84C 100%)',
+            boxShadow: '0 4px 16px rgba(201,168,76,0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(180deg, #C9A84C 0%, #B8973D 100%)';
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(201,168,76,0.45), inset 0 1px 0 rgba(255,255,255,0.2)';
+            e.currentTarget.style.transform = 'translateY(-1px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(180deg, #D4A84C 0%, #C9A84C 100%)';
+            e.currentTarget.style.boxShadow = '0 4px 16px rgba(201,168,76,0.35), inset 0 1px 0 rgba(255,255,255,0.2)';
+            e.currentTarget.style.transform = 'translateY(0)';
+          }}
+        >
           Начать тренировку
         </button>
       </div>
@@ -247,24 +331,63 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
   /* ═══════════════════════════ RESULT ═══════════════════════════ */
   if (phase === 'result') {
     return (
-      <div className="flex flex-col items-center gap-4 w-full max-w-lg mx-auto">
-        <div className="bg-white rounded-xl shadow p-6 w-full text-center">
-          <Trophy className="w-12 h-12 text-[#C9A84C] mx-auto mb-2" />
-          <h2 className="text-2xl font-bold text-[#2C241B] mb-4">Результат</h2>
-          <div className="text-5xl font-mono font-bold text-[#2C241B] mb-2">{score}</div>
-          <div className="text-sm text-[#5A4A3A] mb-4">правильных ответов</div>
-          {errors > 0 && <div className="text-sm text-[#8B3A3A] mb-4">Ошибок: {errors}</div>}
-          <div className="flex gap-3 justify-center">
-            <button onClick={() => setPhase('settings')} className="px-4 py-2 bg-[#E8E0D4] hover:bg-[#D4C5B5] text-[#5A4A3A] rounded-lg font-medium text-sm flex items-center gap-1">
-              <ArrowLeft className="w-4 h-4" /> Настройки
-            </button>
-            <button onClick={startGame} className="px-4 py-2 bg-[#5A4A3A] hover:bg-[#4A3A2A] text-white rounded-lg font-medium text-sm flex items-center gap-1">
-              <RotateCcw className="w-4 h-4" /> Заново
-            </button>
-          </div>
+      <div className="flex flex-col items-center gap-4 w-full max-w-lg mx-auto px-4 py-6">
+        {/* Score card (hero-style) */}
+        <div
+          className="rounded-2xl p-6 w-full text-center relative overflow-hidden"
+          style={{
+            background: 'linear-gradient(135deg, #2C241B 0%, #3A2E1F 50%, #2C241B 100%)',
+          }}
+        >
+          <Trophy className="w-12 h-12 text-[#C9A84C] mx-auto mb-3" />
+          <h2 className="text-white text-2xl font-bold mb-2">Результат</h2>
+          <div className="text-white text-5xl font-mono font-bold mb-1">{score}</div>
+          <div className="text-[#8B7355] text-sm mb-4">правильных ответов</div>
+          {errors > 0 && <div className="text-[#B04A3A] text-sm">Ошибок: {errors}</div>}
+          <div
+            className="absolute bottom-0 left-[10%] right-[10%] h-[3px]"
+            style={{
+              background: 'linear-gradient(90deg, transparent, #C9A84C, transparent)',
+              opacity: 0.6,
+            }}
+          />
         </div>
+
+        {/* Buttons */}
+        <div className="flex w-full gap-3">
+          <button
+            onClick={() => setPhase('settings')}
+            className="flex-1 py-3 px-4 bg-[#4A3A2A] hover:bg-[#5A4A3A] text-white rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition duration-150"
+          >
+            <ArrowLeft className="w-4 h-4 text-white" /> Настройки
+          </button>
+          <button
+            onClick={startGame}
+            className="flex-1 py-3 px-4 bg-[#C9A84C] hover:bg-[#B8973D] text-[#2C241B] rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition duration-150"
+          >
+            <RotateCcw className="w-4 h-4 text-[#2C241B]" /> Заново
+          </button>
+        </div>
+
         {onComplete && score >= 5 && (
-          <button onClick={onComplete} className="w-full py-3 bg-[#C9A84C] hover:bg-[#B8983C] text-white font-bold rounded-lg uppercase transition">
+          <button
+            onClick={onComplete}
+            className="w-full py-4 rounded-2xl text-base font-bold uppercase tracking-widest text-[#2C241B] transition-all duration-200 ease-out relative overflow-hidden"
+            style={{
+              background: 'linear-gradient(180deg, #D4A84C 0%, #C9A84C 100%)',
+              boxShadow: '0 4px 16px rgba(201,168,76,0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'linear-gradient(180deg, #C9A84C 0%, #B8973D 100%)';
+              e.currentTarget.style.boxShadow = '0 6px 20px rgba(201,168,76,0.45), inset 0 1px 0 rgba(255,255,255,0.2)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'linear-gradient(180deg, #D4A84C 0%, #C9A84C 100%)';
+              e.currentTarget.style.boxShadow = '0 4px 16px rgba(201,168,76,0.35), inset 0 1px 0 rgba(255,255,255,0.2)';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
             Урок пройден ✓
           </button>
         )}
@@ -274,12 +397,12 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
 
   /* ═══════════════════════════ PLAYING ═══════════════════════════ */
   return (
-    <div className="flex flex-col items-center gap-2 w-full">
-      {/* progress */}
+    <div className="flex flex-col items-center gap-2 w-full px-2">
+      {/* Timer bar */}
       {timeMode === '30' && (
-        <div className="w-full h-1 bg-[#E8E0D4] rounded">
+        <div className="w-full h-1.5 bg-[#E8E0D5] rounded-full overflow-hidden">
           <div
-            className="h-full bg-[#C9A84C] rounded"
+            className="h-full bg-[#C9A84C] rounded-full"
             style={{
               width: `${((30 - timeLeft) / 30) * 100}%`,
               transition: 'width 1s linear',
@@ -288,23 +411,36 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
         </div>
       )}
 
-      {/* score / time */}
-      <div className="flex w-full justify-between px-2 text-sm text-[#5A4A3A]">
-        <span>Результат: <span className="font-bold text-[#2C241B]">{score}</span></span>
-        {timeMode === '30' && <span>Время: <span className="font-mono font-bold text-[#2C241B]">{timeLeft.toFixed(1)}</span></span>}
+      {/* Score / Time bar */}
+      <div className="flex w-full justify-between items-center bg-white rounded-xl p-3 border border-[#E8E0D5] shadow-sm">
+        <div className="flex flex-col">
+          <span className="text-[#8B7355] text-xs uppercase">Результат</span>
+          <span className="text-[#2C241B] font-bold text-lg">{score}</span>
+        </div>
+        {timeMode === '30' && (
+          <div className="flex flex-col items-end">
+            <span className="text-[#8B7355] text-xs uppercase">Время</span>
+            <span className="text-[#2C241B] font-mono font-bold text-lg">{timeLeft.toFixed(1)}</span>
+          </div>
+        )}
       </div>
 
-      {/* prompt (find mode) */}
+      {/* Prompt (find mode) */}
       {mode === 'find' && target && (
-        <div className="text-center py-2">
-          <span className="text-5xl font-bold text-[#2C241B] drop-shadow-sm">{target}</span>
+        <div
+          className="text-center py-4 rounded-xl border border-[#E8E0D5] w-full mb-2"
+          style={{
+            background: 'linear-gradient(180deg, #FFFFFF 0%, #F9F8F6 100%)',
+          }}
+        >
+          <span className="text-5xl font-bold text-[#2C241B]" style={{ textShadow: '0 1px 2px rgba(44,36,27,0.1)' }}>{target}</span>
         </div>
       )}
 
-      {/* BOARD — same style as lesson 38 */}
+      {/* BOARD */}
       <div className="flex justify-center w-full">
         <div
-          className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none"
+          className="grid border-[3px] border-[#2C241B] rounded-sm relative select-none"
           style={{
             gridTemplateColumns: `repeat(8, ${sqSize}px)`,
             gridTemplateRows: `repeat(8, ${sqSize}px)`,
@@ -319,7 +455,7 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
               const flashBg = isFlash
                 ? flashOk === true
                   ? 'rgba(201,168,76,0.55)'
-                  : 'rgba(139,58,58,0.55)'
+                  : 'rgba(176,74,58,0.55)'
                 : null;
               const isTarget = mode === 'name' && target === sq;
 
@@ -331,27 +467,33 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
                   style={{
                     width: sqSize,
                     height: sqSize,
-                    backgroundColor: flashBg || (light ? LIGHT_SQ : DARK_SQ),
+                    backgroundColor: flashBg || (light ? 'var(--square-light)' : 'var(--square-dark)'),
                     cursor: mode === 'find' ? 'pointer' : 'default',
                   }}
                   onClick={() => handleClick(sq)}
                 >
-                  {/* coords */}
+                  {/* Coordinates */}
                   {showCoords && fi === 0 && (
-                    <span className={`absolute top-0.5 left-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>{rank}</span>
+                    <span className={`absolute top-0.5 left-1 text-[10px] font-bold ${light ? 'text-[#8B6914]' : 'text-[#E8D5B5]'}`}>{rank}</span>
                   )}
                   {showCoords && ri === 7 && (
-                    <span className={`absolute bottom-0.5 right-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>{file}</span>
+                    <span className={`absolute bottom-0.5 right-1 text-[10px] font-bold ${light ? 'text-[#8B6914]' : 'text-[#E8D5B5]'}`}>{file}</span>
                   )}
 
                   {/* name-mode target highlight */}
                   {isTarget && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="w-3/4 h-3/4 rounded-full bg-[#C9A84C]/40 animate-pulse" />
+                      <div
+                        className="w-3/4 h-3/4 rounded-full animate-pulse"
+                        style={{
+                          background: 'rgba(201,168,76,0.35)',
+                          border: '2px solid rgba(201,168,76,0.5)',
+                        }}
+                      />
                     </div>
                   )}
 
-                  {/* piece */}
+                  {/* Piece */}
                   {piece && (
                     <div className="relative pointer-events-none z-10">
                       <PieceImg type={piece.t} color={piece.c} size={sqSize} />
@@ -369,7 +511,7 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
         <div className="grid grid-cols-2 gap-2 w-full max-w-sm mt-2">
           {nameOpts.map(opt => (
             <button key={opt} onClick={() => handleName(opt)}
-              className="py-3 bg-white border-2 border-[#D4C5B5] rounded-lg font-bold text-lg text-[#2C241B] hover:bg-[#F5EFE6] active:bg-[#E8E0D4] transition"
+              className="py-3 bg-white border-2 border-[#D4C5B5] rounded-lg font-bold text-lg text-[#2C241B] transition-all duration-150 ease-out hover:bg-[#F9F8F6] hover:border-[#C9A84C] hover:-translate-y-[1px] hover:shadow-[0_2px_8px_rgba(201,168,76,0.15)] active:scale-[0.97] active:bg-[#E8E0D5]"
             >
               {opt}
             </button>
@@ -377,9 +519,9 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
         </div>
       )}
 
-      {/* stop */}
+      {/* Stop */}
       <div className="flex gap-2 mt-2 w-full max-w-sm">
-        <button onClick={stopGame} className="flex-1 py-2 bg-[#E8E0D4] text-[#5A4A3A] rounded-lg text-sm font-medium">Стоп</button>
+        <button onClick={stopGame} className="flex-1 py-2.5 bg-[#F5F0E8] text-[#2C241B] border border-[#D4C9B8] rounded-lg text-sm font-medium transition duration-150 hover:bg-[#EBE4DA]">Стоп</button>
       </div>
     </div>
   );

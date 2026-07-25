@@ -174,6 +174,16 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
     setDragPiece(null);
   }, []);
 
+  // Auto-advance to next exercise after completion (like Lesson 7 ForkBoard)
+  useEffect(() => {
+    if (isComplete && exercise < 8) {
+      const timer = setTimeout(() => {
+        switchExercise((exercise + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isComplete, exercise, switchExercise]);
+
   // ──── MATE IN 2 LOGIC ────
   const processMove = useCallback((from: string, to: string) => {
     if (!game) return;
@@ -685,28 +695,14 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
         </div>
 
         {/* Completion banner */}
-        {isComplete && (
+        {isComplete && exercise === 8 && (exerciseStars[8] || 0) >= 3 && (
           <div className="flex flex-col items-center gap-3 mt-2">
-            <div className="flex items-center gap-2 text-green-600 font-bold text-lg">
-              <Trophy className="w-6 h-6" />
-              <span>Упражнение {exercise} пройдено!</span>
-            </div>
-            {exercise < 8 && (
-              <button
-                onClick={() => switchExercise((exercise + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8)}
-                className="bg-blue-500 text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-blue-600 transition"
-              >
-                Перейти к Упражнению {exercise + 1} →
-              </button>
-            )}
-            {exercise === 8 && (exerciseStars[8] || 0) >= 3 && (
-              <button
-                onClick={onComplete}
-                className="bg-emerald-500 text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-emerald-600 transition"
-              >
-                Урок завершён ✓
-              </button>
-            )}
+            <button
+              onClick={onComplete}
+              className="bg-emerald-500 text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-emerald-600 transition"
+            >
+              Урок завершён ✓
+            </button>
           </div>
         )}
       </div>
