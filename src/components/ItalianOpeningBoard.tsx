@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
-import { RotateCcw, Trophy } from 'lucide-react';
+import { RotateCcw, Trophy, Eye } from 'lucide-react';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const RANKS = ['8','7','6','5','4','3','2','1'];
@@ -112,6 +112,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
   const [whiteMoves, setWhiteMoves] = useState(0);
   const [sqSize, setSqSize] = useState(52);
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
+  const [hintVisible, setHintVisible] = useState(false);
 
   const isCompleteRef = useRef(false);
   const isFailRef = useRef(false);
@@ -162,6 +163,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
     setIsFail(false);
     setIsComplete(false);
     setWhiteMoves(0);
+    setHintVisible(false);
   }, [exercise]);
 
   const saveStars = useCallback((ex: 1 | 2 | 3 | 4 | 5 | 6, stars: number) => {
@@ -181,10 +183,35 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
     setIsFail(false);
     setIsComplete(false);
     setWhiteMoves(0);
+    setHintVisible(false);
   }, []);
+
+  const handleHint = useCallback(() => {
+    if (isComplete || isFail) return;
+    setHintVisible(prev => !prev);
+    if (!hintVisible) {
+      const hintText = exercise === 1 && whiteMoves === 0 ? 'Сыграйте пешкой e2-e4 — захватите центр.' :
+                       exercise === 1 && whiteMoves === 1 ? 'Выведите коня g1-f3.' :
+                       exercise === 1 && whiteMoves === 2 ? 'Разведите слона f1-c4.' :
+                       exercise === 1 && whiteMoves === 3 ? 'Сделайте ход d2-d3.' :
+                       exercise === 1 && whiteMoves === 4 ? 'Свяжите коня слоном c1-g5.' :
+                       exercise === 1 && whiteMoves === 5 ? 'Разведите коня b1-c3.' :
+                       exercise === 1 && whiteMoves === 6 ? 'Сделайте рокировку.' :
+                       exercise === 2 ? 'Сыграйте итальянскую партию: e4, Nf3, Bc4.' :
+                       exercise === 3 ? 'Дырокол — разменяйте коня на f6, разрушьте рокировку.' :
+                       exercise === 4 ? 'Повторите дырокол — следуйте подсказкам после каждого хода.' :
+                       exercise === 5 ? 'Пешечный штурм — захватите центр, развейтесь и атакуйте.' :
+                       exercise === 6 ? 'Повторите пешечный штурм.' :
+                       'Подумайте о следующем ходе.';
+      setMessage(hintText);
+    } else {
+      setMessage('');
+    }
+  }, [exercise, whiteMoves, isComplete, isFail, hintVisible]);
 
   const processWhiteMove = useCallback((from: string, to: string) => {
     if (!game) return;
+    setHintVisible(false);
     const g = game;
     if (g.turn() !== 'w') return;
 
@@ -1801,6 +1828,9 @@ const handleSquareClick = useCallback((square: string) => {
             </div>
           </div>
           <div className="flex gap-2 w-full">
+            <button onClick={handleHint} className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all duration-200 ${hintVisible ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
+              <Eye size={14} /> Подсказка
+            </button>
             <button onClick={reset} className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200">
               <RotateCcw size={14} /> Заново
             </button>
