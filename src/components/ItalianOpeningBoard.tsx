@@ -1924,27 +1924,34 @@ const handleSquareClick = useCallback((square: string) => {
           )}
         </div>
 
-        {/* Mobile bottom: exercise grid + progress bar + buttons */}
+        {/* Mobile bottom: exercise pills + progress bar + buttons */}
         <div className="flex lg:hidden flex-col gap-2 w-full">
-          <div className="grid grid-cols-6 gap-1 rounded p-1 border border-[rgba(92,64,51,0.08)]">
-            {[1, 2, 3, 4, 5, 6].map((num) => {
+          <div className="w-full flex flex-col gap-[1px]">
+            {[1,2,3,4,5,6].map((num) => {
               const earnedStars = exerciseStars[num] || 0;
               const isCurrent = num === exercise;
               const isDone = earnedStars > 0;
+              const isLocked = !isCurrent && !isDone;
               return (
                 <button
                   key={num}
-                  onClick={() => switchExercise(num as any)}
-                  className={`flex items-center justify-center gap-0.5 px-1 py-1 rounded text-xs transition cursor-pointer ${
-                    isCurrent ? 'bg-[#2C241B] shadow-md text-white' : isDone ? 'bg-[#C9A84C] text-white' : 'bg-[#F0EBE4] border border-[#D4C5B5] text-[#9CA3AF]'
-                  }`}
+                  onClick={() => { if (!isCurrent) switchExercise(num as any); }}
+                  disabled={isCurrent}
+                  className={`flex items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 px-2 ${
+                    isCurrent ? 'bg-[#2C241B] shadow-md'
+                    : isDone ? 'bg-[#C9A84C]'
+                    : 'bg-[#F0EBE4] border border-[#D4C5B5]'
+                  } ${isCurrent ? 'cursor-not-allowed' : isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
                 >
-                  <div className="flex gap-0.5">
-                    {[1, 2, 3].map(s => (
-                      <StarPng key={s} filled={earnedStars > 0 && s <= earnedStars} size={10} />
-                    ))}
-                  </div>
-                  <span className="ml-0.5 text-xs font-medium">{num}</span>
+                  {isDone && earnedStars > 0 ? (
+                    <div className="flex gap-[2px] justify-center w-full">
+                      {Array.from({ length: earnedStars }, (_, s) => (
+                        <StarPng key={s} filled={true} size={14} />
+                      ))}
+                    </div>
+                  ) : (
+                    <span className={`text-sm font-bold leading-none ${isCurrent ? 'text-white' : 'text-[#9CA3AF]'}`}>{num}</span>
+                  )}
                 </button>
               );
             })}
