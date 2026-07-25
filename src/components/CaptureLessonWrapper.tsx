@@ -270,6 +270,12 @@ function parseFenSimple(fen: string) {
     return false;
   }
 
+  // Explicit hints for check-in-two levels (Lesson 16) — overrides heuristic
+  const CHECK_IN_TWO_HINTS: Record<number, { from: string; to: string }[]> = {
+    4: [{ from: 'f3', to: 'g5' }], // Exercise 5: Nf3-g5, then Bxf7+
+    6: [{ from: 'g6', to: 'd3' }], // Exercise 7: Bg6-d3, then Qg3+
+  };
+
   const computeHintArrow = () => {
     const level = levels[currentLevel];
     if (!level) return [];
@@ -462,6 +468,11 @@ function parseFenSimple(fen: string) {
     // ── CHECK_IN_TWO_MODE: requireCheck + checkOnMove = 2 (Lesson 16 — check in two moves)
     // Only run on the initial position; after first move, fall through to CHECK_MODE
     if (level.requireCheck && level.checkOnMove === 2 && isInitialPosition) {
+      // Use explicit hints if available (override heuristic)
+      if (CHECK_IN_TWO_HINTS[currentLevel] && CHECK_IN_TWO_HINTS[currentLevel].length > 0) {
+        return CHECK_IN_TWO_HINTS[currentLevel];
+      }
+
       // Find black king
       let blackKingSq = '';
       for (const s in initialSquares) {
