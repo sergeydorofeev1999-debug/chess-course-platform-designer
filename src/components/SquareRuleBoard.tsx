@@ -114,7 +114,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
   const [ex5Mode, setEx5Mode] = useState<'king' | 'pawn' | null>(null);
   const [ex6Mode, setEx6Mode] = useState<'king' | 'pawn' | null>(null);
 
-  const [game, setGame] = useState<Chess>(() => new Chess(START_FEN_1));
+  const [game, setGameState] = useState<Chess>(() => new Chess(START_FEN_1));
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [demoMode, setDemoMode] = useState(false);
@@ -138,12 +138,17 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
   const gameRef = useRef(game);
   const justDraggedRef = useRef(false);
 
+  // Synchronous wrapper so gameRef always matches the latest game state
+  const setGame = useCallback((newGame: Chess) => {
+    gameRef.current = newGame;
+    setGameState(newGame);
+  }, []);
+
   const activeStartFen = exercise === 2 ? START_FEN_2 : exercise === 3 ? START_FEN_3 : exercise === 4 ? START_FEN_4 : exercise === 5 ? START_FEN_5 : exercise === 6 ? START_FEN_6 : START_FEN_1;
 
   useEffect(() => () => { mountedRef.current = false; }, []);
   useEffect(() => { isCompleteRef.current = isComplete; }, [isComplete]);
   useEffect(() => { demoModeRef.current = demoMode; }, [demoMode]);
-  useEffect(() => { gameRef.current = game; }, [game]);
 
   useEffect(() => {
     const update = () => {
