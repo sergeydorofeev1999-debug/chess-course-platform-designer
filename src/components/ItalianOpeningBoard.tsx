@@ -1968,7 +1968,7 @@ const handleSquareClick = useCallback((square: string) => {
               );
             })}
           </div>
-          <div className="flex flex-col gap-1.5 px-1 mt-3">
+          <div className="flex flex-col gap-1.5 px-1 mt-4">
             <span className="text-xs font-bold text-[var(--text-primary)]">Упражнение {exercise} из 6</span>
             <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
               <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${(exercise / 6) * 100}%` }} />
