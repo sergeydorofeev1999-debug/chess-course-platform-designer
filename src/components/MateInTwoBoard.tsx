@@ -503,11 +503,11 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
               touchAction: 'none',
             }}
           >
-            {(exercise === 2 || exercise === 4 || exercise === 7 ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).map((rank, ri) => (
-              (exercise === 2 || exercise === 4 || exercise === 7 ? REVERSED_FILES : FILES).map((file, fi) => {
+            {(exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7 ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).map((rank, ri) => (
+              (exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7 ? REVERSED_FILES : FILES).map((file, fi) => {
                 const sq = `${file}${rank}`;
                 const pieceObj = getPieceAt(sq);
-                const light = isLight(exercise === 2 || exercise === 4 || exercise === 7 ? 7-fi : fi, exercise === 2 || exercise === 4 || exercise === 7 ? 7-ri : ri);
+                const light = isLight(exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7 ? 7-fi : fi, exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7 ? 7-ri : ri);
                 const chessSq = isFlipped ? toChessSquare(sq) : sq;
                 const sel = selectedSquare === chessSq || dragPiece?.square === chessSq;
                 const isValidMove = validMoves.includes(sq);
@@ -588,7 +588,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
               return (
                 <svg className="absolute inset-0 pointer-events-none z-[35]" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
                   {arrows.map((arrow, i) => {
-                    const isReversed = exercise === 2 || exercise === 4 || exercise === 7;
+                    const isReversed = exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7;
                     const fromF = (isReversed ? REVERSED_FILES : FILES).indexOf(arrow.from[0]);
                     const fromR = (isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).indexOf(arrow.from[1]);
                     const toF = (isReversed ? REVERSED_FILES : FILES).indexOf(arrow.to[0]);
