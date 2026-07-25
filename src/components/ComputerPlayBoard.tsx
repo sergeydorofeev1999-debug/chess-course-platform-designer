@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
-import { RotateCcw, Trophy, ChevronRight } from 'lucide-react';
+import { RotateCcw, Trophy, ChevronRight, Star } from 'lucide-react';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const DISPLAY_RANKS = ['8','7','6','5','4','3','2','1'];
@@ -399,53 +399,72 @@ export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete
   if (selectedLevel === null) {
     const allCompleted = LEVELS.every(l => levelStars[l.id] > 0);
     return (
-      <div className="flex flex-col items-center gap-6 w-full px-4 py-6">
-        <h3 className="text-[20px] font-bold text-[#2C241B] text-center">
+      <div className="flex flex-col items-center gap-5 w-full max-w-sm mx-auto px-4 py-6">
+        {/* Hero card */}
+        <div
+          className="rounded-2xl py-7 px-6 w-full text-center relative overflow-hidden mb-4"
+          style={{
+            background: 'linear-gradient(135deg, #2C241B 0%, #3A2E1F 50%, #2C241B 100%)',
+          }}
+        >
+          <h2 className="text-white text-2xl font-bold mb-2">Игра против компьютера</h2>
+          <p className="text-sm leading-relaxed" style={{ color: '#E8D5B5' }}>
+            Сыграйте с компьютером от начальной позиции. Вы играете белыми.
+          </p>
+          <div
+            className="absolute bottom-0 left-[10%] right-[10%] h-[3px]"
+            style={{
+              background: 'linear-gradient(90deg, transparent, #C9A84C, transparent)',
+              opacity: 0.6,
+            }}
+          />
+        </div>
+
+        <h3 className="text-xl font-bold text-[#2C241B] text-center mb-1">
           Выберите уровень сложности
         </h3>
-        <p className="text-[#6B5B3D] text-center max-w-sm px-4">
-          Сыграйте с компьютером от начальной позиции. Вы играете белыми.
-        </p>
-        <div className="flex flex-col gap-3 w-full max-w-sm">
+
+        <div className="flex flex-col gap-3 w-full">
           {LEVELS.map((lvl) => {
             const earned = levelStars[lvl.id] || 0;
             const isDone = earned > 0;
             const circleColor = lvl.color;
-            const borderColor = isDone
-              ? circleColor
-              : (lvl.id === 0 ? '#F5EFE0' : lvl.id === 1 ? '#F2EBD8' : lvl.id === 2 ? '#F0E8DA' : lvl.id === 3 ? '#EBE0D4' : '#E8DCD4');
-            const titleColor  = lvl.id === 0 ? '#A07820' : lvl.id === 1 ? '#906820' : lvl.id === 2 ? '#805820' : lvl.id === 3 ? '#704820' : '#3A1A0A';
-            const descColor   = lvl.id === 0 ? '#B89A60' : lvl.id === 1 ? '#A88A60' : lvl.id === 2 ? '#A08860' : lvl.id === 3 ? '#907860' : '#7A5A4A';
+            const starColor = ['#8A6040', '#4A2A1A'].includes(circleColor) ? '#FFFFFF' : '#2C241B';
             return (
               <button
                 key={lvl.id}
                 onClick={() => startGame(lvl.id)}
-                className="flex items-center gap-3.5 px-4 py-4 rounded-2xl bg-white transition hover:-translate-y-px text-left"
-                style={{ border: `2px solid ${borderColor}` }}
+                className="flex items-center gap-3.5 px-4 py-4 rounded-2xl bg-white transition-all duration-150 ease-out hover:-translate-y-px text-left cursor-pointer"
+                style={{ border: `2px solid rgba(201,168,76,0.15)` }}
                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = circleColor; }}
-                onMouseLeave={(e) => { e.currentTarget.style.borderColor = borderColor; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.15)'; }}
               >
                 <div
-                  className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0"
+                  className="w-11 h-11 rounded-full flex items-center justify-center font-bold text-base flex-shrink-0"
                   style={{
                     backgroundColor: circleColor,
-                    boxShadow: `0 2px 8px ${circleColor}4D`,
+                    boxShadow: `0 2px 8px ${circleColor}40`,
                   }}
                 >
-                  {isDone ? <Trophy size={20} /> : <StarPng filled={false} size={20} />}
+                  {isDone ? (
+                    <Trophy size={20} className="text-white" />
+                  ) : (
+                    <Star size={20} style={{ color: starColor }} />
+                  )}
                 </div>
                 <div className="flex-1">
-                  <div className="font-bold text-base" style={{ color: titleColor }}>{lvl.elo} Elo — {lvl.label}</div>
-                  <div className="text-[13px]" style={{ color: descColor }}>{lvl.description}</div>
+                  <div className="font-bold text-base text-[#2C241B]">{lvl.elo} Elo — {lvl.label}</div>
+                  <div className="text-[13px] text-[#8B7355]">{lvl.description}</div>
                 </div>
-                <ChevronRight size={20} style={{ color: circleColor }} className="flex-shrink-0" />
+                <ChevronRight size={20} className="flex-shrink-0 text-[#C9A84C]" />
               </button>
             );
           })}
         </div>
+
         {allCompleted && (
-          <div className="mt-4 px-6 py-3 bg-[#F5EFE6] border border-[#C9A84C] rounded-xl text-[#3E3228] font-bold flex items-center gap-2">
-            <Trophy size={20} /> Все уровни пройдены!
+          <div className="mt-4 px-6 py-3 bg-[#C9A84C] rounded-xl text-[#2C241B] font-bold flex items-center justify-center gap-2">
+            <Trophy size={20} className="text-[#2C241B]" /> Все уровни пройдены!
           </div>
         )}
       </div>
@@ -463,16 +482,16 @@ export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete
         <div className="hidden lg:flex flex-col gap-2">
           <button
             onClick={() => setSelectedLevel(null)}
-            className="flex items-center gap-1 px-3 py-1.5 text-xs text-[#6B5B3D] bg-[#E8E0D4] rounded hover:bg-[#D4C5B5] transition w-full justify-center"
+            className="flex items-center gap-1 px-3 py-1.5 text-xs text-[#2C241B] bg-[#F5F0E8] border border-[#D4C9B8] rounded hover:bg-[#EBE4DA] transition w-full justify-center"
           >
             ← Выбрать уровень
           </button>
-          <div className="text-center text-sm font-bold text-slate-700">
+          <div className="text-center text-sm font-bold text-[#2C241B]">
             Уровень: {currentLevel.elo} Elo — {currentLevel.label}
           </div>
         </div>
 
-        <div className="hidden lg:grid grid-cols-5 gap-1 rounded p-1 border border-[#D4C5B5]">
+        <div className="hidden lg:grid grid-cols-5 gap-1 rounded p-1 border border-[#D4C9B8]">
           {LEVELS.map((lvl, idx) => {
             const earned = levelStars[idx] || 0;
             const isCurrent = idx === selectedLevel;
@@ -481,13 +500,13 @@ export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete
               <button
                 key={idx}
                 onClick={() => startGame(idx)}
-                className={`flex items-center justify-center px-1 py-1 rounded transition ${
+                className={`flex items-center justify-center px-1 py-1 rounded transition cursor-pointer hover:brightness-110 ${
                   isCurrent
-                    ? 'bg-blue-500 text-white'
+                    ? 'bg-[#C9A84C] text-white'
                     : isDone
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-gray-200 text-gray-500'
-                } cursor-pointer hover:brightness-110`}
+                    ? 'bg-[#B07838] text-white'
+                    : 'bg-[#F5F0E8] text-[#8B7355] hover:bg-[#EBE4DA]'
+                }`}
               >
                 <div className="flex gap-0.5">
                   <StarPng filled={earned > 0} size={14} />
@@ -500,27 +519,34 @@ export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete
 
         <button
           onClick={reset}
-          className="hidden lg:flex items-center gap-1 px-3 py-1.5 text-xs text-[#6B5B3D] bg-[#E8E0D4] rounded hover:bg-[#D4C5B5] transition w-full justify-center"
+          className="hidden lg:flex items-center gap-1 px-3 py-1.5 text-xs text-[#2C241B] bg-[#F5F0E8] border border-[#D4C9B8] rounded hover:bg-[#EBE4DA] transition w-full justify-center"
         >
           <RotateCcw size={14} /> Заново
         </button>
       </div>
 
       {/* CENTER COLUMN */}
-      <div className="flex-1 flex flex-col items-center gap-3">
-        <div className="px-6 py-3 rounded-xl text-center font-bold text-white bg-[#C9A84C] mb-2 w-full">
+      <div className="flex-1 flex flex-col items-center gap-3 px-2">
+        {/* Thinking indicator */}
+        {thinking && (
+          <div className="w-full h-1.5 bg-[#F5F0E8] rounded-full overflow-hidden mb-2">
+            <div className="h-full bg-[#C9A84C] rounded-full animate-pulse w-full" />
+          </div>
+        )}
+
+        <div className="text-center font-bold text-[#2C241B] text-lg py-2 w-full">
           Игра против компьютера — {currentLevel.label} ({currentLevel.elo} Elo)
         </div>
 
-        <div className="text-center font-bold text-slate-700 text-lg">
+        <div className="text-center font-bold text-[#2C241B] text-lg">
           {turnText}
         </div>
 
         {message && (
-          <div className={`px-6 py-3 rounded-xl text-center font-bold text-white ${
-            message.includes('Победа') ? 'bg-[#8B7355]' : message.includes('Поражение') ? 'bg-[#4A3F35]' : 'bg-[#C9A84C]'
+          <div className={`px-6 py-3 rounded-xl text-center font-bold text-white w-full mb-2 flex items-center justify-center gap-2 ${
+            message.includes('Победа') ? 'bg-[#C9A84C]' : message.includes('Поражение') ? 'bg-[#B04A3A]' : 'bg-[#8B7355]'
           }`}>
-            {message.includes('Победа') && <Trophy className="w-5 h-5 inline-block mr-2" />}
+            {message.includes('Победа') && <Trophy className="w-5 h-5 text-white" />}
             {message}
           </div>
         )}
@@ -529,7 +555,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete
         <div className="flex justify-center w-full relative">
           <div
             data-board
-            className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none"
+            className="grid border-[3px] border-[#2C241B] rounded-sm relative select-none"
             style={{
               gridTemplateColumns: `repeat(8, ${sqSize}px)`,
               gridTemplateRows: `repeat(8, ${sqSize}px)`,
@@ -563,15 +589,15 @@ export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete
                     onDragStart={(e) => e.preventDefault()}
                   >
                     {sel && (
-                      <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
+                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.35)] pointer-events-none z-10" />
                     )}
                     {fi === 0 && (
-                      <span className={`absolute top-0.5 left-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>
+                      <span className={`absolute top-0.5 left-1 text-[10px] font-bold ${light ? 'text-[#8B6914]' : 'text-[#E8D5B5]'}`}>
                         {rank}
                       </span>
                     )}
                     {ri === 7 && (
-                      <span className={`absolute bottom-0.5 right-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>
+                      <span className={`absolute bottom-0.5 right-1 text-[10px] font-bold ${light ? 'text-[#8B6914]' : 'text-[#E8D5B5]'}`}>
                         {file}
                       </span>
                     )}
@@ -613,23 +639,21 @@ export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete
           </div>
 
           {promotionPending && (
-            <div className="absolute z-50 pointer-events-auto promotion-panel" style={{
-              left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
-              top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
-              width: sqSize,
-              height: 4 * sqSize,
-              backgroundColor: promotionPending.from[1] === '2' ? '#F5F0E8' : '#2C241B',
-              borderRadius: '0px',
-              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.35)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
-            }}>
-              {PROMOTION_PIECES.map(({ code, name }) => {
-                const isBlackPawn = promotionPending.from[1] === '2';
-                return (
+            <div className="absolute z-50 pointer-events-auto promotion-panel rounded-lg border border-[#E8E0D5] overflow-hidden"
+              style={{
+                left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
+                top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
+                width: sqSize,
+                height: 4 * sqSize,
+                backgroundColor: '#FFFFFF',
+                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.12)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {PROMOTION_PIECES.map(({ code, name }) => (
                 <button
                   key={code}
                   onClick={() => {
@@ -640,10 +664,10 @@ export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete
                   style={{
                     backgroundColor: 'transparent',
                     border: '2px solid transparent',
-                    borderRadius: '0px',
+                    borderRadius: '4px',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = isBlackPawn ? 'rgba(44, 36, 27, 0.08)' : 'rgba(201, 168, 76, 0.15)';
+                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.10)';
                     e.currentTarget.style.borderColor = '#C9A84C';
                   }}
                   onMouseLeave={(e) => {
@@ -651,22 +675,21 @@ export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete
                     e.currentTarget.style.borderColor = 'transparent';
                   }}
                   onMouseDown={(e) => {
-                    e.currentTarget.style.backgroundColor = isBlackPawn ? 'rgba(44, 36, 27, 0.15)' : 'rgba(201, 168, 76, 0.25)';
+                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.20)';
                   }}
                   onMouseUp={(e) => {
-                    e.currentTarget.style.backgroundColor = isBlackPawn ? 'rgba(44, 36, 27, 0.08)' : 'rgba(201, 168, 76, 0.15)';
+                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.10)';
                   }}
                   title={name}
                 >
                   <img
-                    src={`/pieces/cburnett/${isBlackPawn ? 'b' : 'w'}${code.toUpperCase()}.svg`}
+                    src={`/pieces/cburnett/${promotionPending.from[1] === '2' ? 'b' : 'w'}${code.toUpperCase()}.svg`}
                     alt={name}
                     draggable={false}
                     style={{ width: '78%', height: '78%', objectFit: 'contain', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}
                   />
                 </button>
-                );
-              })}
+              ))}
             </div>
           )}
 
@@ -687,14 +710,14 @@ export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete
 
         <button
           onClick={reset}
-          className="flex lg:hidden items-center gap-1 px-3 py-1.5 text-xs text-[#6B5B3D] bg-[#E8E0D4] rounded hover:bg-[#D4C5B5] transition"
+          className="flex lg:hidden items-center gap-1 px-3 py-1.5 text-xs text-[#2C241B] bg-[#F5F0E8] border border-[#D4C9B8] rounded-lg hover:bg-[#EBE4DA] transition"
         >
           <RotateCcw size={14} /> Заново
         </button>
 
         <button
           onClick={() => setSelectedLevel(null)}
-          className="flex lg:hidden items-center gap-1 px-3 py-1.5 text-xs text-[#6B5B3D] bg-[#E8E0D4] rounded hover:bg-[#D4C5B5] transition"
+          className="flex lg:hidden items-center gap-1 px-3 py-1.5 text-xs text-[#2C241B] bg-[#F5F0E8] border border-[#D4C9B8] rounded-lg hover:bg-[#EBE4DA] transition"
         >
           ← Выбрать уровень
         </button>
