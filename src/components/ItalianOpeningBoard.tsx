@@ -1751,7 +1751,7 @@ const handleSquareClick = useCallback((square: string) => {
       <div className="flex-1 flex flex-col items-center gap-3 px-2">
         {/* Mobile: Avatar + speech bubble */}
         <div className="flex lg:hidden items-start gap-2 w-full max-w-sm">
-          <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
+          <div className="w-10 h-10 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
             <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
           </div>
           <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
@@ -1790,6 +1790,21 @@ const handleSquareClick = useCallback((square: string) => {
 
         <div className="text-center font-bold text-[#2C241B] text-base w-full">
           {turnText}
+        </div>
+
+        {/* Progress bar + Заново */}
+        <div className="flex flex-col items-center gap-1.5 w-full max-w-sm px-2">
+          <div className="flex items-center justify-between w-full">
+            <span className="text-xs font-bold text-[var(--text-primary)]">Упражнение {exercise} из 6</span>
+            <div className="w-24 h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+              <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${(exercise / 6) * 100}%` }} />
+            </div>
+          </div>
+          <div className="flex gap-2 w-full">
+            <button onClick={reset} className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200">
+              <RotateCcw size={14} /> Заново
+            </button>
+          </div>
         </div>
 
         {/* Fail banner */}
@@ -1917,21 +1932,6 @@ const handleSquareClick = useCallback((square: string) => {
               <PieceImg type={dragPiece.type} color={dragPiece.color} />
             </div>
           )}
-        </div>
-
-        {/* Progress bar + Заново */}
-        <div className="flex flex-col items-center gap-1.5 w-full max-w-sm px-2">
-          <div className="flex items-center justify-between w-full">
-            <span className="text-xs font-bold text-[var(--text-primary)]">Упражнение {exercise} из 6</span>
-            <div className="w-24 h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
-              <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${(exercise / 6) * 100}%` }} />
-            </div>
-          </div>
-          <div className="flex gap-2 w-full">
-            <button onClick={reset} className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200">
-              <RotateCcw size={14} /> Заново
-            </button>
-          </div>
         </div>
 
         {/* Mobile: pills under board + Цель inline */}
