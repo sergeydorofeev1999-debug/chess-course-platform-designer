@@ -1924,57 +1924,59 @@ const handleSquareClick = useCallback((square: string) => {
           )}
         </div>
 
-        /* Mobile exercise pills — 1 row of 6 */
-        <div className="flex lg:hidden flex-col gap-4 w-full">
-          <div className="flex w-full items-stretch gap-[1px]">
-            {[1,2,3,4,5,6].map((num) => {
-              const earned = exerciseStars[num] || 0;
-              const isCurrent = num === exercise;
-              const isDone = earned > 0;
-              const isLocked = !isCurrent && !isDone;
-              return (
-                <button
-                  key={num}
-                  onClick={() => { if (!isCurrent) switchExercise(num as any); }}
-                  disabled={isCurrent}
-                  className={`flex-1 flex flex-col items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 ${
-                    isCurrent ? 'bg-[#2C241B] shadow-md'
-                    : isDone ? 'bg-[#C9A84C]'
-                    : 'bg-[#F0EBE4] border border-[#D4C5B5]'
-                  } ${isCurrent ? 'cursor-not-allowed' : isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
-                >
-                  {isDone && earned > 0 ? (
-                    earned === 3 ? (
-                      <>
-                        <div className="flex"><svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></div>
-                        <div className="flex gap-[1px]">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
-                        </div>
-                      </>
-                    ) : (
-                      <div className="flex gap-[2px] justify-center w-full">
-                        {Array.from({ length: earned }, (_, s) => (
-                          <svg key={s} width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none">
-                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                          </svg>
-                        ))}
+        {/* Mobile exercise pills */}
+        <div className="flex lg:hidden gap-[1px] w-full">
+          {[1,2,3,4,5,6].map((num) => {
+            const earned = exerciseStars[num] || 0;
+            const isCurrent = num === exercise;
+            const isDone = earned > 0;
+            const isLocked = !isCurrent && !isDone;
+            return (
+              <button
+                key={num}
+                onClick={() => { if (!isCurrent) switchExercise(num as any); }}
+                disabled={isCurrent}
+                className={`flex-1 flex flex-col items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 min-w-[36px] ${
+                  isCurrent ? 'bg-[#2C241B] shadow-md'
+                  : isDone ? 'bg-[#C9A84C]'
+                  : 'bg-[#F0EBE4] border border-[#D4C5B5]'
+                } ${isCurrent ? 'cursor-not-allowed' : isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
+              >
+                {isDone && earned > 0 ? (
+                  earned === 3 ? (
+                    <>
+                      <div className="flex"><svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></div>
+                      <div className="flex gap-[1px]">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
                       </div>
-                    )
+                    </>
                   ) : (
-                    <span className={`text-sm font-bold leading-none ${isCurrent ? 'text-white' : 'text-[#9CA3AF]'}`}>{num}</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-          <div className="flex flex-col gap-1.5 px-1 mt-6">
+                    <div className="flex gap-[2px] justify-center w-full">
+                      {Array.from({ length: earned }, (_, s) => (
+                        <svg key={s} width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                        </svg>
+                      ))}
+                    </div>
+                  )
+                ) : (
+                  <span className={`text-sm font-bold leading-none ${isCurrent ? 'text-white' : 'text-[#9CA3AF]'}`}>{num}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Mobile progress + buttons row */}
+        <div className="flex lg:hidden flex-col gap-2 w-full">
+          <div className="flex flex-col gap-1.5">
             <span className="text-xs font-bold text-[var(--text-primary)]">Упражнение {exercise} из 6</span>
             <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
               <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${(exercise / 6) * 100}%` }} />
             </div>
           </div>
-          <div className="flex gap-2 w-full px-1 mt-5">
+          <div className="flex gap-2 w-full">
             <button onClick={handleHint} className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all duration-200 ${hintVisible ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
               <Eye size={14} /> Подсказка
             </button>
