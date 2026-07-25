@@ -144,6 +144,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
     setHintVisible(false);
     setIsFail(false);
     setIsComplete(false);
+    setStage('first');
     setDragPiece(null);
   }, [exercise]);
 
@@ -169,6 +170,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
     setMessage('');
     setIsFail(false);
     setIsComplete(false);
+    setStage('first');
     setDragPiece(null);
   }, []);
 
