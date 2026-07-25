@@ -1756,16 +1756,6 @@ const handleSquareClick = useCallback((square: string) => {
           })}
         </div>
 
-        {/* Desktop progress bar */}
-        <div className="hidden lg:flex flex-col items-center gap-1.5 w-full">
-          <div className="flex items-center justify-between w-full px-1">
-            <span className="text-xs font-bold text-[var(--text-primary)]">Упражнение {exercise} из 6</span>
-            <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
-              <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${(exercise / 6) * 100}%` }} />
-            </div>
-          </div>
-        </div>
-
         <button
           onClick={reset}
           className="hidden lg:flex items-center gap-1 px-3 py-1.5 text-xs text-[var(--text-secondary)] border border-[rgba(92,64,51,0.12)] rounded hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] transition w-full justify-center"
@@ -1817,24 +1807,6 @@ const handleSquareClick = useCallback((square: string) => {
 
         <div className="text-center font-bold text-[#2C241B] text-base w-full">
           {turnText}
-        </div>
-
-        {/* Progress bar + Заново */}
-        <div className="flex flex-col items-center gap-1.5 w-full max-w-sm px-2">
-          <div className="flex items-center justify-between w-full">
-            <span className="text-xs font-bold text-[var(--text-primary)]">Упражнение {exercise} из 6</span>
-            <div className="w-24 h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
-              <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${(exercise / 6) * 100}%` }} />
-            </div>
-          </div>
-          <div className="flex gap-2 w-full">
-            <button onClick={handleHint} className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all duration-200 ${hintVisible ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
-              <Eye size={14} /> Подсказка
-            </button>
-            <button onClick={reset} className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200">
-              <RotateCcw size={14} /> Заново
-            </button>
-          </div>
         </div>
 
         {/* Fail banner */}
@@ -1964,9 +1936,9 @@ const handleSquareClick = useCallback((square: string) => {
           )}
         </div>
 
-        {/* Mobile: pills under board + Цель inline */}
-        <div className="flex lg:hidden flex-col items-center gap-2 w-full max-w-sm">
-          <div className="flex gap-1 justify-center w-full">
+        {/* Mobile bottom: exercise grid + progress bar + buttons + goal */}
+        <div className="flex lg:hidden flex-col gap-2 w-full">
+          <div className="grid grid-cols-6 gap-1 rounded p-1 border border-[rgba(92,64,51,0.08)]">
             {[1, 2, 3, 4, 5, 6].map((num) => {
               const earnedStars = exerciseStars[num] || 0;
               const isCurrent = num === exercise;
@@ -1975,8 +1947,12 @@ const handleSquareClick = useCallback((square: string) => {
                 <button
                   key={num}
                   onClick={() => switchExercise(num as any)}
-                  className={`flex items-center gap-0.5 px-1.5 py-1 rounded text-xs transition cursor-pointer ${
-                    isCurrent ? 'bg-[#2C241B] shadow-md text-white' : isDone ? 'bg-[#C9A84C] text-white' : 'bg-[#F0EBE4] border border-[#D4C5B5] text-[#9CA3AF]'
+                  className={`flex items-center justify-center px-1 py-1 rounded transition cursor-pointer hover:brightness-110 ${
+                    isCurrent
+                      ? 'bg-[#2C241B] shadow-md text-white'
+                      : isDone
+                      ? 'bg-[#C9A84C] text-white'
+                      : 'bg-[#F0EBE4] border border-[#D4C5B5] text-[#9CA3AF]'
                   }`}
                 >
                   <div className="flex gap-0.5">
@@ -1984,9 +1960,24 @@ const handleSquareClick = useCallback((square: string) => {
                       <StarPng key={s} filled={earnedStars > 0 && s <= earnedStars} size={12} />
                     ))}
                   </div>
+                  <span className="ml-1 text-xs font-medium">{num}</span>
                 </button>
               );
             })}
+          </div>
+          <div className="flex flex-col gap-1.5 px-1">
+            <span className="text-xs font-bold text-[var(--text-primary)]">Упражнение {exercise} из 6</span>
+            <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+              <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${(exercise / 6) * 100}%` }} />
+            </div>
+          </div>
+          <div className="flex gap-2 w-full px-1">
+            <button onClick={handleHint} className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all duration-200 ${hintVisible ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
+              <Eye size={14} /> Подсказка
+            </button>
+            <button onClick={reset} className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200">
+              <RotateCcw size={14} /> Заново
+            </button>
           </div>
           <div className="text-center text-sm text-[#8B7355] px-2">
             <p className="font-medium mb-0.5 text-[#2C241B]">Цель:</p>
