@@ -563,8 +563,6 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
                 );
               })
             ))}
-          </div>
-
           {/* Hint arrows SVG overlay */}
           {hintVisible && !isFail && !isComplete && !selectedSquare && !dragPiece && (
             (() => {
@@ -615,8 +613,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
               );
             })()
           )}
-
-          {/* Dragged piece overlay */}
+          </div>
           {dragPiece && (
             <div
               className="fixed pointer-events-none z-50"

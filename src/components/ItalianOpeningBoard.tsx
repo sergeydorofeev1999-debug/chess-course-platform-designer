@@ -1687,13 +1687,13 @@ const handleSquareClick = useCallback((square: string) => {
               <button
                 key={num}
                 onClick={() => switchExercise(num as any)}
-                className={`flex items-center justify-center px-1 py-1 rounded transition ${
+                className={`flex items-center justify-center px-1 py-1 rounded transition cursor-pointer hover:brightness-110 ${
                   isCurrent
-                    ? 'bg-blue-500 text-white'
+                    ? 'bg-[#2C241B] shadow-md text-white'
                     : isDone
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-gray-200 text-gray-500'
-                } cursor-pointer hover:brightness-110`}
+                    ? 'bg-[#C9A84C] text-white'
+                    : 'bg-[#F0EBE4] border border-[#D4C5B5] text-[#9CA3AF]'
+                }`}
               >
                 <div className="flex gap-0.5">
                   {[1, 2, 3].map(s => (
@@ -1708,7 +1708,7 @@ const handleSquareClick = useCallback((square: string) => {
 
         <button
           onClick={reset}
-          className="hidden lg:flex items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition w-full justify-center"
+          className="hidden lg:flex items-center gap-1 px-3 py-1.5 text-xs text-[var(--text-secondary)] border border-[rgba(92,64,51,0.12)] rounded hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] transition w-full justify-center"
         >
           <RotateCcw size={14} /> Заново
         </button>
@@ -1716,7 +1716,7 @@ const handleSquareClick = useCallback((square: string) => {
 
       {/* CENTER COLUMN */}
       <div className="flex-1 flex flex-col items-center gap-3">
-        <div className="px-6 py-3 rounded-xl text-center font-bold text-white bg-yellow-500 mb-2 w-full">
+        <div className="text-center font-bold text-[#2C241B] text-lg mb-2 w-full">
           {exercise === 1 && whiteMoves === 0 ? 'Сыграйте e2-e4 — захватите центр пешкой.' :
            exercise === 1 && whiteMoves === 1 ? 'Конь выходит на f3 — ближе к центру и нападает на чёрную пешку e5.' :
            exercise === 1 && whiteMoves === 2 ? 'Сыграйте Bf1-c4 — направьте слона на поле f7.' :
@@ -1731,18 +1731,18 @@ const handleSquareClick = useCallback((square: string) => {
            exercise === 6 ? 'Пешечный штурм — повторите атаку на королевском фланге!' : ''}
         </div>
 
-        <div className="text-center font-bold text-slate-700 text-lg">
+        <div className="text-center font-bold text-[#2C241B] text-lg">
           {turnText}
         </div>
 
         {/* Fail banner */}
         {isFail && (
           <div className="w-full max-w-sm">
-            <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
+            <div className="bg-[#B04A3A] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg w-full">
               <p className="text-white font-bold text-lg">{message || 'Провалено'}</p>
               <button
                 onClick={reset}
-                className="bg-white text-[#c62828] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
+                className="bg-white text-[#B04A3A] font-bold text-base px-6 py-2 rounded shadow hover:bg-[#F5F0E8] transition"
               >
                 ЕЩЁ РАЗ
               </button>
@@ -1752,8 +1752,8 @@ const handleSquareClick = useCallback((square: string) => {
 
         {/* Success message */}
         {message && !isFail && (
-          <div className={`px-6 py-3 rounded-xl text-center font-bold text-white ${
-            message.includes('Отлично') ? 'bg-green-500' : 'bg-yellow-500'
+          <div className={`px-6 py-3 rounded-xl text-center font-bold text-white w-full mb-2 flex items-center justify-center gap-2 ${
+            message.includes('Отлично') ? 'bg-[#C9A84C]' : 'bg-[#8B7355]'
           }`}>
             {message.includes('Отлично') && <Trophy className="w-5 h-5 inline-block mr-2" />}
             {message}
@@ -1763,7 +1763,7 @@ const handleSquareClick = useCallback((square: string) => {
         {/* Board */}
         <div className="flex justify-center w-full relative">
           <div
-            className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none"
+            className="grid border-[3px] border-[#2C241B] rounded-sm relative select-none"
             style={{
               gridTemplateColumns: `repeat(8, ${sqSize}px)`,
               gridTemplateRows: `repeat(8, ${sqSize}px)`,
@@ -1797,15 +1797,15 @@ const handleSquareClick = useCallback((square: string) => {
                     onDragStart={(e) => e.preventDefault()}
                   >
                     {sel && (
-                      <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
+                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.35)] pointer-events-none z-10" />
                     )}
                     {fi === 0 && (
-                      <span className={`absolute top-0.5 left-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>
+                      <span className={`absolute top-0.5 left-1 text-[10px] font-bold ${light ? 'text-[#8B6914]' : 'text-[#E8D5B5]'}`}>
                         {rank}
                       </span>
                     )}
                     {ri === 7 && (
-                      <span className={`absolute bottom-0.5 right-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>
+                      <span className={`absolute bottom-0.5 right-1 text-[10px] font-bold ${light ? 'text-[#8B6914]' : 'text-[#E8D5B5]'}`}>
                         {file}
                       </span>
                     )}
@@ -1864,13 +1864,13 @@ const handleSquareClick = useCallback((square: string) => {
 
         <button
           onClick={reset}
-          className="flex lg:hidden items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition"
+          className="flex lg:hidden items-center gap-1 px-3 py-1.5 text-xs text-[var(--text-secondary)] border border-[rgba(92,64,51,0.12)] rounded hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] transition"
         >
           <RotateCcw size={14} /> Заново
         </button>
 
-        <div className="text-center text-sm text-slate-600 max-w-sm px-4">
-          <p className="font-medium mb-1">Цель:</p>
+        <div className="text-center text-sm text-[#8B7355] max-w-sm px-4">
+          <p className="font-medium mb-1 text-[#2C241B]">Цель:</p>
           <p>{exercise === 1 || exercise === 2 ? 'Захватите центр пешкой, выведите коней и слонов и сделайте рокировку.' :
           exercise === 3 || exercise === 4 ? 'Используйте дырокол, чтобы разрушить рокировку соперника.' :
           exercise === 5 || exercise === 6 ? 'Пешечный штурм — захватите центр, выведите коней и слонов и атакуйте рокировку соперника!' : ''}</p>
@@ -1887,9 +1887,9 @@ const handleSquareClick = useCallback((square: string) => {
                 <button
                   key={num}
                   onClick={() => switchExercise(num as any)}
-                  className={`flex items-center gap-0.5 px-1.5 py-1 rounded text-xs transition ${
-                    isCurrent ? 'bg-blue-500 text-white' : isDone ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'
-                  } cursor-pointer`}
+                  className={`flex items-center gap-0.5 px-1.5 py-1 rounded text-xs transition cursor-pointer ${
+                    isCurrent ? 'bg-[#2C241B] shadow-md text-white' : isDone ? 'bg-[#C9A84C] text-white' : 'bg-[#F0EBE4] border border-[#D4C5B5] text-[#9CA3AF]'
+                  }`}
                 >
                   <div className="flex gap-0.5">
                     {[1, 2, 3].map(s => (
@@ -1905,14 +1905,14 @@ const handleSquareClick = useCallback((square: string) => {
         {/* Completion banner */}
         {isComplete && (
           <div className="flex flex-col items-center gap-3 mt-2">
-            <div className="flex items-center gap-2 text-green-600 font-bold text-lg">
+            <div className="flex items-center gap-2 text-[#C9A84C] font-bold text-lg">
               <Trophy className="w-6 h-6" />
               <span>Упражнение {exercise} пройдено!</span>
             </div>
             {exercise < 6 && (
               <button
                 onClick={() => switchExercise((exercise + 1) as 1 | 2 | 3 | 4 | 5 | 6)}
-                className="bg-blue-500 text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-blue-600 transition"
+                className="bg-[#C9A84C] text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-[#B8983C] transition"
               >
                 Перейти к Упражнению {exercise + 1} →
               </button>
@@ -1920,7 +1920,7 @@ const handleSquareClick = useCallback((square: string) => {
             {exercise === 6 && (exerciseStars[6] || 0) >= 3 && (
               <button
                 onClick={onComplete}
-                className="bg-emerald-500 text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-emerald-600 transition"
+                className="bg-[#2C241B] text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-[#3A2E1F] transition"
               >
                 Урок завершён ✓
               </button>
