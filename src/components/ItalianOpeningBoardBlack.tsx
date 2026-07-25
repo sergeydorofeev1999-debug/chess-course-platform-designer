@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
-import { RotateCcw, Trophy } from 'lucide-react';
+import { RotateCcw, Trophy, Eye } from 'lucide-react';
 
 const FILES = ['h','g','f','e','d','c','b','a'];
 const RANKS = ['8','7','6','5','4','3','2','1'];
@@ -1662,7 +1662,20 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
 
       {/* CENTER COLUMN */}
       <div className="flex-1 flex flex-col items-center gap-3">
-        <div className="px-6 py-3 rounded-xl text-center font-bold text-white bg-yellow-500 mb-2 w-full">
+        {/* Mobile: Avatar + speech bubble */}
+        <div className="flex lg:hidden items-start gap-2 w-full max-w-sm">
+          <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
+            <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
+          </div>
+          <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
+            <p className="text-sm text-[var(--text-primary)] leading-snug">
+              {exercise === 1 || exercise === 5 ? hintText : postMoveHint || 'Повторите партию за чёрных!'}
+            </p>
+          </div>
+        </div>
+
+        {/* Desktop hint banner */}
+        <div className="hidden lg:block px-6 py-3 rounded-xl text-center font-bold text-white bg-[#C9A84C] mb-2 w-full">
           {exercise === 1 || exercise === 5 ? hintText : postMoveHint || 'Повторите партию за чёрных!'}
         </div>
 
@@ -1814,42 +1827,78 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
         </div>
 
         {/* Mobile exercise pills */}
-        <div className="flex lg:hidden flex-col items-center gap-1 w-full">
-          <div className="flex gap-1 justify-center w-full">
-            {[1, 2, 3, 4, 5, 6].map((num) => {
-              const stars = exerciseStars[num] || 0;
-              const isCurrent = num === exercise;
-              const isDone = stars > 0;
-              return (
-                <button
-                  key={num}
-                  onClick={() => switchExercise(num as 1 | 2 | 3 | 4 | 5 | 6)}
-                  className={`flex items-center gap-0.5 px-1.5 py-1 rounded text-xs transition ${
-                    isCurrent ? 'bg-blue-500 text-white' : isDone ? 'bg-emerald-500 text-white' : 'bg-gray-200 text-gray-500'
-                  } cursor-pointer`}
-                >
-                  <div className="flex gap-0.5">
-                    {[1, 2, 3].map(s => (
-                      <StarPng key={s} filled={stars > 0 && s <= stars} size={12} />
-                    ))}
-                  </div>
-                </button>
-              );
-            })}
+        <div className="flex lg:hidden gap-[1px] w-full">
+          {[1,2,3,4,5,6].map((num) => {
+            const earned = exerciseStars[num] || 0;
+            const isCurrent = num === exercise;
+            const isDone = earned > 0;
+            const isLocked = !isCurrent && !isDone;
+            return (
+              <button
+                key={num}
+                onClick={() => { if (!isCurrent) switchExercise(num as 1 | 2 | 3 | 4 | 5 | 6); }}
+                disabled={isCurrent}
+                className={`flex-1 flex flex-col items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 min-w-[36px] ${
+                  isCurrent ? 'bg-[#2C241B] shadow-md'
+                  : isDone ? 'bg-[#C9A84C]'
+                  : 'bg-[#F0EBE4] border border-[#D4C5B5]'
+                } ${isCurrent ? 'cursor-not-allowed' : isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
+              >
+                {isDone && earned > 0 ? (
+                  earned === 3 ? (
+                    <>
+                      <div className="flex"><svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></div>
+                      <div className="flex gap-[1px]">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex gap-[2px] justify-center w-full">
+                      {Array.from({ length: earned }, (_, s) => (
+                        <svg key={s} width="12" height="12" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                        </svg>
+                      ))}
+                    </div>
+                  )
+                ) : (
+                  <span className={`text-sm font-bold leading-none ${isCurrent ? 'text-white' : 'text-[#9CA3AF]'}`}>{num}</span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Mobile progress + buttons row */}
+        <div className="flex lg:hidden flex-col gap-2 w-full">
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs font-bold text-[var(--text-primary)]">Упражнение {exercise} из 6</span>
+            <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+              <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${(exercise / 6) * 100}%` }} />
+            </div>
+          </div>
+          <div className="flex gap-2 w-full">
+            <button className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200">
+              <Eye size={14} /> Подсказка
+            </button>
+            <button onClick={reset} className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all duration-200 ${isFail ? 'border-[#B04A3A] text-[#B04A3A]' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
+              <RotateCcw size={14} /> Заново
+            </button>
           </div>
         </div>
 
         {/* Completion banner */}
         {isComplete && (
           <div className="flex flex-col items-center gap-3 mt-2">
-            <div className="flex items-center gap-2 text-green-600 font-bold text-lg">
+            <div className="flex items-center gap-2 text-[#C9A84C] font-bold text-lg">
               <Trophy className="w-6 h-6" />
               <span>Упражнение {exercise} пройдено!</span>
             </div>
             {exercise === 1 && (
               <button
                 onClick={() => switchExercise(2)}
-                className="bg-blue-500 text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-blue-600 transition"
+                className="bg-[#C9A84C] text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-[#B8983C] transition"
               >
                 Перейти к Упражнению 2 →
               </button>
@@ -1857,7 +1906,7 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             {exercise === 2 && (
               <button
                 onClick={() => switchExercise(3)}
-                className="bg-blue-500 text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-blue-600 transition"
+                className="bg-[#C9A84C] text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-[#B8983C] transition"
               >
                 Перейти к Упражнению 3 →
               </button>
@@ -1865,7 +1914,7 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             {exercise === 3 && (
               <button
                 onClick={() => switchExercise(4)}
-                className="bg-blue-500 text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-blue-600 transition"
+                className="bg-[#C9A84C] text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-[#B8983C] transition"
               >
                 Перейти к Упражнению 4 →
               </button>
@@ -1873,7 +1922,7 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             {exercise === 4 && (
               <button
                 onClick={() => switchExercise(5)}
-                className="bg-blue-500 text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-blue-600 transition"
+                className="bg-[#C9A84C] text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-[#B8983C] transition"
               >
                 Перейти к Упражнению 5 →
               </button>
@@ -1881,7 +1930,7 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             {exercise === 5 && (
               <button
                 onClick={() => switchExercise(6)}
-                className="bg-blue-500 text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-blue-600 transition"
+                className="bg-[#C9A84C] text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-[#B8983C] transition"
               >
                 Перейти к Упражнению 6 →
               </button>
@@ -1889,7 +1938,7 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             {exercise === 6 && (
               <button
                 onClick={onComplete}
-                className="bg-emerald-500 text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-emerald-600 transition"
+                className="bg-[#2C241B] text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-[#3A2E1F] transition"
               >
                 Урок завершён ✓
               </button>
