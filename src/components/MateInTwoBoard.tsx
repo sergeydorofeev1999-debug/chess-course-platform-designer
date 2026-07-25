@@ -210,6 +210,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
         if (from === keyMove.from && to === keyMove.to) {
           // Update board state immediately so React re-renders the user's move
           setGame(new Chess(g.fen()));
+          setSelectedSquare(null);
           setMessage('Отличный ход! Продолжайте!');
           setIsFail(false);
           setStage('after_computer');
