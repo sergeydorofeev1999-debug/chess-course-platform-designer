@@ -1678,6 +1678,29 @@ const handleSquareClick = useCallback((square: string) => {
     <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
       {/* LEFT COLUMN */}
       <div className="w-full lg:w-[300px] flex-shrink-0 space-y-2">
+        {/* Desktop: Avatar + speech bubble */}
+        <div className="hidden lg:flex items-start gap-2">
+          <div className="w-10 h-10 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
+            <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
+          </div>
+          <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2.5 shadow-sm border border-[rgba(92,64,51,0.06)]">
+            <p className="text-sm text-[var(--text-primary)] leading-snug">
+              {exercise === 1 && whiteMoves === 0 ? 'Сыграйте e2-e4 — захватите центр пешкой.' :
+               exercise === 1 && whiteMoves === 1 ? 'Конь выходит на f3 — ближе к центру и нападает на чёрную пешку e5.' :
+               exercise === 1 && whiteMoves === 2 ? 'Сыграйте Bf1-c4 — направьте слона на поле f7.' :
+               exercise === 1 && whiteMoves === 3 ? 'Сыграйте d2-d3 — откройте дорогу слону c1.' :
+               exercise === 1 && whiteMoves === 4 ? 'Сыграйте Bc1-g5 — свяжите коня f6.' :
+               exercise === 1 && whiteMoves === 5 ? 'Сыграйте Nb1-c3 — развейте второго коня.' :
+               exercise === 1 && whiteMoves === 6 ? 'Сделайте рокировку — уберите короля в безопасность.' :
+               exercise === 2 ? 'Сыграйте итальянскую партию: e4, затем Nf3, затем Bc4.' :
+               exercise === 3 ? 'Дырокол — разменяйте коня на f6, разрушьте рокировку и заберите ферзя!' :
+               exercise === 4 ? 'Самостоятельный дырокол — повторите все ходы!' :
+               exercise === 5 ? 'Пешечный штурм — захватите центр, развейтесь и атакуйте короля!' :
+               exercise === 6 ? 'Пешечный штурм — повторите атаку на королевском фланге!' : ''}
+            </p>
+          </div>
+        </div>
+
         <div className="hidden lg:grid grid-cols-6 gap-1 rounded p-1 border border-gray-200">
           {[1, 2, 3, 4, 5, 6].map((num) => {
             const earnedStars = exerciseStars[num] || 0;
@@ -1715,8 +1738,32 @@ const handleSquareClick = useCallback((square: string) => {
       </div>
 
       {/* CENTER COLUMN */}
-      <div className="flex-1 flex flex-col items-center gap-3">
-        <div className="text-center font-bold text-[#2C241B] text-lg mb-2 w-full">
+      <div className="flex-1 flex flex-col items-center gap-3 px-2">
+        {/* Mobile: Avatar + speech bubble */}
+        <div className="flex lg:hidden items-start gap-2 w-full max-w-sm">
+          <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
+            <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
+          </div>
+          <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
+            <p className="text-sm text-[var(--text-primary)] leading-snug">
+              {exercise === 1 && whiteMoves === 0 ? 'Сыграйте e2-e4 — захватите центр пешкой.' :
+               exercise === 1 && whiteMoves === 1 ? 'Конь выходит на f3 — ближе к центру и нападает на чёрную пешку e5.' :
+               exercise === 1 && whiteMoves === 2 ? 'Сыграйте Bf1-c4 — направьте слона на поле f7.' :
+               exercise === 1 && whiteMoves === 3 ? 'Сыграйте d2-d3 — откройте дорогу слону c1.' :
+               exercise === 1 && whiteMoves === 4 ? 'Сыграйте Bc1-g5 — свяжите коня f6.' :
+               exercise === 1 && whiteMoves === 5 ? 'Сыграйте Nb1-c3 — развейте второго коня.' :
+               exercise === 1 && whiteMoves === 6 ? 'Сделайте рокировку — уберите короля в безопасность.' :
+               exercise === 2 ? 'Сыграйте итальянскую партию: e4, затем Nf3, затем Bc4.' :
+               exercise === 3 ? 'Дырокол — разменяйте коня на f6, разрушьте рокировку и заберите ферзя!' :
+               exercise === 4 ? 'Самостоятельный дырокол — повторите все ходы!' :
+               exercise === 5 ? 'Пешечный штурм — захватите центр, развейтесь и атакуйте короля!' :
+               exercise === 6 ? 'Пешечный штурм — повторите атаку на королевском фланге!' : ''}
+            </p>
+          </div>
+        </div>
+
+        {/* Desktop: simple text */}
+        <div className="hidden lg:block text-center font-bold text-[#2C241B] text-lg mb-2 w-full">
           {exercise === 1 && whiteMoves === 0 ? 'Сыграйте e2-e4 — захватите центр пешкой.' :
            exercise === 1 && whiteMoves === 1 ? 'Конь выходит на f3 — ближе к центру и нападает на чёрную пешку e5.' :
            exercise === 1 && whiteMoves === 2 ? 'Сыграйте Bf1-c4 — направьте слона на поле f7.' :
@@ -1731,8 +1778,33 @@ const handleSquareClick = useCallback((square: string) => {
            exercise === 6 ? 'Пешечный штурм — повторите атаку на королевском фланге!' : ''}
         </div>
 
-        <div className="text-center font-bold text-[#2C241B] text-lg">
+        <div className="text-center font-bold text-[#2C241B] text-base w-full">
           {turnText}
+        </div>
+
+        {/* Mobile: progress bar + Заново */}
+        <div className="flex lg:hidden flex-col items-center gap-1.5 w-full max-w-sm">
+          <div className="flex items-center justify-between w-full px-1">
+            <span className="text-xs font-bold text-[var(--text-primary)]">Упражнение {exercise} из 6</span>
+            <div className="w-24 h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+              <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${(exercise / 6) * 100}%` }} />
+            </div>
+          </div>
+          <div className="flex gap-2 w-full">
+            <button onClick={reset} className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200">
+              <RotateCcw size={14} /> Заново
+            </button>
+          </div>
+        </div>
+
+        {/* Desktop: progress bar + Заново */}
+        <div className="hidden lg:flex flex-col items-center gap-1.5 w-full max-w-sm">
+          <div className="flex items-center justify-between w-full px-1">
+            <span className="text-xs font-bold text-[var(--text-primary)]">Упражнение {exercise} из 6</span>
+            <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+              <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${(exercise / 6) * 100}%` }} />
+            </div>
+          </div>
         </div>
 
         {/* Fail banner */}
@@ -1869,15 +1941,8 @@ const handleSquareClick = useCallback((square: string) => {
           <RotateCcw size={14} /> Заново
         </button>
 
-        <div className="text-center text-sm text-[#8B7355] max-w-sm px-4">
-          <p className="font-medium mb-1 text-[#2C241B]">Цель:</p>
-          <p>{exercise === 1 || exercise === 2 ? 'Захватите центр пешкой, выведите коней и слонов и сделайте рокировку.' :
-          exercise === 3 || exercise === 4 ? 'Используйте дырокол, чтобы разрушить рокировку соперника.' :
-          exercise === 5 || exercise === 6 ? 'Пешечный штурм — захватите центр, выведите коней и слонов и атакуйте рокировку соперника!' : ''}</p>
-        </div>
-
-        {/* Mobile exercise pills — 2 rows of 6 */}
-        <div className="flex lg:hidden flex-col items-center gap-1 w-full">
+        {/* Mobile: pills under board + Цель inline */}
+        <div className="flex lg:hidden flex-col items-center gap-2 w-full max-w-sm">
           <div className="flex gap-1 justify-center w-full">
             {[1, 2, 3, 4, 5, 6].map((num) => {
               const earnedStars = exerciseStars[num] || 0;
@@ -1899,6 +1964,12 @@ const handleSquareClick = useCallback((square: string) => {
                 </button>
               );
             })}
+          </div>
+          <div className="text-center text-sm text-[#8B7355] px-2">
+            <p className="font-medium mb-0.5 text-[#2C241B]">Цель:</p>
+            <p>{exercise === 1 || exercise === 2 ? 'Захватите центр пешкой, выведите коней и слонов и сделайте рокировку.' :
+            exercise === 3 || exercise === 4 ? 'Используйте дырокол, чтобы разрушить рокировку соперника.' :
+            exercise === 5 || exercise === 6 ? 'Пешечный штурм — захватите центр, выведите коней и слонов и атакуйте рокировку соперника!' : ''}</p>
           </div>
         </div>
 
