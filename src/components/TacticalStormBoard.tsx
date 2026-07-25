@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
-import { Trophy, Zap, Timer, RotateCcw, ArrowLeft, Flame, Heart, X, Check, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Trophy, Zap, Timer, RotateCcw, ArrowLeft, Flame, Heart, X, Check, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const REVERSED_FILES = ['h','g','f','e','d','c','b','a'];
@@ -491,53 +491,82 @@ export default function TacticalStormBoard({ onComplete }: Props) {
     return (
       <div className="flex flex-col items-center gap-5 w-full max-w-lg mx-auto">
         {/* Hero card */}
-        <div className="rounded-2xl p-6 w-full text-center" style={{ background: '#2C241B' }}>
-          <h2 className="text-2xl font-bold text-white mb-2">Тактический штурм</h2>
-          <p className="text-sm" style={{ color: '#8B7355' }}>
+        <div
+          className="rounded-2xl py-7 px-6 w-full text-center relative overflow-hidden"
+          style={{
+            background: 'linear-gradient(135deg, #2C241B 0%, #3A2E1F 50%, #2C241B 100%)',
+          }}
+        >
+          <h2 className="text-[26px] font-bold text-white mb-2">Тактический штурм</h2>
+          <p className="text-sm" style={{ color: '#E8D5B5' }}>
             Решайте задачи на скорость. 3 жизни — нарастающая сложность!
           </p>
+          <div
+            className="absolute bottom-0 left-[10%] right-[10%] h-[3px]"
+            style={{
+              background: 'linear-gradient(90deg, transparent, #C9A84C, transparent)',
+              opacity: 0.6,
+            }}
+          />
         </div>
 
         {/* Mode cards */}
         <div className="grid grid-cols-3 gap-3 w-full">
           <button
             onClick={() => setMode('rush5')}
-            className={`p-4 rounded-xl border-2 text-center transition-all duration-150 ease-out ${
+            className={`py-4 px-2 rounded-2xl border-2 text-center transition-all duration-200 ease-out ${
               mode === 'rush5'
-                ? 'bg-[#F9F8F6] border-[#C9A84C] shadow-[0_0_0_1px_rgba(201,168,76,0.15)]'
-                : 'bg-white border-[#E8E0D5] hover:bg-[#F9F8F6]'
+                ? 'bg-[#F9F8F6] border-[#C9A84C] shadow-[0_0_0_2px_rgba(201,168,76,0.15),0_4px_14px_rgba(201,168,76,0.15)] -translate-y-0.5'
+                : 'bg-white border-[#E8E0D5] hover:bg-[#F9F8F6] hover:-translate-y-0.5 hover:border-[#D4C9B8] hover:shadow-[0_4px_14px_rgba(44,36,27,0.12)] shadow-[0_2px_8px_rgba(44,36,27,0.06)]'
             }`}
           >
-            <div className="font-bold text-[#2C241B] text-base">5 мин</div>
+            <Clock className="w-8 h-8 mx-auto mb-2 text-[#C9A84C]" />
+            <div className="font-bold text-[#2C241B] text-[15px]">5 мин</div>
             <div className="text-xs text-[#8B7355] mt-1">Классика</div>
           </button>
           <button
             onClick={() => setMode('rush3')}
-            className={`p-4 rounded-xl border-2 text-center transition-all duration-150 ease-out ${
+            className={`py-4 px-2 rounded-2xl border-2 text-center transition-all duration-200 ease-out ${
               mode === 'rush3'
-                ? 'bg-[#F9F8F6] border-[#C9A84C] shadow-[0_0_0_1px_rgba(201,168,76,0.15)]'
-                : 'bg-white border-[#E8E0D5] hover:bg-[#F9F8F6]'
+                ? 'bg-[#F9F8F6] border-[#C9A84C] shadow-[0_0_0_2px_rgba(201,168,76,0.15),0_4px_14px_rgba(201,168,76,0.15)] -translate-y-0.5'
+                : 'bg-white border-[#E8E0D5] hover:bg-[#F9F8F6] hover:-translate-y-0.5 hover:border-[#D4C9B8] hover:shadow-[0_4px_14px_rgba(44,36,27,0.12)] shadow-[0_2px_8px_rgba(44,36,27,0.06)]'
             }`}
           >
-            <div className="font-bold text-[#2C241B] text-base">3 мин</div>
+            <Zap className="w-8 h-8 mx-auto mb-2 text-[#C9A84C]" />
+            <div className="font-bold text-[#2C241B] text-[15px]">3 мин</div>
             <div className="text-xs text-[#8B7355] mt-1">Блиц</div>
           </button>
           <button
             onClick={() => setMode('survival')}
-            className={`p-4 rounded-xl border-2 text-center transition-all duration-150 ease-out ${
+            className={`py-4 px-2 rounded-2xl border-2 text-center transition-all duration-200 ease-out ${
               mode === 'survival'
-                ? 'bg-[#F9F8F6] border-[#C9A84C] shadow-[0_0_0_1px_rgba(201,168,76,0.15)]'
-                : 'bg-white border-[#E8E0D5] hover:bg-[#F9F8F6]'
+                ? 'bg-[#F9F8F6] border-[#C9A84C] shadow-[0_0_0_2px_rgba(201,168,76,0.15),0_4px_14px_rgba(201,168,76,0.15)] -translate-y-0.5'
+                : 'bg-white border-[#E8E0D5] hover:bg-[#F9F8F6] hover:-translate-y-0.5 hover:border-[#D4C9B8] hover:shadow-[0_4px_14px_rgba(44,36,27,0.12)] shadow-[0_2px_8px_rgba(44,36,27,0.06)]'
             }`}
           >
-            <div className="font-bold text-[#2C241B] text-base">Выживание</div>
+            <Heart className="w-8 h-8 mx-auto mb-2 text-[#C9A84C]" />
+            <div className="font-bold text-[#2C241B] text-[15px]">Выживание</div>
             <div className="text-xs text-[#8B7355] mt-1">1 ошибка = конец</div>
           </button>
         </div>
 
         <button
           onClick={startGame}
-          className="w-full py-4 bg-[#C9A84C] hover:bg-[#B8973D] text-[#2C241B] font-bold rounded-xl text-lg uppercase tracking-wide transition duration-150 ease-out shadow-lg"
+          className="w-full py-[18px] rounded-2xl text-lg font-bold uppercase tracking-widest text-[#2C241B] transition-all duration-200 ease-out relative overflow-hidden active:scale-[0.98] active:translate-y-0"
+          style={{
+            background: 'linear-gradient(180deg, #D4A84C 0%, #C9A84C 100%)',
+            boxShadow: '0 4px 16px rgba(201,168,76,0.35), inset 0 1px 0 rgba(255,255,255,0.2)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(180deg, #C9A84C 0%, #B8973D 100%)';
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(201,168,76,0.45), inset 0 1px 0 rgba(255,255,255,0.2)';
+            e.currentTarget.style.transform = 'translateY(-1px)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'linear-gradient(180deg, #D4A84C 0%, #C9A84C 100%)';
+            e.currentTarget.style.boxShadow = '0 4px 16px rgba(201,168,76,0.35), inset 0 1px 0 rgba(255,255,255,0.2)';
+            e.currentTarget.style.transform = 'translateY(0)';
+          }}
         >
           Начать штурм
         </button>
