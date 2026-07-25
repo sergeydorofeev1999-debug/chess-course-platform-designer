@@ -571,7 +571,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
               return (
                 <svg className="absolute inset-0 pointer-events-none z-[35]" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
                   {arrows.map((arrow, i) => {
-                    const isReversed = exercise === 4;
+                    const isReversed = exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7;
                     const fromF = (isReversed ? REVERSED_FILES : FILES).indexOf(arrow.from[0]);
                     const fromR = (isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).indexOf(arrow.from[1]);
                     const toF = (isReversed ? REVERSED_FILES : FILES).indexOf(arrow.to[0]);
