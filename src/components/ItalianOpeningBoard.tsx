@@ -1765,7 +1765,7 @@ const handleSquareClick = useCallback((square: string) => {
       </div>
 
       {/* CENTER COLUMN */}
-      <div className="flex-1 flex flex-col items-center gap-3 px-2">
+      <div className="flex-1 flex flex-col items-center gap-3">
         {/* Mobile: Avatar + speech bubble */}
         <div className="flex lg:hidden items-start gap-2 w-full max-w-sm">
           <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
