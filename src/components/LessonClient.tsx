@@ -1123,18 +1123,7 @@ function MultiLevelStarBoard({
   const computeHintArrow = useCallback(() => {
     const parsed = parseFen(positionRef.current);
 
-    // ── GUIDE ARROWS MODE: sequential, fall back to algorithm if deviated ──
-    if (level.guideArrows != null && level.guideArrows.length > 0) {
-      // Still on standard path? Return next sequential arrow
-      for (const arrow of level.guideArrows) {
-        if (parsed.squares[arrow.from]?.color === 'w') {
-          return [arrow];
-        }
-      }
-      // Deviation — fall through to BFS algorithm below
-    }
-
-    // ── CASTLING HINT (Lesson 13): explicit per-level hints with fallback ──
+    // ── CASTLING HINT (Lesson 13): explicit per-level hints override guideArrows ──
     if (currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2') {
       const CASTLING_HINTS: Record<number, { from: string; to: string }[]> = {
         3: [{ from: 'f1', to: 'c4' }], // Exercise 4: develop bishop first
@@ -1160,6 +1149,17 @@ function MultiLevelStarBoard({
           return [{ from: 'e1', to: 'c1' }];
         }
       }
+    }
+
+    // ── GUIDE ARROWS MODE: sequential, fall back to algorithm if deviated ──
+    if (level.guideArrows != null && level.guideArrows.length > 0) {
+      // Still on standard path? Return next sequential arrow
+      for (const arrow of level.guideArrows) {
+        if (parsed.squares[arrow.from]?.color === 'w') {
+          return [arrow];
+        }
+      }
+      // Deviation — fall through to BFS algorithm below
     }
 
     // ── EN PASSANT HINT (Lesson 14): show en passant capture arrow ──
