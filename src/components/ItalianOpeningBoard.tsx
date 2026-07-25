@@ -1924,7 +1924,7 @@ const handleSquareClick = useCallback((square: string) => {
           )}
         </div>
 
-        <!-- Mobile exercise pills — 1 row of 6 */
+        /* Mobile exercise pills — 1 row of 6 */
         <div className="flex lg:hidden flex-col gap-4 w-full">
           <div className="flex w-full items-stretch gap-[1px]">
             {[1,2,3,4,5,6].map((num) => {
