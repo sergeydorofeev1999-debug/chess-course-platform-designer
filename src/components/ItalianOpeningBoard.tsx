@@ -1924,8 +1924,8 @@ const handleSquareClick = useCallback((square: string) => {
           )}
         </div>
 
-        {/* Mobile exercise pills — 1 row of 6 */}
-        <div className="flex lg:hidden flex-col gap-[1px] w-full">
+        <!-- Mobile exercise pills — 1 row of 6 */
+        <div className="flex lg:hidden flex-col gap-4 w-full">
           <div className="flex w-full items-stretch gap-[1px]">
             {[1,2,3,4,5,6].map((num) => {
               const earned = exerciseStars[num] || 0;
@@ -1974,7 +1974,7 @@ const handleSquareClick = useCallback((square: string) => {
               <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${(exercise / 6) * 100}%` }} />
             </div>
           </div>
-          <div className="flex gap-2 w-full px-1 mt-3">
+          <div className="flex gap-2 w-full px-1 mt-5">
             <button onClick={handleHint} className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all duration-200 ${hintVisible ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
               <Eye size={14} /> Подсказка
             </button>
