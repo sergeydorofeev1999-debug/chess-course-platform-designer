@@ -234,57 +234,33 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
     }
   }, [game, exercise, stage, saveStars, onComplete]);
 
-  const isFlipped = exercise === 2 || exercise === 4 || exercise === 7;
-
-  // Convert visual square (what user sees on flipped board) to chess.js square
-  const toChessSquare = useCallback((visualSq: string) => {
-    if (!isFlipped) return visualSq;
-    const file = visualSq[0];
-    const rank = visualSq[1];
-    const chessFile = String.fromCharCode('a'.charCodeAt(0) + ('h'.charCodeAt(0) - file.charCodeAt(0)));
-    const chessRank = String.fromCharCode('1'.charCodeAt(0) + ('8'.charCodeAt(0) - rank.charCodeAt(0)));
-    return `${chessFile}${chessRank}`;
-  }, [isFlipped]);
-
-  // Convert chess.js square to visual square (for valid move highlighting on flipped board)
-  const toVisualSquare = useCallback((chessSq: string) => {
-    if (!isFlipped) return chessSq;
-    const file = chessSq[0];
-    const rank = chessSq[1];
-    const visualFile = String.fromCharCode('a'.charCodeAt(0) + ('h'.charCodeAt(0) - file.charCodeAt(0)));
-    const visualRank = String.fromCharCode('1'.charCodeAt(0) + ('8'.charCodeAt(0) - rank.charCodeAt(0)));
-    return `${visualFile}${visualRank}`;
-  }, [isFlipped]);
-
   // ──── CLICK ────
-  const handleSquareClick = useCallback((visualSq: string) => {
+  const handleSquareClick = useCallback((square: string) => {
     if (isCompleteRef.current || isFailRef.current) return;
     if (!game) return;
-    const sq = isFlipped ? toChessSquare(visualSq) : visualSq;
-    const piece = game.get(sq as any);
+    const piece = game.get(square as any);
 
-    if (selectedSquare === sq) {
+    if (selectedSquare === square) {
       setSelectedSquare(null);
     } else if (selectedSquare) {
-      processMove(selectedSquare, sq);
+      processMove(selectedSquare, square);
     } else {
       if (piece && piece.color === game.turn()) {
-        setSelectedSquare(sq);
+        setSelectedSquare(square);
       }
     }
-  }, [game, selectedSquare, processMove, isFlipped, toChessSquare]);
+  }, [game, selectedSquare, processMove]);
 
   // ──── DRAG & DROP ────
-  const handlePointerDown = useCallback((e: React.PointerEvent, visualSq: string) => {
+  const handlePointerDown = useCallback((e: React.PointerEvent, square: string) => {
     if (isCompleteRef.current || isFailRef.current) return;
     if (!game) return;
-    const sq = isFlipped ? toChessSquare(visualSq) : visualSq;
-    const piece = game.get(sq as any);
+    const piece = game.get(square as any);
     if (!piece || piece.color !== game.turn()) return;
     if (e.pointerType === 'touch' && !(e as any).isPrimary) return;
 
-    pointerStartRef.current = { x: e.clientX, y: e.clientY, square: sq, moved: false, pointerId: e.pointerId };
-  }, [game, isFlipped, toChessSquare]);
+    pointerStartRef.current = { x: e.clientX, y: e.clientY, square, moved: false, pointerId: e.pointerId };
+  }, [game]);
 
   useEffect(() => {
     const handleGlobalMove = (e: PointerEvent) => {
@@ -315,12 +291,9 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
       } else {
         const el = document.elementFromPoint(e.clientX, e.clientY);
         const cell = el?.closest('[data-square]') as HTMLElement | null;
-        const targetVisualSq = cell?.dataset.square || null;
-        if (targetVisualSq) {
-          const targetChessSq = isFlipped ? toChessSquare(targetVisualSq) : targetVisualSq;
-          if (targetChessSq !== start.square) {
-            processMove(start.square, targetChessSq);
-          }
+        const targetSquare = cell?.dataset.square || null;
+        if (targetSquare && targetSquare !== start.square) {
+          processMove(start.square, targetSquare);
         }
         setDragPiece(null);
       }
@@ -342,26 +315,23 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
       window.removeEventListener('pointerup', handleGlobalUp);
       window.removeEventListener('pointercancel', handleGlobalCancel);
     };
-  }, [game, processMove, isFlipped, toChessSquare]);
+  }, [game, processMove]);
 
   // ──── HELPERS ────
   const getPieceAt = (sq: string) => {
     if (!game) return null;
-    const chessSq = isFlipped ? toChessSquare(sq) : sq;
-    const p = game.get(chessSq as any);
+    const p = game.get(sq as any);
     if (!p) return null;
     return { type: p.type.toUpperCase(), color: p.color as 'w' | 'b' };
   };
 
   const isLight = (f: number, r: number) => (f + r) % 2 === 0;
 
-  const validMovesChess = selectedSquare && game
+  const validMoves = selectedSquare && game
     ? (game.moves({ square: selectedSquare as any, verbose: true }).map(m => m.to) as string[])
     : dragPiece && game
       ? (game.moves({ square: dragPiece.square as any, verbose: true }).map(m => m.to) as string[])
       : [];
-
-  const validMoves = isFlipped ? validMovesChess.map(toVisualSquare) : validMovesChess;
 
   const turnText = game ? (game.turn() === 'w' ? 'Ход белых' : 'Ход чёрных') : '';
 
@@ -508,10 +478,9 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
                 const sq = `${file}${rank}`;
                 const pieceObj = getPieceAt(sq);
                 const light = isLight(exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7 ? 7-fi : fi, exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7 ? 7-ri : ri);
-                const chessSq = isFlipped ? toChessSquare(sq) : sq;
-                const sel = selectedSquare === chessSq || dragPiece?.square === chessSq;
+                const sel = selectedSquare === sq || dragPiece?.square === sq;
                 const isValidMove = validMoves.includes(sq);
-                const isDragSource = dragPiece?.square === chessSq;
+                const isDragSource = dragPiece?.square === sq;
 
                 return (
                   <div
