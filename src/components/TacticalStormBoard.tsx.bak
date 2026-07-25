@@ -8,7 +8,8 @@ const FILES = ['a','b','c','d','e','f','g','h'];
 const REVERSED_FILES = ['h','g','f','e','d','c','b','a'];
 const DISPLAY_RANKS = ['8','7','6','5','4','3','2','1'];
 const REVERSED_DISPLAY_RANKS = ['1','2','3','4','5','6','7','8'];
-// board squares use CSS variables (Heirloom palette)
+const LIGHT_SQ = '#f0d9b5';
+const DARK_SQ  = '#b58863';
 
 /* ═══ Piece image (cburnett SVGs) ═══ */
 function PieceImg({ type, color, size }: { type: string; color: 'w' | 'b'; size?: number }) {
@@ -490,55 +491,29 @@ export default function TacticalStormBoard({ onComplete }: Props) {
   if (phase === 'idle') {
     return (
       <div className="flex flex-col items-center gap-5 w-full max-w-lg mx-auto">
-        {/* Hero card */}
-        <div className="rounded-2xl p-6 w-full text-center" style={{ background: '#2C241B' }}>
+        <div className="rounded-xl p-6 w-full text-center" style={{ background: '#312e2b' }}>
           <h2 className="text-2xl font-bold text-white mb-2">Тактический штурм</h2>
-          <p className="text-sm" style={{ color: '#8B7355' }}>
+          <p className="text-sm text-gray-400">
             Решайте задачи на скорость. 3 жизни — нарастающая сложность!
           </p>
         </div>
 
-        {/* Mode cards */}
         <div className="grid grid-cols-3 gap-3 w-full">
-          <button
-            onClick={() => setMode('rush5')}
-            className={`p-4 rounded-xl border-2 text-center transition-all duration-150 ease-out ${
-              mode === 'rush5'
-                ? 'bg-[#F9F8F6] border-[#C9A84C] shadow-[0_0_0_1px_rgba(201,168,76,0.15)]'
-                : 'bg-white border-[#E8E0D5] hover:bg-[#F9F8F6]'
-            }`}
-          >
-            <div className="font-bold text-[#2C241B] text-base">5 мин</div>
-            <div className="text-xs text-[#8B7355] mt-1">Классика</div>
+          <button onClick={() => setMode('rush5')} className={`p-4 rounded-xl border-2 transition ${mode==='rush5'?'border-[#81b64c] bg-[#3a3a3a]':'border-[#555] bg-[#2b2b2b] hover:bg-[#333]'}`}>
+            <div className="font-bold text-white">5 мин</div>
+            <div className="text-xs text-gray-400">Классика</div>
           </button>
-          <button
-            onClick={() => setMode('rush3')}
-            className={`p-4 rounded-xl border-2 text-center transition-all duration-150 ease-out ${
-              mode === 'rush3'
-                ? 'bg-[#F9F8F6] border-[#C9A84C] shadow-[0_0_0_1px_rgba(201,168,76,0.15)]'
-                : 'bg-white border-[#E8E0D5] hover:bg-[#F9F8F6]'
-            }`}
-          >
-            <div className="font-bold text-[#2C241B] text-base">3 мин</div>
-            <div className="text-xs text-[#8B7355] mt-1">Блиц</div>
+          <button onClick={() => setMode('rush3')} className={`p-4 rounded-xl border-2 transition ${mode==='rush3'?'border-[#81b64c] bg-[#3a3a3a]':'border-[#555] bg-[#2b2b2b] hover:bg-[#333]'}`}>
+            <div className="font-bold text-white">3 мин</div>
+            <div className="text-xs text-gray-400">Блиц</div>
           </button>
-          <button
-            onClick={() => setMode('survival')}
-            className={`p-4 rounded-xl border-2 text-center transition-all duration-150 ease-out ${
-              mode === 'survival'
-                ? 'bg-[#F9F8F6] border-[#C9A84C] shadow-[0_0_0_1px_rgba(201,168,76,0.15)]'
-                : 'bg-white border-[#E8E0D5] hover:bg-[#F9F8F6]'
-            }`}
-          >
-            <div className="font-bold text-[#2C241B] text-base">Выживание</div>
-            <div className="text-xs text-[#8B7355] mt-1">1 ошибка = конец</div>
+          <button onClick={() => setMode('survival')} className={`p-4 rounded-xl border-2 transition ${mode==='survival'?'border-[#81b64c] bg-[#3a3a3a]':'border-[#555] bg-[#2b2b2b] hover:bg-[#333]'}`}>
+            <div className="font-bold text-white">Выживание</div>
+            <div className="text-xs text-gray-400">1 ошибка = конец</div>
           </button>
         </div>
 
-        <button
-          onClick={startGame}
-          className="w-full py-4 bg-[#C9A84C] hover:bg-[#B8973D] text-[#2C241B] font-bold rounded-xl text-lg uppercase tracking-wide transition duration-150 ease-out shadow-lg"
-        >
+        <button onClick={startGame} className="w-full py-4 bg-[#81b64c] hover:bg-[#6a9a3d] text-white font-bold rounded-xl text-lg uppercase tracking-wide transition shadow-lg">
           Начать штурм
         </button>
       </div>
@@ -557,54 +532,54 @@ export default function TacticalStormBoard({ onComplete }: Props) {
     return (
       <div className="flex flex-col items-center gap-4 w-full max-w-lg mx-auto">
         {/* Score */}
-        <div className="w-full rounded-2xl p-6 text-center" style={{ background: '#2C241B' }}>
+        <div className="w-full bg-[#312e2b] rounded-xl p-6 text-center">
           <div className="text-6xl font-bold text-white mb-1">{score}</div>
-          <div className="text-sm" style={{ color: '#8B7355' }}>задач решено</div>
+          <div className="text-sm text-gray-400">задач решено</div>
         </div>
 
         {/* Tabs */}
-        <div className="w-full flex rounded-xl overflow-hidden" style={{ background: '#2C241B' }}>
-          <button onClick={() => setActiveTab('summary')} className={`flex-1 py-3 text-sm font-bold transition duration-150 ${activeTab==='summary'?'text-white border-b-2 border-[#C9A84C]':'text-[#8B7355] hover:text-[#B8A08A]'}`}>
+        <div className="w-full flex bg-[#312e2b] rounded-xl overflow-hidden">
+          <button onClick={() => setActiveTab('summary')} className={`flex-1 py-3 text-sm font-bold transition ${activeTab==='summary'?'text-white border-b-2 border-[#81b64c]':'text-gray-500 hover:text-gray-300'}`}>
             Краткое описание
           </button>
-          <button onClick={() => setActiveTab('tasks')} className={`flex-1 py-3 text-sm font-bold transition duration-150 ${activeTab==='tasks'?'text-white border-b-2 border-[#C9A84C]':'text-[#8B7355] hover:text-[#B8A08A]'}`}>
+          <button onClick={() => setActiveTab('tasks')} className={`flex-1 py-3 text-sm font-bold transition ${activeTab==='tasks'?'text-white border-b-2 border-[#81b64c]':'text-gray-500 hover:text-gray-300'}`}>
             Задачи
           </button>
         </div>
 
         {activeTab === 'summary' && (
-          <div className="w-full rounded-xl p-5 text-sm" style={{ background: '#2C241B' }}>
-            <div className="flex items-center justify-between py-2 border-b" style={{ borderColor: '#4A3A2A' }}>
-              <div className="flex items-center gap-2" style={{ color: '#8B7355' }}>
+          <div className="w-full bg-[#312e2b] rounded-xl p-5 text-sm">
+            <div className="flex items-center justify-between py-2 border-b border-[#444]">
+              <div className="flex items-center gap-2 text-gray-400">
                 <Flame className="w-4 h-4" /> Рекордная серия
               </div>
               <div className="text-white font-bold">{bestStreak}</div>
             </div>
-            <div className="flex items-center justify-between py-2 border-b" style={{ borderColor: '#4A3A2A' }}>
-              <div className="flex items-center gap-2" style={{ color: '#8B7355' }}>
+            <div className="flex items-center justify-between py-2 border-b border-[#444]">
+              <div className="flex items-center gap-2 text-gray-400">
                 <Trophy className="w-4 h-4" /> Труднейшая задача
               </div>
               <div className="text-white font-bold">
                 {puzzleHistory.length > 0 ? Math.max(...puzzleHistory.map(p => p.puzzle.rating)) : 0}
               </div>
             </div>
-            <div className="flex items-center justify-between py-2 border-b" style={{ borderColor: '#4A3A2A' }}>
-              <div className="flex items-center gap-2" style={{ color: '#8B7355' }}>
+            <div className="flex items-center justify-between py-2 border-b border-[#444]">
+              <div className="flex items-center gap-2 text-gray-400">
                 <Timer className="w-4 h-4" /> В среднем на задачу
               </div>
               <div className="text-white font-bold">{avgTime}s</div>
             </div>
-            <div className="flex items-center justify-between py-2 border-b" style={{ borderColor: '#4A3A2A' }}>
-              <div className="flex items-center gap-2" style={{ color: '#8B7355' }}>
+            <div className="flex items-center justify-between py-2 border-b border-[#444]">
+              <div className="flex items-center gap-2 text-gray-400">
                 <Check className="w-4 h-4" /> Верно
               </div>
-              <div className="font-bold" style={{ color: '#C9A84C' }}>{correctCount}</div>
+              <div className="text-[#81b64c] font-bold">{correctCount}</div>
             </div>
             <div className="flex items-center justify-between py-2">
-              <div className="flex items-center gap-2" style={{ color: '#8B7355' }}>
+              <div className="flex items-center gap-2 text-gray-400">
                 <X className="w-4 h-4" /> Ошибок
               </div>
-              <div className="font-bold" style={{ color: '#B04A3A' }}>{wrongCount}</div>
+              <div className="text-red-500 font-bold">{wrongCount}</div>
             </div>
           </div>
         )}
@@ -618,28 +593,28 @@ export default function TacticalStormBoard({ onComplete }: Props) {
                   setReviewIndex(i);
                   setPhase('review');
                 }}
-                className={`flex flex-col items-center gap-1 p-2 rounded-lg transition hover:scale-105 border ${
+                className={`flex flex-col items-center gap-1 p-2 rounded-lg transition hover:scale-105 ${
                   r.status === 'correct'
-                    ? 'bg-[#3A2E1F] border-[rgba(201,168,76,0.25)] hover:bg-[#4A3A2A]'
-                    : 'bg-[#3A2E1F] border-[rgba(176,74,58,0.25)] hover:bg-[#4A3A2A]'
+                    ? 'bg-[#2d4a1e] hover:bg-[#3a5c26]'
+                    : 'bg-[#4a1e1e] hover:bg-[#5c2626]'
                 }`}
               >
                 {r.status === 'correct' ? (
-                  <Check className="w-4 h-4 text-[#C9A84C]" />
+                  <Check className="w-4 h-4 text-[#81b64c]" />
                 ) : (
-                  <X className="w-4 h-4 text-[#B04A3A]" />
+                  <X className="w-4 h-4 text-red-400" />
                 )}
-                <span className="text-[10px] text-[#8B7355]">{r.puzzle.rating}</span>
+                <span className="text-[10px] text-gray-300">{r.puzzle.rating}</span>
               </button>
             ))}
           </div>
         )}
 
         <div className="flex w-full gap-3">
-          <button onClick={() => setPhase('idle')} className="flex-1 py-3 bg-[#4A3A2A] hover:bg-[#5A4A3A] text-white rounded-xl font-bold flex items-center justify-center gap-1 transition duration-150">
+          <button onClick={() => setPhase('idle')} className="flex-1 py-3 bg-[#444] hover:bg-[#555] text-white rounded-xl font-bold flex items-center justify-center gap-1">
             <ArrowLeft className="w-4 h-4" /> Назад
           </button>
-          <button onClick={startGame} className="flex-1 py-3 bg-[#C9A84C] hover:bg-[#B8973D] text-[#2C241B] rounded-xl font-bold flex items-center justify-center gap-1 transition duration-150">
+          <button onClick={startGame} className="flex-1 py-3 bg-[#81b64c] hover:bg-[#6a9a3d] text-white rounded-xl font-bold flex items-center justify-center gap-1">
             <RotateCcw className="w-4 h-4" /> Играть снова
           </button>
         </div>
@@ -661,13 +636,13 @@ export default function TacticalStormBoard({ onComplete }: Props) {
 
     return (
       <div className="flex flex-col items-center gap-4 w-full max-w-lg mx-auto">
-        <div className="w-full rounded-xl p-4 flex items-center justify-between" style={{ background: '#2C241B' }}>
+        <div className="w-full bg-[#312e2b] rounded-xl p-4 flex items-center justify-between">
           <button
             onClick={() => {
               setReviewIndex(null);
               setPhase('result');
             }}
-            className="text-[#8B7355] hover:text-[#C9A84C] flex items-center gap-1 text-sm transition duration-150"
+            className="text-white hover:text-gray-300 flex items-center gap-1 text-sm"
           >
             <ChevronLeft className="w-4 h-4" /> К результатам
           </button>
@@ -676,16 +651,16 @@ export default function TacticalStormBoard({ onComplete }: Props) {
           </span>
         </div>
 
-        <div className="w-full rounded-xl p-3 text-center" style={{ background: '#2C241B' }}>
-          <div className={`text-sm font-bold mb-1 ${result.status === 'correct' ? 'text-[#C9A84C]' : 'text-[#B04A3A]'}`}>
+        <div className="w-full bg-[#312e2b] rounded-xl p-3 text-center">
+          <div className={`text-sm font-bold mb-1 ${result.status === 'correct' ? 'text-[#81b64c]' : 'text-red-400'}`}>
             {result.status === 'correct' ? '✓ Верно' : '✗ Ошибка'}
           </div>
-          <div className="text-[#8B7355] text-xs">
+          <div className="text-gray-400 text-xs">
             Рейтинг: {result.puzzle.rating} | Время: {result.timeSpent}с
           </div>
           {result.puzzle.moves[0] && (
             <div className="text-white text-sm mt-1">
-              Правильный ход: <span className="font-bold text-[#C9A84C]">{moveFrom} → {moveTo}</span>
+              Правильный ход: <span className="font-bold text-[#81b64c]">{moveFrom} → {moveTo}</span>
             </div>
           )}
         </div>
@@ -710,7 +685,7 @@ export default function TacticalStormBoard({ onComplete }: Props) {
                       top: ri * sqSize,
                       width: sqSize,
                       height: sqSize,
-                      backgroundColor: isFrom || isTo ? 'rgba(201,168,76,0.45)' : (isLight ? 'var(--square-light)' : 'var(--square-dark)'),
+                      backgroundColor: isFrom || isTo ? '#7ed321' : (isLight ? LIGHT_SQ : DARK_SQ),
                       opacity: isFrom ? 0.5 : 1,
                     }}
                   >
@@ -730,14 +705,14 @@ export default function TacticalStormBoard({ onComplete }: Props) {
           <button
             onClick={() => setReviewIndex(prev => (prev !== null && prev > 0 ? prev - 1 : prev))}
             disabled={reviewIndex === 0}
-            className={`flex-1 py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-1 transition duration-150 ${reviewIndex > 0 ? 'bg-[#4A3A2A] text-white hover:bg-[#5A4A3A]' : 'bg-[#2C241B] text-[#5A4A3A] cursor-not-allowed'}`}
+            className={`flex-1 py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-1 transition ${reviewIndex > 0 ? 'bg-[#444] text-white hover:bg-[#555]' : 'bg-[#333] text-gray-600 cursor-not-allowed'}`}
           >
             <ChevronLeft className="w-4 h-4" /> Предыдущая
           </button>
           <button
             onClick={() => setReviewIndex(prev => (prev !== null && prev < puzzleHistory.length - 1 ? prev + 1 : prev))}
             disabled={reviewIndex >= puzzleHistory.length - 1}
-            className={`flex-1 py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-1 transition duration-150 ${reviewIndex < puzzleHistory.length - 1 ? 'bg-[#4A3A2A] text-white hover:bg-[#5A4A3A]' : 'bg-[#2C241B] text-[#5A4A3A] cursor-not-allowed'}`}
+            className={`flex-1 py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-1 transition ${reviewIndex < puzzleHistory.length - 1 ? 'bg-[#444] text-white hover:bg-[#555]' : 'bg-[#333] text-gray-600 cursor-not-allowed'}`}
           >
             Следующая <ChevronRight className="w-4 h-4" />
           </button>
@@ -752,31 +727,31 @@ export default function TacticalStormBoard({ onComplete }: Props) {
   return (
     <div className="flex flex-col items-center gap-3 w-full max-w-lg mx-auto">
       {/* Top bar */}
-      <div className="flex w-full justify-between items-center bg-white border border-[#E8E0D5] rounded-xl p-3 shadow-sm">
+      <div className="flex w-full justify-between items-center bg-white rounded-xl p-3 shadow">
         <div className="flex flex-col">
-          <span className="text-xs text-[#8B7355] uppercase">Очки</span>
-          <span className="text-2xl font-bold text-[#2C241B]">{score}</span>
+          <span className="text-xs text-slate-500 uppercase">Очки</span>
+          <span className="text-2xl font-bold text-slate-800">{score}</span>
         </div>
         <div className="flex flex-col items-center">
-          <div className="flex items-center gap-1 text-[#C9A84C]">
+          <div className="flex items-center gap-1 text-orange-500">
             <Flame className="w-4 h-4" />
             <span className="text-sm font-bold">{streak}</span>
           </div>
           {mode !== 'survival' && (
-            <span className="text-lg font-mono font-bold text-[#2C241B]">{formatTime(Math.ceil(timeLeft))}</span>
+            <span className="text-lg font-mono font-bold text-slate-800">{formatTime(Math.ceil(timeLeft))}</span>
           )}
         </div>
         <div className="flex flex-col items-end">
-          <span className="text-xs text-[#8B7355] uppercase">Задача</span>
-          <span className="text-2xl font-bold text-[#2C241B]">{puzzleIndex + 1}</span>
+          <span className="text-xs text-slate-500 uppercase">Задача</span>
+          <span className="text-2xl font-bold text-slate-800">{puzzleIndex + 1}</span>
         </div>
       </div>
 
       {/* Timer bar */}
       {mode !== 'survival' && (
-        <div className="w-full h-1.5 bg-[#E8E0D5] rounded-full overflow-hidden">
+        <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
           <div
-            className="h-full bg-[#C9A84C] rounded-full"
+            className="h-full bg-[#c75b2a] rounded-full"
             style={{
               width: `${(timeLeft / (mode === 'rush3' ? 180 : 300)) * 100}%`,
               transition: 'width 1s linear',
@@ -787,17 +762,17 @@ export default function TacticalStormBoard({ onComplete }: Props) {
 
       {/* Turn / Theme hint */}
       <div className="flex w-full justify-between items-center px-1">
-        <span className="text-sm font-medium text-[#2C241B]">{turnText}</span>
+        <span className="text-sm font-medium text-slate-600">{turnText}</span>
         {currentPuzzle && (
-          <span className="text-xs text-[#8B7355] uppercase bg-[#F5F0E8] border border-[#E8E0D5] px-2 py-0.5 rounded">
+          <span className="text-xs text-slate-400 uppercase bg-slate-100 px-2 py-0.5 rounded">
             {currentPuzzle.theme}
           </span>
         )}
       </div>
 
-      {/* Feedback flash — wrong only */}
+      {/* Feedback flash - wrong only */}
       {messageType === 'wrong' && (
-        <div className="w-full text-center py-2 rounded-lg font-bold text-lg bg-[#B04A3A] text-white">
+        <div className="w-full text-center py-2 rounded-lg font-bold text-lg bg-red-500 text-white">
           {message}
         </div>
       )}
@@ -809,7 +784,7 @@ export default function TacticalStormBoard({ onComplete }: Props) {
             showCorrect ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'
           }`}
         >
-          <div className="bg-[#C9A84C] text-[#2C241B] px-6 py-2 rounded-lg font-bold text-base shadow-lg flex items-center gap-2">
+          <div className="bg-green-500 text-white px-6 py-2 rounded-lg font-bold text-base shadow-lg flex items-center gap-2">
             <Check className="w-5 h-5" />
             Правильно
           </div>
@@ -820,7 +795,7 @@ export default function TacticalStormBoard({ onComplete }: Props) {
       <div className="flex justify-center w-full relative">
         <div
           data-board
-          className="grid border-[3px] border-[#2C241B] rounded-sm relative select-none"
+          className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none"
           style={{
             gridTemplateColumns: `repeat(8, ${sqSize}px)`,
             gridTemplateRows: `repeat(8, ${sqSize}px)`,
@@ -846,7 +821,7 @@ export default function TacticalStormBoard({ onComplete }: Props) {
                     height: sqSize,
                     cursor: pieceObj && pieceObj.color === game?.turn() ? 'grab' : 'default',
                     touchAction: 'none',
-                    backgroundColor: light ? 'var(--square-light)' : 'var(--square-dark)',
+                    backgroundColor: light ? LIGHT_SQ : DARK_SQ,
                     opacity: isDragSource ? 0.3 : 1,
                   }}
                   onClick={() => handleSquareClick(sq)}
@@ -930,8 +905,8 @@ export default function TacticalStormBoard({ onComplete }: Props) {
               key={i}
               className={`w-6 h-6 rounded flex items-center justify-center ${
                 i < (3 - lives)
-                  ? 'bg-[#B04A3A] text-white'
-                  : 'bg-[#F5F0E8] text-[#8B7355]'
+                  ? 'bg-red-500 text-white'
+                  : 'bg-slate-200 text-slate-400'
               }`}
             >
               <X className="w-3.5 h-3.5" />
@@ -940,15 +915,15 @@ export default function TacticalStormBoard({ onComplete }: Props) {
         </div>
         {currentPuzzle && (
           <div className="flex flex-col items-end">
-            <span className="text-[10px] text-[#8B7355] uppercase">Сложность</span>
-            <span className="text-sm font-bold text-[#2C241B]">{currentPuzzle.rating}</span>
+            <span className="text-[10px] text-slate-400 uppercase">Сложность</span>
+            <span className="text-sm font-bold text-slate-600">{currentPuzzle.rating}</span>
           </div>
         )}
       </div>
 
       {/* Controls */}
       <div className="flex w-full gap-2 mt-1">
-        <button onClick={() => setPhase('idle')} className="w-full py-2.5 bg-[#F5F0E8] hover:bg-[#EBE4DA] text-[#2C241B] border border-[#D4C9B8] rounded-lg font-medium text-sm transition duration-150 ease-out">
+        <button onClick={() => setPhase('idle')} className="w-full py-2.5 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg font-medium text-sm transition">
           Стоп
         </button>
       </div>
