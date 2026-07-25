@@ -1968,13 +1968,13 @@ const handleSquareClick = useCallback((square: string) => {
               );
             })}
           </div>
-          <div className="flex flex-col gap-1.5 px-1 mt-4">
+          <div className="flex flex-col gap-1.5 px-1 mt-6">
             <span className="text-xs font-bold text-[var(--text-primary)]">Упражнение {exercise} из 6</span>
             <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
               <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${(exercise / 6) * 100}%` }} />
             </div>
           </div>
-          <div className="flex gap-2 w-full px-1">
+          <div className="flex gap-2 w-full px-1 mt-3">
             <button onClick={handleHint} className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all duration-200 ${hintVisible ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
               <Eye size={14} /> Подсказка
             </button>
