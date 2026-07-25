@@ -1768,7 +1768,7 @@ const handleSquareClick = useCallback((square: string) => {
       <div className="flex-1 flex flex-col items-center gap-3 px-2">
         {/* Mobile: Avatar + speech bubble */}
         <div className="flex lg:hidden items-start gap-2 w-full max-w-sm">
-          <div className="w-10 h-10 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
+          <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
             <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
           </div>
           <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
@@ -1924,35 +1924,8 @@ const handleSquareClick = useCallback((square: string) => {
           )}
         </div>
 
-        {/* Mobile bottom: exercise grid + progress bar + buttons + goal */}
+        {/* Mobile bottom: progress bar + buttons */}
         <div className="flex lg:hidden flex-col gap-2 w-full">
-          <div className="grid grid-cols-6 gap-1 rounded p-1 border border-[rgba(92,64,51,0.08)]">
-            {[1, 2, 3, 4, 5, 6].map((num) => {
-              const earnedStars = exerciseStars[num] || 0;
-              const isCurrent = num === exercise;
-              const isDone = earnedStars > 0;
-              return (
-                <button
-                  key={num}
-                  onClick={() => switchExercise(num as any)}
-                  className={`relative flex items-center justify-center px-1 py-2 rounded-lg transition cursor-pointer hover:brightness-110 ${
-                    isCurrent
-                      ? 'bg-[#2C241B] border-2 border-[#2C241B] text-white shadow-md'
-                      : isDone
-                      ? 'bg-white border-2 border-[#C9A84C] text-[#2C241B]'
-                      : 'bg-white border-2 border-[#E8E0D5] text-[#8B7355] hover:border-[#C9A84C] hover:bg-[#F9F8F6]'
-                  }`}
-                >
-                  <span className="text-sm font-bold">{num}</span>
-                  {isDone && (
-                    <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#C9A84C] rounded-full flex items-center justify-center">
-                      <StarPng filled={true} size={10} />
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
           <div className="flex flex-col gap-1.5 px-1">
             <span className="text-xs font-bold text-[var(--text-primary)]">Упражнение {exercise} из 6</span>
             <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
@@ -1967,13 +1940,7 @@ const handleSquareClick = useCallback((square: string) => {
               <RotateCcw size={14} /> Заново
             </button>
           </div>
-          <div className="text-center text-sm text-[#8B7355] px-2">
-            <p className="font-medium mb-0.5 text-[#2C241B]">Цель:</p>
-            <p>{exercise === 1 || exercise === 2 ? 'Захватите центр пешкой, выведите коней и слонов и сделайте рокировку.' :
-            exercise === 3 || exercise === 4 ? 'Используйте дырокол, чтобы разрушить рокировку соперника.' :
-            exercise === 5 || exercise === 6 ? 'Пешечный штурм — захватите центр, выведите коней и слонов и атакуйте рокировку соперника!' : ''}</p>
           </div>
-        </div>
 
         {/* Completion banner */}
         {isComplete && (
