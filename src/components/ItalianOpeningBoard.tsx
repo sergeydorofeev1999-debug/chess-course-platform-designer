@@ -1729,6 +1729,16 @@ const handleSquareClick = useCallback((square: string) => {
           })}
         </div>
 
+        {/* Desktop progress bar */}
+        <div className="hidden lg:flex flex-col items-center gap-1.5 w-full">
+          <div className="flex items-center justify-between w-full px-1">
+            <span className="text-xs font-bold text-[var(--text-primary)]">Упражнение {exercise} из 6</span>
+            <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+              <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${(exercise / 6) * 100}%` }} />
+            </div>
+          </div>
+        </div>
+
         <button
           onClick={reset}
           className="hidden lg:flex items-center gap-1 px-3 py-1.5 text-xs text-[var(--text-secondary)] border border-[rgba(92,64,51,0.12)] rounded hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] transition w-full justify-center"
@@ -1780,31 +1790,6 @@ const handleSquareClick = useCallback((square: string) => {
 
         <div className="text-center font-bold text-[#2C241B] text-base w-full">
           {turnText}
-        </div>
-
-        {/* Mobile: progress bar + Заново */}
-        <div className="flex lg:hidden flex-col items-center gap-1.5 w-full max-w-sm">
-          <div className="flex items-center justify-between w-full px-1">
-            <span className="text-xs font-bold text-[var(--text-primary)]">Упражнение {exercise} из 6</span>
-            <div className="w-24 h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
-              <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${(exercise / 6) * 100}%` }} />
-            </div>
-          </div>
-          <div className="flex gap-2 w-full">
-            <button onClick={reset} className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200">
-              <RotateCcw size={14} /> Заново
-            </button>
-          </div>
-        </div>
-
-        {/* Desktop: progress bar + Заново */}
-        <div className="hidden lg:flex flex-col items-center gap-1.5 w-full max-w-sm">
-          <div className="flex items-center justify-between w-full px-1">
-            <span className="text-xs font-bold text-[var(--text-primary)]">Упражнение {exercise} из 6</span>
-            <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
-              <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${(exercise / 6) * 100}%` }} />
-            </div>
-          </div>
         </div>
 
         {/* Fail banner */}
@@ -1934,12 +1919,20 @@ const handleSquareClick = useCallback((square: string) => {
           )}
         </div>
 
-        <button
-          onClick={reset}
-          className="flex lg:hidden items-center gap-1 px-3 py-1.5 text-xs text-[var(--text-secondary)] border border-[rgba(92,64,51,0.12)] rounded hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] transition"
-        >
-          <RotateCcw size={14} /> Заново
-        </button>
+        {/* Progress bar + Заново */}
+        <div className="flex flex-col items-center gap-1.5 w-full max-w-sm px-2">
+          <div className="flex items-center justify-between w-full">
+            <span className="text-xs font-bold text-[var(--text-primary)]">Упражнение {exercise} из 6</span>
+            <div className="w-24 h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+              <div className="h-full bg-[var(--accent)] rounded-full transition-all duration-500" style={{ width: `${(exercise / 6) * 100}%` }} />
+            </div>
+          </div>
+          <div className="flex gap-2 w-full">
+            <button onClick={reset} className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200">
+              <RotateCcw size={14} /> Заново
+            </button>
+          </div>
+        </div>
 
         {/* Mobile: pills under board + Цель inline */}
         <div className="flex lg:hidden flex-col items-center gap-2 w-full max-w-sm">

@@ -51,6 +51,17 @@ const HINTS: Record<number, { from: string; to: string }[]> = {
   8: [{ from: 'c7', to: 'c8' }],
 };
 
+const SECOND_HINTS: Record<number, { from: string; to: string }[]> = {
+  1: [{ from: 'e1', to: 'e8' }],
+  2: [{ from: 'a2', to: 'a1' }],
+  3: [{ from: 'd8', to: 'f8' }],
+  4: [{ from: 'e1', to: 'f1' }],
+  5: [{ from: 'f8', to: 'g6' }],
+  6: [{ from: 'c8', to: 'c1' }],
+  7: [{ from: 'c4', to: 'f1' }],
+  8: [{ from: 'c8', to: 'f8' }],
+};
+
 function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
   const pieceKey = `${color}${type.toUpperCase()}`;
   return (
@@ -566,7 +577,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
           {/* Hint arrows SVG overlay */}
           {hintVisible && !isFail && !isComplete && !selectedSquare && !dragPiece && (
             (() => {
-              const arrows = HINTS[exercise] || [];
+              const arrows = stage === 'after_computer' ? (SECOND_HINTS[exercise] || []) : (HINTS[exercise] || []);
               if (arrows.length === 0) return null;
               return (
                 <svg className="absolute inset-0 pointer-events-none z-[35]" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
