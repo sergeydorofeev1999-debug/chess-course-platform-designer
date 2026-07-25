@@ -1728,7 +1728,7 @@ const handleSquareClick = useCallback((square: string) => {
           </div>
         </div>
 
-        <div className="hidden lg:grid grid-cols-6 gap-1 rounded p-1 border border-gray-200">
+        <div className="hidden lg:grid grid-cols-6 gap-1 rounded p-1 border border-[rgba(92,64,51,0.08)]">
           {[1, 2, 3, 4, 5, 6].map((num) => {
             const earnedStars = exerciseStars[num] || 0;
             const isCurrent = num === exercise;
@@ -1737,20 +1737,20 @@ const handleSquareClick = useCallback((square: string) => {
               <button
                 key={num}
                 onClick={() => switchExercise(num as any)}
-                className={`flex items-center justify-center px-1 py-1 rounded transition cursor-pointer hover:brightness-110 ${
+                className={`relative flex items-center justify-center px-1 py-2 rounded-lg transition cursor-pointer hover:brightness-110 ${
                   isCurrent
-                    ? 'bg-[#2C241B] shadow-md text-white'
+                    ? 'bg-[#2C241B] border-2 border-[#2C241B] text-white shadow-md'
                     : isDone
-                    ? 'bg-[#C9A84C] text-white'
-                    : 'bg-[#F0EBE4] border border-[#D4C5B5] text-[#9CA3AF]'
+                    ? 'bg-white border-2 border-[#C9A84C] text-[#2C241B]'
+                    : 'bg-white border-2 border-[#E8E0D5] text-[#8B7355] hover:border-[#C9A84C] hover:bg-[#F9F8F6]'
                 }`}
               >
-                <div className="flex gap-0.5">
-                  {[1, 2, 3].map(s => (
-                    <StarPng key={s} filled={earnedStars > 0 && s <= earnedStars} size={14} />
-                  ))}
-                </div>
-                <span className="ml-1 text-xs font-medium">{num}</span>
+                <span className="text-sm font-bold">{num}</span>
+                {isDone && (
+                  <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#C9A84C] rounded-full flex items-center justify-center">
+                    <StarPng filled={true} size={10} />
+                  </div>
+                )}
               </button>
             );
           })}
@@ -1805,22 +1805,10 @@ const handleSquareClick = useCallback((square: string) => {
            exercise === 6 ? 'Пешечный штурм — повторите атаку на королевском фланге!' : ''}
         </div>
 
-        <div className="text-center font-bold text-[#2C241B] text-base w-full">
-          {turnText}
-        </div>
-
-        {/* Fail banner */}
+        {/* Fail text only */}
         {isFail && (
-          <div className="w-full max-w-sm">
-            <div className="bg-[#B04A3A] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg w-full">
-              <p className="text-white font-bold text-lg">{message || 'Провалено'}</p>
-              <button
-                onClick={reset}
-                className="bg-white text-[#B04A3A] font-bold text-base px-6 py-2 rounded shadow hover:bg-[#F5F0E8] transition"
-              >
-                ЕЩЁ РАЗ
-              </button>
-            </div>
+          <div className="w-full max-w-lg mx-auto text-center">
+            <p className="text-[#B04A3A] font-bold text-lg mb-2">{message || 'Провалено'}</p>
           </div>
         )}
 
@@ -1947,20 +1935,20 @@ const handleSquareClick = useCallback((square: string) => {
                 <button
                   key={num}
                   onClick={() => switchExercise(num as any)}
-                  className={`flex items-center justify-center px-1 py-1 rounded transition cursor-pointer hover:brightness-110 ${
+                  className={`relative flex items-center justify-center px-1 py-2 rounded-lg transition cursor-pointer hover:brightness-110 ${
                     isCurrent
-                      ? 'bg-[#2C241B] shadow-md text-white'
+                      ? 'bg-[#2C241B] border-2 border-[#2C241B] text-white shadow-md'
                       : isDone
-                      ? 'bg-[#C9A84C] text-white'
-                      : 'bg-[#F0EBE4] border border-[#D4C5B5] text-[#9CA3AF]'
+                      ? 'bg-white border-2 border-[#C9A84C] text-[#2C241B]'
+                      : 'bg-white border-2 border-[#E8E0D5] text-[#8B7355] hover:border-[#C9A84C] hover:bg-[#F9F8F6]'
                   }`}
                 >
-                  <div className="flex gap-0.5">
-                    {[1, 2, 3].map(s => (
-                      <StarPng key={s} filled={earnedStars > 0 && s <= earnedStars} size={12} />
-                    ))}
-                  </div>
-                  <span className="ml-1 text-xs font-medium">{num}</span>
+                  <span className="text-sm font-bold">{num}</span>
+                  {isDone && (
+                    <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#C9A84C] rounded-full flex items-center justify-center">
+                      <StarPng filled={true} size={10} />
+                    </div>
+                  )}
                 </button>
               );
             })}
@@ -1975,7 +1963,7 @@ const handleSquareClick = useCallback((square: string) => {
             <button onClick={handleHint} className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all duration-200 ${hintVisible ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
               <Eye size={14} /> Подсказка
             </button>
-            <button onClick={reset} className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200">
+            <button onClick={reset} className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all duration-200 ${isFail ? 'border-[#B04A3A] text-[#B04A3A]' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
               <RotateCcw size={14} /> Заново
             </button>
           </div>
