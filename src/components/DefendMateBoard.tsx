@@ -598,8 +598,6 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
                 );
               })
             ))}
-          </div>
-
           {/* Hint arrows SVG overlay */}
           {hintVisible && !isFail && !isComplete && !selectedSquare && !dragPiece && (
             (() => {
@@ -608,10 +606,11 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
               return (
                 <svg className="absolute inset-0 pointer-events-none z-[35]" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
                   {arrows.map((arrow, i) => {
-                    const fromF = FILES.indexOf(arrow.from[0]);
-                    const fromR = DISPLAY_RANKS.indexOf(arrow.from[1]);
-                    const toF = FILES.indexOf(arrow.to[0]);
-                    const toR = DISPLAY_RANKS.indexOf(arrow.to[1]);
+                    const isFlipped = exercise === 2 || exercise === 6 || exercise === 8;
+                    const fromF = (isFlipped ? FILES.slice().reverse() : FILES).indexOf(arrow.from[0]);
+                    const fromR = (isFlipped ? DISPLAY_RANKS.slice().reverse() : DISPLAY_RANKS).indexOf(arrow.from[1]);
+                    const toF = (isFlipped ? FILES.slice().reverse() : FILES).indexOf(arrow.to[0]);
+                    const toR = (isFlipped ? DISPLAY_RANKS.slice().reverse() : DISPLAY_RANKS).indexOf(arrow.to[1]);
                     const x1 = (fromF + 0.5) * sqSize;
                     const y1 = (fromR + 0.5) * sqSize;
                     const x2 = (toF + 0.5) * sqSize;
@@ -649,7 +648,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
               );
             })()
           )}
-
+          </div>
           {/* Dragged piece overlay */}
           {dragPiece && (
             <div
