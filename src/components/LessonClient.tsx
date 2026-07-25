@@ -1134,16 +1134,27 @@ function MultiLevelStarBoard({
       // Deviation — fall through to BFS algorithm below
     }
 
-    // ── CASTLING HINT (Lesson 13): direct castle arrow when path is clear ──
+    // ── CASTLING HINT (Lesson 13): explicit per-level hints with fallback ──
     if (currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2') {
+      const CASTLING_HINTS: Record<number, { from: string; to: string }[]> = {
+        3: [{ from: 'f1', to: 'c4' }], // Exercise 4: develop bishop first
+        4: [{ from: 'b1', to: 'c3' }], // Exercise 5: develop knight first
+        8: [{ from: 'e1', to: 'c1' }], // Exercise 9: long castle
+      };
+      if (CASTLING_HINTS[currentLevel] && CASTLING_HINTS[currentLevel].length > 0) {
+        // For long castle (exercise 9), verify d1 is safe
+        if (currentLevel === 8 && isSquareAttackedBy('d1', parsed.squares, 'b')) {
+          return [];
+        }
+        return CASTLING_HINTS[currentLevel];
+      }
+      // Fallback: generic castle hint when no explicit hint defined
       const kingOnE1 = parsed.squares['e1']?.type === 'k' && parsed.squares['e1']?.color === 'w';
       if (kingOnE1) {
-        // Short castle available?
         const rookH = parsed.squares['h1'];
         if (rookH?.type === 'r' && rookH?.color === 'w' && !parsed.squares['f1'] && !parsed.squares['g1']) {
           return [{ from: 'e1', to: 'g1' }];
         }
-        // Long castle available?
         const rookA = parsed.squares['a1'];
         if (rookA?.type === 'r' && rookA?.color === 'w' && !parsed.squares['d1'] && !parsed.squares['c1'] && !parsed.squares['b1']) {
           return [{ from: 'e1', to: 'c1' }];
