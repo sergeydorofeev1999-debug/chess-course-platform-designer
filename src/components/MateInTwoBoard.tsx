@@ -175,6 +175,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
   // ──── MATE IN 2 LOGIC ────
   const processMove = useCallback((from: string, to: string) => {
     if (!game) return;
+    setHintVisible(false); // Скрыть подсказку при ходе
     const g = game;
     const keyMove = EXERCISE_KEYS[exercise];
 
