@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { RotateCcw, ChevronRight, Star, Trophy } from 'lucide-react';
+import { RotateCcw, ChevronRight, Star, Trophy, Eye, Undo2, ArrowLeft, ArrowRight } from 'lucide-react';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const RANKS = ['8','7','6','5','4','3','2','1'];
@@ -388,7 +388,19 @@ const LEVELS: { id: Difficulty; label: string; description: string; color: strin
   { id: 'hard', label: 'Продвинутый', description: 'Чёрные почти не ошибаются', color: '#4A2A1A', stars: 3 },
 ];
 
-export default function PawnRaceBoard({ onComplete, lessonId }: { onComplete: () => void; lessonId?: string }) {
+export default function PawnRaceBoard({
+  onComplete,
+  lessonId,
+  prevLesson,
+  nextLesson,
+  courseId,
+}: {
+  onComplete: () => void;
+  lessonId?: string;
+  prevLesson?: any;
+  nextLesson?: any;
+  courseId?: string;
+}) {
   const savedKey = lessonId ? `pawnrace_progress_${lessonId}` : 'pawnrace_progress';
   const savedProgress = useMemo(() => {
     if (typeof window === 'undefined') return {} as Record<Difficulty, boolean>;
@@ -407,6 +419,9 @@ export default function PawnRaceBoard({ onComplete, lessonId }: { onComplete: ()
   const [enPassant, setEnPassant] = useState<string | null>(null);
   const [turn, setTurn] = useState<'w' | 'b'>('w');
   const [sqSize, setSqSize] = useState(44);
+
+  // History for undo
+  const [history, setHistory] = useState<{ squares: Record<string, Piece>; whiteCaptured: number; blackCaptured: number; enPassant: string | null; turn: 'w' | 'b' }[]>([]);
 
   // Drag state
   const [dragPiece, setDragPiece] = useState<{ square: string; type: string; color: string } | null>(null);
@@ -462,6 +477,8 @@ export default function PawnRaceBoard({ onComplete, lessonId }: { onComplete: ()
     setValidSquares([]);
     setEnPassant(null);
     setTurn('w');
+    setLastMove(null);
+    setHistory([]);
   }, []);
 
   const startLevel = useCallback((diff: Difficulty) => {
@@ -506,6 +523,8 @@ export default function PawnRaceBoard({ onComplete, lessonId }: { onComplete: ()
         wCap = whiteCapturedRef.current + 1;
         setWhiteCaptured(wCap);
       }
+
+      setLastMove({ from: chosen.from, to: chosen.to });
 
       const win = checkGameOver(result.squares, wCap, blackCapturedRef.current, result.enPassant, 'w');
       if (win) {
@@ -556,12 +575,21 @@ export default function PawnRaceBoard({ onComplete, lessonId }: { onComplete: ()
       }
 
       if (validSquaresRef.current.includes(square)) {
+        // Save state before move for undo
+        setHistory(prev => [...prev, {
+          squares: { ...sqs },
+          whiteCaptured: whiteCapturedRef.current,
+          blackCaptured: blackCapturedRef.current,
+          enPassant: enPassantRef.current,
+          turn: turnRef.current,
+        }]);
         const result = makePawnMove(sqs, enPassantRef.current, sel, square);
         let bCap = blackCapturedRef.current;
         if (result.captured && result.captured.color === 'b') {
           bCap = blackCapturedRef.current + 1;
           setBlackCaptured(bCap);
         }
+        setLastMove({ from: sel, to: square });
 
         const win = checkGameOver(result.squares, whiteCapturedRef.current, bCap, result.enPassant, 'b');
         if (win) {
@@ -669,12 +697,21 @@ export default function PawnRaceBoard({ onComplete, lessonId }: { onComplete: ()
         if (targetSquare && targetSquare !== start.square) {
           const valid = getPawnMoves(start.square, squaresRef.current, 'w', enPassantRef.current);
           if (valid.includes(targetSquare)) {
+            // Save state before move for undo
+            setHistory(prev => [...prev, {
+              squares: { ...squaresRef.current },
+              whiteCaptured: whiteCapturedRef.current,
+              blackCaptured: blackCapturedRef.current,
+              enPassant: enPassantRef.current,
+              turn: turnRef.current,
+            }]);
             const result = makePawnMove(squaresRef.current, enPassantRef.current, start.square, targetSquare);
             let bCap = blackCapturedRef.current;
             if (result.captured && result.captured.color === 'b') {
               bCap = blackCapturedRef.current + 1;
               setBlackCaptured(bCap);
             }
+            setLastMove({ from: start.square, to: targetSquare });
             const win = checkGameOver(result.squares, whiteCapturedRef.current, bCap, result.enPassant, 'b');
             if (win) {
               setWinner(win);
@@ -791,8 +828,38 @@ export default function PawnRaceBoard({ onComplete, lessonId }: { onComplete: ()
   // ═══════════════════════════════════════════════════════════════
   const currentLevel = LEVELS.find(l => l.id === difficulty)!;
 
+  const undo = useCallback(() => {
+    if (history.length === 0 || winner || computerThinking) return;
+    const prev = history[history.length - 1];
+    setSquares(prev.squares);
+    setWhiteCaptured(prev.whiteCaptured);
+    setBlackCaptured(prev.blackCaptured);
+    setEnPassant(prev.enPassant);
+    setTurn(prev.turn);
+    setLastMove(null);
+    setWinner(null);
+    setHistory(h => h.slice(0, -1));
+  }, [history, winner, computerThinking]);
+
   return (
-    <div className="flex flex-col items-center gap-4 w-full select-none" >
+    <div className="flex flex-col items-center gap-4 w-full select-none px-4" >
+      {/* ── Instructor avatar + bubble ── */}
+      <div className="flex items-start gap-3 w-full max-w-sm">
+        <div className="w-14 h-14 rounded-full border-2 border-[#C9A84C] overflow-hidden flex-shrink-0">
+          <img
+            src="/coach-avatar.png"
+            alt="Тренер"
+            className="w-full h-full object-cover"
+            draggable={false}
+          />
+        </div>
+        <div className="flex-1 bg-white rounded-2xl rounded-tl-sm px-4 py-3 border border-[#E8D5B5]">
+          <p className="text-sm text-[#4A2A1A] leading-relaxed">
+            Цель: съешь 5 пешек соперника или проведи пешку до последней линии.
+          </p>
+        </div>
+      </div>
+
       {/* Level badge */}
       <div className="flex items-center gap-2">
         <span className="px-3 py-1 rounded-full text-white text-sm font-bold" style={{ backgroundColor: currentLevel.color }}>
@@ -935,27 +1002,54 @@ export default function PawnRaceBoard({ onComplete, lessonId }: { onComplete: ()
         </div>
       )}
 
-      {/* Info */}
-      <div className="text-center text-sm text-[#6B5B3D] max-w-sm px-4">
-        <p className="font-medium mb-1">Цель игры:</p>
-        <p>Съешь 5 пешек соперника или проведи пешку до последней линии.</p>
-        <p className="text-xs text-[#B8AFA3] mt-1">Взятие на проходе работает!</p>
-      </div>
-
-      <div className="flex gap-3">
+      {/* ── 3 action buttons ── */}
+      <div className="flex gap-2 w-full max-w-sm">
+        <button
+          onClick={() => alert('Подсказка: направьте пешку в центр и используйте двойной ход для продвижения.')}
+          className="flex-1 flex items-center justify-center gap-2 h-11 bg-white border border-[#E8D5B5] rounded-xl text-[#4A2A1A] text-sm font-medium hover:bg-[#F5EDE0] hover:-translate-y-0.5 hover:shadow-md transition-all"
+        >
+          <Eye size={18} className="text-[#B07838]" /> Подсказка
+        </button>
         <button
           onClick={reset}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-[#6B5B3D] bg-[#E8E0D4] hover:bg-[#D4C5B5] transition"
+          className="flex-1 flex items-center justify-center gap-2 h-11 bg-white border border-[#E8D5B5] rounded-xl text-[#4A2A1A] text-sm font-medium hover:bg-[#F5EDE0] hover:-translate-y-0.5 hover:shadow-md transition-all"
         >
-          <RotateCcw size={16} /> Начать заново
+          <RotateCcw size={18} className="text-[#B07838]" /> Заново
         </button>
         <button
-          onClick={() => setDifficulty(null)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-[#6B5B3D] bg-[#E8E0D4] hover:bg-[#D4C5B5] transition"
+          onClick={undo}
+          disabled={history.length === 0 || !!winner || computerThinking}
+          className="flex-1 flex items-center justify-center gap-2 h-11 bg-white border border-[#E8D5B5] rounded-xl text-[#4A2A1A] text-sm font-medium hover:bg-[#F5EDE0] hover:-translate-y-0.5 hover:shadow-md transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          <ChevronRight size={16} className="rotate-180" /> Уровни
+          <Undo2 size={18} className="text-[#B07838]" /> Вернуть ход
         </button>
       </div>
+
+      {/* ── Lesson navigation ── */}
+      {(prevLesson || nextLesson) && (
+        <div className="flex gap-2 w-full max-w-sm">
+          {prevLesson ? (
+            <a
+              href={`/lessons/${prevLesson.id}?course=${courseId || ''}`}
+              className="flex-1 flex items-center justify-center gap-1 h-10 bg-[#F5EDE0] border border-[#E8D5B5] rounded-[10px] text-[#8B7355] text-[13px] font-normal hover:bg-[#E8D5B5] hover:text-[#4A2A1A] transition"
+            >
+              <ArrowLeft size={14} /> Предыдущий урок
+            </a>
+          ) : (
+            <div className="flex-1" />
+          )}
+          {nextLesson ? (
+            <a
+              href={`/lessons/${nextLesson.id}?course=${courseId || ''}`}
+              className="flex-1 flex items-center justify-center gap-1 h-10 bg-[#F5EDE0] border border-[#E8D5B5] rounded-[10px] text-[#8B7355] text-[13px] font-normal hover:bg-[#E8D5B5] hover:text-[#4A2A1A] transition"
+            >
+              Следующий урок <ArrowRight size={14} />
+            </a>
+          ) : (
+            <div className="flex-1" />
+          )}
+        </div>
+      )}
     </div>
   );
 }

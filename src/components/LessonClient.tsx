@@ -2395,7 +2395,15 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
               return <MateInTwoBoard onComplete={handleInteractiveComplete} />;
             }
             if (type === 'interactive_pawn_race') {
-              return <PawnRaceBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} />;
+              return (
+                <PawnRaceBoard
+                  onComplete={handleInteractiveComplete}
+                  lessonId={lesson.id}
+                  prevLesson={prevLesson}
+                  nextLesson={nextLesson}
+                  courseId={courseId}
+                />
+              );
             }
             if (type === 'interactive_rook_pawn') {
               return <RookPawnBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} />;
