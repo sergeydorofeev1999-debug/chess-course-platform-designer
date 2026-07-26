@@ -878,6 +878,12 @@ const handleSquareClick = useCallback((square: string) => {
                exercise === 5 ? 'Сыграйте конём на f6 — защитите пункт h5 от детского мата!' :
                exercise === 6 ? 'Самостоятельно: сыграйте e5, Nf6 — защититесь от детского мата!' : ''}
             </p>
+            {whiteMoves === 0 && (
+              <p className="text-xs text-[var(--text-secondary)] mt-1.5 leading-snug">
+                {exercise <= 4 ? 'Цель: поставьте детский мат.' :
+                 exercise >= 5 ? 'Цель: защититесь от детского мата.' : ''}
+              </p>
+            )}
           </div>
         </div>
 
@@ -1023,19 +1029,6 @@ const handleSquareClick = useCallback((square: string) => {
               <PieceImg type={dragPiece.type} color={dragPiece.color} />
             </div>
           )}
-        </div>
-
-        <button
-          onClick={reset}
-          className="flex lg:hidden items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition"
-        >
-          <RotateCcw size={14} /> Заново
-        </button>
-
-        <div className="text-center text-sm text-slate-600 max-w-sm px-4">
-          <p className="font-medium mb-1">Цель:</p>
-          <p>{exercise <= 4 ? 'Поставьте детский мат.' :
-          exercise >= 5 ? 'Защититесь от детского мата.' : ''}</p>
         </div>
 
         {/* Mobile exercise pills */}
