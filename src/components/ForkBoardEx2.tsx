@@ -158,6 +158,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           const autoCap = getBlackAutoCapture(g);
           if (autoCap) {
             g.move({ from: autoCap.from, to: autoCap.to });
+            setLastMove({ from: autoCap.from, to: autoCap.to });
           }
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);
@@ -174,9 +175,11 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           const blackMove = getBlackKingMove(g);
           if (blackMove) {
             g.move({ from: blackMove.from, to: blackMove.to });
+          setLastMove({ from: blackMove.from, to: blackMove.to });
             const autoCap = getBlackAutoCapture(g);
             if (autoCap) {
               g.move({ from: autoCap.from, to: autoCap.to });
+          setLastMove({ from: autoCap.from, to: autoCap.to });
               setGame(new Chess(g.fen()));
               setIsFail(true);
               setMessage('Провалено');
@@ -193,6 +196,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           const autoCap = getBlackAutoCapture(g);
           if (autoCap) {
             g.move({ from: autoCap.from, to: autoCap.to });
+        setLastMove({ from: autoCap.from, to: autoCap.to });
           }
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);

@@ -32,6 +32,7 @@ function handleFailWithWhiteCapture(
   setIsFailFn: (v: boolean) => void,
   setMessageFn: (msg: string) => void,
   setSelectedSquareFn: (sq: string | null) => void,
+  setLastMoveFn: (m: { from: string; to: string } | null) => void,
   mountedRef: React.RefObject<boolean>
 ) {
   const cap = findSafeWhiteCapture(g);
@@ -39,6 +40,7 @@ function handleFailWithWhiteCapture(
     setTimeout(() => {
       if (!mountedRef.current) return;
       g.move({ from: cap.from, to: cap.to });
+      setLastMoveFn({ from: cap.from, to: cap.to });
       setGameFn(new Chess(g.fen()));
       setTimeout(() => {
         if (mountedRef.current) { setIsFailFn(true); setMessageFn('Провалено'); }
@@ -148,6 +150,7 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
         if (!mountedRef.current) return;
         const g = game;
         g.move({ from: 'e2', to: 'e4' });
+        setLastMove({ from: 'e2', to: 'e4' });
         setGame(new Chess(g.fen()));
       }, 1000);
     }
@@ -182,6 +185,7 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
     setTimeout(() => {
       if (!mountedRef.current) return;
       g.move({ from: 'e2', to: 'e4' });
+  setLastMove({ from: 'e2', to: 'e4' });
       setGame(new Chess(g.fen()));
       autoStartedRef.current = true;
     }, 1000);
@@ -224,11 +228,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'g1', to: 'f3' });
+            setLastMove({ from: 'g1', to: 'f3' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -240,11 +245,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'f1', to: 'c4' });
+            setLastMove({ from: 'f1', to: 'c4' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -256,11 +262,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'd2', to: 'd3' });
+          setLastMove({ from: 'd2', to: 'd3' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -272,11 +279,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'b1', to: 'c3' });
+        setLastMove({ from: 'b1', to: 'c3' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -288,11 +296,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'e1', to: 'g1' });
+            setLastMove({ from: 'e1', to: 'g1' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -304,11 +313,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'c1', to: 'g5' });
+            setLastMove({ from: 'c1', to: 'g5' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -322,7 +332,7 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             saveStars(1, 3);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -350,11 +360,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'g1', to: 'f3' });
+          setLastMove({ from: 'g1', to: 'f3' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -368,11 +379,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'f1', to: 'c4' });
+            setLastMove({ from: 'f1', to: 'c4' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -386,11 +398,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'd2', to: 'd3' });
+            setLastMove({ from: 'd2', to: 'd3' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -402,13 +415,13 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             (from === 'c8' && to === 'g4' && move.piece === 'b')
           );
           if (!isAllowed) {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
           const expectedCount = blackMoves - 2;
           const actualCount = countFreeMoves(g);
           if (actualCount !== expectedCount) {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
           setGame(new Chess(g.fen()));
@@ -419,10 +432,13 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             if (!mountedRef.current) return;
             if (blackMoves === 3) {
               g.move({ from: 'b1', to: 'c3' });
+      setLastMove({ from: 'b1', to: 'c3' });
             } else if (blackMoves === 4) {
               g.move({ from: 'e1', to: 'g1' });
+setLastMove({ from: 'e1', to: 'g1' });
             } else {
               g.move({ from: 'c1', to: 'g5' });
+            setLastMove({ from: 'c1', to: 'g5' });
             }
             setGame(new Chess(g.fen()));
           }, 1000);
@@ -439,7 +455,7 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             saveStars(2, 3);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -456,11 +472,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'g1', to: 'f3' });
+    setLastMove({ from: 'g1', to: 'f3' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -473,11 +490,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'f1', to: 'c4' });
+              setLastMove({ from: 'f1', to: 'c4' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -490,11 +508,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'd2', to: 'd3' });
+            setLastMove({ from: 'd2', to: 'd3' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -507,11 +526,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'b1', to: 'c3' });
+            setLastMove({ from: 'b1', to: 'c3' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -524,11 +544,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'e1', to: 'g1' });
+            setLastMove({ from: 'e1', to: 'g1' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -541,11 +562,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'c1', to: 'g5' });
+ setLastMove({ from: 'c1', to: 'g5' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -558,11 +580,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'c3', to: 'd5' });
+            setLastMove({ from: 'c3', to: 'd5' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -575,11 +598,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'g2', to: 'f3' });
+          setLastMove({ from: 'g2', to: 'f3' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -592,11 +616,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'd5', to: 'f6' });
+        setLastMove({ from: 'd5', to: 'f6' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -609,11 +634,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'g5', to: 'h4' });
+            setLastMove({ from: 'g5', to: 'h4' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -626,11 +652,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'h4', to: 'd8' });
+            setLastMove({ from: 'h4', to: 'd8' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -643,11 +670,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'g1', to: 'h1' });
+          setLastMove({ from: 'g1', to: 'h1' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -660,11 +688,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'h1', to: 'g1' });
+              setLastMove({ from: 'h1', to: 'g1' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -677,11 +706,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'd8', to: 'g5' });
+          setLastMove({ from: 'd8', to: 'g5' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -694,7 +724,7 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             saveStars(3, 3);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -724,11 +754,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'g1', to: 'f3' });
+            setLastMove({ from: 'g1', to: 'f3' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -741,11 +772,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'f1', to: 'c4' });
+          setLastMove({ from: 'f1', to: 'c4' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -758,11 +790,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'd2', to: 'd3' });
+            setLastMove({ from: 'd2', to: 'd3' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -773,13 +806,13 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             (from === 'c8' && to === 'g4' && move.piece === 'b')
           );
           if (!isAllowed) {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
           const expectedCount = blackMoves - 2;
           const actualCount = countFreeMovesEx4(g);
           if (actualCount !== expectedCount) {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
           setGame(new Chess(g.fen()));
@@ -790,10 +823,13 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             if (!mountedRef.current) return;
             if (blackMoves === 3) {
               g.move({ from: 'b1', to: 'c3' });
+            setLastMove({ from: 'b1', to: 'c3' });
             } else if (blackMoves === 4) {
               g.move({ from: 'e1', to: 'g1' });
+            setLastMove({ from: 'e1', to: 'g1' });
             } else {
               g.move({ from: 'c1', to: 'g5' });
+     setLastMove({ from: 'c1', to: 'g5' });
             }
             setGame(new Chess(g.fen()));
           }, 1000);
@@ -808,11 +844,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'c3', to: 'd5' });
+            setLastMove({ from: 'c3', to: 'd5' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -825,11 +862,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'g2', to: 'f3' });
+        setLastMove({ from: 'g2', to: 'f3' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -842,11 +880,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'd5', to: 'f6' });
+          setLastMove({ from: 'd5', to: 'f6' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -859,11 +898,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'g5', to: 'h4' });
+        setLastMove({ from: 'g5', to: 'h4' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -876,11 +916,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'h4', to: 'd8' });
+     setLastMove({ from: 'h4', to: 'd8' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -893,11 +934,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'g1', to: 'h1' });
+            setLastMove({ from: 'g1', to: 'h1' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -910,11 +952,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'h1', to: 'g1' });
+    setLastMove({ from: 'h1', to: 'g1' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -927,11 +970,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'd8', to: 'g5' });
+              setLastMove({ from: 'd8', to: 'g5' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -944,7 +988,7 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             saveStars(4, 3);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -959,11 +1003,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'g1', to: 'f3' });
+            setLastMove({ from: 'g1', to: 'f3' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -975,11 +1020,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'f1', to: 'c4' });
+           setLastMove({ from: 'f1', to: 'c4' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -991,11 +1037,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'd2', to: 'd3' });
+            setLastMove({ from: 'd2', to: 'd3' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -1006,12 +1053,13 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'b1', to: 'c3' }); // Nc3
+              g.move({ from: 'b1', to: 'c3' });
+        setLastMove({ from: 'b1', to: 'c3' }); // Nc3
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -1023,11 +1071,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'h2', to: 'h3' });
+            setLastMove({ from: 'h2', to: 'h3' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -1038,12 +1087,13 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'e1', to: 'g1' }); // O-O
+              g.move({ from: 'e1', to: 'g1' });
+            setLastMove({ from: 'e1', to: 'g1' }); // O-O
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -1054,12 +1104,13 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'f3', to: 'd2' }); // Nfd2
+              g.move({ from: 'f3', to: 'd2' });
+            setLastMove({ from: 'f3', to: 'd2' }); // Nfd2
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -1071,11 +1122,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'h3', to: 'h4' });
+            setLastMove({ from: 'h3', to: 'h4' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -1086,12 +1138,13 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'g1', to: 'h1' }); // Kh1
+              g.move({ from: 'g1', to: 'h1' });
+              setLastMove({ from: 'g1', to: 'h1' }); // Kh1
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -1102,12 +1155,13 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'd2', to: 'f3' }); // Ndf3
+              g.move({ from: 'd2', to: 'f3' });
+            setLastMove({ from: 'd2', to: 'f3' }); // Ndf3
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -1118,12 +1172,13 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'c3', to: 'e2' }); // Ne2
+              g.move({ from: 'c3', to: 'e2' });
+              setLastMove({ from: 'c3', to: 'e2' }); // Ne2
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -1134,12 +1189,13 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'f3', to: 'h2' }); // Nxh2
+              g.move({ from: 'f3', to: 'h2' });
+              setLastMove({ from: 'f3', to: 'h2' }); // Nxh2
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -1150,12 +1206,13 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'e2', to: 'g3' }); // Nxg3
+              g.move({ from: 'e2', to: 'g3' });
+            setLastMove({ from: 'e2', to: 'g3' }); // Nxg3
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -1166,12 +1223,13 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'd1', to: 'f3' }); // Qf3
+              g.move({ from: 'd1', to: 'f3' });
+            setLastMove({ from: 'd1', to: 'f3' }); // Qf3
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -1184,7 +1242,7 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             saveStars(5, 3);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -1213,11 +1271,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'g1', to: 'f3' });
+              setLastMove({ from: 'g1', to: 'f3' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -1230,11 +1289,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'f1', to: 'c4' });
+              setLastMove({ from: 'f1', to: 'c4' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -1247,11 +1307,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'd2', to: 'd3' });
+            setLastMove({ from: 'd2', to: 'd3' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -1261,13 +1322,13 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             (from === 'g8' && to === 'f6' && move.piece === 'n')
           );
           if (!isAllowed) {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
           const expectedCount = blackMoves - 2;
           const actualCount = countFreeMovesEx6(g);
           if (actualCount !== expectedCount) {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
           setGame(new Chess(g.fen()));
@@ -1278,8 +1339,10 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             if (!mountedRef.current) return;
             if (blackMoves === 3) {
               g.move({ from: 'b1', to: 'c3' });
+            setLastMove({ from: 'b1', to: 'c3' });
             } else {
               g.move({ from: 'h2', to: 'h3' });
+            setLastMove({ from: 'h2', to: 'h3' });
             }
             setGame(new Chess(g.fen()));
           }, 1000);
@@ -1293,12 +1356,13 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setPostMoveHint('Отлично! Готовим пешечный штурм.');
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'e1', to: 'g1' }); // O-O
+              g.move({ from: 'e1', to: 'g1' });
+          setLastMove({ from: 'e1', to: 'g1' }); // O-O
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -1310,12 +1374,13 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setPostMoveHint('Отлично! Начинаем пешечный штурм!');
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'f3', to: 'd2' }); // Nfd2
+              g.move({ from: 'f3', to: 'd2' });
+      setLastMove({ from: 'f3', to: 'd2' }); // Nfd2
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -1328,11 +1393,12 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setTimeout(() => {
               if (!mountedRef.current) return;
               g.move({ from: 'h3', to: 'h4' });
+            setLastMove({ from: 'h3', to: 'h4' });
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -1344,12 +1410,13 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setPostMoveHint('Отлично! Прорыв пешками!');
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'g1', to: 'h1' }); // Kh1
+              g.move({ from: 'g1', to: 'h1' });
+            setLastMove({ from: 'g1', to: 'h1' }); // Kh1
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -1361,12 +1428,13 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setPostMoveHint('Отлично! Слон врывается в позицию!');
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'd2', to: 'f3' }); // Ndf3
+              g.move({ from: 'd2', to: 'f3' });
+  setLastMove({ from: 'd2', to: 'f3' }); // Ndf3
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -1378,12 +1446,13 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setPostMoveHint('Отлично! Конь прорывается!');
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'c3', to: 'e2' }); // Ne2
+              g.move({ from: 'c3', to: 'e2' });
+            setLastMove({ from: 'c3', to: 'e2' }); // Ne2
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -1395,12 +1464,13 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setPostMoveHint('Отлично! Конь врывается на h2!');
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'f3', to: 'h2' }); // Nxh2
+              g.move({ from: 'f3', to: 'h2' });
+            setLastMove({ from: 'f3', to: 'h2' }); // Nxh2
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -1412,12 +1482,13 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setPostMoveHint('Отлично! Ферзь выходит на атаку!');
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'e2', to: 'g3' }); // Nxg3
+              g.move({ from: 'e2', to: 'g3' });
+     setLastMove({ from: 'e2', to: 'g3' }); // Nxg3
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -1429,12 +1500,13 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setPostMoveHint('Отлично! Слон забирает на g3!');
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'd1', to: 'f3' }); // Qf3
+              g.move({ from: 'd1', to: 'f3' });
+   setLastMove({ from: 'd1', to: 'f3' }); // Qf3
               setGame(new Chess(g.fen()));
             }, 1000);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }
@@ -1447,7 +1519,7 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             saveStars(6, 3);
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
             return;
           }
         }

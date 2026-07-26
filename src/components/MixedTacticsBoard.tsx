@@ -223,6 +223,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
               const cap = getBestBlackCapture(g);
               if (cap) {
                 g.move({ from: cap.from, to: cap.to });
+                setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
               }
               setIsFail(true);
@@ -243,9 +244,11 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             if (preferred.length > 0) {
               const km = preferred[Math.floor(Math.random() * preferred.length)];
               g.move({ from: km.from, to: km.to });
+              setLastMove({ from: km.from, to: km.to });
             } else if (kingMoves.length > 0) {
               const km = kingMoves[Math.floor(Math.random() * kingMoves.length)];
               g.move({ from: km.from, to: km.to });
+            setLastMove({ from: km.from, to: km.to });
             }
             setGame(new Chess(g.fen()));
           }, 1000);
@@ -281,6 +284,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
               const cap = getBestBlackCapture(g);
               if (cap) {
                 g.move({ from: cap.from, to: cap.to });
+          setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
               }
               setIsFail(true);
@@ -300,9 +304,11 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             const kingToB7 = kingMoves.find((m: any) => m.to === 'b7');
             if (kingToB7) {
               g.move({ from: kingToB7.from, to: kingToB7.to });
+            setLastMove({ from: kingToB7.from, to: kingToB7.to });
             } else if (kingMoves.length > 0) {
               const km = kingMoves[Math.floor(Math.random() * kingMoves.length)];
               g.move({ from: km.from, to: km.to });
+       setLastMove({ from: km.from, to: km.to });
             }
             setGame(new Chess(g.fen()));
           }, 1000);
@@ -330,9 +336,11 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             const escape = kingMoves.find((m: any) => preferred.includes(m.to));
             if (escape) {
               g.move({ from: escape.from, to: escape.to });
+       setLastMove({ from: escape.from, to: escape.to });
             } else if (kingMoves.length > 0) {
               const km = kingMoves[Math.floor(Math.random() * kingMoves.length)];
               g.move({ from: km.from, to: km.to });
+         setLastMove({ from: km.from, to: km.to });
             }
             setGame(new Chess(g.fen()));
           }, 1000);
@@ -367,6 +375,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
               const cap = getBestBlackCapture(g);
               if (cap) {
                 g.move({ from: cap.from, to: cap.to });
+        setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
               }
               setIsFail(true);
@@ -387,9 +396,11 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             const escape = queenMoves.find((m: any) => preferred.includes(m.to));
             if (escape) {
               g.move({ from: escape.from, to: escape.to });
+ setLastMove({ from: escape.from, to: escape.to });
             } else if (queenMoves.length > 0) {
               const qm = queenMoves[Math.floor(Math.random() * queenMoves.length)];
               g.move({ from: qm.from, to: qm.to });
+            setLastMove({ from: qm.from, to: qm.to });
             }
             setGame(new Chess(g.fen()));
           }, 1000);
@@ -424,6 +435,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
               const cap = getBestBlackCapture(g);
               if (cap) {
                 g.move({ from: cap.from, to: cap.to });
+          setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
               }
               setIsFail(true);
@@ -442,6 +454,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             const pawnMove = g.moves({ verbose: true }).find((m: any) => m.color === 'b' && m.piece === 'p' && m.from === 'g7' && m.to === 'g6');
             if (pawnMove) {
               g.move({ from: pawnMove.from, to: pawnMove.to });
+          setLastMove({ from: pawnMove.from, to: pawnMove.to });
             }
             setGame(new Chess(g.fen()));
           }, 1000);
@@ -476,6 +489,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
               const cap = getBestBlackCapture(g);
               if (cap) {
                 g.move({ from: cap.from, to: cap.to });
+        setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
               }
               setIsFail(true);
@@ -494,6 +508,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             const kingCap = g.moves({ verbose: true }).find((m: any) => m.color === 'b' && m.piece === 'k' && m.to === 'h7');
             if (kingCap) {
               g.move({ from: kingCap.from, to: kingCap.to });
+        setLastMove({ from: kingCap.from, to: kingCap.to });
               setGame(new Chess(g.fen()));
             }
           }, 1000);
@@ -528,6 +543,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
               const cap = getBestBlackCapture(g);
               if (cap) {
                 g.move({ from: cap.from, to: cap.to });
+            setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
               }
               setIsFail(true);
@@ -548,9 +564,11 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             const escape = kingMoves.find((m: any) => preferred.includes(m.to));
             if (escape) {
               g.move({ from: escape.from, to: escape.to });
+     setLastMove({ from: escape.from, to: escape.to });
             } else if (kingMoves.length > 0) {
               const km = kingMoves[Math.floor(Math.random() * kingMoves.length)];
               g.move({ from: km.from, to: km.to });
+      setLastMove({ from: km.from, to: km.to });
             }
             setGame(new Chess(g.fen()));
           }, 1000);
@@ -585,6 +603,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
               const cap = getBestBlackCapture(g);
               if (cap) {
                 g.move({ from: cap.from, to: cap.to });
+            setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
               }
               setIsFail(true);
@@ -604,9 +623,11 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             const kingToG8 = kingMoves.find((m: any) => m.to === 'g8');
             if (kingToG8) {
               g.move({ from: kingToG8.from, to: kingToG8.to });
+        setLastMove({ from: kingToG8.from, to: kingToG8.to });
             } else if (kingMoves.length > 0) {
               const km = kingMoves[Math.floor(Math.random() * kingMoves.length)];
               g.move({ from: km.from, to: km.to });
+              setLastMove({ from: km.from, to: km.to });
             }
             setGame(new Chess(g.fen()));
           }, 1000);
@@ -641,6 +662,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
               const cap = getBestBlackCapture(g);
               if (cap) {
                 g.move({ from: cap.from, to: cap.to });
+              setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
               }
               setIsFail(true);
@@ -659,6 +681,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             const pawnCap = g.moves({ verbose: true }).find((m: any) => m.color === 'b' && m.piece === 'p' && m.from === 'g7' && m.to === 'f6');
             if (pawnCap) {
               g.move({ from: pawnCap.from, to: pawnCap.to });
+          setLastMove({ from: pawnCap.from, to: pawnCap.to });
               setGame(new Chess(g.fen()));
             }
           }, 1000);
@@ -695,6 +718,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             const cap = getBestBlackCapture(g);
             if (cap) {
               g.move({ from: cap.from, to: cap.to });
+            setLastMove({ from: cap.from, to: cap.to });
               setGame(new Chess(g.fen()));
             }
             setIsFail(true);
@@ -715,6 +739,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
               const cap = getBestBlackCapture(g);
               if (cap) {
                 g.move({ from: cap.from, to: cap.to });
+        setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
               }
               setIsFail(true);
@@ -735,9 +760,11 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             const escape = kingMoves.find((m: any) => preferred.includes(m.to));
             if (escape) {
               g.move({ from: escape.from, to: escape.to });
+      setLastMove({ from: escape.from, to: escape.to });
             } else if (kingMoves.length > 0) {
               const km = kingMoves[Math.floor(Math.random() * kingMoves.length)];
               g.move({ from: km.from, to: km.to });
+        setLastMove({ from: km.from, to: km.to });
             }
             setGame(new Chess(g.fen()));
           }, 1000);
@@ -772,6 +799,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
               const cap = getBestBlackCapture(g);
               if (cap) {
                 g.move({ from: cap.from, to: cap.to });
+            setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
               }
               setIsFail(true);
@@ -791,9 +819,11 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             const kingToF8 = kingMoves.find((m: any) => m.to === 'f8');
             if (kingToF8) {
               g.move({ from: kingToF8.from, to: kingToF8.to });
+         setLastMove({ from: kingToF8.from, to: kingToF8.to });
             } else if (kingMoves.length > 0) {
               const km = kingMoves[Math.floor(Math.random() * kingMoves.length)];
               g.move({ from: km.from, to: km.to });
+          setLastMove({ from: km.from, to: km.to });
             }
             setGame(new Chess(g.fen()));
           }, 1000);
@@ -830,6 +860,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             const cap = getBestBlackCapture(g);
             if (cap) {
               g.move({ from: cap.from, to: cap.to });
+          setLastMove({ from: cap.from, to: cap.to });
               setGame(new Chess(g.fen()));
             }
             setIsFail(true);

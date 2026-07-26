@@ -285,6 +285,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
               const safeEscape = getBlackSafeBishopEscape(g);
               if (safeEscape) {
                 g.move({ from: safeEscape.from, to: safeEscape.to });
+                setLastMove({ from: safeEscape.from, to: safeEscape.to });
                 setGame(new Chess(g.fen()));
               }
               setIsFail(true);
@@ -305,6 +306,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             if (blackMoves.length > 0) {
               const kingMove = blackMoves[Math.floor(Math.random() * blackMoves.length)];
               g.move({ from: kingMove.from, to: kingMove.to });
+              setLastMove({ from: kingMove.from, to: kingMove.to });
               setGame(new Chess(g.fen()));
             }
           }, 1000);
@@ -316,7 +318,10 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
         if (whiteMoves === 1) {
           if (!isCorrectSecond) {
             const safeCap = getBlackSafeCapture(g);
-            if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+            if (safeCap) {
+  g.move({ from: safeCap.from, to: safeCap.to });
+  setLastMove({ from: safeCap.from, to: safeCap.to });
+}
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -344,6 +349,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
               if (blackKingMoves.length > 0) {
                 const kingMove = blackKingMoves[Math.floor(Math.random() * blackKingMoves.length)];
                 g.move({ from: kingMove.from, to: kingMove.to });
+              setLastMove({ from: kingMove.from, to: kingMove.to });
                 setGame(new Chess(g.fen()));
               }
               setIsFail(true);
@@ -364,6 +370,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             if (kingMoves.length > 0) {
               const kingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
               g.move({ from: kingMove.from, to: kingMove.to });
+            setLastMove({ from: kingMove.from, to: kingMove.to });
               setGame(new Chess(g.fen()));
             }
           }, 1000);
@@ -375,7 +382,10 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
         if (whiteMoves === 1) {
           if (!isCorrectSecond) {
             const safeCap = getBlackSafeCapture(g);
-            if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+            if (safeCap) {
+            g.move({ from: safeCap.from, to: safeCap.to });
+            setLastMove({ from: safeCap.from, to: safeCap.to });
+          }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -402,6 +412,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
               setTimeout(() => {
                 if (!mountedRef.current) return;
                 g.move({ from: safeCap.from, to: safeCap.to });
+        setLastMove({ from: safeCap.from, to: safeCap.to });
                 setGame(new Chess(g.fen()));
                 setIsFail(true);
                 setMessage('Провалено');
@@ -426,6 +437,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             const queenCap = g.moves({ verbose: true }).find((m: any) => m.color === 'b' && m.piece === 'q' && m.to === 'c4');
             if (queenCap) {
               g.move({ from: queenCap.from, to: queenCap.to });
+     setLastMove({ from: queenCap.from, to: queenCap.to });
               setGame(new Chess(g.fen()));
             }
           }, 1000);
@@ -464,10 +476,12 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
               if (pawnCaptures.length > 0) {
                 const cap = pawnCaptures[0];
                 g.move({ from: cap.from, to: cap.to });
+        setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
               } else if (blackMoves.length > 0) {
                 const randomMove = blackMoves[Math.floor(Math.random() * blackMoves.length)];
                 g.move({ from: randomMove.from, to: randomMove.to });
+              setLastMove({ from: randomMove.from, to: randomMove.to });
                 setGame(new Chess(g.fen()));
               }
               setIsFail(true);
@@ -490,6 +504,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             if (blackMoves.length > 0) {
               const randomMove = blackMoves[Math.floor(Math.random() * blackMoves.length)];
               g.move({ from: randomMove.from, to: randomMove.to });
+          setLastMove({ from: randomMove.from, to: randomMove.to });
               setGame(new Chess(g.fen()));
             }
           }, 1000);
@@ -522,7 +537,10 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             setTimeout(() => {
               if (!mountedRef.current) return;
               const safeCap = getBlackSafeCapture(g);
-              if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+              if (safeCap) {
+            g.move({ from: safeCap.from, to: safeCap.to });
+            setLastMove({ from: safeCap.from, to: safeCap.to });
+          }
               setGame(new Chess(g.fen()));
               setIsFail(true);
               setMessage('Провалено');
@@ -541,9 +559,11 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             const kingToF6 = kingMoves.find((m: any) => m.to === 'f6');
             if (kingToF6) {
               g.move({ from: kingToF6.from, to: kingToF6.to });
+          setLastMove({ from: kingToF6.from, to: kingToF6.to });
             } else if (kingMoves.length > 0) {
               const randomKingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
               g.move({ from: randomKingMove.from, to: randomKingMove.to });
+            setLastMove({ from: randomKingMove.from, to: randomKingMove.to });
             }
             setGame(new Chess(g.fen()));
             setWhiteMoves(nextWhiteMoves); // Update whiteMoves AFTER black responds
@@ -570,6 +590,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             if (blackMoves.length > 0) {
               const randomMove = blackMoves[Math.floor(Math.random() * blackMoves.length)];
               g.move({ from: randomMove.from, to: randomMove.to });
+            setLastMove({ from: randomMove.from, to: randomMove.to });
               setGame(new Chess(g.fen()));
             }
             setWhiteMoves(nextWhiteMoves); // Update whiteMoves AFTER black responds
@@ -607,7 +628,10 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             setTimeout(() => {
               if (!mountedRef.current) return;
               const safeCap = getBlackSafeCapture(g);
-              if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+              if (safeCap) {
+              g.move({ from: safeCap.from, to: safeCap.to });
+              setLastMove({ from: safeCap.from, to: safeCap.to });
+            }
               setGame(new Chess(g.fen()));
               setIsFail(true);
               setMessage('Провалено');
@@ -624,9 +648,11 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             const kingToF7 = kingMoves.find((m: any) => m.to === 'f7');
             if (kingToF7) {
               g.move({ from: kingToF7.from, to: kingToF7.to });
+        setLastMove({ from: kingToF7.from, to: kingToF7.to });
             } else if (kingMoves.length > 0) {
               const randomKingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
               g.move({ from: randomKingMove.from, to: randomKingMove.to });
+  setLastMove({ from: randomKingMove.from, to: randomKingMove.to });
             }
             setGame(new Chess(g.fen()));
             setWhiteMoves(nextWhiteMoves);
@@ -652,6 +678,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             if (blackMoves.length > 0) {
               const randomMove = blackMoves[Math.floor(Math.random() * blackMoves.length)];
               g.move({ from: randomMove.from, to: randomMove.to });
+            setLastMove({ from: randomMove.from, to: randomMove.to });
               setGame(new Chess(g.fen()));
             }
             setWhiteMoves(nextWhiteMoves);
@@ -686,7 +713,10 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             setTimeout(() => {
               if (!mountedRef.current) return;
               const safeCap = getBlackSafeCapture(g);
-              if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+              if (safeCap) {
+              g.move({ from: safeCap.from, to: safeCap.to });
+              setLastMove({ from: safeCap.from, to: safeCap.to });
+            }
               setGame(new Chess(g.fen()));
               setIsFail(true);
               setMessage('Провалено');
@@ -704,6 +734,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             if (blackMoves.length > 0) {
               const randomMove = blackMoves[Math.floor(Math.random() * blackMoves.length)];
               g.move({ from: randomMove.from, to: randomMove.to });
+        setLastMove({ from: randomMove.from, to: randomMove.to });
               setGame(new Chess(g.fen()));
             }
             setWhiteMoves(nextWhiteMoves);
@@ -739,7 +770,10 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             setTimeout(() => {
               if (!mountedRef.current) return;
               const safeCap = getBlackSafeCapture(g);
-              if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+              if (safeCap) {
+                g.move({ from: safeCap.from, to: safeCap.to });
+                setLastMove({ from: safeCap.from, to: safeCap.to });
+              }
               setGame(new Chess(g.fen()));
               setIsFail(true);
               setMessage('Провалено');
@@ -759,9 +793,11 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             const rookToD8 = rookMoves.find((m: any) => m.to === 'd8');
             if (rookToD8) {
               g.move({ from: rookToD8.from, to: rookToD8.to });
+        setLastMove({ from: rookToD8.from, to: rookToD8.to });
             } else if (rookMoves.length > 0) {
               const rookMove = rookMoves[Math.floor(Math.random() * rookMoves.length)];
               g.move({ from: rookMove.from, to: rookMove.to });
+        setLastMove({ from: rookMove.from, to: rookMove.to });
             }
             setGame(new Chess(g.fen()));
           }, 1000);
@@ -778,6 +814,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
               const rookCap = g.moves({ verbose: true }).find((m: any) => m.color === 'b' && m.piece === 'r' && m.to === 'd5');
               if (rookCap) {
                 g.move({ from: rookCap.from, to: rookCap.to });
+         setLastMove({ from: rookCap.from, to: rookCap.to });
                 setGame(new Chess(g.fen()));
               }
               setIsFail(true);
@@ -805,9 +842,11 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             const preferred = kingMoves.find((m: any) => preferredKingSquares.includes(m.to));
             if (preferred) {
               g.move({ from: preferred.from, to: preferred.to });
+          setLastMove({ from: preferred.from, to: preferred.to });
             } else if (kingMoves.length > 0) {
               const kingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
               g.move({ from: kingMove.from, to: kingMove.to });
+          setLastMove({ from: kingMove.from, to: kingMove.to });
             }
             setGame(new Chess(g.fen()));
           }, 1000);
@@ -840,7 +879,10 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             setTimeout(() => {
               if (!mountedRef.current) return;
               const safeCap = getBlackSafeCapture(g);
-              if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+              if (safeCap) {
+              g.move({ from: safeCap.from, to: safeCap.to });
+              setLastMove({ from: safeCap.from, to: safeCap.to });
+            }
               setGame(new Chess(g.fen()));
               setIsFail(true);
               setMessage('Провалено');
@@ -860,11 +902,13 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             const queenToB5 = queenMoves.find((m: any) => m.to === 'b5');
             if (queenToB5) {
               g.move({ from: queenToB5.from, to: queenToB5.to });
+        setLastMove({ from: queenToB5.from, to: queenToB5.to });
             } else {
               const captures = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.captured);
               if (captures.length > 0) {
                 const cap = captures[0];
                 g.move({ from: cap.from, to: cap.to });
+ setLastMove({ from: cap.from, to: cap.to });
               }
             }
             setGame(new Chess(g.fen()));
@@ -898,7 +942,10 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             setTimeout(() => {
               if (!mountedRef.current) return;
               const safeCap = getBlackSafeCapture(g);
-              if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+              if (safeCap) {
+            g.move({ from: safeCap.from, to: safeCap.to });
+            setLastMove({ from: safeCap.from, to: safeCap.to });
+          }
               setGame(new Chess(g.fen()));
               setIsFail(true);
               setMessage('Провалено');
@@ -937,7 +984,10 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             setTimeout(() => {
               if (!mountedRef.current) return;
               const safeCap = getBlackSafeCapture(g);
-              if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+              if (safeCap) {
+            g.move({ from: safeCap.from, to: safeCap.to });
+            setLastMove({ from: safeCap.from, to: safeCap.to });
+          }
               setGame(new Chess(g.fen()));
               setIsFail(true);
               setMessage('Провалено');
@@ -977,6 +1027,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
               const rookCap = g.moves({ verbose: true }).find((m: any) => m.color === 'b' && m.piece === 'r' && m.to === 'b7');
               if (rookCap) {
                 g.move({ from: rookCap.from, to: rookCap.to });
+         setLastMove({ from: rookCap.from, to: rookCap.to });
                 setGame(new Chess(g.fen()));
               }
               setIsFail(true);
@@ -993,6 +1044,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
               const rookCap = g.moves({ verbose: true }).find((m: any) => m.color === 'b' && m.piece === 'r' && m.to === 'b7');
               if (rookCap) {
                 g.move({ from: rookCap.from, to: rookCap.to });
+          setLastMove({ from: rookCap.from, to: rookCap.to });
                 setGame(new Chess(g.fen()));
               }
               setIsFail(true);
@@ -1006,7 +1058,10 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             setTimeout(() => {
               if (!mountedRef.current) return;
               const safeCap = getBlackSafeCapture(g);
-              if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+              if (safeCap) {
+              g.move({ from: safeCap.from, to: safeCap.to });
+              setLastMove({ from: safeCap.from, to: safeCap.to });
+            }
               setGame(new Chess(g.fen()));
               setIsFail(true);
               setMessage('Провалено');

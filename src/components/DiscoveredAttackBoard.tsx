@@ -216,9 +216,11 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
             const kingToC4 = kingMoves.find((m: any) => m.to === 'c4');
             if (kingToC4) {
               g.move({ from: kingToC4.from, to: kingToC4.to });
+              setLastMove({ from: kingToC4.from, to: kingToC4.to });
             } else if (kingMoves.length > 0) {
               const kingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
               g.move({ from: kingMove.from, to: kingMove.to });
+              setLastMove({ from: kingMove.from, to: kingMove.to });
             }
             setGame(new Chess(g.fen()));
             setWhiteMoves(nextWhiteMoves);
@@ -254,6 +256,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
               const cap = getBestBlackCapture(g);
               if (cap) {
                 g.move({ from: cap.from, to: cap.to });
+setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
               }
               setIsFail(true);
@@ -273,9 +276,11 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
             const preferred = kingMoves.find((m: any) => preferredKingSquares.includes(m.to));
             if (preferred) {
               g.move({ from: preferred.from, to: preferred.to });
+    setLastMove({ from: preferred.from, to: preferred.to });
             } else if (kingMoves.length > 0) {
               const kingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
               g.move({ from: kingMove.from, to: kingMove.to });
+              setLastMove({ from: kingMove.from, to: kingMove.to });
             }
             setGame(new Chess(g.fen()));
             setWhiteMoves(nextWhiteMoves);
@@ -310,6 +315,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
               const cap = getBestBlackCapture(g);
               if (cap) {
                 g.move({ from: cap.from, to: cap.to });
+        setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
               }
               setIsFail(true);
@@ -329,9 +335,11 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
             const preferred = rookMoves.find((m: any) => preferredRookSquares.includes(m.to));
             if (preferred) {
               g.move({ from: preferred.from, to: preferred.to });
+   setLastMove({ from: preferred.from, to: preferred.to });
             } else if (rookMoves.length > 0) {
               const rookMove = rookMoves[Math.floor(Math.random() * rookMoves.length)];
               g.move({ from: rookMove.from, to: rookMove.to });
+            setLastMove({ from: rookMove.from, to: rookMove.to });
             }
             setGame(new Chess(g.fen()));
             setWhiteMoves(nextWhiteMoves);
@@ -367,6 +375,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
               const cap = getBestBlackCapture(g);
               if (cap) {
                 g.move({ from: cap.from, to: cap.to });
+setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
               }
               setIsFail(true);
@@ -387,9 +396,11 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
               const preferred = kingMoves.find((m: any) => preferredKingSquares.includes(m.to));
               if (preferred) {
                 g.move({ from: preferred.from, to: preferred.to });
+  setLastMove({ from: preferred.from, to: preferred.to });
               } else if (kingMoves.length > 0) {
                 const kingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
                 g.move({ from: kingMove.from, to: kingMove.to });
+              setLastMove({ from: kingMove.from, to: kingMove.to });
               }
               setGame(new Chess(g.fen()));
               setWhiteMoves(nextWhiteMoves);
@@ -401,6 +412,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
               const pawnCaptures = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'p' && m.to === 'f6');
               if (pawnCaptures.length > 0) {
                 g.move({ from: pawnCaptures[0].from, to: pawnCaptures[0].to });
+                setLastMove({ from: pawnCaptures[0].from, to: pawnCaptures[0].to });
               }
               setGame(new Chess(g.fen()));
               setWhiteMoves(nextWhiteMoves);
@@ -436,6 +448,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
               const cap = getBestBlackCapture(g);
               if (cap) {
                 g.move({ from: cap.from, to: cap.to });
+          setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
               }
               setIsFail(true);
@@ -453,16 +466,19 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
             const rookCaptures = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'r' && m.to === 'f8');
             if (rookCaptures.length > 0) {
               g.move({ from: rookCaptures[0].from, to: rookCaptures[0].to });
+setLastMove({ from: rookCaptures[0].from, to: rookCaptures[0].to });
             } else {
               // Fallback: any black capture on f8
               const capturesOnF8 = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.captured && m.to === 'f8');
               if (capturesOnF8.length > 0) {
                 g.move({ from: capturesOnF8[0].from, to: capturesOnF8[0].to });
+          setLastMove({ from: capturesOnF8[0].from, to: capturesOnF8[0].to });
               } else {
                 // If no capture, just make any legal move
                 const anyBlackMove = g.moves({ verbose: true }).filter((m: any) => m.color === 'b');
                 if (anyBlackMove.length > 0) {
                   g.move({ from: anyBlackMove[0].from, to: anyBlackMove[0].to });
+            setLastMove({ from: anyBlackMove[0].from, to: anyBlackMove[0].to });
                 }
               }
             }
@@ -499,6 +515,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
               const cap = getBestBlackCapture(g);
               if (cap) {
                 g.move({ from: cap.from, to: cap.to });
+setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
               }
               setIsFail(true);
@@ -518,9 +535,11 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
             const preferred = rookMoves.find((m: any) => preferredRookSquares.includes(m.to));
             if (preferred) {
               g.move({ from: preferred.from, to: preferred.to });
+setLastMove({ from: preferred.from, to: preferred.to });
             } else if (rookMoves.length > 0) {
               const rookMove = rookMoves[Math.floor(Math.random() * rookMoves.length)];
               g.move({ from: rookMove.from, to: rookMove.to });
+        setLastMove({ from: rookMove.from, to: rookMove.to });
             }
             setGame(new Chess(g.fen()));
             setWhiteMoves(nextWhiteMoves);

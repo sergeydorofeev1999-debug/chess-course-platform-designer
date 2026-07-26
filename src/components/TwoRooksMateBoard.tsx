@@ -369,6 +369,7 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
         if (!prev) return null;
         const g = new Chess(prev.fen());
         g.move({ from: move.from, to: move.to });
+        setLastMove({ from: move.from, to: move.to });
         return g;
       });
       setDemoStep(s => s + 1);
@@ -441,6 +442,7 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
         const blackMove = getBlackKingMove(g);
         if (blackMove) {
           g.move({ from: blackMove.from, to: blackMove.to });
+        setLastMove({ from: blackMove.from, to: blackMove.to });
           const fenAfterBlack = g.fen();
           setGame(new Chess(fenAfterBlack));
 

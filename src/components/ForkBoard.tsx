@@ -297,7 +297,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
             const autoCap = getBlackAutoCapture(g);
-            if (autoCap) g.move({ from: autoCap.from, to: autoCap.to });
+            if (autoCap) {
+              g.move({ from: autoCap.from, to: autoCap.to });
+              setLastMove({ from: autoCap.from, to: autoCap.to });
+            }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -314,9 +317,11 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             const blackMove = getBlackKingMove(g);
             if (blackMove) {
               g.move({ from: blackMove.from, to: blackMove.to });
+            setLastMove({ from: blackMove.from, to: blackMove.to });
               const autoCap = getBlackAutoCapture(g);
               if (autoCap) {
                 g.move({ from: autoCap.from, to: autoCap.to });
+            setLastMove({ from: autoCap.from, to: autoCap.to });
                 setGame(new Chess(g.fen()));
                 setIsFail(true);
                 setMessage('Провалено');
@@ -331,7 +336,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         if (whiteMoves === 1) {
           if (!isCorrectSecond) {
             const autoCap = getBlackAutoCapture(g);
-            if (autoCap) g.move({ from: autoCap.from, to: autoCap.to });
+            if (autoCap) {
+        g.move({ from: autoCap.from, to: autoCap.to });
+        setLastMove({ from: autoCap.from, to: autoCap.to });
+      }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -353,7 +361,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
             const safeCap = getBlackSafeCapture(g);
-            if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+            if (safeCap) {
+          g.move({ from: safeCap.from, to: safeCap.to });
+          setLastMove({ from: safeCap.from, to: safeCap.to });
+        }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -370,10 +381,12 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             const blackMove = getBlackKingMove(g);
             if (blackMove) {
               g.move({ from: blackMove.from, to: blackMove.to });
+          setLastMove({ from: blackMove.from, to: blackMove.to });
               // Auto-capture check: if black can capture any white piece safely
               const autoCap = getBlackAutoCaptureAny(g);
               if (autoCap) {
                 g.move({ from: autoCap.from, to: autoCap.to });
+          setLastMove({ from: autoCap.from, to: autoCap.to });
                 setGame(new Chess(g.fen()));
                 setIsFail(true);
                 setMessage('Провалено');
@@ -388,7 +401,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         if (whiteMoves === 1) {
           if (!isCorrectSecond) {
             const safeCap = getBlackSafeCapture(g);
-            if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+            if (safeCap) {
+            g.move({ from: safeCap.from, to: safeCap.to });
+            setLastMove({ from: safeCap.from, to: safeCap.to });
+          }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -410,7 +426,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
             const safeCap = getBlackSafeCapture(g);
-            if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+            if (safeCap) {
+            g.move({ from: safeCap.from, to: safeCap.to });
+            setLastMove({ from: safeCap.from, to: safeCap.to });
+          }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -427,9 +446,11 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             const blackMove = getBlackKingMove(g);
             if (blackMove) {
               g.move({ from: blackMove.from, to: blackMove.to });
+            setLastMove({ from: blackMove.from, to: blackMove.to });
               const autoCap = getBlackSafeCapture(g);
               if (autoCap) {
                 g.move({ from: autoCap.from, to: autoCap.to });
+            setLastMove({ from: autoCap.from, to: autoCap.to });
                 setGame(new Chess(g.fen()));
                 setIsFail(true);
                 setMessage('Провалено');
@@ -444,7 +465,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         if (whiteMoves === 1) {
           if (!isCorrectSecond) {
             const safeCap = getBlackSafeCapture(g);
-            if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+            if (safeCap) {
+                g.move({ from: safeCap.from, to: safeCap.to });
+                setLastMove({ from: safeCap.from, to: safeCap.to });
+              }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -466,7 +490,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
             const safeCap = getBlackSafeCapture(g);
-            if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+            if (safeCap) {
+           g.move({ from: safeCap.from, to: safeCap.to });
+           setLastMove({ from: safeCap.from, to: safeCap.to });
+         }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -496,6 +523,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             
             if (blackMove) {
               g.move({ from: blackMove.from, to: blackMove.to });
+    setLastMove({ from: blackMove.from, to: blackMove.to });
               setGame(new Chess(g.fen()));
             }
           }, 500);
@@ -505,7 +533,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         if (whiteMoves === 1) {
           if (!isCorrectSecond) {
             const safeCap = getBlackSafeCapture(g);
-            if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+            if (safeCap) {
+              g.move({ from: safeCap.from, to: safeCap.to });
+              setLastMove({ from: safeCap.from, to: safeCap.to });
+            }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -527,7 +558,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
             const safeCap = getBlackSafeCapture(g);
-            if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+            if (safeCap) {
+  g.move({ from: safeCap.from, to: safeCap.to });
+  setLastMove({ from: safeCap.from, to: safeCap.to });
+}
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -546,6 +580,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             const blackMove = nonQueenMoves.length > 0 ? nonQueenMoves[Math.floor(Math.random() * nonQueenMoves.length)] : blackMoves[Math.floor(Math.random() * blackMoves.length)];
             if (blackMove) {
               g.move({ from: blackMove.from, to: blackMove.to });
+        setLastMove({ from: blackMove.from, to: blackMove.to });
               setGame(new Chess(g.fen()));
             }
           }, 500);
@@ -555,7 +590,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         if (whiteMoves === 1) {
           if (!isCorrectSecond) {
             const safeCap = getBlackSafeCapture(g);
-            if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+            if (safeCap) {
+              g.move({ from: safeCap.from, to: safeCap.to });
+              setLastMove({ from: safeCap.from, to: safeCap.to });
+            }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -577,7 +615,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
             const safeCap = getBlackSafeCapture(g);
-            if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+            if (safeCap) {
+               g.move({ from: safeCap.from, to: safeCap.to });
+               setLastMove({ from: safeCap.from, to: safeCap.to });
+             }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -594,6 +635,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             const blackMove = getBlackKingMove(g);
             if (blackMove) {
               g.move({ from: blackMove.from, to: blackMove.to });
+          setLastMove({ from: blackMove.from, to: blackMove.to });
               setGame(new Chess(g.fen()));
             }
           }, 500);
@@ -603,7 +645,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         if (whiteMoves === 1) {
           if (!isCorrectSecond) {
             const safeCap = getBlackSafeCapture(g);
-            if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+            if (safeCap) {
+      g.move({ from: safeCap.from, to: safeCap.to });
+      setLastMove({ from: safeCap.from, to: safeCap.to });
+    }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -625,7 +670,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
             const safeCap = getBlackSafeCapture(g);
-            if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+            if (safeCap) {
+        g.move({ from: safeCap.from, to: safeCap.to });
+        setLastMove({ from: safeCap.from, to: safeCap.to });
+      }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -644,6 +692,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             const blackMove = nonQueenMoves.length > 0 ? nonQueenMoves[Math.floor(Math.random() * nonQueenMoves.length)] : blackMoves[Math.floor(Math.random() * blackMoves.length)];
             if (blackMove) {
               g.move({ from: blackMove.from, to: blackMove.to });
+       setLastMove({ from: blackMove.from, to: blackMove.to });
               setGame(new Chess(g.fen()));
             }
           }, 500);
@@ -653,7 +702,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         if (whiteMoves === 1) {
           if (!isCorrectSecond) {
             const safeCap = getBlackSafeCapture(g);
-            if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+            if (safeCap) {
+          g.move({ from: safeCap.from, to: safeCap.to });
+          setLastMove({ from: safeCap.from, to: safeCap.to });
+        }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -675,7 +727,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
             const safeCap = getBlackSafeCapture(g);
-            if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+            if (safeCap) {
+              g.move({ from: safeCap.from, to: safeCap.to });
+              setLastMove({ from: safeCap.from, to: safeCap.to });
+            }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -692,6 +747,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             const blackMove = getBlackKingMove(g);
             if (blackMove) {
               g.move({ from: blackMove.from, to: blackMove.to });
+         setLastMove({ from: blackMove.from, to: blackMove.to });
               setGame(new Chess(g.fen()));
             }
           }, 500);
@@ -701,7 +757,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         if (whiteMoves === 1) {
           if (!isCorrectSecond) {
             const safeCap = getBlackSafeCapture(g);
-            if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+            if (safeCap) {
+              g.move({ from: safeCap.from, to: safeCap.to });
+              setLastMove({ from: safeCap.from, to: safeCap.to });
+            }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -723,7 +782,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
             const safeCap = getBlackSafeCapture(g);
-            if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+            if (safeCap) {
+              g.move({ from: safeCap.from, to: safeCap.to });
+              setLastMove({ from: safeCap.from, to: safeCap.to });
+            }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -740,6 +802,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             const blackMove = getBlackKingMove(g);
             if (blackMove) {
               g.move({ from: blackMove.from, to: blackMove.to });
+         setLastMove({ from: blackMove.from, to: blackMove.to });
               setGame(new Chess(g.fen()));
             }
           }, 500);
@@ -749,7 +812,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         if (whiteMoves === 1) {
           if (!isCorrectSecond) {
             const safeCap = getBlackSafeCapture(g);
-            if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+            if (safeCap) {
+     g.move({ from: safeCap.from, to: safeCap.to });
+     setLastMove({ from: safeCap.from, to: safeCap.to });
+   }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -771,7 +837,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
             const safeCap = getBlackSafeCapture(g);
-            if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+            if (safeCap) {
+              g.move({ from: safeCap.from, to: safeCap.to });
+              setLastMove({ from: safeCap.from, to: safeCap.to });
+            }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -790,6 +859,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             const blackMove = nonQueenMoves.length > 0 ? nonQueenMoves[Math.floor(Math.random() * nonQueenMoves.length)] : blackMoves[Math.floor(Math.random() * blackMoves.length)];
             if (blackMove) {
               g.move({ from: blackMove.from, to: blackMove.to });
+     setLastMove({ from: blackMove.from, to: blackMove.to });
               setGame(new Chess(g.fen()));
             }
           }, 500);
@@ -799,7 +869,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         if (whiteMoves === 1) {
           if (!isCorrectSecond) {
             const safeCap = getBlackSafeCapture(g);
-            if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+            if (safeCap) {
+        g.move({ from: safeCap.from, to: safeCap.to });
+        setLastMove({ from: safeCap.from, to: safeCap.to });
+      }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -821,7 +894,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
             const safeCap = getBlackSafeCapture(g);
-            if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+            if (safeCap) {
+              g.move({ from: safeCap.from, to: safeCap.to });
+              setLastMove({ from: safeCap.from, to: safeCap.to });
+            }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -840,6 +916,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             const blackMove = nonQueenMoves.length > 0 ? nonQueenMoves[Math.floor(Math.random() * nonQueenMoves.length)] : blackMoves[Math.floor(Math.random() * blackMoves.length)];
             if (blackMove) {
               g.move({ from: blackMove.from, to: blackMove.to });
+     setLastMove({ from: blackMove.from, to: blackMove.to });
               setGame(new Chess(g.fen()));
             }
           }, 500);
@@ -849,7 +926,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         if (whiteMoves === 1) {
           if (!isCorrectSecond) {
             const safeCap = getBlackSafeCapture(g);
-            if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+            if (safeCap) {
+              g.move({ from: safeCap.from, to: safeCap.to });
+              setLastMove({ from: safeCap.from, to: safeCap.to });
+            }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -876,6 +956,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
               if (kingMoves.length > 0) {
                 const kingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
                 g.move({ from: kingMove.from, to: kingMove.to });
+  setLastMove({ from: kingMove.from, to: kingMove.to });
                 setGame(new Chess(g.fen()));
                 setSelectedSquare(null);
                 setIsFail(true);
@@ -884,7 +965,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
               }
             }
             const safeCap = getBlackSafeCapture(g);
-            if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+            if (safeCap) {
+              g.move({ from: safeCap.from, to: safeCap.to });
+              setLastMove({ from: safeCap.from, to: safeCap.to });
+            }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -899,6 +983,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           setTimeout(() => {
             if (!mountedRef.current) return;
             g.move({ from: 'f7', to: 'e7' });
+    setLastMove({ from: 'f7', to: 'e7' });
             setGame(new Chess(g.fen()));
           }, 500);
           return;
@@ -907,7 +992,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         if (whiteMoves === 1) {
           if (!isCorrectSecond) {
             const safeCap = getBlackSafeCapture(g);
-            if (safeCap) g.move({ from: safeCap.from, to: safeCap.to });
+            if (safeCap) {
+              g.move({ from: safeCap.from, to: safeCap.to });
+              setLastMove({ from: safeCap.from, to: safeCap.to });
+            }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
