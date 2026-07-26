@@ -133,6 +133,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
     setGame(new Chess(EXERCISE_FENS[exercise]));
     setSelectedSquare(null);
     setMessage('');
+    setLastMove(null);
     setHintVisible(false);
     setIsFail(false);
     setIsComplete(false);
@@ -158,6 +159,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
     setGame(new Chess(EXERCISE_FENS[num]));
     setSelectedSquare(null);
     setMessage('');
+    setLastMove(null);
     setIsFail(false);
     setIsComplete(false);
     setDragPiece(null);
@@ -207,7 +209,6 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
 
       const move = g.move({ from, to });
       if (!move) return;
-      setLastMove({ from, to });
       setLastMove({ from, to });
 
       if (validMoves.has(`${from},${to}`)) {
@@ -557,10 +558,10 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
                       <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
                     )}
                     {lastMove && sq === lastMove.from && (
-                      <div className="absolute inset-[1px] rounded-[5px] bg-[rgba(201,168,76,0.40)] pointer-events-none z-[5]" />
+                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
                     )}
                     {lastMove && sq === lastMove.to && (
-                      <div className="absolute inset-[1px] rounded-[5px] bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
+                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.70)] pointer-events-none z-[5]" />
                     )}
 
                     {fi === 0 && (

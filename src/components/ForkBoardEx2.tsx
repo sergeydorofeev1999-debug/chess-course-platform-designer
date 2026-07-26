@@ -127,6 +127,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
     setGame(new Chess(START_FEN));
     setSelectedSquare(null);
     setMessage('');
+    setLastMove(null);
     setIsFail(false);
     setIsComplete(false);
     setWhiteMoves(0);
@@ -145,7 +146,6 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
     try {
       const move = g.move({ from, to });
       if (!move) return;
-      setLastMove({ from, to });
       setLastMove({ from, to });
 
       const nextWhiteMoves = whiteMoves + 1;
@@ -417,10 +417,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
                       <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
                     )}
                     {lastMove && sq === lastMove.from && (
-                      <div className="absolute inset-[1px] rounded-[5px] bg-[rgba(201,168,76,0.40)] pointer-events-none z-[5]" />
+                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
                     )}
                     {lastMove && sq === lastMove.to && (
-                      <div className="absolute inset-[1px] rounded-[5px] bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
+                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.70)] pointer-events-none z-[5]" />
                     )}
 
                     {fi === 0 && (

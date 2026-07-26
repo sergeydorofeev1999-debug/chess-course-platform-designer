@@ -172,6 +172,7 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
     setGame(g);
     setSelectedSquare(null);
     setMessage('');
+    setLastMove(null);
     setIsFail(false);
     setIsComplete(false);
     setBlackMoves(0);
@@ -209,7 +210,6 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
     try {
       const move = g.move({ from, to });
       if (!move) return;
-      setLastMove({ from, to });
       setLastMove({ from, to });
 
       const nextBlackMoves = blackMoves + 1;
@@ -1754,10 +1754,10 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
                       <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
                     )}
                     {lastMove && sq === lastMove.from && (
-                      <div className="absolute inset-[1px] rounded-[5px] bg-[rgba(201,168,76,0.40)] pointer-events-none z-[5]" />
+                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
                     )}
                     {lastMove && sq === lastMove.to && (
-                      <div className="absolute inset-[1px] rounded-[5px] bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
+                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.70)] pointer-events-none z-[5]" />
                     )}
 
                     {/* Rank numbers on the right side (a-file) */}

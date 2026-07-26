@@ -183,6 +183,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
     setGame(new Chess(fen));
     setSelectedSquare(null);
     setMessage('');
+    setLastMove(null);
     setIsFail(false);
     setIsComplete(false);
     setWhiteMoves(0);
@@ -203,6 +204,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
     setGame(new Chess(fen));
     setSelectedSquare(null);
     setMessage('');
+    setLastMove(null);
     setIsFail(false);
     setIsComplete(false);
     setWhiteMoves(0);
@@ -217,7 +219,6 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
     try {
       const move = g.move({ from, to });
       if (!move) return;
-      setLastMove({ from, to });
       setLastMove({ from, to });
 
       const nextWhiteMoves = whiteMoves + 1;
@@ -968,10 +969,10 @@ const handleSquareClick = useCallback((square: string) => {
                       <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
                     )}
                     {lastMove && sq === lastMove.from && (
-                      <div className="absolute inset-[1px] rounded-[5px] bg-[rgba(201,168,76,0.40)] pointer-events-none z-[5]" />
+                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
                     )}
                     {lastMove && sq === lastMove.to && (
-                      <div className="absolute inset-[1px] rounded-[5px] bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
+                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.70)] pointer-events-none z-[5]" />
                     )}
 
                     {(exercise === 5 || exercise === 6 || exercise === 7 || exercise === 8 ? fi === 7 : fi === 0) && (
