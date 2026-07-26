@@ -900,10 +900,6 @@ const handleSquareClick = useCallback((square: string) => {
            exercise === 6 ? 'Самостоятельно: сыграйте e5, Nf6 — защититесь от детского мата!' : ''}
         </div>
 
-        <div className="text-center font-bold text-slate-700 text-lg">
-          {turnText}
-        </div>
-
         {/* Fail banner */}
         {isFail && (
           <div className="w-full max-w-sm">
