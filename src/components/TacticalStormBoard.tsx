@@ -57,6 +57,7 @@ export default function TacticalStormBoard({ onComplete }: Props) {
   const [timeLeft, setTimeLeft] = useState(300);
   const [showCorrect, setShowCorrect] = useState(false);
   const [moveIndex, setMoveIndex] = useState(0);
+  const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
 
   const moveIndexRef = useRef(0);
   const [message, setMessage] = useState('');
@@ -886,6 +887,13 @@ export default function TacticalStormBoard({ onComplete }: Props) {
                   {sel && (
                     <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
                   )}
+                    {lastMove && sq === lastMove.from && (
+                      <div className="absolute inset-[1px] rounded-[5px] bg-[rgba(201,168,76,0.40)] pointer-events-none z-[5]" />
+                    )}
+                    {lastMove && sq === lastMove.to && (
+                      <div className="absolute inset-[1px] rounded-[5px] bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
+                    )}
+
 
                   {/* Coordinates */}
                   {fi === 0 && (

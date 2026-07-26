@@ -116,6 +116,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
   const [whiteMoves, setWhiteMoves] = useState(0);
   const [sqSize, setSqSize] = useState(52);
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
+  const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
 
   const isCompleteRef = useRef(false);
   const isFailRef = useRef(false);
@@ -216,6 +217,8 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
     try {
       const move = g.move({ from, to });
       if (!move) return;
+      setLastMove({ from, to });
+      setLastMove({ from, to });
 
       const nextWhiteMoves = whiteMoves + 1;
 
@@ -964,6 +967,13 @@ const handleSquareClick = useCallback((square: string) => {
                     {sel && (
                       <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
                     )}
+                    {lastMove && sq === lastMove.from && (
+                      <div className="absolute inset-[1px] rounded-[5px] bg-[rgba(201,168,76,0.40)] pointer-events-none z-[5]" />
+                    )}
+                    {lastMove && sq === lastMove.to && (
+                      <div className="absolute inset-[1px] rounded-[5px] bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
+                    )}
+
                     {(exercise === 5 || exercise === 6 || exercise === 7 || exercise === 8 ? fi === 7 : fi === 0) && (
                       <span className={`absolute top-0.5 ${exercise === 5 || exercise === 6 || exercise === 7 || exercise === 8 ? 'right-1' : 'left-1'} text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>
                         {rank}

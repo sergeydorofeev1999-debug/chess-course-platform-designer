@@ -535,6 +535,7 @@ function InlineChessBoard({
 }) {
   const parsed = parseFen(fen);
   const [squares, setSquares] = useState(parsed.squares);
+  const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const squaresRef = useRef(squares);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const selectedSquareRef = useRef(selectedSquare);
@@ -810,6 +811,13 @@ function InlineChessBoard({
                 {sel && (
                   <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
                 )}
+                    {lastMove && sq === lastMove.from && (
+                      <div className="absolute inset-[1px] rounded-[5px] bg-[rgba(201,168,76,0.40)] pointer-events-none z-[5]" />
+                    )}
+                    {lastMove && sq === lastMove.to && (
+                      <div className="absolute inset-[1px] rounded-[5px] bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
+                    )}
+
                 {hover && !sel && (
                   <div
                     className="absolute inset-0 pointer-events-none"

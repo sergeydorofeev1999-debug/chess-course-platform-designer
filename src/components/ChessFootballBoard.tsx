@@ -301,6 +301,7 @@ export default function ChessFootballBoard({ onComplete, lessonId }: { onComplet
 
   const [dragPiece, setDragPiece] = useState<{ square: string; type: string; color: string } | null>(null);
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
+  const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const pointerStartRef = useRef<{ x: number; y: number; square: string; moved: boolean; pointerId: number } | null>(null);
 
   const turnRef = useRef(turn);
@@ -842,6 +843,13 @@ export default function ChessFootballBoard({ onComplete, lessonId }: { onComplet
                   {sel && (
                     <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
                   )}
+                    {lastMove && sq === lastMove.from && (
+                      <div className="absolute inset-[1px] rounded-[5px] bg-[rgba(201,168,76,0.40)] pointer-events-none z-[5]" />
+                    )}
+                    {lastMove && sq === lastMove.to && (
+                      <div className="absolute inset-[1px] rounded-[5px] bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
+                    )}
+
                   {fi === 0 && (
                     <span className={`absolute top-0.5 left-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>
                       {rank}
