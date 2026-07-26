@@ -388,19 +388,7 @@ const LEVELS: { id: Difficulty; label: string; description: string; color: strin
   { id: 'hard', label: 'Продвинутый', description: 'Чёрные почти не ошибаются', color: '#4A2A1A', stars: 3 },
 ];
 
-export default function PawnRaceBoard({
-  onComplete,
-  lessonId,
-  prevLesson,
-  nextLesson,
-  courseId,
-}: {
-  onComplete: () => void;
-  lessonId?: string;
-  prevLesson?: any;
-  nextLesson?: any;
-  courseId?: string;
-}) {
+export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLesson, courseId }: { onComplete: () => void; lessonId?: string; prevLesson?: any; nextLesson?: any; courseId?: string }) {
   const savedKey = lessonId ? `pawnrace_progress_${lessonId}` : 'pawnrace_progress';
   const savedProgress = useMemo(() => {
     if (typeof window === 'undefined') return {} as Record<Difficulty, boolean>;
@@ -420,13 +408,11 @@ export default function PawnRaceBoard({
   const [turn, setTurn] = useState<'w' | 'b'>('w');
   const [sqSize, setSqSize] = useState(44);
 
-  // History for undo
-  const [history, setHistory] = useState<{ squares: Record<string, Piece>; whiteCaptured: number; blackCaptured: number; enPassant: string | null; turn: 'w' | 'b' }[]>([]);
-
   // Drag state
   const [dragPiece, setDragPiece] = useState<{ square: string; type: string; color: string } | null>(null);
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
+  const [history, setHistory] = useState<{ squares: Record<string, Piece>; whiteCaptured: number; blackCaptured: number; enPassant: string | null; turn: 'w' | 'b' }[]>([]);
   const pointerStartRef = useRef<{ x: number; y: number; square: string; moved: boolean; pointerId: number } | null>(null);
   const processLockRef = useRef(false);
   const squaresRef = useRef(squares);
@@ -575,7 +561,7 @@ export default function PawnRaceBoard({
       }
 
       if (validSquaresRef.current.includes(square)) {
-        // Save state before move for undo
+        // Save state for undo
         setHistory(prev => [...prev, {
           squares: { ...sqs },
           whiteCaptured: whiteCapturedRef.current,
@@ -697,7 +683,7 @@ export default function PawnRaceBoard({
         if (targetSquare && targetSquare !== start.square) {
           const valid = getPawnMoves(start.square, squaresRef.current, 'w', enPassantRef.current);
           if (valid.includes(targetSquare)) {
-            // Save state before move for undo
+            // Save state for undo
             setHistory(prev => [...prev, {
               squares: { ...squaresRef.current },
               whiteCaptured: whiteCapturedRef.current,
@@ -828,38 +814,8 @@ export default function PawnRaceBoard({
   // ═══════════════════════════════════════════════════════════════
   const currentLevel = LEVELS.find(l => l.id === difficulty)!;
 
-  const undo = useCallback(() => {
-    if (history.length === 0 || winner || computerThinking) return;
-    const prev = history[history.length - 1];
-    setSquares(prev.squares);
-    setWhiteCaptured(prev.whiteCaptured);
-    setBlackCaptured(prev.blackCaptured);
-    setEnPassant(prev.enPassant);
-    setTurn(prev.turn);
-    setLastMove(null);
-    setWinner(null);
-    setHistory(h => h.slice(0, -1));
-  }, [history, winner, computerThinking]);
-
   return (
-    <div className="flex flex-col items-center gap-4 w-full select-none px-4" >
-      {/* ── Instructor avatar + bubble ── */}
-      <div className="flex items-start gap-3 w-full max-w-sm">
-        <div className="w-14 h-14 rounded-full border-2 border-[#C9A84C] overflow-hidden flex-shrink-0">
-          <img
-            src="/coach-avatar.png"
-            alt="Тренер"
-            className="w-full h-full object-cover"
-            draggable={false}
-          />
-        </div>
-        <div className="flex-1 bg-white rounded-2xl rounded-tl-sm px-4 py-3 border border-[#E8D5B5]">
-          <p className="text-sm text-[#4A2A1A] leading-relaxed">
-            Цель: съешь 5 пешек соперника или проведи пешку до последней линии.
-          </p>
-        </div>
-      </div>
-
+    <div className="flex flex-col items-center gap-4 w-full select-none" >
       {/* Level badge */}
       <div className="flex items-center gap-2">
         <span className="px-3 py-1 rounded-full text-white text-sm font-bold" style={{ backgroundColor: currentLevel.color }}>
@@ -893,13 +849,7 @@ export default function PawnRaceBoard({
               ? 'bg-[#F5EFE6] border-[#D4C5B5] text-[#4A3F35]'
               : 'bg-[#F2DEDA] border-[#C9A84C] text-[#7A3A32]'
         }`}>
-          <div className="text-xl mb-2">{winner}</div>
-          <button
-            onClick={reset}
-            className="mt-2 px-6 py-2 bg-[#F9F8F6] border-2 border-current rounded-lg font-bold text-sm hover:bg-opacity-80 transition"
-          >
-            Начать заново
-          </button>
+          <div className="text-xl">{winner}</div>
         </div>
       )}
 
@@ -941,6 +891,12 @@ export default function PawnRaceBoard({
                   {/* Selected square highlight */}
                   {sel && (
                     <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
+                  )}
+                  {lastMove && sq === lastMove.from && (
+                    <div className="absolute inset-0 bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
+                  )}
+                  {lastMove && sq === lastMove.to && (
+                    <div className="absolute inset-0 bg-[rgba(201,168,76,0.70)] pointer-events-none z-[5]" />
                   )}
                     {lastMove && sq === lastMove.from && (
                       <div className="absolute inset-0 bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
@@ -1002,6 +958,23 @@ export default function PawnRaceBoard({
         </div>
       )}
 
+      {/* ── Instructor avatar + bubble ── */}
+      <div className="flex items-start gap-3 w-full max-w-sm">
+        <div className="w-14 h-14 rounded-full border-2 border-[#C9A84C] overflow-hidden flex-shrink-0">
+          <img
+            src="/coach-avatar.png"
+            alt="Тренер"
+            className="w-full h-full object-cover"
+            draggable={false}
+          />
+        </div>
+        <div className="flex-1 bg-white rounded-2xl rounded-tl-sm px-4 py-3 border border-[#E8D5B5]">
+          <p className="text-sm text-[#4A2A1A] leading-relaxed">
+            Цель: съешь 5 пешек соперника или проведи пешку до последней линии.
+          </p>
+        </div>
+      </div>
+
       {/* ── 3 action buttons ── */}
       <div className="flex gap-2 w-full max-w-sm">
         <button
@@ -1017,7 +990,18 @@ export default function PawnRaceBoard({
           <RotateCcw size={18} className="text-[#B07838]" /> Заново
         </button>
         <button
-          onClick={undo}
+          onClick={() => {
+            if (history.length === 0 || winner || computerThinking) return;
+            const prev = history[history.length - 1];
+            setSquares(prev.squares);
+            setWhiteCaptured(prev.whiteCaptured);
+            setBlackCaptured(prev.blackCaptured);
+            setEnPassant(prev.enPassant);
+            setTurn(prev.turn);
+            setLastMove(null);
+            setWinner(null);
+            setHistory(h => h.slice(0, -1));
+          }}
           disabled={history.length === 0 || !!winner || computerThinking}
           className="flex-1 flex items-center justify-center gap-2 h-11 bg-white border border-[#E8D5B5] rounded-xl text-[#4A2A1A] text-sm font-medium hover:bg-[#F5EDE0] hover:-translate-y-0.5 hover:shadow-md transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         >
@@ -1026,30 +1010,28 @@ export default function PawnRaceBoard({
       </div>
 
       {/* ── Lesson navigation ── */}
-      {(prevLesson || nextLesson) && (
-        <div className="flex gap-2 w-full max-w-sm">
-          {prevLesson ? (
-            <a
-              href={`/lessons/${prevLesson.id}?course=${courseId || ''}`}
-              className="flex-1 flex items-center justify-center gap-1 h-10 bg-[#F5EDE0] border border-[#E8D5B5] rounded-[10px] text-[#8B7355] text-[13px] font-normal hover:bg-[#E8D5B5] hover:text-[#4A2A1A] transition"
-            >
-              <ArrowLeft size={14} /> Предыдущий урок
-            </a>
-          ) : (
-            <div className="flex-1" />
-          )}
-          {nextLesson ? (
-            <a
-              href={`/lessons/${nextLesson.id}?course=${courseId || ''}`}
-              className="flex-1 flex items-center justify-center gap-1 h-10 bg-[#F5EDE0] border border-[#E8D5B5] rounded-[10px] text-[#8B7355] text-[13px] font-normal hover:bg-[#E8D5B5] hover:text-[#4A2A1A] transition"
-            >
-              Следующий урок <ArrowRight size={14} />
-            </a>
-          ) : (
-            <div className="flex-1" />
-          )}
-        </div>
-      )}
+      <div className="flex gap-2 w-full max-w-sm">
+        {prevLesson ? (
+          <a
+            href={`/lessons/${prevLesson.id}?course=${courseId || ''}`}
+            className="flex-1 flex items-center justify-center gap-1 h-10 bg-[#F5EDE0] border border-[#E8D5B5] rounded-[10px] text-[#8B7355] text-[13px] font-normal hover:bg-[#E8D5B5] hover:text-[#4A2A1A] transition"
+          >
+            <ArrowLeft size={14} /> Предыдущий урок
+          </a>
+        ) : (
+          <div className="flex-1" />
+        )}
+        {nextLesson ? (
+          <a
+            href={`/lessons/${nextLesson.id}?course=${courseId || ''}`}
+            className="flex-1 flex items-center justify-center gap-1 h-10 bg-[#F5EDE0] border border-[#E8D5B5] rounded-[10px] text-[#8B7355] text-[13px] font-normal hover:bg-[#E8D5B5] hover:text-[#4A2A1A] transition"
+          >
+            Следующий урок <ArrowRight size={14} />
+          </a>
+        ) : (
+          <div className="flex-1" />
+        )}
+      </div>
     </div>
   );
 }
