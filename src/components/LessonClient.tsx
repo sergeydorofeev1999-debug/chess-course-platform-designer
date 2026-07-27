@@ -2091,7 +2091,7 @@ function MultiLevelStarBoard({
   );
 
   return (
-    <div className="flex flex-col lg:flex-row w-full max-w-[1200px] mx-auto gap-6 py-6 items-start justify-center">
+    <div className="flex flex-col lg:flex-row w-full max-w-[1200px] mx-auto gap-6 py-6 items-start justify-center lg:game-mode-layout">
       {/* LEFT SIDEBAR — Desktop only, 180px */}
       <div className="hidden lg:flex w-[180px] flex-shrink-0 flex-col gap-4">
         {/* ЗАДАНИЕ label + title */}

@@ -1,0 +1,175 @@
+/** ═══════════════════════════════════════════════════════════════════════════════
+ *  Game Mode — Dark Theme (Desktop ≥1024px ONLY)
+ *  Mobile untouched. All rules inside @media.
+ *  ═══════════════════════════════════════════════════════════════════════════════ */
+
+@media (min-width: 1024px) {
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     1. PAGE WRAPPER
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  .game-mode-page {
+    background: #241A12;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Override CSS variables for dark theme inside game mode */
+  .game-mode-page {
+    --text-primary: #F8F0E6;
+    --text-secondary: #C4B49A;
+    --text-tertiary: #9B8566;
+    --accent: #E8C878;
+    --bg-secondary: #3D2817;
+    --surface-border: rgba(201,168,76,0.08);
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     2. DESKTOP LAYOUT: no-scroll single screen
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  .game-mode-layout {
+    height: calc(100vh - 56px);   /* minus navbar */
+    overflow: hidden;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .game-mode-shell {
+    height: calc(100vh - 56px);
+    overflow: hidden;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     3. BOARD WRAPPER (outer wooden frame)
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  .game-mode-board-wrapper {
+    background: linear-gradient(160deg, #6B4226 0%, #4A2A1A 40%, #2C241B 100%);
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 30px 100px rgba(0,0,0,0.8), 0 8px 24px rgba(0,0,0,0.4), 0 4px 20px rgba(232,200,120,0.06);
+    position: relative;
+  }
+
+  .game-mode-board-wrapper::after {
+    content: '';
+    position: absolute;
+    inset: 12px;
+    border-radius: 2px;
+    box-shadow: inset 0 0 0 1px rgba(232,200,120,0.12);
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .game-mode-board-wrapper .board-fade-in {
+    border: none !important;
+    border-radius: 2px !important;
+    box-shadow: none !important;
+  }
+
+  /* Override square colours */
+  .game-mode-board-wrapper {
+    --square-light: #F0E0C8;
+    --square-dark: #7A5030;
+    --square-valid: rgba(184,149,106,0.6);
+  }
+
+  /* Hide inline coordinates (inside cells) */
+  .game-mode-board-wrapper .grid > div > span[class*="absolute"] {
+    display: none !important;
+  }
+
+  .game-mode-board-wrapper [data-square] span.absolute,
+  .game-mode-board-wrapper [data-square] > span:first-child,
+  .game-mode-board-wrapper [data-square] > span:last-child {
+    display: none !important;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     4. COORDINATES (outside the board)
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  .game-mode-coords-files {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 16px 0;
+    color: #F5D88A;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .game-mode-coords-ranks {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: space-between;
+    color: #F5D88A;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 12px 4px;
+    background: #241A12;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     5. SIDE PANELS (left / right)
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  .game-mode-panel {
+    background: #2E2118;
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid rgba(201,168,76,0.08);
+    overflow-y: auto;
+  }
+
+  .game-mode-panel::-webkit-scrollbar {
+    width: 6px;
+  }
+  .game-mode-panel::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .game-mode-panel::-webkit-scrollbar-thumb {
+    background: rgba(201,168,76,0.2);
+    border-radius: 3px;
+  }
+  .game-mode-panel::-webkit-scrollbar-thumb:hover {
+    background: rgba(201,168,76,0.35);
+  }
+
+  /* ═══════════════════════════════════════════════════════════════════════════
+     6. TOP NAVBAR
+     ═══════════════════════════════════════════════════════════════════════════ */
+
+  .game-mode-navbar {
+    background: #1A1208 !important;
+    border-bottom: 1px solid rgba(201,168,76,0.08);
+  }
+
+  .game-mode-navbar,
+  .game-mode-navbar a,
+  .game-mode-navbar button {
+    color: #E8C878 !important;
+  }
+
+  .game-mode-navbar a:hover,
+  .game-mode-navbar button:hover {
+    color: #F5D88A !important;
+  }
+
+  .game-mode-navbar .btn-primary {
+    background: #3D2817 !important;
+    color: #E8C878 !important;
+    border: 1px solid rgba(232,200,120,0.2) !important;
+    box-shadow: none !important;
+  }
+
+  .game-mode-navbar .btn-primary:hover {
+    background: #4A2A1A !important;
+    color: #F5D88A !important;
+  }
+
+}

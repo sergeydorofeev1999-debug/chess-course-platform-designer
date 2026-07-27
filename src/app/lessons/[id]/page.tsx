@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { getLesson, getCourseLessons } from '@/lib/data';
 import { createClient } from '@/lib/supabase/server';
 import LessonClient from '@/components/LessonClient';
+import '../../game-mode.css';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -40,11 +41,13 @@ export default async function LessonPage({
   }
 
   return (
-    <LessonClient
-      lesson={lesson}
-      allLessons={allLessons}
-      courseId={courseId || lesson.course_id}
-      isCompletedInit={isCompleted}
-    />
+    <div className="game-mode-page">
+      <LessonClient
+        lesson={lesson}
+        allLessons={allLessons}
+        courseId={courseId || lesson.course_id}
+        isCompletedInit={isCompleted}
+      />
+    </div>
   );
 }
