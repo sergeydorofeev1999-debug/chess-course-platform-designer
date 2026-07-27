@@ -2135,7 +2135,7 @@ function MultiLevelStarBoard({
 
   return (
     <div className="flex flex-col lg:flex-row w-full max-w-[1200px] mx-auto gap-6 py-6 items-start justify-center lg:game-mode-layout">
-      <div className="hidden lg:flex w-[180px] flex-shrink-0 flex-col gap-3 h-full overflow-y-auto py-2 game-mode-panel">
+      <div className="hidden lg:flex w-[180px] flex-shrink-0 flex-col gap-3 h-full py-2 game-mode-panel">
         <Link
           href={`/courses/${courseId}`}
           className="inline-flex items-center gap-1 text-[13px] transition-colors"
@@ -2290,7 +2290,7 @@ function MultiLevelStarBoard({
       </div>
 
       {/* RIGHT: Lesson Panel — 300px */}
-      <div className="hidden lg:flex w-[300px] flex-shrink-0 flex-col gap-3 h-full overflow-y-auto py-2 game-mode-panel">
+      <div className="hidden lg:flex w-[300px] flex-shrink-0 flex-col gap-3 h-full py-2 game-mode-panel">
         {/* 1. Бейдж "УРОК" */}
         {lessonTitle && (
           <div className="flex-shrink-0">
