@@ -1871,6 +1871,49 @@ function MultiLevelStarBoard({
   const collectedCount = stars.filter((s: string) => collected.includes(s)).length;
   const allCollected = stars.every((s: string) => collected.includes(s));
 
+  // ═══ STEP PATH — vertical connected nodes, desktop only ═══
+  const StepPath = () => (
+    <div className="step-path-container">
+      {levels.map((_l: any, i: number) => {
+        const earned = levelStars[i];
+        const isCurrent = i === currentLevel;
+        const isDone = earned != null;
+        return (
+          <button
+            key={i}
+            onClick={() => {
+              if (isCurrent) return;
+              setCurrentLevel(i);
+              setAllDone(false);
+              setPhase('playing');
+            }}
+            disabled={isCurrent}
+            className="step-path-node"
+            style={{
+              width: isCurrent ? 40 : 32,
+              height: isCurrent ? 40 : 32,
+              marginBottom: i < totalLevels - 1 ? 12 : 0,
+              cursor: isCurrent ? 'not-allowed' : 'pointer',
+              ...(isCurrent
+                ? { background: '#C9A84C', color: '#241A12', fontSize: 16, fontWeight: 700, boxShadow: '0 0 20px rgba(201,168,76,0.3)' }
+                : isDone
+                  ? { background: '#2C241B', border: '2px solid #C9A84C', color: '#C9A84C' }
+                  : { background: 'transparent', border: '2px solid #4A2A1A', color: '#8B7355', fontSize: 14, fontWeight: 500 }
+              ),
+            }}
+            title={isDone ? `Упражнение ${i + 1} — пройдено` : `Упражнение ${i + 1}`}
+          >
+            {isDone && !isCurrent ? (
+              <CheckCircle size={14} strokeWidth={3} />
+            ) : (
+              <span>{i + 1}</span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+
   // ═══ LEVEL PILLS — under board, Lichess-style ═══
   const LevelPills = () => (
     <div className="w-full flex items-stretch gap-[1px]">
@@ -2092,51 +2135,52 @@ function MultiLevelStarBoard({
 
   return (
     <div className="flex flex-col lg:flex-row w-full max-w-[1200px] mx-auto gap-6 py-6 items-start justify-center lg:game-mode-layout">
-      {/* LEFT SIDEBAR — Desktop only, 180px */}
-      <div className="hidden lg:flex w-[180px] flex-shrink-0 flex-col gap-4">
-        {/* ЗАДАНИЕ label + title */}
-        <div className="flex flex-col gap-1">
-          <p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-medium">Задание</p>
-          <div className="flex items-center gap-1.5 text-sm font-bold text-[var(--text-primary)]">
-            <span>{currentLevel + 1} из {totalLevels}</span>
-            <span className="text-[var(--text-tertiary)]">—</span>
-            <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-[18px] h-[18px] inline-block" draggable={false} alt="" />
-            <span>{pieceName}</span>
-          </div>
-        </div>
-        <LevelPills />
-        <div className="flex flex-col gap-2">
-          <button
-            onClick={() => {
-              setHintLevel(0);
-              if (hintArrows.length === 0) {
-                if (hintLoading) return;
-                setHintLoading(true);
-                window.setTimeout(() => {
-                  const arrows = computeHintArrow();
-                  setHintArrows(arrows);
-                  setShowHint(arrows.length > 0);
-                  setHintLoading(false);
-                }, 0);
-              } else {
-                setHintArrows([]);
-                setShowHint(false);
-              }
-            }}
-            disabled={hintLoading}
-            className={`w-full flex items-center justify-center gap-1.5 h-9 rounded-lg border text-xs font-medium transition-all duration-200 ${showHint ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'} ${hintLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
-          >
-            <Lightbulb size={14} /> {hintLoading ? 'Думаю...' : 'Подсказка'}
-          </button>
-          <button
-            onClick={reset}
-            className="w-full flex items-center justify-center gap-1.5 h-9 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200"
-          >
-            <RotateCcw size={14} /> Заново
-          </button>
+      <div className="hidden lg:flex w-[180px] flex-shrink-0 flex-col gap-3 h-full overflow-y-auto py-2 game-mode-panel">
+        <Link
+          href={`/courses/${courseId}`}
+          className="inline-flex items-center gap-1 text-[13px] transition-colors"
+          style={{ color: '#9B8566', marginBottom: 24 }}
+        >
+          <ArrowLeft size={14} /> К курсу
+        </Link>
+
+        <p
+          className="uppercase"
+          style={{ color: '#9B8566', fontSize: 11, fontWeight: 700, letterSpacing: '0.1em', marginBottom: 8 }}
+        >
+          Задание
+        </p>
+
+        <p
+          className="font-bold"
+          style={{ color: '#F8F0E6', fontSize: 18, fontWeight: 700, marginBottom: 4 }}
+        >
+          {currentLevel + 1} из {totalLevels}
+        </p>
+
+        <div className="flex items-center gap-2" style={{ marginBottom: 20 }}>
+          <img
+            src={`/pieces/cburnett/${pieceCodeRaw}.svg`}
+            className="w-5 h-5"
+            style={{ filter: 'brightness(0) saturate(100%) invert(72%) sepia(18%) saturate(585%) hue-rotate(358deg) brightness(92%) contrast(86%)' }}
+            draggable={false}
+            alt=""
+          />
+          <span style={{ color: '#C4B49A', fontSize: 14, fontWeight: 400 }}>{pieceName}</span>
         </div>
 
+        <div className="flex-shrink-0 flex justify-center">
+          <StepPath />
+        </div>
+
+        <button
+          onClick={reset}
+          className="game-mode-restart-btn mt-5"
+        >
+          <RotateCcw size={14} /> Заново
+        </button>
       </div>
+
 
       {/* CENTER — Board */}
       <div className="flex-1 flex flex-col items-center justify-center w-full lg:min-w-0">
