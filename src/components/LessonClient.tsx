@@ -2246,64 +2246,140 @@ function MultiLevelStarBoard({
       </div>
 
       {/* RIGHT: Lesson Panel — 300px */}
-      <div className="hidden lg:flex w-[300px] flex-shrink-0 flex-col gap-4">
-        {/* Title */}
+      <div className="hidden lg:flex w-[300px] flex-shrink-0 flex-col gap-3 h-full overflow-y-auto py-2 game-mode-panel">
+        {/* 1. Бейдж "УРОК" */}
         {lessonTitle && (
-          <div className="flex flex-col gap-1">
-            <p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-medium">Урок</p>
-            <h2 className="text-base font-bold text-[var(--text-primary)] leading-snug">{lessonTitle}</h2>
+          <div className="flex-shrink-0">
+            <span
+              className="inline-block text-[11px] font-bold uppercase tracking-[0.1em]"
+              style={{ background: '#5A3A22', color: '#E8C878', padding: '4px 10px', borderRadius: 4, marginBottom: 12 }}
+            >
+              УРОК
+            </span>
+            <h2
+              className="font-bold leading-snug"
+              style={{ color: '#F8F0E6', fontSize: 22, lineHeight: 1.3, marginBottom: 12 }}
+            >
+              {lessonTitle}
+            </h2>
           </div>
         )}
-        {/* Description */}
+
+        {/* 2. Описание */}
         {lessonContent && (
-          <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{lessonContent}</p>
+          <p
+            className="flex-shrink-0"
+            style={{ color: '#C4B49A', fontSize: 15, fontWeight: 400, lineHeight: 1.6, maxWidth: 320, marginBottom: 24 }}
+          >
+            {lessonContent}
+          </p>
         )}
-        {/* Divider */}
-        <div className="w-full h-px bg-[var(--surface-border)]" />
 
-        {/* ЗАДАНИЕ + Progress */}
-        <div className="flex flex-col gap-2">
-          <p className="text-[10px] text-[var(--text-tertiary)] uppercase tracking-wider font-medium">Задание</p>
-          <div className="flex items-center gap-2 text-sm font-bold text-[var(--text-primary)]">
-            <span>{currentLevel + 1} из {totalLevels}</span>
-            <span className="text-[var(--text-tertiary)]">—</span>
-            <img src={`/pieces/cburnett/${pieceCodeRaw}.svg`} className="w-4 h-4 inline-block" draggable={false} alt="" />
-            <span>{pieceName}</span>
-          </div>
-        </div>
+        {/* 3. Разделитель */}
+        <div className="w-full flex-shrink-0" style={{ height: 1, background: 'rgba(201,168,76,0.1)', margin: '20px 0' }} />
 
-        <div className="flex flex-col gap-2">
-          <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
-            <div
-              className="h-full bg-[var(--accent)] rounded-full transition-all duration-500"
-              style={{ width: `${((currentLevel + 1) / totalLevels) * 100}%` }}
+        {/* 4. Блок "ЗАДАНИЕ" — иконка фигуры + заголовок */}
+        <div className="flex items-center gap-2.5 flex-shrink-0" style={{ marginBottom: 12 }}>
+          <div
+            className="flex items-center justify-center flex-shrink-0"
+            style={{ width: 32, height: 32, borderRadius: '50%', background: '#E8C878' }}
+          >
+            <img
+              src={`/pieces/cburnett/${pieceCodeRaw}.svg`}
+              className="w-4 h-4"
+              style={{ filter: 'brightness(0) saturate(100%)' }}
+              draggable={false}
+              alt=""
             />
           </div>
+          <span className="font-semibold" style={{ color: '#F8F0E6', fontSize: 16 }}>
+            Шаг {currentLevel + 1} из {totalLevels} — {pieceName}
+          </span>
         </div>
 
-        {/* Star progress */}
-        {stars.length > 0 && phase === 'playing' && (
-          <div className="flex items-center gap-1">
-            {Array.from({ length: stars.length }, (_, i) => (
-              <Star
-                key={i}
-                size={14}
-                className={i < collectedCount ? 'fill-[#c9a84c] text-[#c9a84c]' : 'text-[#e5dfd8]'}
-                strokeWidth={2}
-              />
-            ))}
+        {/* 5. Прогресс-бар */}
+        <div className="flex flex-col gap-1 flex-shrink-0">
+          <div className="w-full overflow-hidden" style={{ height: 8, background: '#3D2817', borderRadius: 4 }}>
+            <div
+              className="h-full transition-all duration-500"
+              style={{ width: `${((currentLevel + 1) / totalLevels) * 100}%`, background: '#E8C878', borderRadius: 4 }}
+            />
           </div>
+          <p className="text-[13px]" style={{ color: '#9B8566' }}>
+            Готово: {currentLevel + 1}/{totalLevels}
+          </p>
+        </div>
+
+        {/* 6. Блок наград — 6 звёзд в ряд */}
+        <div className="flex items-center gap-2 flex-shrink-0" style={{ marginTop: 16 }}>
+          {Array.from({ length: totalLevels }, (_, i) => {
+            const earned = levelStars[i];
+            const starCount = typeof earned === 'number' ? earned : (earned ? 1 : 0);
+            const filled = i < currentLevel + (phase === 'success' ? 1 : 0);
+            return (
+              <div
+                key={i}
+                className="flex items-center justify-center"
+                style={{
+                  width: 28,
+                  height: 28,
+                  ...(filled
+                    ? { background: '#E8C878', clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)' }
+                    : { background: '#2E2118', border: '2px solid #5A3A22', borderRadius: 4 }
+                  ),
+                }}
+              >
+                {!filled && <Star size={14} className="text-[#5A3A22]" strokeWidth={2} />}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* 7. Кнопка "Подсказка" — перенесена сюда */}
+        {(phase === 'playing' || phase === 'fail') && (
+          <button
+            onClick={() => {
+              setHintLevel(0);
+              if (hintArrows.length === 0) {
+                if (hintLoading) return;
+                setHintLoading(true);
+                window.setTimeout(() => {
+                  const arrows = computeHintArrow();
+                  setHintArrows(arrows);
+                  setShowHint(arrows.length > 0);
+                  setHintLoading(false);
+                }, 0);
+              } else {
+                setHintArrows([]);
+                setShowHint(false);
+              }
+            }}
+            disabled={hintLoading}
+            className="w-full flex items-center justify-center gap-2 font-semibold text-[14px] transition-all duration-200 flex-shrink-0 game-mode-hint-btn"
+            style={{
+              padding: '12px 16px',
+              background: '#3D2817',
+              color: '#E8C878',
+              border: '1px solid rgba(232,200,120,0.15)',
+              borderRadius: 10,
+              marginTop: 24,
+            }}
+          >
+            <Lightbulb size={16} /> {hintLoading ? 'Думаю...' : 'Подсказка'}
+          </button>
         )}
 
         {/* Next button */}
-        {allDone && nextLessonUrl && (
+        {nextLessonUrl && (
           <a
             href={nextLessonUrl}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all duration-300 hover:translate-x-0.5"
-            style={{ background: 'var(--accent)', color: 'var(--bg-primary)' }}
+            className="inline-flex items-center gap-1.5 text-[14px] transition-colors"
+            style={{ color: '#9B8566', marginTop: 16 }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = '#C9A84C'; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = '#9B8566'; }}
           >
             <span>Следующий урок</span>
-            <ArrowRight size={14} className="transition-transform duration-300 group-hover:translate-x-1" />
+            <ArrowRight size={14} />
           </a>
         )}
       </div>
