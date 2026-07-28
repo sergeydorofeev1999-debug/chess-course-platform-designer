@@ -997,26 +997,6 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
         </div>
       </div>
 
-      {/* Promotion selector */}
-      {promotionPending && (
-        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40'>
-          <div className='bg-[#FDFBF7] rounded-xl p-5 shadow-xl flex flex-col items-center gap-3'>
-            <p className='text-[15px] font-semibold text-[#2C241B]'>Выберите фигуру</p>
-            <div className='flex gap-3'>
-              {PROMOTION_PIECES.map(piece => (
-                <button
-                  key={piece.code}
-                  onClick={() => handlePromotion(piece.code)}
-                  className='w-12 h-12 rounded-lg bg-white border border-[#E0D6C2] flex items-center justify-center hover:bg-[#F0E8D8] transition'
-                  title={piece.name}
-                >
-                  <PieceImg type={piece.code} color='w' />
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Drag overlay */}
       {dragPiece && (

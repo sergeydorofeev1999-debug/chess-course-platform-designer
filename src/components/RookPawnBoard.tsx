@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { RotateCcw, ChevronRight, Star, Trophy, Eye } from 'lucide-react';
+import { RotateCcw, ChevronRight, Star, Trophy, Eye, ArrowLeft } from 'lucide-react';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const RANKS = ['8','7','6','5','4','3','2','1'];
@@ -385,6 +385,7 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
   const [dragPiece, setDragPiece] = useState<{ square: string; type: string; color: string } | null>(null);
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
+  const [history, setHistory] = useState<Array<{ squares: Record<string, Piece>; enPassant: string | null; turn: 'w' | 'b' }>>([]);
   const pointerStartRef = useRef<{ x: number; y: number; square: string; moved: boolean; pointerId: number } | null>(null);
   const processLockRef = useRef(false);
   const squaresRef = useRef(squares);
@@ -429,6 +430,7 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
     setValidSquares([]);
     setEnPassant(null);
     setTurn('w');
+    setHistory([]);
   }, []);
 
   const startLevel = useCallback((diff: Difficulty) => {
@@ -534,6 +536,7 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
           return;
         }
 
+        setHistory(prev => [...prev, { squares: sqs, enPassant: enPassantRef.current, turn: turnRef.current }]);
         setSquares(result.squares);
         setEnPassant(result.enPassant);
         setTurn('b');
@@ -637,6 +640,7 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
                 onComplete();
               }
             } else {
+              setHistory(prev => [...prev, { squares: squaresRef.current, enPassant: enPassantRef.current, turn: turnRef.current }]);
               setSquares(result.squares);
               setEnPassant(result.enPassant);
               setTurn('b');
@@ -900,10 +904,20 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
             <RotateCcw size={14} /> Заново
           </button>
           <button
-            onClick={() => setDifficulty(null)}
-            className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200"
+            onClick={() => {
+              if (history.length > 0) {
+                const lastState = history[history.length - 1];
+                setSquares(lastState.squares);
+                setEnPassant(lastState.enPassant);
+                setTurn(lastState.turn);
+                setHistory(h => h.slice(0, -1));
+                setWinner(null);
+              }
+            }}
+            disabled={history.length === 0 || !!winner || turn !== 'w'}
+            className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200 disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            <ChevronRight size={14} className="rotate-180" /> Уровни
+            <ArrowLeft size={14} /> Вернуть ход
           </button>
         </div>
       </div>
