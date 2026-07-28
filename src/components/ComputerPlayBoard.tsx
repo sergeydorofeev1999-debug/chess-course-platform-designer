@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
-import { RotateCcw, Trophy, ChevronRight, Star } from 'lucide-react';
+import { RotateCcw, Trophy, ChevronRight, Star, Eye } from 'lucide-react';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const DISPLAY_RANKS = ['8','7','6','5','4','3','2','1'];
@@ -541,14 +541,6 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
           </div>
         )}
 
-        <div className="text-center font-bold text-[#2C241B] text-lg py-2 w-full">
-          Игра против компьютера — {currentLevel.label} ({currentLevel.elo} Elo)
-        </div>
-
-        <div className="text-center font-bold text-[#2C241B] text-lg">
-          {turnText}
-        </div>
-
         {message && (
           <div className={`px-6 py-3 rounded-xl text-center font-bold text-white w-full mb-2 flex items-center justify-center gap-2 ${
             message.includes('Победа') ? 'bg-[#C9A84C]' : message.includes('Поражение') ? 'bg-[#B04A3A]' : 'bg-[#8B7355]'
@@ -557,6 +549,20 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
             {message}
           </div>
         )}
+
+        {/* Avatar + speech bubble */}
+        <div className="w-full flex flex-col gap-2 max-w-sm lg:hidden">
+          <div className="flex items-start gap-3">
+            <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
+              <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
+            </div>
+            <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
+              <p className="text-sm text-[var(--text-primary)] leading-snug">
+                Сыграйте с компьютером и постарайтесь выиграть!
+              </p>
+            </div>
+          </div>
+        </div>
 
         {/* Board */}
         <div className="flex justify-center w-full relative">
@@ -728,6 +734,30 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
         >
           ← Выбрать уровень
         </button>
+
+        {/* Mobile action buttons */}
+        <div className="flex flex-col gap-2 w-full max-w-sm">
+          <div className="flex gap-2 w-full">
+            <button
+              onClick={() => alert('Подсказка: развивайте фигуры быстро, контролируйте центр и не забывайте о безопасности короля.')}
+              className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200"
+            >
+              <Eye size={14} /> Подсказка
+            </button>
+            <button
+              onClick={reset}
+              className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200"
+            >
+              <RotateCcw size={14} /> Заново
+            </button>
+            <button
+              onClick={() => setSelectedLevel(null)}
+              className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200"
+            >
+              <ChevronRight size={14} className="rotate-180" /> Уровень
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
