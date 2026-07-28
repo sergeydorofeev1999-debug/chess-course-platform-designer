@@ -74,7 +74,7 @@ interface PointerStart {
   pointerId: number;
 }
 
-export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete: () => void; lessonId?: string }) {
+export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }: { onComplete: () => void; lessonId?: string; lessonTitle?: string }) {
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null);
   const [game, setGame] = useState<Chess | null>(null);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
@@ -400,29 +400,36 @@ export default function ComputerPlayBoard({ onComplete, lessonId }: { onComplete
     const allCompleted = LEVELS.every(l => levelStars[l.id] > 0);
     return (
       <div className="flex flex-col items-center gap-5 w-full max-w-sm mx-auto px-4 py-6">
-        {/* Hero card */}
-        <div
-          className="rounded-2xl py-7 px-6 w-full text-center relative overflow-hidden mb-4"
-          style={{
-            background: 'linear-gradient(135deg, #2C241B 0%, #3A2E1F 50%, #2C241B 100%)',
-          }}
-        >
-          <h2 className="text-white text-2xl font-bold mb-2">Игра против компьютера</h2>
-          <p className="text-sm leading-relaxed" style={{ color: '#E8D5B5' }}>
-            Сыграйте с компьютером от начальной позиции. Вы играете белыми.
-          </p>
-          <div
-            className="absolute bottom-0 left-[10%] right-[10%] h-[3px]"
-            style={{
-              background: 'linear-gradient(90deg, transparent, #C9A84C, transparent)',
-              opacity: 0.6,
-            }}
-          />
-        </div>
-
-        <h3 className="text-xl font-bold text-[#2C241B] text-center mb-1">
-          Выберите уровень сложности
-        </h3>
+        {lessonTitle ? (
+          <div className="text-center w-full mb-1">
+            <h2 className="text-[20px] font-bold text-[#2C241B]">{lessonTitle}</h2>
+            <p className="text-[14px] font-medium text-[#8B7355] mt-1">Выберите уровень сложности</p>
+          </div>
+        ) : (
+          <>
+            <div
+              className="rounded-2xl py-7 px-6 w-full text-center relative overflow-hidden mb-4"
+              style={{
+                background: 'linear-gradient(135deg, #2C241B 0%, #3A2E1F 50%, #2C241B 100%)',
+              }}
+            >
+              <h2 className="text-white text-2xl font-bold mb-2">Игра против компьютера</h2>
+              <p className="text-sm leading-relaxed" style={{ color: '#E8D5B5' }}>
+                Сыграйте с компьютером от начальной позиции. Вы играете белыми.
+              </p>
+              <div
+                className="absolute bottom-0 left-[10%] right-[10%] h-[3px]"
+                style={{
+                  background: 'linear-gradient(90deg, transparent, #C9A84C, transparent)',
+                  opacity: 0.6,
+                }}
+              />
+            </div>
+            <h3 className="text-xl font-bold text-[#2C241B] text-center mb-1">
+              Выберите уровень сложности
+            </h3>
+          </>
+        )}
 
         <div className="flex flex-col gap-3 w-full">
           {LEVELS.map((lvl) => {

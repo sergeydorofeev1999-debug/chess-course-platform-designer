@@ -2522,23 +2522,24 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
                   prevLesson={prevLesson}
                   nextLesson={nextLesson}
                   courseId={courseId}
+                  lessonTitle={lesson.title}
                 />
               );
             }
             if (type === 'interactive_rook_pawn') {
-              return <RookPawnBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} />;
+              return <RookPawnBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} lessonTitle={lesson.title} />;
             }
             if (type === 'interactive_bishop_pawn') {
-              return <BishopPawnBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} />;
+              return <BishopPawnBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} lessonTitle={lesson.title} />;
             }
             if (type === 'interactive_queen_pawn') {
-              return <QueenPawnBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} />;
+              return <QueenPawnBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} lessonTitle={lesson.title} />;
             }
             if (type === 'interactive_knight_pawn') {
-              return <KnightPawnBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} />;
+              return <KnightPawnBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} lessonTitle={lesson.title} />;
             }
             if (type === 'interactive_chess_football') {
-              return <ChessFootballBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} />;
+              return <ChessFootballBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} lessonTitle={lesson.title} />;
             }
             if (type === 'interactive_two_rooks_mate') {
               return <TwoRooksMateBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} />;
@@ -2583,7 +2584,7 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
               return <CoordinateTrainingBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} />;
             }
             if (type === 'interactive_computer_play') {
-              return <ComputerPlayBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} />;
+              return <ComputerPlayBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} lessonTitle={lesson.title} />;
             }
             if (type === 'interactive_tactical_storm') {
               return <TacticalStormBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} />;

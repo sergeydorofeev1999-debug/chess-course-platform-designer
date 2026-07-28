@@ -388,7 +388,7 @@ const LEVELS: { id: Difficulty; label: string; description: string; color: strin
   { id: 'hard', label: 'Продвинутый', description: 'Чёрные почти не ошибаются', color: '#4A2A1A', stars: 3 },
 ];
 
-export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLesson, courseId }: { onComplete: () => void; lessonId?: string; prevLesson?: any; nextLesson?: any; courseId?: string }) {
+export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLesson, courseId, lessonTitle }: { onComplete: () => void; lessonId?: string; prevLesson?: any; nextLesson?: any; courseId?: string; lessonTitle?: string }) {
   const savedKey = lessonId ? `pawnrace_progress_${lessonId}` : 'pawnrace_progress';
   const savedProgress = useMemo(() => {
     if (typeof window === 'undefined') return {} as Record<Difficulty, boolean>;
@@ -763,7 +763,14 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
     const allCompleted = LEVELS.every(l => completedLevels[l.id]);
     return (
       <div className="flex flex-col items-center gap-6 w-full px-4 py-6">
-        <h3 className="text-[20px] font-bold text-[#2C241B] text-center">Выберите уровень сложности</h3>
+        {lessonTitle ? (
+          <div className="text-center">
+            <h2 className="text-[20px] font-bold text-[#2C241B]">{lessonTitle}</h2>
+            <p className="text-[14px] font-medium text-[#8B7355] mt-1">Выберите уровень сложности</p>
+          </div>
+        ) : (
+          <h3 className="text-[20px] font-bold text-[#2C241B] text-center">Выберите уровень сложности</h3>
+        )}
         <div className="flex flex-col gap-3 w-full max-w-sm">
           {LEVELS.map(level => {
             const isCompleted = completedLevels[level.id];
