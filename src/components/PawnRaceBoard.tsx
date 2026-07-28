@@ -6,6 +6,13 @@ import { RotateCcw, ChevronRight, Star, Trophy, Eye, Undo2, ArrowLeft, ArrowRigh
 const FILES = ['a','b','c','d','e','f','g','h'];
 const RANKS = ['8','7','6','5','4','3','2','1'];
 
+const PROMOTION_PIECES = [
+  { code: "q", name: "Ферзь" },
+  { code: "n", name: "Конь" },
+  { code: "r", name: "Ладья" },
+  { code: "b", name: "Слон" },
+];
+
 type Piece = { type: string; color: 'w' | 'b' };
 type Difficulty = 'easy' | 'medium' | 'hard';
 
@@ -413,6 +420,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const [history, setHistory] = useState<{ squares: Record<string, Piece>; whiteCaptured: number; blackCaptured: number; enPassant: string | null; turn: 'w' | 'b' }[]>([]);
+  const [promotionPending, setPromotionPending] = useState<{from: string; to: string} | null>(null);
   const pointerStartRef = useRef<{ x: number; y: number; square: string; moved: boolean; pointerId: number } | null>(null);
   const processLockRef = useRef(false);
   const squaresRef = useRef(squares);
@@ -465,6 +473,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
     setTurn('w');
     setLastMove(null);
     setHistory([]);
+    setPromotionPending(null);
   }, []);
 
   const startLevel = useCallback((diff: Difficulty) => {
@@ -542,6 +551,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
 
   // Click logic
   const click = useCallback((square: string) => {
+    if (promotionPending) return;
     if (winnerRef.current) return; // BLOCK moves after game over
     // Check for draw BEFORE white's move
     if (turnRef.current === 'w' && hasNoMoves(squaresRef.current, 'w', enPassantRef.current)) {
@@ -574,6 +584,15 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
         if (result.captured && result.captured.color === 'b') {
           bCap = blackCapturedRef.current + 1;
           setBlackCaptured(bCap);
+        }
+        if (result.promoted) {
+          setPromotionPending({ from: sel, to: square });
+          setSquares(result.squares);
+          setEnPassant(result.enPassant);
+          setSelectedSquare(null);
+          setValidSquares([]);
+          selectedSquareRef.current = null;
+          return;
         }
         setLastMove({ from: sel, to: square });
 
@@ -632,6 +651,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
 
   // Drag and drop
   const handlePointerDown = useCallback((e: React.PointerEvent, square: string) => {
+    if (promotionPending) return;
     if (winnerRef.current) return; // BLOCK moves after game over
     // Check for draw BEFORE white's move
     if (turnRef.current === 'w' && hasNoMoves(squaresRef.current, 'w', enPassantRef.current)) {
@@ -698,33 +718,42 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
               setBlackCaptured(bCap);
             }
             setLastMove({ from: start.square, to: targetSquare });
-            const win = checkGameOver(result.squares, whiteCapturedRef.current, bCap, result.enPassant, 'b');
-            if (win) {
-              setWinner(win);
+            if (result.promoted) {
+              setPromotionPending({ from: start.square, to: targetSquare });
               setSquares(result.squares);
               setEnPassant(result.enPassant);
               setSelectedSquare(null);
               setValidSquares([]);
               selectedSquareRef.current = null;
-              if (win === 'Белые победили!' && difficultyRef.current) {
-                const diff = difficultyRef.current;
-                setCompletedLevels(prev => {
-                  const next = { ...prev, [diff]: true };
-                  localStorage.setItem(savedKey, JSON.stringify(next));
-                  return next;
-                });
-                onComplete();
-              }
             } else {
-              setSquares(result.squares);
-              setEnPassant(result.enPassant);
-              setTurn('b');
-              setSelectedSquare(null);
-              setValidSquares([]);
-              selectedSquareRef.current = null;
-              // Check if black has no moves after white's drag move
-              if (hasNoMoves(result.squares, 'b', result.enPassant)) {
-                setWinner('Ничья');
+              const win = checkGameOver(result.squares, whiteCapturedRef.current, bCap, result.enPassant, 'b');
+              if (win) {
+                setWinner(win);
+                setSquares(result.squares);
+                setEnPassant(result.enPassant);
+                setSelectedSquare(null);
+                setValidSquares([]);
+                selectedSquareRef.current = null;
+                if (win === 'Белые победили!' && difficultyRef.current) {
+                  const diff = difficultyRef.current;
+                  setCompletedLevels(prev => {
+                    const next = { ...prev, [diff]: true };
+                    localStorage.setItem(savedKey, JSON.stringify(next));
+                    return next;
+                  });
+                  onComplete();
+                }
+              } else {
+                setSquares(result.squares);
+                setEnPassant(result.enPassant);
+                setTurn('b');
+                setSelectedSquare(null);
+                setValidSquares([]);
+                selectedSquareRef.current = null;
+                // Check if black has no moves after white's drag move
+                if (hasNoMoves(result.squares, 'b', result.enPassant)) {
+                  setWinner('Ничья');
+                }
               }
             }
           }
@@ -748,6 +777,35 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
       window.removeEventListener('pointercancel', handleGlobalCancel);
     };
   }, [checkGameOver, onComplete, savedKey]);
+
+  const handlePromotion = useCallback((pieceCode: string) => {
+    if (!promotionPending) return;
+    const { from, to } = promotionPending;
+    const sqs = { ...squares };
+    delete sqs[from];
+    sqs[to] = { type: pieceCode, color: 'w' };
+    setSquares(sqs);
+    setPromotionPending(null);
+
+    const win = checkGameOver(sqs, whiteCaptured, blackCaptured, enPassant, 'b');
+    if (win) {
+      setWinner(win);
+      if (win === 'Белые победили!' && difficultyRef.current) {
+        const diff = difficultyRef.current;
+        setCompletedLevels(prev => {
+          const next = { ...prev, [diff]: true };
+          localStorage.setItem(savedKey, JSON.stringify(next));
+          return next;
+        });
+        onComplete();
+      }
+    } else {
+      setTurn('b');
+      if (hasNoMoves(sqs, 'b', enPassant)) {
+        setWinner('Ничья');
+      }
+    }
+  }, [promotionPending, squares, whiteCaptured, blackCaptured, enPassant, checkGameOver, onComplete, savedKey]);
 
   const isLight = (f: number, r: number) => (f + r) % 2 === 0;
   const validMoves = selectedSquare
@@ -938,6 +996,27 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
           )}
         </div>
       </div>
+
+      {/* Promotion selector */}
+      {promotionPending && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/40'>
+          <div className='bg-[#FDFBF7] rounded-xl p-5 shadow-xl flex flex-col items-center gap-3'>
+            <p className='text-[15px] font-semibold text-[#2C241B]'>Выберите фигуру</p>
+            <div className='flex gap-3'>
+              {PROMOTION_PIECES.map(piece => (
+                <button
+                  key={piece.code}
+                  onClick={() => handlePromotion(piece.code)}
+                  className='w-12 h-12 rounded-lg bg-white border border-[#E0D6C2] flex items-center justify-center hover:bg-[#F0E8D8] transition'
+                  title={piece.name}
+                >
+                  <PieceImg type={piece.code} color='w' />
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Drag overlay */}
       {dragPiece && (
