@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { RotateCcw, ChevronRight, Star, Trophy } from 'lucide-react';
+import { RotateCcw, ChevronRight, Star, Trophy, Eye } from 'lucide-react';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const RANKS = ['8','7','6','5','4','3','2','1'];
@@ -743,25 +743,10 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
 
   return (
     <div className="flex flex-col items-center gap-4 w-full select-none" >
-      {/* Level badge */}
-      <div className="flex items-center gap-2">
-        <span className="px-3 py-1 rounded-full text-white text-sm font-bold" style={{ backgroundColor: currentLevel.color }}>
-          {currentLevel.label}
-        </span>
-        {completedLevels[difficulty] && (
-          <span className="flex items-center gap-1 text-[#6B5B3D] text-sm font-bold">
-            <Star size={14} fill="currentColor" /> Пройдено
-          </span>
-        )}
-      </div>
-
-      {/* Status */}
+      {/* Status bar */}
       <div className="flex items-center justify-between w-full max-w-sm gap-4 px-2">
         <div className="text-sm font-medium">
           Белые: <span className="text-[#5A4A3A] font-bold">{Object.values(squares).filter(p => p.color === 'w').length}</span>
-        </div>
-        <div className={`text-sm font-bold ${turn === 'w' ? 'text-[#5A4A3A]' : 'text-[#B8AFA3]'}`}>
-          {computerThinking ? 'Ход компьютера...' : 'Ваш ход'}
         </div>
         <div className="text-sm font-medium">
           Чёрные: <span className="text-[#8B7355] font-bold">{Object.values(squares).filter(p => p.color === 'b').length}</span>
@@ -785,6 +770,20 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
           </button>
         </div>
       )}
+
+      {/* Avatar + speech bubble */}
+      <div className="w-full flex flex-col gap-2 max-w-sm">
+        <div className="flex items-start gap-3">
+          <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
+            <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
+          </div>
+          <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
+            <p className="text-sm text-[var(--text-primary)] leading-snug">
+              Съешь все фигуры соперника или проведи пешку до последней линии.
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Board */}
       <div className="flex justify-center w-full">
@@ -886,25 +885,27 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
       )}
 
       {/* Info */}
-      <div className="text-center text-sm text-[#6B5B3D] max-w-sm px-4">
-        <p className="font-medium mb-1">Цель игры:</p>
-        <p>Съешь все фигуры соперника или проведи пешку до последней линии.</p>
-        <p className="text-xs text-[#B8AFA3] mt-1">Ладья ходит по прямым линиям на любое расстояние.</p>
-      </div>
-
-      <div className="flex gap-3">
-        <button
-          onClick={reset}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-[#6B5B3D] bg-[#E8E0D4] hover:bg-[#D4C5B5] transition"
-        >
-          <RotateCcw size={16} /> Начать заново
-        </button>
-        <button
-          onClick={() => setDifficulty(null)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-[#6B5B3D] bg-[#E8E0D4] hover:bg-[#D4C5B5] transition"
-        >
-          <ChevronRight size={16} className="rotate-180" /> Уровни
-        </button>
+      <div className="flex flex-col gap-2 w-full max-w-sm">
+        <div className="flex gap-2 w-full">
+          <button
+            onClick={() => alert('Подсказка: используйте ладью для захвата пешек по прямым линиям, а пешки для продвижения вперёд.')}
+            className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200"
+          >
+            <Eye size={14} /> Подсказка
+          </button>
+          <button
+            onClick={reset}
+            className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200"
+          >
+            <RotateCcw size={14} /> Заново
+          </button>
+          <button
+            onClick={() => setDifficulty(null)}
+            className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200"
+          >
+            <ChevronRight size={14} className="rotate-180" /> Уровни
+          </button>
+        </div>
       </div>
     </div>
   );
