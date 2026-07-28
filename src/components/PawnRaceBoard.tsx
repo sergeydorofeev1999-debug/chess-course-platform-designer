@@ -822,29 +822,18 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
   const currentLevel = LEVELS.find(l => l.id === difficulty)!;
 
   return (
-    <div className="flex flex-col items-center gap-4 w-full select-none" >
-      {/* Level badge */}
-      <div className="flex items-center gap-2">
-        <span className="px-3 py-1 rounded-full text-white text-sm font-bold" style={{ backgroundColor: currentLevel.color }}>
-          {currentLevel.label}
-        </span>
-        {completedLevels[difficulty] && (
-          <span className="flex items-center gap-1 text-[#6B5B3D] text-sm font-bold">
-            <Star size={14} fill="currentColor" /> Пройдено
-          </span>
-        )}
-      </div>
-
-      {/* Status */}
-      <div className="flex items-center justify-between w-full max-w-sm gap-4 px-2">
-        <div className="text-sm font-medium">
-          Белые съели: <span className="text-[#8B7355] font-bold">{blackCaptured}</span>/5
-        </div>
-        <div className={`text-sm font-bold ${turn === 'w' ? 'text-[#5A4A3A]' : 'text-[#B8AFA3]'}`}>
-          {computerThinking ? 'Ход компьютера...' : 'Ваш ход'}
-        </div>
-        <div className="text-sm font-medium">
-          Чёрные съели: <span className="text-[#8B7355] font-bold">{whiteCaptured}</span>/5
+    <div className="flex flex-col items-center gap-4 w-full select-none">
+      {/* Avatar + speech bubble */}
+      <div className="w-full flex flex-col gap-2 max-w-sm">
+        <div className="flex items-start gap-3">
+          <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
+            <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
+          </div>
+          <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
+            <p className="text-sm text-[var(--text-primary)] leading-snug">
+              Цель: съешь 5 пешек соперника или проведи пешку до последней линии.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -965,79 +954,22 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
         </div>
       )}
 
-      {/* ── Instructor avatar + bubble ── */}
-      <div className="flex items-start gap-3 w-full max-w-sm">
-        <div className="w-14 h-14 rounded-full border-2 border-[#C9A84C] overflow-hidden flex-shrink-0">
-          <img
-            src="/coach-avatar.png"
-            alt="Тренер"
-            className="w-full h-full object-cover"
-            draggable={false}
-          />
-        </div>
-        <div className="flex-1 bg-white rounded-2xl rounded-tl-sm px-4 py-3 border border-[#E8D5B5]">
-          <p className="text-sm text-[#4A2A1A] leading-relaxed">
-            Цель: съешь 5 пешек соперника или проведи пешку до последней линии.
-          </p>
-        </div>
-      </div>
-
-      {/* ── 3 action buttons ── */}
-      <div className="flex gap-2 w-full max-w-sm">
-        <button
-          onClick={() => alert('Подсказка: направьте пешку в центр и используйте двойной ход для продвижения.')}
-          className="flex-1 flex items-center justify-center gap-2 h-11 bg-white border border-[#E8D5B5] rounded-xl text-[#4A2A1A] text-sm font-medium hover:bg-[#F5EDE0] hover:-translate-y-0.5 hover:shadow-md transition-all"
-        >
-          <Eye size={18} className="text-[#B07838]" /> Подсказка
-        </button>
-        <button
-          onClick={reset}
-          className="flex-1 flex items-center justify-center gap-2 h-11 bg-white border border-[#E8D5B5] rounded-xl text-[#4A2A1A] text-sm font-medium hover:bg-[#F5EDE0] hover:-translate-y-0.5 hover:shadow-md transition-all"
-        >
-          <RotateCcw size={18} className="text-[#B07838]" /> Заново
-        </button>
-        <button
-          onClick={() => {
-            if (history.length === 0 || winner || computerThinking) return;
-            const prev = history[history.length - 1];
-            setSquares(prev.squares);
-            setWhiteCaptured(prev.whiteCaptured);
-            setBlackCaptured(prev.blackCaptured);
-            setEnPassant(prev.enPassant);
-            setTurn(prev.turn);
-            setLastMove(null);
-            setWinner(null);
-            setHistory(h => h.slice(0, -1));
-          }}
-          disabled={history.length === 0 || !!winner || computerThinking}
-          className="flex-1 flex items-center justify-center gap-2 h-11 bg-white border border-[#E8D5B5] rounded-xl text-[#4A2A1A] text-sm font-medium hover:bg-[#F5EDE0] hover:-translate-y-0.5 hover:shadow-md transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-        >
-          <Undo2 size={18} className="text-[#B07838]" /> Вернуть ход
-        </button>
-      </div>
-
-      {/* ── Lesson navigation ── */}
-      <div className="flex gap-2 w-full max-w-sm">
-        {prevLesson ? (
-          <a
-            href={`/lessons/${prevLesson.id}?course=${courseId || ''}`}
-            className="flex-1 flex items-center justify-center gap-1 h-10 bg-[#F5EDE0] border border-[#E8D5B5] rounded-[10px] text-[#8B7355] text-[13px] font-normal hover:bg-[#E8D5B5] hover:text-[#4A2A1A] transition"
+      {/* Mobile action buttons */}
+      <div className="flex flex-col gap-2 w-full max-w-sm">
+        <div className="flex gap-2 w-full">
+          <button
+            onClick={() => alert('Подсказка: направьте пешку в центр и используйте двойной ход для продвижения.')}
+            className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200"
           >
-            <ArrowLeft size={14} /> Предыдущий урок
-          </a>
-        ) : (
-          <div className="flex-1" />
-        )}
-        {nextLesson ? (
-          <a
-            href={`/lessons/${nextLesson.id}?course=${courseId || ''}`}
-            className="flex-1 flex items-center justify-center gap-1 h-10 bg-[#F5EDE0] border border-[#E8D5B5] rounded-[10px] text-[#8B7355] text-[13px] font-normal hover:bg-[#E8D5B5] hover:text-[#4A2A1A] transition"
+            <Eye size={14} /> Подсказка
+          </button>
+          <button
+            onClick={reset}
+            className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200"
           >
-            Следующий урок <ArrowRight size={14} />
-          </a>
-        ) : (
-          <div className="flex-1" />
-        )}
+            <RotateCcw size={14} /> Заново
+          </button>
+        </div>
       </div>
     </div>
   );
