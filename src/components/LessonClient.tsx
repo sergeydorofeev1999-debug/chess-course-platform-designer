@@ -2522,24 +2522,24 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
                   prevLesson={prevLesson}
                   nextLesson={nextLesson}
                   courseId={courseId}
-                  lessonTitle={lesson.title}
+                  lessonTitle={lesson.title.replace(/^\d+\s*[.-]?\s*/, '')}
                 />
               );
             }
             if (type === 'interactive_rook_pawn') {
-              return <RookPawnBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} lessonTitle={lesson.title} />;
+              return <RookPawnBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} lessonTitle={lesson.title.replace(/^\d+\s*[.-]?\s*/, '')} />;
             }
             if (type === 'interactive_bishop_pawn') {
-              return <BishopPawnBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} lessonTitle={lesson.title} />;
+              return <BishopPawnBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} lessonTitle={lesson.title.replace(/^\d+\s*[.-]?\s*/, '')} />;
             }
             if (type === 'interactive_queen_pawn') {
-              return <QueenPawnBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} lessonTitle={lesson.title} />;
+              return <QueenPawnBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} lessonTitle={lesson.title.replace(/^\d+\s*[.-]?\s*/, '')} />;
             }
             if (type === 'interactive_knight_pawn') {
-              return <KnightPawnBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} lessonTitle={lesson.title} />;
+              return <KnightPawnBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} lessonTitle={lesson.title.replace(/^\d+\s*[.-]?\s*/, '')} />;
             }
             if (type === 'interactive_chess_football') {
-              return <ChessFootballBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} lessonTitle={lesson.title} />;
+              return <ChessFootballBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} lessonTitle={lesson.title.replace(/^\d+\s*[.-]?\s*/, '')} />;
             }
             if (type === 'interactive_two_rooks_mate') {
               return <TwoRooksMateBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} />;
@@ -2584,7 +2584,7 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
               return <CoordinateTrainingBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} />;
             }
             if (type === 'interactive_computer_play') {
-              return <ComputerPlayBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} lessonTitle={lesson.title} />;
+              return <ComputerPlayBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} lessonTitle={lesson.title.replace(/^\d+\s*[.-]?\s*/, '')} />;
             }
             if (type === 'interactive_tactical_storm') {
               return <TacticalStormBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} />;
@@ -2599,7 +2599,7 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
               allLessons={allLessons}
               courseId={courseId}
               currentLessonId={lesson.id}
-              lessonTitle={lesson.title}
+              lessonTitle={lesson.title.replace(/^\d+\s*[.-]?\s*/, '')}
               lessonContent={lesson.content}
               prevLesson={prevLesson}
               nextLesson={nextLesson}
