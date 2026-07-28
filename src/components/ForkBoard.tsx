@@ -8,6 +8,13 @@ const FILES = ['a','b','c','d','e','f','g','h'];
 const RANKS = ['8','7','6','5','4','3','2','1'];
 const DISPLAY_RANKS = ['8','7','6','5','4','3','2','1'];
 
+const PROMOTION_PIECES = [
+  { code: 'q', name: 'Ферзь' },
+  { code: 'n', name: 'Конь' },
+  { code: 'r', name: 'Ладья' },
+  { code: 'b', name: 'Слон' },
+];
+
 const START_FEN_1 = '1n4k1/8/8/8/8/8/8/3R2K1 w - - 0 1';
 const START_FEN_2 = '8/1k3r2/8/3p4/8/6P1/5PBP/6K1 w - - 0 1';
 const START_FEN_3 = '8/ppk5/1qp5/7r/8/1Q4P1/5P1P/5RK1 w - - 0 1';
@@ -195,6 +202,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
   const [dragPiece, setDragPiece] = useState<DragState | null>(null);
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const pointerStartRef = useRef<PointerStart | null>(null);
+  const [promotionPending, setPromotionPending] = useState<{from: string; to: string} | null>(null);
 
   useEffect(() => { isCompleteRef.current = isComplete; }, [isComplete]);
   useEffect(() => { isFailRef.current = isFail; }, [isFail]);
@@ -277,13 +285,19 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
     });
   }, [storageKey]);
 
-  const processWhiteMove = useCallback((from: string, to: string) => {
+  const processWhiteMove = useCallback((from: string, to: string, promotionPiece?: string) => {
     if (!game) return;
     const g = game;
     if (g.turn() !== 'w') return;
 
     try {
-      const move = g.move({ from, to });
+      const piece = g.get(from as any);
+      const isPromotion = piece?.type === 'p' && (to[1] === '8' || to[1] === '1');
+      if (isPromotion && !promotionPiece) {
+        setPromotionPending({ from, to });
+        return;
+      }
+      const move = g.move({ from, to, promotion: promotionPiece });
       if (!move) return;
       setLastMove({ from, to });
 
@@ -1016,6 +1030,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
   }, [game, whiteMoves, onComplete, saveStars, exercise]);
 
   const handleSquareClick = useCallback((square: string) => {
+    if (promotionPending) return;
     if (isCompleteRef.current || isFailRef.current) return;
     if (!game) return;
     const g = game;
@@ -1040,6 +1055,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
   }, [game, selectedSquare, processWhiteMove]);
 
   const handlePointerDown = useCallback((e: React.PointerEvent, square: string) => {
+    if (promotionPending) return;
     if (isCompleteRef.current || isFailRef.current) return;
     if (!game) return;
     const g = game;
@@ -1084,6 +1100,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           processWhiteMove(start.square, targetSquare);
         }
         setDragPiece(null);
+    setPromotionPending(null);
       }
       pointerStartRef.current = null;
     };
@@ -1091,6 +1108,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
     const handleGlobalCancel = (e: PointerEvent) => {
       if (pointerStartRef.current && e.pointerId === pointerStartRef.current.pointerId) {
         setDragPiece(null);
+    setPromotionPending(null);
         pointerStartRef.current = null;
       }
     };
@@ -1104,6 +1122,14 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
       window.removeEventListener('pointercancel', handleGlobalCancel);
     };
   }, [game, processWhiteMove]);
+
+  // ──── PROMOTION ────
+  const handlePromotion = useCallback((pieceCode: string) => {
+    if (!promotionPending) return;
+    const { from, to } = promotionPending;
+    setPromotionPending(null);
+    processWhiteMove(from, to, pieceCode);
+  }, [promotionPending, processWhiteMove]);
 
   const getPieceAt = (sq: string) => {
     if (!game) return null;

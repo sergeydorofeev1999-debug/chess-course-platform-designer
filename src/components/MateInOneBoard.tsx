@@ -9,6 +9,13 @@ const REVERSED_FILES = ['h','g','f','e','d','c','b','a'];
 const DISPLAY_RANKS = ['8','7','6','5','4','3','2','1'];
 const REVERSED_DISPLAY_RANKS = ['1','2','3','4','5','6','7','8'];
 
+const PROMOTION_PIECES = [
+  { code: 'q', name: 'Ферзь' },
+  { code: 'n', name: 'Конь' },
+  { code: 'r', name: 'Ладья' },
+  { code: 'b', name: 'Слон' },
+];
+
 const START_FEN_1 = 'r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 1';
 const START_FEN_2 = 'r2q1rk1/4bpp1/b1p1p2p/pp2P3/3P4/2PQ4/P1BN1PPP/R2R2K1 w - - 0 1';
 const START_FEN_3 = 'r2q1rk1/pp3pp1/4p3/b2pP1N1/3n1P1P/P1NQn3/1P6/R4RK1 w - - 0 1';
@@ -109,6 +116,7 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
   const [dragPiece, setDragPiece] = useState<DragState | null>(null);
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const pointerStartRef = useRef<PointerStart | null>(null);
+  const [promotionPending, setPromotionPending] = useState<{from: string; to: string} | null>(null);
 
   const storageKey = lessonId ? `mateinone_progress_${lessonId}` : 'mateinone_progress';
 
@@ -151,6 +159,7 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
     setIsFail(false);
     setIsComplete(false);
     setDragPiece(null);
+    setPromotionPending(null);
   }, [exercise]);
 
   const saveStars = useCallback((ex: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8, stars: number) => {
@@ -176,15 +185,23 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
     setIsFail(false);
     setIsComplete(false);
     setDragPiece(null);
+    setPromotionPending(null);
   }, []);
 
   // ──── MATE IN 1 LOGIC ────
-  const processMove = useCallback((from: string, to: string) => {
+  const processMove = useCallback((from: string, to: string, promotionPiece?: string) => {
     if (!game) return;
     const g = game;
 
+    const piece = g.get(from as any);
+    const isPromotion = piece?.type === 'p' && (to[1] === '8' || to[1] === '1');
+    if (isPromotion && !promotionPiece) {
+      setPromotionPending({ from, to });
+      return;
+    }
+
     try {
-      const move = g.move({ from, to });
+      const move = g.move({ from, to, promotion: promotionPiece });
       if (!move) return;
 
       if (g.isCheckmate()) {
@@ -210,6 +227,7 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
 
   // ──── CLICK ────
   const handleSquareClick = useCallback((square: string) => {
+    if (promotionPending) return;
     if (isCompleteRef.current || isFailRef.current) return;
     if (!game) return;
     const g = game;
@@ -224,10 +242,11 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
         setSelectedSquare(square);
       }
     }
-  }, [game, selectedSquare, processMove]);
+  }, [game, selectedSquare, processMove, promotionPending]);
 
   // ──── DRAG & DROP ────
   const handlePointerDown = useCallback((e: React.PointerEvent, square: string) => {
+    if (promotionPending) return;
     if (isCompleteRef.current || isFailRef.current) return;
     if (!game) return;
     const piece = game.get(square as any);
@@ -235,7 +254,7 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
     if (e.pointerType === 'touch' && !(e as any).isPrimary) return;
 
     pointerStartRef.current = { x: e.clientX, y: e.clientY, square, moved: false, pointerId: e.pointerId };
-  }, [game]);
+  }, [game, promotionPending]);
 
   useEffect(() => {
     const handleGlobalMove = (e: PointerEvent) => {
@@ -291,6 +310,14 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
       window.removeEventListener('pointercancel', handleGlobalCancel);
     };
   }, [game, processMove]);
+
+  // ──── PROMOTION ────
+  const handlePromotion = useCallback((pieceCode: string) => {
+    if (!promotionPending) return;
+    const { from, to } = promotionPending;
+    setPromotionPending(null);
+    processMove(from, to, pieceCode);
+  }, [promotionPending, processMove]);
 
   // ──── HELPERS ────
   const getPieceAt = (sq: string) => {
@@ -576,6 +603,38 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
             })()
           )}
         </div>
+
+          {/* Promotion panel */}
+          {promotionPending && (
+            <div
+              className="absolute z-50 pointer-events-auto flex flex-col items-center gap-1 rounded-lg shadow-lg border border-[rgba(92,64,51,0.12)] overflow-hidden"
+              style={{
+                left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
+                top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
+                width: sqSize,
+                backgroundColor: promotionPending.from[1] === '2' ? '#2C241B' : '#F5F0E8',
+              }}
+            >
+              {PROMOTION_PIECES.map(({ code }) => {
+                const pawnColor = promotionPending.from[1] === '2' ? 'b' : 'w';
+                return (
+                  <button
+                    key={code}
+                    className="w-full flex items-center justify-center hover:bg-[rgba(201,168,76,0.2)] transition-colors"
+                    style={{ height: sqSize }}
+                    onClick={() => handlePromotion(code)}
+                  >
+                    <img
+                      src={`/pieces/cburnett/${pawnColor}${code.toUpperCase()}.svg`}
+                      alt={code}
+                      className="w-[75%] h-[75%]"
+                      draggable={false}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Dragged piece overlay */}
           {dragPiece && (

@@ -7,6 +7,13 @@ import { RotateCcw, Trophy, Eye } from 'lucide-react';
 const FILES = ['a','b','c','d','e','f','g','h'];
 const DISPLAY_RANKS = ['8','7','6','5','4','3','2','1'];
 
+const PROMOTION_PIECES = [
+  { code: 'q', name: 'Ферзь' },
+  { code: 'n', name: 'Конь' },
+  { code: 'r', name: 'Ладья' },
+  { code: 'b', name: 'Слон' },
+];
+
 const START_FEN_1 = '6k1/p4pp1/R6p/P2r4/8/8/5PPP/6K1 w - - 0 1';
 const START_FEN_2 = 'r2q1rk1/pp1b1pp1/3p3p/3n4/1P1pQ3/P2B1P2/2P3PP/R2N1R1K b - - 0 1';
 const START_FEN_3 = '1k5r/ppp2ppp/7r/4p3/Q3P2q/2RP4/PP3PPP/5R1K w - - 2 3';
@@ -100,6 +107,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
   const [dragPiece, setDragPiece] = useState<DragState | null>(null);
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const pointerStartRef = useRef<PointerStart | null>(null);
+  const [promotionPending, setPromotionPending] = useState<{from: string; to: string} | null>(null);
 
   const storageKey = lessonId ? `defendmate_progress_${lessonId}` : 'defendmate_progress';
 
@@ -138,6 +146,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
     setIsFail(false);
     setIsComplete(false);
     setDragPiece(null);
+    setPromotionPending(null);
     setSequenceStep(0);
   }, [exercise]);
 
@@ -163,11 +172,12 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
     setIsFail(false);
     setIsComplete(false);
     setDragPiece(null);
+    setPromotionPending(null);
     setSequenceStep(0);
   }, []);
 
   // ──── DEFEND MATE LOGIC ────
-  const processMove = useCallback((from: string, to: string) => {
+  const processMove = useCallback((from: string, to: string, promotionPiece?: string) => {
     if (!game) return;
     const g = game;
     const validMoves = DEFENSE_MOVES[exercise];
@@ -207,7 +217,13 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
         // Wrong move in sequence — fall through to fail logic
       }
 
-      const move = g.move({ from, to });
+      const piece = g.get(from as any);
+      const isPromotion = piece?.type === 'p' && (to[1] === '8' || to[1] === '1');
+      if (isPromotion && !promotionPiece) {
+        setPromotionPending({ from, to });
+        return;
+      }
+      const move = g.move({ from, to, promotion: promotionPiece });
       if (!move) return;
       setLastMove({ from, to });
 
@@ -281,6 +297,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
 
   // ──── CLICK ────
   const handleSquareClick = useCallback((visualSq: string) => {
+    if (promotionPending) return;
     if (isCompleteRef.current || isFailRef.current) return;
     if (!game) return;
     const sq = isFlipped ? toChessSquare(visualSq) : visualSq;
@@ -300,6 +317,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
 
   // ──── DRAG & DROP ────
   const handlePointerDown = useCallback((e: React.PointerEvent, visualSq: string) => {
+    if (promotionPending) return;
     if (isCompleteRef.current || isFailRef.current) return;
     if (!game) return;
     const sq = isFlipped ? toChessSquare(visualSq) : visualSq;
@@ -347,6 +365,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
           }
         }
         setDragPiece(null);
+    setPromotionPending(null);
       }
       pointerStartRef.current = null;
     };
@@ -354,6 +373,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
     const handleGlobalCancel = (e: PointerEvent) => {
       if (pointerStartRef.current && e.pointerId === pointerStartRef.current.pointerId) {
         setDragPiece(null);
+    setPromotionPending(null);
         pointerStartRef.current = null;
       }
     };
@@ -367,6 +387,14 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
       window.removeEventListener('pointercancel', handleGlobalCancel);
     };
   }, [game, processMove, isFlipped, toChessSquare]);
+
+  // ──── PROMOTION ────
+  const handlePromotion = useCallback((pieceCode: string) => {
+    if (!promotionPending) return;
+    const { from, to } = promotionPending;
+    setPromotionPending(null);
+    processMove(from, to, pieceCode);
+  }, [promotionPending, processMove]);
 
   // ──── HELPERS ────
   const getPieceAt = (sq: string) => {
@@ -660,6 +688,38 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
             })()
           )}
           </div>
+{/* Promotion panel */}
+          {promotionPending && (
+            <div
+              className="absolute z-50 pointer-events-auto flex flex-col items-center gap-1 rounded-lg shadow-lg border border-[rgba(92,64,51,0.12)] overflow-hidden"
+              style={{
+                left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
+                top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
+                width: sqSize,
+                backgroundColor: promotionPending.from[1] === '2' ? '#2C241B' : '#F5F0E8',
+              }}
+            >
+              {PROMOTION_PIECES.map(({ code }) => {
+                const pawnColor = promotionPending.from[1] === '2' ? 'b' : 'w';
+                return (
+                  <button
+                    key={code}
+                    className="w-full flex items-center justify-center hover:bg-[rgba(201,168,76,0.2)] transition-colors"
+                    style={{ height: sqSize }}
+                    onClick={() => handlePromotion(code)}
+                  >
+                    <img
+                      src={`/pieces/cburnett/${pawnColor}${code.toUpperCase()}.svg`}
+                      alt={code}
+                      className="w-[75%] h-[75%]"
+                      draggable={false}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           {/* Dragged piece overlay */}
           {dragPiece && (
             <div

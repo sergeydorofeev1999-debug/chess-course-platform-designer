@@ -9,6 +9,13 @@ const REVERSED_FILES = ['h','g','f','e','d','c','b','a'];
 const DISPLAY_RANKS = ['8','7','6','5','4','3','2','1'];
 const REVERSED_DISPLAY_RANKS = ['1','2','3','4','5','6','7','8'];
 
+const PROMOTION_PIECES = [
+  { code: 'q', name: 'Ферзь' },
+  { code: 'n', name: 'Конь' },
+  { code: 'r', name: 'Ладья' },
+  { code: 'b', name: 'Слон' },
+];
+
 const START_FEN_1 = '3r2k1/1pp2p1p/p2r2pP/8/2n5/2Pq1PQ1/PP2R3/2K1R3 w - - 0 1';
 const START_FEN_2 = '8/p4bpk/3P1np1/qp5p/4B2P/3Q1P2/PPPR4/1K2R3 b - - 0 1';
 const START_FEN_3 = 'rnb3k1/1p3rpp/p2Q4/4p3/4P3/2N1P2q/PPP1KR2/R7 w - - 0 1';
@@ -114,6 +121,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
   const [dragPiece, setDragPiece] = useState<DragState | null>(null);
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const pointerStartRef = useRef<PointerStart | null>(null);
+  const [promotionPending, setPromotionPending] = useState<{from: string; to: string} | null>(null);
 
   const storageKey = lessonId ? `mateintwo_progress_${lessonId}` : 'mateintwo_progress';
 

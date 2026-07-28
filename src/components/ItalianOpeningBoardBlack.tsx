@@ -8,6 +8,13 @@ const FILES = ['h','g','f','e','d','c','b','a'];
 const RANKS = ['8','7','6','5','4','3','2','1'];
 const DISPLAY_RANKS = ['1','2','3','4','5','6','7','8'];
 
+const PROMOTION_PIECES = [
+  { code: 'q', name: 'Ферзь' },
+  { code: 'n', name: 'Конь' },
+  { code: 'r', name: 'Ладья' },
+  { code: 'b', name: 'Слон' },
+];
+
 const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
 // Find a white capture that leaves the white piece safe (no black recapture)
@@ -121,6 +128,7 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
   const [dragPiece, setDragPiece] = useState<DragState | null>(null);
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const pointerStartRef = useRef<PointerStart | null>(null);
+  const [promotionPending, setPromotionPending] = useState<{from: string; to: string} | null>(null);
 
   const storageKey = lessonId ? `italian_black_progress_${lessonId}` : 'italian_black_progress';
 
@@ -204,15 +212,21 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
     });
   }, [storageKey]);
 
-  const processBlackMove = useCallback((from: string, to: string) => {
+  const processBlackMove = useCallback((from: string, to: string, promotionPiece?: string) => {
     if (!game) return;
     const g = game;
     if (g.turn() !== 'b') return;
     const fromPiece = g.get(from as any);
     if (!fromPiece || fromPiece.color !== 'b') return;
 
+    const isPromotion = fromPiece?.type === 'p' && (to[1] === '8' || to[1] === '1');
+    if (isPromotion && !promotionPiece) {
+      setPromotionPending({ from, to });
+      return;
+    }
+
     try {
-      const move = g.move({ from, to });
+      const move = g.move({ from, to, promotion: promotionPiece });
       if (!move) return;
       setLastMove({ from, to });
 
@@ -1563,6 +1577,7 @@ setLastMove({ from: 'e1', to: 'g1' });
   }, [game, selectedSquare, processBlackMove]);
 
   const handlePointerDown = useCallback((e: React.PointerEvent, square: string) => {
+    if (promotionPending) return;
     if (isCompleteRef.current || isFailRef.current) return;
     if (!game) return;
     const g = game;
@@ -1608,6 +1623,7 @@ setLastMove({ from: 'e1', to: 'g1' });
           processBlackMove(start.square, targetSquare);
         }
         setDragPiece(null);
+    setPromotionPending(null);
         justDraggedRef.current = true;
         setTimeout(() => { justDraggedRef.current = false; }, 50);
       }
@@ -1617,6 +1633,7 @@ setLastMove({ from: 'e1', to: 'g1' });
     const handleGlobalCancel = (e: PointerEvent) => {
       if (pointerStartRef.current && e.pointerId === pointerStartRef.current.pointerId) {
         setDragPiece(null);
+    setPromotionPending(null);
         pointerStartRef.current = null;
       }
     };
@@ -1630,6 +1647,14 @@ setLastMove({ from: 'e1', to: 'g1' });
       window.removeEventListener('pointercancel', handleGlobalCancel);
     };
   }, [game, processBlackMove]);
+
+  // ──── PROMOTION ────
+  const handlePromotion = useCallback((pieceCode: string) => {
+    if (!promotionPending) return;
+    const { from, to } = promotionPending;
+    setPromotionPending(null);
+    processBlackMove(from, to, pieceCode);
+  }, [promotionPending, processBlackMove]);
 
   const getPieceAt = (sq: string) => {
     if (!game) return null;
@@ -1880,6 +1905,38 @@ setLastMove({ from: 'e1', to: 'g1' });
               })
             ))}
           </div>
+
+{/* Promotion panel */}
+          {promotionPending && (
+            <div
+              className="absolute z-50 pointer-events-auto flex flex-col items-center gap-1 rounded-lg shadow-lg border border-[rgba(92,64,51,0.12)] overflow-hidden"
+              style={{
+                left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
+                top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
+                width: sqSize,
+                backgroundColor: promotionPending.from[1] === '2' ? '#2C241B' : '#F5F0E8',
+              }}
+            >
+              {PROMOTION_PIECES.map(({ code }) => {
+                const pawnColor = promotionPending.from[1] === '2' ? 'b' : 'w';
+                return (
+                  <button
+                    key={code}
+                    className="w-full flex items-center justify-center hover:bg-[rgba(201,168,76,0.2)] transition-colors"
+                    style={{ height: sqSize }}
+                    onClick={() => handlePromotion(code)}
+                  >
+                    <img
+                      src={`/pieces/cburnett/${pawnColor}${code.toUpperCase()}.svg`}
+                      alt={code}
+                      className="w-[75%] h-[75%]"
+                      draggable={false}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Dragged piece overlay */}
           {dragPiece && (
