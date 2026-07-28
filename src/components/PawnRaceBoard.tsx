@@ -959,9 +959,6 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
         <div className="text-sm font-medium">
           Белые съели: <span className="text-[#8B7355] font-bold">{blackCaptured}</span>/5
         </div>
-        <div className={`text-sm font-bold ${turn === 'w' ? 'text-[#5A4A3A]' : 'text-[#B8AFA3]'}`}>
-          {computerThinking ? 'Ход компьютера...' : 'Ваш ход'}
-        </div>
         <div className="text-sm font-medium">
           Чёрные съели: <span className="text-[#8B7355] font-bold">{whiteCaptured}</span>/5
         </div>
