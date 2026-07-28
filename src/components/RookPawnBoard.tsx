@@ -743,16 +743,6 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
 
   return (
     <div className="flex flex-col items-center gap-4 w-full select-none" >
-      {/* Status bar */}
-      <div className="flex items-center justify-between w-full max-w-sm gap-4 px-2">
-        <div className="text-sm font-medium">
-          Белые: <span className="text-[#5A4A3A] font-bold">{Object.values(squares).filter(p => p.color === 'w').length}</span>
-        </div>
-        <div className="text-sm font-medium">
-          Чёрные: <span className="text-[#8B7355] font-bold">{Object.values(squares).filter(p => p.color === 'b').length}</span>
-        </div>
-      </div>
-
       {winner && (
         <div className={`px-6 py-4 border rounded-xl font-bold text-lg text-center ${
           winner.includes('Белые')
@@ -885,6 +875,16 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
       )}
 
       {/* Info */}
+      {/* Status bar */}
+      <div className="flex items-center justify-between w-full max-w-sm gap-4 px-2">
+        <div className="text-sm font-medium">
+          Белые: <span className="text-[#5A4A3A] font-bold">{Object.values(squares).filter(p => p.color === 'w').length}</span>
+        </div>
+        <div className="text-sm font-medium">
+          Чёрные: <span className="text-[#8B7355] font-bold">{Object.values(squares).filter(p => p.color === 'b').length}</span>
+        </div>
+      </div>
+
       <div className="flex flex-col gap-2 w-full max-w-sm">
         <div className="flex gap-2 w-full">
           <button
