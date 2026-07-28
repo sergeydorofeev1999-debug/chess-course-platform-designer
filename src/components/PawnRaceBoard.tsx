@@ -954,6 +954,19 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
         </div>
       )}
 
+      {/* Status bar — под доской */}
+      <div className="flex items-center justify-between w-full max-w-sm gap-4 px-2">
+        <div className="text-sm font-medium">
+          Белые съели: <span className="text-[#8B7355] font-bold">{blackCaptured}</span>/5
+        </div>
+        <div className={`text-sm font-bold ${turn === 'w' ? 'text-[#5A4A3A]' : 'text-[#B8AFA3]'}`}>
+          {computerThinking ? 'Ход компьютера...' : 'Ваш ход'}
+        </div>
+        <div className="text-sm font-medium">
+          Чёрные съели: <span className="text-[#8B7355] font-bold">{whiteCaptured}</span>/5
+        </div>
+      </div>
+
       {/* Mobile action buttons */}
       <div className="flex flex-col gap-2 w-full max-w-sm">
         <div className="flex gap-2 w-full">
