@@ -982,6 +982,24 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
           >
             <RotateCcw size={14} /> Заново
           </button>
+          <button
+            onClick={() => {
+              if (history.length === 0 || winner || computerThinking) return;
+              const prev = history[history.length - 1];
+              setSquares(prev.squares);
+              setWhiteCaptured(prev.whiteCaptured);
+              setBlackCaptured(prev.blackCaptured);
+              setEnPassant(prev.enPassant);
+              setTurn(prev.turn);
+              setLastMove(null);
+              setWinner(null);
+              setHistory(h => h.slice(0, -1));
+            }}
+            disabled={history.length === 0 || !!winner || computerThinking}
+            className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            <Undo2 size={14} /> Вернуть ход
+          </button>
         </div>
       </div>
     </div>
