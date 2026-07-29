@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { RotateCcw, ChevronRight, Star, Trophy } from 'lucide-react';
+import { RotateCcw, ChevronRight, Star, Trophy, Eye, Undo2 } from 'lucide-react';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const RANKS = ['8','7','6','5','4','3','2','1'];
@@ -200,7 +200,7 @@ function hasPieces(squares: Record<string, Piece>, color: 'w' | 'b'): boolean {
 
 function hasExtraQueen(squares: Record<string, Piece>, color: 'w' | 'b'): boolean {
   // Check if there's more than 1 queen of this color (promotion happened)
-  return Object.values(squares).filter(p => p.type === 'q' && p.color === color).length > 1;
+  return Object.values(squares).filter(p => p.color === color && p.type !== 'p').length > 1;
 }
 
 /* ═════════════════════════════════════════════════════════════════
@@ -382,6 +382,9 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
   const [validSquares, setValidSquares] = useState<string[]>([]);
   const [enPassant, setEnPassant] = useState<string | null>(null);
   const [turn, setTurn] = useState<'w' | 'b'>('w');
+  const [whiteCaptured, setWhiteCaptured] = useState(0);
+  const [blackCaptured, setBlackCaptured] = useState(0);
+  const [history, setHistory] = useState<{ squares: Record<string, Piece>; whiteCaptured: number; blackCaptured: number; enPassant: string | null; turn: 'w' | 'b' }[]>([]);
   const [sqSize, setSqSize] = useState(44);
 
   const [dragPiece, setDragPiece] = useState<{ square: string; type: string; color: string } | null>(null);
@@ -389,6 +392,8 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const pointerStartRef = useRef<{ x: number; y: number; square: string; moved: boolean; pointerId: number } | null>(null);
   const processLockRef = useRef(false);
+  const whiteCapturedRef = useRef(0);
+  const blackCapturedRef = useRef(0);
   const squaresRef = useRef(squares);
   const clickRef = useRef<(square: string) => void>(() => {});
   const selectedSquareRef = useRef<string | null>(null);
@@ -406,6 +411,8 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
   useEffect(() => { validSquaresRef.current = validSquares; }, [validSquares]);
   useEffect(() => { enPassantRef.current = enPassant; }, [enPassant]);
   useEffect(() => { turnRef.current = turn; }, [turn]);
+  useEffect(() => { whiteCapturedRef.current = whiteCaptured; }, [whiteCaptured]);
+  useEffect(() => { blackCapturedRef.current = blackCaptured; }, [blackCaptured]);
   useEffect(() => { winnerRef.current = winner; }, [winner]);
   useEffect(() => { difficultyRef.current = difficulty; }, [difficulty]);
 
@@ -431,6 +438,10 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
     setValidSquares([]);
     setEnPassant(null);
     setTurn('w');
+    setWhiteCaptured(0);
+    setBlackCaptured(0);
+    setHistory([]);
+    setLastMove(null);
   }, []);
 
   const startLevel = useCallback((diff: Difficulty) => {
@@ -745,29 +756,18 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
   const currentLevel = LEVELS.find(l => l.id === difficulty)!;
 
   return (
-    <div className="flex flex-col items-center gap-4 w-full select-none" >
-      {/* Level badge */}
-      <div className="flex items-center gap-2">
-        <span className="px-3 py-1 rounded-full text-white text-sm font-bold" style={{ backgroundColor: currentLevel.color }}>
-          {currentLevel.label}
-        </span>
-        {completedLevels[difficulty] && (
-          <span className="flex items-center gap-1 text-[#6B5B3D] text-sm font-bold">
-            <Star size={14} fill="currentColor" /> Пройдено
-          </span>
-        )}
-      </div>
-
-      {/* Status */}
-      <div className="flex items-center justify-between w-full max-w-sm gap-4 px-2">
-        <div className="text-sm font-medium">
-          Белые: <span className="text-[#5A4A3A] font-bold">{Object.values(squares).filter(p => p.color === 'w').length}</span>
-        </div>
-        <div className={`text-sm font-bold ${turn === 'w' ? 'text-[#5A4A3A]' : 'text-[#B8AFA3]'}`}>
-          {computerThinking ? 'Ход компьютера...' : 'Ваш ход'}
-        </div>
-        <div className="text-sm font-medium">
-          Чёрные: <span className="text-[#8B7355] font-bold">{Object.values(squares).filter(p => p.color === 'b').length}</span>
+    <div className="flex flex-col items-center gap-4 w-full select-none">
+      {/* Avatar + speech bubble */}
+      <div className="w-full flex flex-col gap-2 max-w-sm">
+        <div className="flex items-start gap-3">
+          <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
+            <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
+          </div>
+          <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
+            <p className="text-sm text-[var(--text-primary)] leading-snug">
+              Цель: съешь 5 пешек соперника или проведи пешку до последней линии.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -779,13 +779,7 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
               ? 'bg-[#F5EFE6] border-[#D4C5B5] text-[#4A3F35]'
               : 'bg-[#F2DEDA] border-[#C9A84C] text-[#7A3A32]'
         }`}>
-          <div className="text-xl mb-2">{winner}</div>
-          <button
-            onClick={reset}
-            className="mt-2 px-6 py-2 bg-[#F9F8F6] border-2 border-current rounded-lg font-bold text-sm hover:bg-opacity-80 transition"
-          >
-            Начать заново
-          </button>
+          <div className="text-xl">{winner}</div>
         </div>
       )}
 
@@ -827,6 +821,12 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
                   {/* Selected square highlight */}
                   {sel && (
                     <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
+                  )}
+                  {lastMove && sq === lastMove.from && (
+                    <div className="absolute inset-0 bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
+                  )}
+                  {lastMove && sq === lastMove.to && (
+                    <div className="absolute inset-0 bg-[rgba(201,168,76,0.70)] pointer-events-none z-[5]" />
                   )}
                     {lastMove && sq === lastMove.from && (
                       <div className="absolute inset-0 bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
@@ -888,25 +888,43 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
         </div>
       )}
 
-      {/* Info */}
-      <div className="text-center text-sm text-[#6B5B3D] max-w-sm px-4">
-        <p className="font-medium mb-1">Цель игры:</p>
-        <p>Съешь все фигуры соперника или проведи пешку до последней линии.</p>
-        <p className="text-xs text-[#B8AFA3] mt-1">Ферзь ходит по прямым и диагональным линиям на любое расстояние.</p>
+      {/* Score counters */}
+      <div className="flex items-center justify-between w-full max-w-sm px-2 text-sm font-medium">
+        <span>Белые съели: <span className="font-bold text-[#5A4A3A]">{whiteCaptured}/5</span></span>
+        <span>Чёрные съели: <span className="font-bold text-[#8B7355]">{blackCaptured}/5</span></span>
       </div>
 
-      <div className="flex gap-3">
+      {/* Hint + restart + undo row */}
+      <div className="flex items-center gap-2 w-full max-w-sm px-2">
         <button
-          onClick={reset}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-[#6B5B3D] bg-[#E8E0D4] hover:bg-[#D4C5B5] transition"
+          onClick={() => alert('Подсказка: ферзь — самая сильная фигура, используй её для атаки и защиты пешек.')}
+          className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200"
         >
-          <RotateCcw size={16} /> Начать заново
+          <Eye size={14} /> Подсказка
         </button>
         <button
-          onClick={() => setDifficulty(null)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-[#6B5B3D] bg-[#E8E0D4] hover:bg-[#D4C5B5] transition"
+          onClick={reset}
+          className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200"
         >
-          <ChevronRight size={16} className="rotate-180" /> Уровни
+          <RotateCcw size={14} /> Заново
+        </button>
+        <button
+          onClick={() => {
+            if (history.length === 0 || winner || computerThinking) return;
+            const prev = history[history.length - 1];
+            setSquares(prev.squares);
+            setWhiteCaptured(prev.whiteCaptured);
+            setBlackCaptured(prev.blackCaptured);
+            setEnPassant(prev.enPassant);
+            setTurn(prev.turn);
+            setLastMove(null);
+            setWinner(null);
+            setHistory(h => h.slice(0, -1));
+          }}
+          disabled={history.length === 0 || !!winner || computerThinking}
+          className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <Undo2 size={14} /> Вернуть ход
         </button>
       </div>
     </div>

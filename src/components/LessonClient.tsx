@@ -1655,6 +1655,11 @@ function MultiLevelStarBoard({
         setMsg('В уроке про рокировку пешки ходят только до 4-й горизонтали');
         return false;
       }
+      // ── Lesson 13: no white piece may move above rank 6 ──
+      if (isCastlingLesson && to[1] > '6') {
+        setMsg('В уроке про рокировку фигуры не ходят выше 6-й горизонтали');
+        return false;
+      }
 
       if (!isValidMove(fromType, from, to, parsed.squares, visibleStars, parsed.enPassant)) return false;
 

@@ -197,8 +197,8 @@ function hasPieces(squares: Record<string, Piece>, color: 'w' | 'b'): boolean {
   return Object.values(squares).some(p => p.color === color);
 }
 
-function hasQueen(squares: Record<string, Piece>, color: 'w' | 'b'): boolean {
-  return Object.values(squares).some(p => p.type === 'q' && p.color === color);
+function hasPromotedPiece(squares: Record<string, Piece>, color: 'w' | 'b'): boolean {
+  return Object.values(squares).some(p => p.color === color && p.type !== 'p');
 }
 
 /* ═════════════════════════════════════════════════════════════════
@@ -206,8 +206,8 @@ function hasQueen(squares: Record<string, Piece>, color: 'w' | 'b'): boolean {
    ═════════════════════════════════════════════════════════════════ */
 
 function evaluatePosition(squares: Record<string, Piece>): number {
-  if (hasQueen(squares, 'w')) return -10000;
-  if (hasQueen(squares, 'b')) return 10000;
+  if (hasPromotedPiece(squares, 'w')) return -10000;
+  if (hasPromotedPiece(squares, 'b')) return 10000;
   if (!hasPieces(squares, 'w')) return 10000;
   if (!hasPieces(squares, 'b')) return -10000;
 
@@ -439,8 +439,8 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
   }, [reset]);
 
   const checkGameOver = useCallback((sqs: Record<string, Piece>, ep: string | null, currentTurn: 'w' | 'b'): string | null => {
-    if (hasQueen(sqs, 'w') || !hasPieces(sqs, 'b')) return 'Белые победили!';
-    if (hasQueen(sqs, 'b') || !hasPieces(sqs, 'w')) return 'Чёрные победили!';
+    if (hasPromotedPiece(sqs, 'w') || !hasPieces(sqs, 'b')) return 'Белые победили!';
+    if (hasPromotedPiece(sqs, 'b') || !hasPieces(sqs, 'w')) return 'Чёрные победили!';
     if (hasNoMoves(sqs, currentTurn, ep)) return 'Ничья';
     return null;
   }, []);

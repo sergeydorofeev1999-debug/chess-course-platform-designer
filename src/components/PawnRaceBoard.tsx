@@ -143,8 +143,8 @@ function countPawns(squares: Record<string, Piece>, color: 'w' | 'b'): number {
   return Object.values(squares).filter(p => p.type === 'p' && p.color === color).length;
 }
 
-function hasQueen(squares: Record<string, Piece>, color: 'w' | 'b'): boolean {
-  return Object.values(squares).some(p => p.type === 'q' && p.color === color);
+function hasPromotedPiece(squares: Record<string, Piece>, color: 'w' | 'b'): boolean {
+  return Object.values(squares).some(p => p.color === color && p.type !== 'p');
 }
 
 function getAllPawnMoves(squares: Record<string, Piece>, color: 'w' | 'b', enPassant: string | null): { from: string; to: string }[] {
@@ -170,8 +170,8 @@ function hasNoMoves(squares: Record<string, Piece>, color: 'w' | 'b', enPassant:
 
 function evaluatePosition(squares: Record<string, Piece>, whiteCaptured: number, blackCaptured: number): number {
   // Terminal states
-  if (hasQueen(squares, 'w') || blackCaptured >= 5) return -10000;
-  if (hasQueen(squares, 'b') || whiteCaptured >= 5) return 10000;
+  if (hasPromotedPiece(squares, 'w') || blackCaptured >= 5) return -10000;
+  if (hasPromotedPiece(squares, 'b') || whiteCaptured >= 5) return 10000;
   if (countPawns(squares, 'w') === 0) return 10000;
   if (countPawns(squares, 'b') === 0) return -10000;
 
@@ -482,8 +482,8 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
   }, [reset]);
 
   const checkGameOver = useCallback((sqs: Record<string, Piece>, wCap: number, bCap: number, ep: string | null, currentTurn: 'w' | 'b'): string | null => {
-    if (hasQueen(sqs, 'w') || bCap >= 5 || countPawns(sqs, 'b') === 0) return 'Белые победили!';
-    if (hasQueen(sqs, 'b') || wCap >= 5 || countPawns(sqs, 'w') === 0) return 'Чёрные победили!';
+    if (hasPromotedPiece(sqs, 'w') || bCap >= 5 || countPawns(sqs, 'b') === 0) return 'Белые победили!';
+    if (hasPromotedPiece(sqs, 'b') || wCap >= 5 || countPawns(sqs, 'w') === 0) return 'Чёрные победили!';
     if (hasNoMoves(sqs, currentTurn, ep)) return 'Ничья';
     return null;
   }, []);
