@@ -931,7 +931,7 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
                   title={name}
                 >
                   <img
-                    src={`/pieces/cburnett/promotionPending.from[1] === '2' ? 'b' : 'w'${code.toUpperCase()}.svg`}
+                    src={`/pieces/cburnett/${promotionPending.from[1] === '2' ? 'b' : 'w'}${code.toUpperCase()}.svg`}
                     alt={name}
                     draggable={false}
                     style={{ width: '70%', height: '70%', objectFit: 'contain' }}
