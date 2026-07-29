@@ -1377,23 +1377,6 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
             </div>
           )}
 
-          {/* PROMOTION MODAL */}
-          {promotionPending && (
-            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/30 rounded-lg">
-              <div className="bg-white rounded-lg p-4 shadow-xl text-center space-y-3 max-w-[260px]">
-                <p className="font-bold text-sm">Превращение пешки!</p>
-                <p className="text-xs text-gray-500">Ваша пешка достигла края доски</p>
-                <div className="flex gap-2 justify-center">
-                  {PROMOTION_PIECES.map(({ code, name }) => (
-                    <button key={code} onClick={() => handlePromotion(code)} className="w-12 h-12 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition border border-gray-300" title={name}>
-                      <img src={`/pieces/cburnett/w${code.toUpperCase()}.svg`} className="w-8 h-8" draggable={false} alt={name} />
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* Board */}
           <div className="flex justify-center w-full relative">
             <div className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none" style={{ gridTemplateColumns: `repeat(8, ${sqSize}px)`, gridTemplateRows: `repeat(8, ${sqSize}px)`, touchAction: 'none' }}>
@@ -1436,6 +1419,57 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
                 })
               )}
             </div>
+            {promotionPending && (
+              <div className="absolute z-50 pointer-events-auto" style={{
+                left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
+                top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
+                width: sqSize,
+                height: 4 * sqSize,
+                backgroundColor: '#2C241B',
+                borderRadius: '0px',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+              }}>
+                {PROMOTION_PIECES.map(({ code, name }) => (
+                  <button
+                    key={code}
+                    onClick={() => handlePromotion(code)}
+                    className="w-full aspect-square flex items-center justify-center transition-all duration-150"
+                    style={{
+                      backgroundColor: 'transparent',
+                      border: '2px solid transparent',
+                      borderRadius: '0px',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
+                      e.currentTarget.style.borderColor = '#C9A84C';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.borderColor = 'transparent';
+                    }}
+                    onMouseDown={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.25)';
+                    }}
+                    onMouseUp={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
+                    }}
+                    title={name}
+                  >
+                    <img
+                      src={`/pieces/cburnett/w${code.toUpperCase()}.svg`}
+                      alt={name}
+                      draggable={false}
+                      style={{ width: '70%', height: '70%', objectFit: 'contain' }}
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
             {dragPiece && (
               <div className="fixed pointer-events-none z-50" style={{ left: dragPos.x - sqSize * 0.425, top: dragPos.y - sqSize * 0.425, width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
                 <PieceImg type={dragPiece.type} color={dragPiece.color} />

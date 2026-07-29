@@ -207,7 +207,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
   }, [isComplete, exercise, switchExercise]);
 
   // ──── MATE IN 2 LOGIC ────
-  const processMove = useCallback((from: string, to: string, promotionPiece?: string) => {
+  const applyMove = useCallback((from: string, to: string, promotionPiece?: string) => {
     if (!game) return;
     setHintVisible(false);
     const g = game;
@@ -292,13 +292,13 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
     if (selectedSquare === square) {
       setSelectedSquare(null);
     } else if (selectedSquare) {
-      processMove(selectedSquare, square);
+      applyMove(selectedSquare, square);
     } else {
       if (piece && piece.color === game.turn()) {
         setSelectedSquare(square);
       }
     }
-  }, [game, selectedSquare, processMove]);
+  }, [game, selectedSquare, applyMove]);
 
   // ──── DRAG & DROP ────
   const handlePointerDown = useCallback((e: React.PointerEvent, square: string) => {
@@ -342,7 +342,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
         const cell = el?.closest('[data-square]') as HTMLElement | null;
         const targetSquare = cell?.dataset.square || null;
         if (targetSquare && targetSquare !== start.square) {
-          processMove(start.square, targetSquare);
+          applyMove(start.square, targetSquare);
         }
         setDragPiece(null);
       }
@@ -364,7 +364,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
       window.removeEventListener('pointerup', handleGlobalUp);
       window.removeEventListener('pointercancel', handleGlobalCancel);
     };
-  }, [game, processMove]);
+  }, [game, applyMove]);
 
   // ──── HELPERS ────
   const getPieceAt = (sq: string) => {
@@ -672,7 +672,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
               {PROMOTION_PIECES.map(({ code, name }) => (
                 <button
                   key={code}
-                  onClick={() => { setPromotionPending(null); processMove(promotionPending.from, promotionPending.to, code); }}
+                  onClick={() => { setPromotionPending(null); applyMove(promotionPending.from, promotionPending.to, code); }}
                   className="w-full aspect-square flex items-center justify-center transition-all duration-150"
                   style={{
                     backgroundColor: 'transparent',
