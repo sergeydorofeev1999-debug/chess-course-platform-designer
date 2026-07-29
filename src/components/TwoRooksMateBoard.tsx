@@ -890,35 +890,57 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
 
 {/* Promotion panel */}
           {promotionPending && (
-            <div
-              className="absolute z-50 pointer-events-auto flex flex-col items-center gap-1 rounded-lg shadow-lg border border-[rgba(92,64,51,0.12)] overflow-hidden"
-              style={{
-                left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
-                top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
-                width: sqSize,
-                backgroundColor: promotionPending.from[1] === '2' ? '#2C241B' : '#F5F0E8',
-              }}
-            >
-              {PROMOTION_PIECES.map(({ code }) => {
-                const pawnColor = promotionPending.from[1] === '2' ? 'b' : 'w';
-                return (
-                  <button
-                    key={code}
-                    className="w-full flex items-center justify-center hover:bg-[rgba(201,168,76,0.2)] transition-colors"
-                    style={{ height: sqSize }}
-                    onClick={() => handlePromotion(code)}
-                  >
-                    <img
-                      src={`/pieces/cburnett/${pawnColor}${code.toUpperCase()}.svg`}
-                      alt={code}
-                      className="w-[75%] h-[75%]"
-                      draggable={false}
-                    />
-                  </button>
-                );
-              })}
+            <div className="absolute z-50 pointer-events-auto" style={{
+              left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
+              top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
+              width: sqSize,
+              height: 4 * sqSize,
+              backgroundColor: '#2C241B',
+              borderRadius: '0px',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+            }}>
+              {PROMOTION_PIECES.map(({ code, name }) => (
+                <button
+                  key={code}
+                  onClick={() => handlePromotion(code)}
+                  className="w-full aspect-square flex items-center justify-center transition-all duration-150"
+                  style={{
+                    backgroundColor: 'transparent',
+                    border: '2px solid transparent',
+                    borderRadius: '0px',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
+                    e.currentTarget.style.borderColor = '#C9A84C';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.borderColor = 'transparent';
+                  }}
+                  onMouseDown={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.25)';
+                  }}
+                  onMouseUp={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
+                  }}
+                  title={name}
+                >
+                  <img
+                    src={`/pieces/cburnett/promotionPending.from[1] === '2' ? 'b' : 'w'${code.toUpperCase()}.svg`}
+                    alt={name}
+                    draggable={false}
+                    style={{ width: '70%', height: '70%', objectFit: 'contain' }}
+                  />
+                </button>
+              ))}
             </div>
           )}
+
 
           {/* Dragged piece overlay */}
           {dragPiece && (

@@ -652,35 +652,32 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
           </div>
 
           {promotionPending && (
-            <div className="absolute z-50 pointer-events-auto promotion-panel rounded-lg border border-[#E8E0D5] overflow-hidden"
-              style={{
-                left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
-                top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
-                width: sqSize,
-                height: 4 * sqSize,
-                backgroundColor: '#FFFFFF',
-                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.12)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
+            <div className="absolute z-50 pointer-events-auto" style={{
+              left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
+              top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
+              width: sqSize,
+              height: 4 * sqSize,
+              backgroundColor: '#2C241B',
+              borderRadius: '0px',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+            }}>
               {PROMOTION_PIECES.map(({ code, name }) => (
                 <button
                   key={code}
-                  onClick={() => {
-                    processMove(promotionPending.from, promotionPending.to, code);
-                    setPromotionPending(null);
-                  }}
+                  onClick={() => { processMove(promotionPending.from, promotionPending.to, code); setPromotionPending(null); }}
                   className="w-full aspect-square flex items-center justify-center transition-all duration-150"
                   style={{
                     backgroundColor: 'transparent',
                     border: '2px solid transparent',
-                    borderRadius: '4px',
+                    borderRadius: '0px',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.10)';
+                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
                     e.currentTarget.style.borderColor = '#C9A84C';
                   }}
                   onMouseLeave={(e) => {
@@ -688,23 +685,24 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
                     e.currentTarget.style.borderColor = 'transparent';
                   }}
                   onMouseDown={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.20)';
+                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.25)';
                   }}
                   onMouseUp={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.10)';
+                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
                   }}
                   title={name}
                 >
                   <img
-                    src={`/pieces/cburnett/${promotionPending.from[1] === '2' ? 'b' : 'w'}${code.toUpperCase()}.svg`}
+                    src={`/pieces/cburnett/promotionPending.from[1] === '2' ? 'b' : 'w'${code.toUpperCase()}.svg`}
                     alt={name}
                     draggable={false}
-                    style={{ width: '78%', height: '78%', objectFit: 'contain', filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}
+                    style={{ width: '70%', height: '70%', objectFit: 'contain' }}
                   />
                 </button>
               ))}
             </div>
           )}
+
 
           {dragPiece && (
             <div
