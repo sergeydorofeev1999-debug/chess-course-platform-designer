@@ -1418,7 +1418,6 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
                   );
                 })
               )}
-            </div>
             {promotionPending && (
               <div className="absolute z-50 pointer-events-auto" style={{
                 left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
@@ -1470,6 +1469,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
                 ))}
               </div>
             )}
+            </div>
             {dragPiece && (
               <div className="fixed pointer-events-none z-50" style={{ left: dragPos.x - sqSize * 0.425, top: dragPos.y - sqSize * 0.425, width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
                 <PieceImg type={dragPiece.type} color={dragPiece.color} />

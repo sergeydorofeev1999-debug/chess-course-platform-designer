@@ -2022,9 +2022,6 @@ const handleSquareClick = useCallback((square: string) => {
                 );
               })
             ))}
-          </div>
-
-{/* Promotion panel */}
           {promotionPending && (
             <div className="absolute z-50 pointer-events-auto" style={{
               left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
@@ -2076,6 +2073,9 @@ const handleSquareClick = useCallback((square: string) => {
               ))}
             </div>
           )}
+          </div>
+
+{/* Promotion panel */}
 
 
           {/* Dragged piece overlay */}

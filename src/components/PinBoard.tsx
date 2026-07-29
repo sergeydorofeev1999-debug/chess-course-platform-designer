@@ -1490,9 +1490,6 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
               );
             })()
           )}
-        </div>
-
-{/* Promotion panel */}
           {promotionPending && (
             <div className="absolute z-50 pointer-events-auto" style={{
               left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
@@ -1544,6 +1541,9 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
               ))}
             </div>
           )}
+        </div>
+
+{/* Promotion panel */}
 
 
           {/* Dragged piece overlay */}

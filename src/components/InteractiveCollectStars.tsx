@@ -202,22 +202,6 @@ function InteractiveBoard({ Chessboard, config, onComplete }: Props & { Chessboa
             <span className="font-medium">Урок пройден!</span>
           </div>
         )}
-      </div>
-
-      <div className="flex justify-center">
-        <div className="relative inline-block">
-          <Chessboard
-            options={{
-              position: game.fen(),
-              onPieceDrop: handlePieceDrop,
-              squareStyles: getSquareStyles(),
-              boardStyle: { borderRadius: '8px' },
-              animationDurationInMs: 200,
-            }}
-          />
-          {stars.filter(s => !s.collected).map(star => (
-            <StarOverlay key={star.square} square={star.square} color={star.color} />
-          ))}
           {promotionPending && (
             <div className="absolute z-50 pointer-events-auto promotion-panel" style={{
               left: `${(promotionPending.to.charCodeAt(0) - 97) * 12.5}%`,
@@ -268,6 +252,22 @@ function InteractiveBoard({ Chessboard, config, onComplete }: Props & { Chessboa
               ))}
             </div>
           )}
+      </div>
+
+      <div className="flex justify-center">
+        <div className="relative inline-block">
+          <Chessboard
+            options={{
+              position: game.fen(),
+              onPieceDrop: handlePieceDrop,
+              squareStyles: getSquareStyles(),
+              boardStyle: { borderRadius: '8px' },
+              animationDurationInMs: 200,
+            }}
+          />
+          {stars.filter(s => !s.collected).map(star => (
+            <StarOverlay key={star.square} square={star.square} color={star.color} />
+          ))}
         </div>
       </div>
 

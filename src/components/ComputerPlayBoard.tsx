@@ -649,8 +649,6 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
                 );
               })
             ))}
-          </div>
-
           {promotionPending && (
             <div className="absolute z-50 pointer-events-auto" style={{
               left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
@@ -702,6 +700,8 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
               ))}
             </div>
           )}
+          </div>
+
 
 
           {dragPiece && (

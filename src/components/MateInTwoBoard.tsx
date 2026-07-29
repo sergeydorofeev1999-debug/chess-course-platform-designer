@@ -653,7 +653,6 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
               );
             })()
           )}
-          </div>
           {promotionPending && (
             <div className="absolute z-50 pointer-events-auto" style={{
               left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
@@ -705,6 +704,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
               ))}
             </div>
           )}
+          </div>
           {dragPiece && (
             <div
               className="fixed pointer-events-none z-50"

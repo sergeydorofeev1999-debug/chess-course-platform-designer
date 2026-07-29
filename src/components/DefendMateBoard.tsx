@@ -687,8 +687,6 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
               );
             })()
           )}
-          </div>
-{/* Promotion panel */}
           {promotionPending && (
             <div className="absolute z-50 pointer-events-auto" style={{
               left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
@@ -740,6 +738,8 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
               ))}
             </div>
           )}
+          </div>
+{/* Promotion panel */}
 
 
           {/* Dragged piece overlay */}

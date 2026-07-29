@@ -924,9 +924,6 @@ setLastMove({ from: preferred.from, to: preferred.to });
               );
             })()
           )}
-        </div>
-
-{/* Promotion panel */}
           {promotionPending && (
             <div className="absolute z-50 pointer-events-auto" style={{
               left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
@@ -978,6 +975,9 @@ setLastMove({ from: preferred.from, to: preferred.to });
               ))}
             </div>
           )}
+        </div>
+
+{/* Promotion panel */}
 
 
           {/* Dragged piece overlay */}
