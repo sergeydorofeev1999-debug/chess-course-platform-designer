@@ -620,6 +620,7 @@ function InlineChessBoard({
 
   const click = useCallback(
     (square: string) => {
+      if (promotionPending) return;
       if (justDraggedRef.current) { justDraggedRef.current = false; return; }
       const sqs = squaresRef.current;
       const sel = selectedSquareRef.current;
@@ -653,7 +654,7 @@ function InlineChessBoard({
         }
       }
     },
-    [setMsg, forbiddenSquares]
+    [setMsg, forbiddenSquares, promotionPending],
   );
 
   const handlePointerDown = (e: React.PointerEvent, sq: string) => {
@@ -1781,19 +1782,17 @@ export default function CaptureBoard({
               >
                 <div className="flex gap-0.5">
                   {[1, 2, 3].map((s) => (
-                    <img
+                    <svg
                       key={s}
-                      src="/images/learn/star.png"
-                      alt=""
-                      className="w-3.5 h-3.5"
-                      style={{
-                        filter:
-                          earned != null && s <= earned
-                            ? 'brightness(1.2) drop-shadow(0 0 1px rgba(255,255,255,0.6))'
-                            : 'grayscale(100%) brightness(0.4)',
-                      }}
-                      draggable={false}
-                    />
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill={earned != null && s <= earned ? '#FFFFFF' : 'none'}
+                      stroke={earned != null && s <= earned ? 'none' : '#9CA3AF'}
+                      strokeWidth="2"
+                    >
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
                   ))}
                 </div>
                 <span className="ml-2 text-xs font-medium">{i + 1}</span>
@@ -1855,15 +1854,17 @@ export default function CaptureBoard({
               >
                 <div className="flex gap-0.5">
                   {[1, 2, 3].map((s) => (
-                    <img
+                    <svg
                       key={s}
-                      src="/images/learn/star.png"
-                      className={`w-3 h-3 ${
-                        isFuture ? 'opacity-30 grayscale' : s <= (earned || 0) ? '' : 'opacity-40 grayscale'
-                      }`}
-                      draggable={false}
-                      alt=""
-                    />
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill={isFuture ? 'none' : s <= (earned || 0) ? '#FFFFFF' : 'none'}
+                      stroke={isFuture ? '#9CA3AF' : s <= (earned || 0) ? 'none' : '#9CA3AF'}
+                      strokeWidth="2"
+                    >
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
                   ))}
                 </div>
               </button>
