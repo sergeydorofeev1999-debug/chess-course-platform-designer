@@ -736,36 +736,8 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
     const allCompleted = LEVELS.every(l => completedLevels[l.id]);
     return (
       <div className="flex flex-col lg:flex-row gap-4 w-full">
-        {/* LEFT SIDEBAR (desktop) */}
-        <div className="hidden lg:flex lg:w-[180px] flex-shrink-0 flex-col gap-3">
-          {/* Avatar + Speech bubble */}
-          <div className="flex items-start gap-2">
-            <div className="w-10 h-10 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
-              <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
-            </div>
-            <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2.5 shadow-sm border border-[rgba(92,64,51,0.06)]">
-              <p className="text-sm text-[var(--text-primary)] leading-snug">
-                Шахматный футбол: доведите короля до края доски, чтобы забить гол. Игра до 3 голов!
-              </p>
-            </div>
-          </div>
-        </div>
-
         {/* CENTER COLUMN */}
         <div className="flex-1 flex flex-col items-center gap-3 w-full">
-          {/* Mobile avatar + speech bubble */}
-          <div className="lg:hidden w-full flex flex-col gap-2">
-            <div className="flex items-start gap-3">
-              <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
-                <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
-              </div>
-              <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
-                <p className="text-sm text-[var(--text-primary)] leading-snug line-clamp-3">
-                  Шахматный футбол: доведите короля до края доски, чтобы забить гол. Игра до 3 голов!
-                </p>
-              </div>
-            </div>
-          </div>
 
           {lessonTitle ? (
             <div className="text-center">
@@ -826,17 +798,6 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
     <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
       {/* LEFT SIDEBAR (desktop) */}
       <div className="hidden lg:flex lg:w-[180px] flex-shrink-0 flex-col gap-3">
-        {/* Avatar + Speech bubble */}
-        <div className="flex items-start gap-2">
-          <div className="w-10 h-10 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
-            <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
-          </div>
-          <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2.5 shadow-sm border border-[rgba(92,64,51,0.06)]">
-            <p className="text-sm text-[var(--text-primary)] leading-snug">
-              Доведите белого короля до 8 ряда — это гол чёрным! Игра до 3 голов. Короли не могут стоять рядом.
-            </p>
-          </div>
-        </div>
         {/* Sidebar action buttons */}
         <button
           onClick={() => setShowHint(prev => !prev)}
@@ -870,31 +831,11 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
 
       {/* CENTER COLUMN */}
       <div className="flex-1 flex flex-col items-center gap-3">
-        {/* Mobile avatar + speech bubble */}
-        <div className="lg:hidden w-full flex flex-col gap-2">
-          <div className="flex items-start gap-3">
-            <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
-              <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
-            </div>
-            <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
-              <p className="text-sm text-[var(--text-primary)] leading-snug line-clamp-3">
-                Доведите белого короля до 8 ряда — гол! Игра до 3 голов. Короли не могут стоять рядом.
-              </p>
-            </div>
-          </div>
-        </div>
-
         {/* Difficulty + Turn */}
         <div className="flex items-center gap-2">
-          <span className={`text-xs font-bold px-2 py-0.5 rounded-full text-white ${LEVELS.find(l => l.id === difficulty)?.color}`}>
-            {LEVELS.find(l => l.id === difficulty)?.label}
-          </span>
           {computerThinking && (
             <span className="text-xs text-[#8B7355]">Думает...</span>
           )}
-        </div>
-        <div className={`text-sm font-bold ${turn === 'w' ? 'text-[#5A4A3A]' : 'text-[#B8AFA3]'}`}>
-          {computerThinking ? 'Ход компьютера...' : 'Ваш ход'}
         </div>
 
         {/* Winner */}
