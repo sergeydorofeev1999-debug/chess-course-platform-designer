@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useLayoutEffect } from 'react';
 import { Chess } from 'chess.js';
 import { RotateCcw, Trophy, Eye } from 'lucide-react';
 
@@ -123,6 +123,14 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
   const pointerStartRef = useRef<PointerStart | null>(null);
   const [promotionPending, setPromotionPending] = useState<{from: string; to: string} | null>(null);
 
+  // Animation for opponent move
+  const [animatingMove, setAnimatingMove] = useState<{
+    from: string;
+    to: string;
+    piece: { type: string; color: 'w' | 'b' };
+  } | null>(null);
+  const ghostRef = useRef<HTMLDivElement | null>(null);
+
   const storageKey = lessonId ? `mateintwo_progress_${lessonId}` : 'mateintwo_progress';
 
   useEffect(() => () => { mountedRef.current = false; }, []);
@@ -243,11 +251,23 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
             const compMoves = cg.moves({ verbose: true });
             if (compMoves.length > 0) {
               const compMove = compMoves[0];
-              cg.move(compMove);
-              setGame(new Chess(cg.fen()));
-              setMessage('Найдите мат!');
+              const movedPiece = cg.get(compMove.from);
+              setAnimatingMove({
+                from: compMove.from,
+                to: compMove.to,
+                piece: { type: movedPiece?.type.toUpperCase() || '', color: movedPiece?.color as 'w' | 'b' || 'b' },
+              });
+              // Animate ghost piece then apply move
+              requestAnimationFrame(() => {
+                setTimeout(() => {
+                  cg.move(compMove);
+                  setGame(new Chess(cg.fen()));
+                  setAnimatingMove(null);
+                  setMessage('Найдите мат!');
+                }, 600);
+              });
             }
-          }, 800);
+          }, 600);
           return;
         } else {
           setGame(new Chess(g.fen()));
@@ -513,6 +533,31 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
 
         {/* Board */}
         <div className="flex justify-center w-full relative">
+          {/* Animation keyframes for opponent ghost piece */}
+          <style>{`
+            @keyframes opponentMoveGhost {
+              0% {
+                transform: translate(0, 0) scale(1);
+                opacity: 1;
+              }
+              25% {
+                transform: translate(calc(var(--ghost-dx) * 0.15), calc(var(--ghost-dy) * 0.15)) scale(1.1);
+                opacity: 1;
+              }
+              50% {
+                transform: translate(calc(var(--ghost-dx) * 0.5), calc(var(--ghost-dy) * 0.5)) scale(1.2);
+                opacity: 1;
+              }
+              75% {
+                transform: translate(calc(var(--ghost-dx) * 0.8), calc(var(--ghost-dy) * 0.8)) scale(1.08);
+                opacity: 0.9;
+              }
+              100% {
+                transform: translate(var(--ghost-dx), var(--ghost-dy)) scale(1);
+                opacity: 0.7;
+              }
+            }
+          `}</style>
           <div
             data-board
             className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none"
@@ -594,7 +639,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
                         />
                       </div>
                     )}
-                    {pieceObj && !isDragSource && (
+                    {pieceObj && !isDragSource && !(animatingMove && sq === animatingMove.from) && (
                       <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
                         <PieceImg type={pieceObj.type} color={pieceObj.color} />
                       </div>
@@ -603,6 +648,39 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
                 );
               })
             ))}
+            {/* Opponent move ghost piece */}
+            {animatingMove && (() => {
+              const isReversed = exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7;
+              const fromF = (isReversed ? REVERSED_FILES : FILES).indexOf(animatingMove.from[0]);
+              const fromR = (isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).indexOf(animatingMove.from[1]);
+              const toF = (isReversed ? REVERSED_FILES : FILES).indexOf(animatingMove.to[0]);
+              const toR = (isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).indexOf(animatingMove.to[1]);
+              const x1 = fromF * sqSize;
+              const y1 = fromR * sqSize;
+              const x2 = toF * sqSize;
+              const y2 = toR * sqSize;
+              return (
+                <div
+                  ref={ghostRef}
+                  key={animatingMove.from + '-' + animatingMove.to}
+                  className="absolute pointer-events-none"
+                  style={{
+                    left: x1,
+                    top: y1,
+                    width: sqSize,
+                    height: sqSize,
+                    zIndex: 60,
+                    animation: 'opponentMoveGhost 600ms ease-out forwards',
+                    '--ghost-dx': `${x2 - x1}px`,
+                    '--ghost-dy': `${y2 - y1}px`,
+                  } as React.CSSProperties}
+                >
+                  <div className="w-full h-full flex items-center justify-center" style={{ padding: Math.round(sqSize * 0.075) }}>
+                    <PieceImg type={animatingMove.piece.type} color={animatingMove.piece.color} />
+                  </div>
+                </div>
+              );
+            })()}
           {/* Hint arrows SVG overlay */}
           {hintVisible && !isFail && !isComplete && !selectedSquare && !dragPiece && (
             (() => {
