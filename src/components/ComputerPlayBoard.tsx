@@ -258,10 +258,10 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
   // ──── PROCESS PLAYER MOVE ────
   const processMove = useCallback((from: string, to: string, promotion?: string) => {
     if (!game || selectedLevel === null || isComplete || gameOver) return;
-    const g = game;
+    const g = new Chess(game.fen());
     if (g.turn() !== playerColor) return;
 
-    const prevFen = g.fen();
+    const prevFen = game.fen();
     const prevStep = openingStepRef.current;
 
     // Check if pawn promotion needed
@@ -280,7 +280,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
       if (!move) return;
 
       setLastMove({ from, to });
-      setGame(new Chess(g.fen()));
+      setGame(g);
       setSelectedSquare(null);
       setHistory(h => [...h, { fen: prevFen, openingStep: prevStep }]);
 
@@ -305,7 +305,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
               openingStepRef.current = step + 1;
               checkGameOver(g, 'after computer forced');
             } catch {}
-          }, 1000);
+          }, 800);
           return;
         } else {
           // White deviated — disable forced line
@@ -316,7 +316,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
       // Computer's turn (Stockfish)
       setTimeout(() => {
         if (mountedRef.current) makeComputerMove(new Chess(g.fen()), selectedLevel, openingStepRef.current);
-      }, 300);
+      }, 600);
     } catch {}
   }, [game, selectedLevel, isComplete, gameOver, playerColor, checkGameOver, makeComputerMove]);
 
@@ -627,8 +627,11 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
                     {sel && (
                       <div className="absolute inset-0 bg-[rgba(201,168,76,0.35)] pointer-events-none z-10" />
                     )}
-                    {isLastMove && (
-                      <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
+                    {lastMove?.from === sq && (
+                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
+                    )}
+                    {lastMove?.to === sq && (
+                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.70)] pointer-events-none z-[5]" />
                     )}
                     {fi === 0 && (
                       <span className={`absolute top-0.5 left-1 text-[10px] font-bold ${light ? 'text-[#8B6914]' : 'text-[#E8D5B5]'}`}>
