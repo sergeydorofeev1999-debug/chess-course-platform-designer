@@ -504,11 +504,10 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
       <div className="w-full lg:w-[300px] flex-shrink-0 space-y-2">
         <div className="hidden lg:flex flex-col gap-2">
           <button
-            onClick={undoMove}
-            disabled={history.length === 0 || thinking || !!gameOver || isComplete}
-            className="flex items-center gap-1 px-3 py-1.5 text-xs text-[#2C241B] bg-[#F5F0E8] border border-[#D4C9B8] rounded hover:bg-[#EBE4DA] transition w-full justify-center disabled:opacity-40 disabled:cursor-not-allowed"
+            onClick={() => alert('Подсказка: развивайте фигуры быстро, контролируйте центр и не забывайте о безопасности короля.')}
+            className="flex items-center gap-1 px-3 py-1.5 text-xs text-[#2C241B] bg-[#F5F0E8] border border-[#D4C9B8] rounded hover:bg-[#EBE4DA] transition w-full justify-center"
           >
-            <Undo2 size={14} /> Вернуть ход
+            <Eye size={14} /> Подсказка
           </button>
           <div className="text-center text-sm font-bold text-[#2C241B]">
             Уровень: {currentLevel.elo} Elo — {currentLevel.label}
@@ -542,11 +541,10 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
         </div>
 
         <button
-          onClick={undoMove}
-          disabled={history.length === 0 || thinking || !!gameOver || isComplete}
-          className="hidden lg:flex items-center gap-1 px-3 py-1.5 text-xs text-[#2C241B] bg-[#F5F0E8] border border-[#D4C9B8] rounded hover:bg-[#EBE4DA] transition w-full justify-center disabled:opacity-40 disabled:cursor-not-allowed"
+          onClick={reset}
+          className="hidden lg:flex items-center gap-1 px-3 py-1.5 text-xs text-[#2C241B] bg-[#F5F0E8] border border-[#D4C9B8] rounded hover:bg-[#EBE4DA] transition w-full justify-center"
         >
-          <Undo2 size={14} /> Вернуть ход
+          <RotateCcw size={14} /> Заново
         </button>
       </div>
 
@@ -752,6 +750,12 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
               className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200"
             >
               <Eye size={14} /> Подсказка
+            </button>
+            <button
+              onClick={reset}
+              className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200"
+            >
+              <RotateCcw size={14} /> Заново
             </button>
             <button
               onClick={undoMove}
