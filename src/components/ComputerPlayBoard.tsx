@@ -299,11 +299,12 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
             if (!mountedRef.current) return;
             const blackMove = ITALIAN_LINE[step].black;
             try {
-              g.move({ from: blackMove.from, to: blackMove.to });
+              const newG = new Chess(g.fen());
+              newG.move({ from: blackMove.from, to: blackMove.to });
               setLastMove({ from: blackMove.from, to: blackMove.to });
-              setGame(new Chess(g.fen()));
+              setGame(new Chess(newG.fen()));
               openingStepRef.current = step + 1;
-              checkGameOver(g, 'after computer forced');
+              checkGameOver(newG, 'after computer forced');
             } catch {}
           }, 800);
           return;
@@ -625,12 +626,12 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
                     onDragStart={(e) => e.preventDefault()}
                   >
                     {sel && (
-                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.35)] pointer-events-none z-10" />
+                      <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
                     )}
-                    {lastMove?.from === sq && (
+                    {lastMove && sq === lastMove.from && (
                       <div className="absolute inset-0 bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
                     )}
-                    {lastMove?.to === sq && (
+                    {lastMove && sq === lastMove.to && (
                       <div className="absolute inset-0 bg-[rgba(201,168,76,0.70)] pointer-events-none z-[5]" />
                     )}
                     {fi === 0 && (
