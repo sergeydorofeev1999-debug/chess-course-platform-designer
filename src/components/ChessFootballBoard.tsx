@@ -265,9 +265,9 @@ function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
 }
 
 const LEVELS: { id: Difficulty; label: string; description: string; color: string; stars: number }[] = [
-  { id: 'easy', label: 'Лёгкий', description: 'Чёрные часто ошибаются', color: 'bg-[#8B7355]', stars: 1 },
-  { id: 'medium', label: 'Средний', description: 'Чёрные иногда ошибаются', color: 'bg-[#C9A84C]', stars: 2 },
-  { id: 'hard', label: 'Продвинутый', description: 'Чёрные почти не ошибаются', color: 'bg-[#4A3F35]', stars: 3 },
+  { id: 'easy', label: 'Лёгкий', description: 'Чёрные часто ошибаются', color: '#C9A84C', stars: 1 },
+  { id: 'medium', label: 'Средний', description: 'Чёрные иногда ошибаются', color: '#8B7355', stars: 2 },
+  { id: 'hard', label: 'Продвинутый', description: 'Чёрные почти не ошибаются', color: '#4A3F35', stars: 3 },
 ];
 
 const START_W_KING = 'e1';
@@ -858,19 +858,6 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
           </div>
         </div>
 
-        {/* Score */}
-        <div className="flex items-center gap-4 text-lg font-bold">
-          <div className="flex items-center gap-2">
-            <img src="/pieces/cburnett/wK.svg" alt="" width={24} height={24} draggable={false} />
-            <span>{wScore}</span>
-          </div>
-          <span className="text-[#B8AFA3]">:</span>
-          <div className="flex items-center gap-2">
-            <span>{bScore}</span>
-            <img src="/pieces/cburnett/bK.svg" alt="" width={24} height={24} draggable={false} />
-          </div>
-        </div>
-
         {/* Winner */}
         {winner && (
           <div className={`px-6 py-3 rounded-xl text-center font-bold text-white ${
@@ -991,6 +978,19 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
             <PieceImg type={dragPiece.type} color={dragPiece.color as 'w' | 'b'} />
           </div>
         )}
+
+        {/* Score */}
+        <div className="flex items-center gap-4 text-lg font-bold">
+          <div className="flex items-center gap-2">
+            <img src="/pieces/cburnett/wK.svg" alt="" width={24} height={24} draggable={false} />
+            <span>{wScore}</span>
+          </div>
+          <span className="text-[#B8AFA3]">:</span>
+          <div className="flex items-center gap-2">
+            <span>{bScore}</span>
+            <img src="/pieces/cburnett/bK.svg" alt="" width={24} height={24} draggable={false} />
+          </div>
+        </div>
 
         {/* Mobile action buttons row */}
         <div className="flex lg:hidden gap-2 w-full">
