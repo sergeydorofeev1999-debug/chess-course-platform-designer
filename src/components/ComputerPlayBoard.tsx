@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
-import { RotateCcw, Trophy, ChevronRight, Star, Eye } from 'lucide-react';
+import { RotateCcw, Trophy, ChevronRight, Star, Eye, Undo2 } from 'lucide-react';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const DISPLAY_RANKS = ['8','7','6','5','4','3','2','1'];
@@ -86,6 +86,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
   const [gameOver, setGameOver] = useState<{ result: string; reason: string } | null>(null);
   const [playerColor] = useState<'w' | 'b'>('w');
   const [promotionPending, setPromotionPending] = useState<{from:string; to:string}|null>(null);
+  const [history, setHistory] = useState<{fen: string; openingStep: number}[]>([]);
 
   const mountedRef = useRef(true);
   const workerRef = useRef<Worker | null>(null);
@@ -224,6 +225,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
     setThinking(false);
     setPromotionPending(null);
     openingStepRef.current = 0;
+    setHistory([]);
 
     if (playerColor === 'b') {
       // Computer moves first as white — no forced line for white
@@ -232,6 +234,16 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
       }, 500);
     }
   }, [playerColor, makeComputerMove]);
+
+  const undoMove = useCallback(() => {
+    if (history.length === 0 || !game) return;
+    const last = history[history.length - 1];
+    setGame(new Chess(last.fen));
+    openingStepRef.current = last.openingStep;
+    setSelectedSquare(null);
+    setPromotionPending(null);
+    setHistory(h => h.slice(0, -1));
+  }, [history, game]);
 
   const reset = useCallback(() => {
     if (selectedLevel !== null) {
@@ -244,6 +256,9 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
     if (!game || selectedLevel === null || isComplete || gameOver) return;
     const g = game;
     if (g.turn() !== playerColor) return;
+
+    const prevFen = g.fen();
+    const prevStep = openingStepRef.current;
 
     // Check if pawn promotion needed
     const piece = g.get(from as any);
@@ -262,6 +277,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
 
       setGame(new Chess(g.fen()));
       setSelectedSquare(null);
+      setHistory(h => [...h, { fen: prevFen, openingStep: prevStep }]);
 
       if (g.isGameOver()) {
         checkGameOver(g, 'after player');
@@ -488,10 +504,11 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
       <div className="w-full lg:w-[300px] flex-shrink-0 space-y-2">
         <div className="hidden lg:flex flex-col gap-2">
           <button
-            onClick={() => setSelectedLevel(null)}
-            className="flex items-center gap-1 px-3 py-1.5 text-xs text-[#2C241B] bg-[#F5F0E8] border border-[#D4C9B8] rounded hover:bg-[#EBE4DA] transition w-full justify-center"
+            onClick={undoMove}
+            disabled={history.length === 0 || thinking || !!gameOver || isComplete}
+            className="flex items-center gap-1 px-3 py-1.5 text-xs text-[#2C241B] bg-[#F5F0E8] border border-[#D4C9B8] rounded hover:bg-[#EBE4DA] transition w-full justify-center disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            ← Выбрать уровень
+            <Undo2 size={14} /> Вернуть ход
           </button>
           <div className="text-center text-sm font-bold text-[#2C241B]">
             Уровень: {currentLevel.elo} Elo — {currentLevel.label}
@@ -525,10 +542,11 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
         </div>
 
         <button
-          onClick={reset}
-          className="hidden lg:flex items-center gap-1 px-3 py-1.5 text-xs text-[#2C241B] bg-[#F5F0E8] border border-[#D4C9B8] rounded hover:bg-[#EBE4DA] transition w-full justify-center"
+          onClick={undoMove}
+          disabled={history.length === 0 || thinking || !!gameOver || isComplete}
+          className="hidden lg:flex items-center gap-1 px-3 py-1.5 text-xs text-[#2C241B] bg-[#F5F0E8] border border-[#D4C9B8] rounded hover:bg-[#EBE4DA] transition w-full justify-center disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          <RotateCcw size={14} /> Заново
+          <Undo2 size={14} /> Вернуть ход
         </button>
       </div>
 
@@ -720,13 +738,6 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
         </div>
 
         <button
-          onClick={reset}
-          className="flex lg:hidden items-center gap-1 px-3 py-1.5 text-xs text-[#2C241B] bg-[#F5F0E8] border border-[#D4C9B8] rounded-lg hover:bg-[#EBE4DA] transition"
-        >
-          <RotateCcw size={14} /> Заново
-        </button>
-
-        <button
           onClick={() => setSelectedLevel(null)}
           className="flex lg:hidden items-center gap-1 px-3 py-1.5 text-xs text-[#2C241B] bg-[#F5F0E8] border border-[#D4C9B8] rounded-lg hover:bg-[#EBE4DA] transition"
         >
@@ -743,16 +754,11 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
               <Eye size={14} /> Подсказка
             </button>
             <button
-              onClick={reset}
-              className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200"
+              onClick={undoMove}
+              disabled={history.length === 0 || thinking || !!gameOver || isComplete}
+              className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              <RotateCcw size={14} /> Заново
-            </button>
-            <button
-              onClick={() => setSelectedLevel(null)}
-              className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200"
-            >
-              <ChevronRight size={14} className="rotate-180" /> Уровень
+              <Undo2 size={14} /> Вернуть ход
             </button>
           </div>
         </div>

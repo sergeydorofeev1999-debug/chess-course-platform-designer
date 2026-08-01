@@ -265,9 +265,9 @@ function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
 }
 
 const LEVELS: { id: Difficulty; label: string; description: string; color: string; stars: number }[] = [
-  { id: 'easy', label: 'Лёгкий', description: 'Чёрные часто ошибаются', color: '#C9A84C', stars: 1 },
+  { id: 'easy', label: 'Лёгкий', description: 'Чёрные часто ошибаются', color: '#C4A35A', stars: 1 },
   { id: 'medium', label: 'Средний', description: 'Чёрные иногда ошибаются', color: '#8B7355', stars: 2 },
-  { id: 'hard', label: 'Продвинутый', description: 'Чёрные почти не ошибаются', color: '#4A3F35', stars: 3 },
+  { id: 'hard', label: 'Продвинутый', description: 'Чёрные почти не ошибаются', color: '#3D3B36', stars: 3 },
 ];
 
 const START_W_KING = 'e1';
