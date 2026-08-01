@@ -817,6 +817,12 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
           </div>
         )}
         <button
+          onClick={reset}
+          className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all w-full"
+        >
+          <RotateCcw size={14} /> Заново
+        </button>
+        <button
           onClick={undo}
           disabled={moveHistory.length === 0}
           className={`flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border text-xs font-medium transition-all w-full ${
@@ -827,12 +833,6 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
         >
           <Undo2 size={14} /> Вернуть ход
         </button>
-        <button
-          onClick={reset}
-          className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all w-full"
-        >
-          <RotateCcw size={14} /> Заново
-        </button>
       </div>
 
       {/* CENTER COLUMN */}
@@ -842,6 +842,33 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
           {computerThinking && (
             <span className="text-xs text-[#8B7355]">Думает...</span>
           )}
+        </div>
+
+        {/* Mobile avatar + speech bubble */}
+        <div className="lg:hidden w-full flex flex-col gap-2">
+          <div className="flex items-start gap-3">
+            <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
+              <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
+            </div>
+            <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
+              <p className="text-sm text-[var(--text-primary)] leading-snug line-clamp-3">
+                Доведите белого короля до 8 ряда — это гол чёрным! Игра до 3 голов. Короли не могут стоять рядом.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Score */}
+        <div className="flex items-center gap-4 text-lg font-bold">
+          <div className="flex items-center gap-2">
+            <img src="/pieces/cburnett/wK.svg" alt="" width={24} height={24} draggable={false} />
+            <span>{wScore}</span>
+          </div>
+          <span className="text-[#B8AFA3]">:</span>
+          <div className="flex items-center gap-2">
+            <span>{bScore}</span>
+            <img src="/pieces/cburnett/bK.svg" alt="" width={24} height={24} draggable={false} />
+          </div>
         </div>
 
         {/* Winner */}
@@ -965,19 +992,6 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
           </div>
         )}
 
-        {/* Score */}
-        <div className="flex items-center gap-4 text-lg font-bold">
-          <div className="flex items-center gap-2">
-            <img src="/pieces/cburnett/wK.svg" alt="" width={24} height={24} draggable={false} />
-            <span>{wScore}</span>
-          </div>
-          <span className="text-[#B8AFA3]">:</span>
-          <div className="flex items-center gap-2">
-            <span>{bScore}</span>
-            <img src="/pieces/cburnett/bK.svg" alt="" width={24} height={24} draggable={false} />
-          </div>
-        </div>
-
         {/* Mobile action buttons row */}
         <div className="flex lg:hidden gap-2 w-full">
           <button
@@ -985,6 +999,12 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
             className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
           >
             <Lightbulb size={14} /> {showHint ? 'Скрыть' : 'Подсказка'}
+          </button>
+          <button
+            onClick={reset}
+            className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
+          >
+            <RotateCcw size={14} /> Заново
           </button>
           <button
             onClick={undo}
@@ -996,12 +1016,6 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
             }`}
           >
             <Undo2 size={14} /> Вернуть
-          </button>
-          <button
-            onClick={reset}
-            className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
-          >
-            <RotateCcw size={14} /> Заново
           </button>
         </div>
       </div>
