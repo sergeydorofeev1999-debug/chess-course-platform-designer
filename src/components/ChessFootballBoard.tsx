@@ -1015,7 +1015,7 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
                 : 'border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'
             }`}
           >
-            <Undo2 size={14} /> Вернуть
+            <Undo2 size={14} /> Вернуть ход
           </button>
         </div>
       </div>
