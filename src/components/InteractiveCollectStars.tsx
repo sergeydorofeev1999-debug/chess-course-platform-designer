@@ -57,9 +57,92 @@ function InteractiveBoard({ Chessboard, config, onComplete }: Props & { Chessboa
   const [isComplete, setIsComplete] = useState(false);
   const [message, setMessage] = useState(config.instructions);
   const [promotionPending, setPromotionPending] = useState<{from: string, to: string} | null>(null);
+  const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
+
+  const handleSquareClick = useCallback(
+    ({ square }: { square: string }) => {
+      if (isComplete) return;
+      if (promotionPending) return;
+
+      if (selectedSquare) {
+        if (selectedSquare === square) {
+          setSelectedSquare(null);
+          return;
+        }
+        const piece = game.get(selectedSquare as any);
+        if (!piece || piece.color !== 'w') {
+          setSelectedSquare(null);
+          return;
+        }
+
+        // Check if this is a promotion
+        if (piece.type === 'p' && square[1] === '8') {
+          setPromotionPending({ from: selectedSquare, to: square });
+          setSelectedSquare(null);
+          return;
+        }
+
+        const move = game.move({ from: selectedSquare, to: square });
+        if (move === null) {
+          setSelectedSquare(null);
+          return;
+        }
+
+        // Handle short castling
+        if (move.piece.toLowerCase() === 'k' && selectedSquare === 'e1' && square === 'g1') {
+          game.move({ from: 'h1', to: 'f1' });
+        }
+
+        if (config.allowedPieces && config.allowedPieces.length > 0) {
+          const movedPiece = move.piece.toLowerCase().replace(/^[wb]/, '');
+          if (!config.allowedPieces.includes(movedPiece)) {
+            game.undo();
+            setMessage(
+              `Используйте только ${getPieceName(config.allowedPieces[0])}! ${config.hint || ''}`
+            );
+            setSelectedSquare(null);
+            return;
+          }
+        }
+
+        const newStars = stars.map(star => {
+          if (star.square === square && !star.collected) {
+            return { ...star, collected: true };
+          }
+          return star;
+        });
+        setStars(newStars);
+        setMoveHistory(prev => [...prev, `${selectedSquare}-${square}`]);
+
+        const remainingStars = newStars.filter(s => !s.collected).length;
+        if (remainingStars === 0) {
+          setIsComplete(true);
+          setMessage(config.successMessage);
+          onComplete();
+        } else {
+          setMessage(`Осталось звёзд: ${remainingStars}`);
+        }
+
+        setGame(new Chess(game.fen()));
+        setSelectedSquare(null);
+      } else {
+        const piece = game.get(square as any);
+        if (piece && piece.color === 'w') {
+          setSelectedSquare(square);
+        }
+      }
+    },
+    [game, stars, isComplete, config, onComplete, selectedSquare, promotionPending]
+  );
 
   const getSquareStyles = useCallback(() => {
     const styles: Record<string, React.CSSProperties> = {};
+    // Highlight selected square
+    if (selectedSquare) {
+      styles[selectedSquare] = {
+        background: 'rgba(184,149,106,0.35)',
+      };
+    }
     stars.forEach(star => {
       if (!star.collected) {
         if (star.color === 'green') {
@@ -76,7 +159,7 @@ function InteractiveBoard({ Chessboard, config, onComplete }: Props & { Chessboa
       }
     });
     return styles;
-  }, [stars]);
+  }, [stars, selectedSquare]);
 
   const handlePieceDrop = useCallback(
     ({ sourceSquare, targetSquare }: { sourceSquare: string; targetSquare: string | null }) => {
@@ -202,6 +285,23 @@ function InteractiveBoard({ Chessboard, config, onComplete }: Props & { Chessboa
             <span className="font-medium">Урок пройден!</span>
           </div>
         )}
+      </div>
+
+      <div className="flex justify-center">
+        <div className="relative inline-block">
+          <Chessboard
+            options={{
+              position: game.fen(),
+              onPieceDrop: handlePieceDrop,
+              onSquareClick: handleSquareClick,
+              squareStyles: getSquareStyles(),
+              boardStyle: { borderRadius: '8px' },
+              animationDurationInMs: 200,
+            }}
+          />
+          {stars.filter(s => !s.collected).map(star => (
+            <StarOverlay key={star.square} square={star.square} color={star.color} />
+          ))}
           {promotionPending && (
             <div className="absolute z-50 pointer-events-auto promotion-panel" style={{
               left: `${(promotionPending.to.charCodeAt(0) - 97) * 12.5}%`,
@@ -252,22 +352,6 @@ function InteractiveBoard({ Chessboard, config, onComplete }: Props & { Chessboa
               ))}
             </div>
           )}
-      </div>
-
-      <div className="flex justify-center">
-        <div className="relative inline-block">
-          <Chessboard
-            options={{
-              position: game.fen(),
-              onPieceDrop: handlePieceDrop,
-              squareStyles: getSquareStyles(),
-              boardStyle: { borderRadius: '8px' },
-              animationDurationInMs: 200,
-            }}
-          />
-          {stars.filter(s => !s.collected).map(star => (
-            <StarOverlay key={star.square} square={star.square} color={star.color} />
-          ))}
         </div>
       </div>
 

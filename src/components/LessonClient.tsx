@@ -477,6 +477,8 @@ function InlineChessBoard({
   const setMovedPieces = externalMovedPieces ? undefined : setInternalMovedPieces;
 
   const fenRef = useRef(fen);
+  const promotionPendingRef = useRef(promotionPending);
+  useEffect(() => { promotionPendingRef.current = promotionPending; }, [promotionPending]);
   useEffect(() => {
     if (fenRef.current !== fen) {
       fenRef.current = fen;
@@ -528,7 +530,7 @@ function InlineChessBoard({
 
   const click = useCallback(
     (square: string) => {
-      if (promotionPending) return;
+      if (promotionPendingRef.current) return;
       const sqs = squaresRef.current;
       const sel = selectedSquareRef.current;
       const piece = sqs[square];
@@ -567,7 +569,7 @@ function InlineChessBoard({
         }
       }
     },
-    [promotionPending],
+    [],
   );
 
   useEffect(() => {
@@ -582,9 +584,9 @@ function InlineChessBoard({
   useEffect(() => {
     onMoveRef.current = onMove;
   }, [onMove]);
-
   const handlePointerDown = useCallback(
     (e: React.PointerEvent, square: string) => {
+      if (promotionPendingRef.current) return;
       if (processLockRef.current) return;
       if (e.pointerType === 'touch' && e.isPrimary === false) return;
       e.preventDefault();
@@ -622,6 +624,11 @@ function InlineChessBoard({
       if (!start) return;
       if (e.pointerId !== start.pointerId) return;
       if (!start.moved) {
+        // Если открыта панель превращения — отменяем клик
+        if (promotionPendingRef.current) {
+          pointerStartRef.current = null;
+          return;
+        }
         clickRef.current(start.square);
       } else {
         const targetSquare = getSquareFromPoint(e.clientX, e.clientY);
@@ -1675,7 +1682,7 @@ function MultiLevelStarBoard({
       }
 
       if (fromType === 'p' && to[1] === '8') {
-        setPromotionPending({ from, to });
+        setTimeout(() => setPromotionPending({ from, to }), 0);
         return false;
       }
 

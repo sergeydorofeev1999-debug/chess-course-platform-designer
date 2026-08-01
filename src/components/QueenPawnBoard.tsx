@@ -366,6 +366,13 @@ const LEVELS: { id: Difficulty; label: string; description: string; color: strin
   { id: 'hard', label: 'Продвинутый', description: 'Чёрные почти не ошибаются', color: '#4A2A1A', stars: 3 },
 ];
 
+const PROMOTION_PIECES = [
+  { code: 'q', name: 'Ферзь' },
+  { code: 'n', name: 'Конь' },
+  { code: 'r', name: 'Ладья' },
+  { code: 'b', name: 'Слон' },
+];
+
 export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { onComplete: () => void; lessonId?: string; lessonTitle?: string }) {
   const savedKey = lessonId ? `queenpawn_progress_${lessonId}` : 'queenpawn_progress';
   const savedProgress = useMemo(() => {
@@ -386,6 +393,7 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
   const [blackCaptured, setBlackCaptured] = useState(0);
   const [history, setHistory] = useState<{ squares: Record<string, Piece>; whiteCaptured: number; blackCaptured: number; enPassant: string | null; turn: 'w' | 'b' }[]>([]);
   const [sqSize, setSqSize] = useState(44);
+  const [promotionPending, setPromotionPending] = useState<{ from: string; to: string } | null>(null);
 
   const [dragPiece, setDragPiece] = useState<{ square: string; type: string; color: string } | null>(null);
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
@@ -402,19 +410,21 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
   const turnRef = useRef(turn);
   const winnerRef = useRef<string | null>(null);
   const difficultyRef = useRef<Difficulty | null>(null);
+  const promotionPendingRef = useRef<{ from: string; to: string } | null>(null);
 
   const mountedRef = useRef(true);
   useEffect(() => () => { mountedRef.current = false; }, []);
 
   useEffect(() => { squaresRef.current = squares; }, [squares]);
-  useEffect(() => { selectedSquareRef.current = selectedSquare; }, [selectedSquare]);
-  useEffect(() => { validSquaresRef.current = validSquares; }, [validSquares]);
   useEffect(() => { enPassantRef.current = enPassant; }, [enPassant]);
   useEffect(() => { turnRef.current = turn; }, [turn]);
+  useEffect(() => { selectedSquareRef.current = selectedSquare; }, [selectedSquare]);
+  useEffect(() => { validSquaresRef.current = validSquares; }, [validSquares]);
   useEffect(() => { whiteCapturedRef.current = whiteCaptured; }, [whiteCaptured]);
   useEffect(() => { blackCapturedRef.current = blackCaptured; }, [blackCaptured]);
   useEffect(() => { winnerRef.current = winner; }, [winner]);
   useEffect(() => { difficultyRef.current = difficulty; }, [difficulty]);
+  useEffect(() => { promotionPendingRef.current = promotionPending; }, [promotionPending]);
 
   useEffect(() => {
     const update = () => {
@@ -442,6 +452,7 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
     setBlackCaptured(0);
     setHistory([]);
     setLastMove(null);
+    setPromotionPending(null);
   }, []);
 
   const startLevel = useCallback((diff: Difficulty) => {
@@ -506,8 +517,52 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
     return () => clearTimeout(timer);
   }, [turn, winner, checkGameOver, onComplete, savedKey]);
 
+  const handlePromotion = useCallback((pieceCode: string) => {
+    if (!promotionPending) return;
+
+    const { from, to } = promotionPending;
+    const sqs = squaresRef.current;
+    const ep = enPassantRef.current;
+
+    const result = makeMove(sqs, ep, from, to);
+    const promotedSquares: Record<string, Piece> = {
+      ...result.squares,
+      [to]: { type: pieceCode, color: 'w' },
+    };
+
+    // Check if pawn was captured during promotion move (via en-passant on diagonal)
+    let cap = result.captured;
+    const movingPiece = sqs[from];
+    if (!cap && movingPiece?.type === 'p') {
+      const fromRank = parseInt(from[1]);
+      const toRank = parseInt(to[1]);
+      if (Math.abs(toRank - fromRank) === 1 && from[0] !== to[0]) {
+        const capturedSq = `${to[0]}${from[1]}`;
+        cap = sqs[capturedSq] || null;
+      }
+    }
+
+    setPromotionPending(null);
+    setSquares(promotedSquares);
+    setEnPassant(result.enPassant);
+    setLastMove({ from, to });
+    if (cap && cap.color === 'b') {
+      setWhiteCaptured(prev => prev + 1);
+    }
+    setTurn('b');
+    setSelectedSquare(null);
+    setValidSquares([]);
+    selectedSquareRef.current = null;
+
+    setHistory(prev => [
+      ...prev,
+      { squares: sqs, whiteCaptured: whiteCapturedRef.current, blackCaptured: blackCapturedRef.current, enPassant: ep, turn: 'w' },
+    ]);
+  }, [promotionPending]);
+
   // Click logic
   const click = useCallback((square: string) => {
+    if (promotionPendingRef.current) return;
     if (winnerRef.current) return;
     if (turnRef.current === 'w' && hasNoMoves(squaresRef.current, 'w', enPassantRef.current)) {
       setWinner('Ничья');
@@ -526,6 +581,15 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
       }
 
       if (validSquaresRef.current.includes(square)) {
+        const movingPiece = sqs[sel];
+        if (movingPiece?.type === 'p' && movingPiece.color === 'w' && square[1] === '8') {
+          setPromotionPending({ from: sel, to: square });
+          setSelectedSquare(null);
+          setValidSquares([]);
+          selectedSquareRef.current = null;
+          return;
+        }
+
         const result = makeMove(sqs, enPassantRef.current, sel, square);
 
         const win = checkGameOver(result.squares, result.enPassant, 'b', result.promoted);
@@ -582,6 +646,7 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
 
   // Drag and drop
   const handlePointerDown = useCallback((e: React.PointerEvent, square: string) => {
+    if (promotionPendingRef.current) return;
     if (winnerRef.current) return;
     if (turnRef.current === 'w' && hasNoMoves(squaresRef.current, 'w', enPassantRef.current)) {
       setWinner('Ничья');
@@ -632,6 +697,17 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
         if (targetSquare && targetSquare !== start.square) {
           const valid = getPieceMoves(start.square, squaresRef.current, 'w', enPassantRef.current);
           if (valid.includes(targetSquare)) {
+            const movingPiece = squaresRef.current[start.square];
+            if (movingPiece?.type === 'p' && movingPiece.color === 'w' && targetSquare[1] === '8') {
+              setPromotionPending({ from: start.square, to: targetSquare });
+              setSelectedSquare(null);
+              setValidSquares([]);
+              selectedSquareRef.current = null;
+              setDragPiece(null);
+              pointerStartRef.current = null;
+              return;
+            }
+
             const result = makeMove(squaresRef.current, enPassantRef.current, start.square, targetSquare);
             const win = checkGameOver(result.squares, result.enPassant, 'b', result.promoted);
             if (win) {
@@ -869,6 +945,52 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
                 </div>
               );
             })
+          )}
+          {promotionPending && (
+            <div
+              className="absolute z-50 pointer-events-auto"
+              style={{
+                left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
+                top: 0,
+                width: sqSize,
+                height: 4 * sqSize,
+                backgroundColor: '#2C241B',
+                boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+              }}
+            >
+              {PROMOTION_PIECES.map(({ code, name }) => (
+                <button
+                  key={code}
+                  onClick={() => handlePromotion(code)}
+                  className="w-full aspect-square flex items-center justify-center transition-all duration-150"
+                  style={{
+                    backgroundColor: 'transparent',
+                    border: '2px solid transparent',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
+                    e.currentTarget.style.borderColor = '#C9A84C';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.borderColor = 'transparent';
+                  }}
+                  title={name}
+                >
+                  <img
+                    src={`/pieces/cburnett/w${code.toUpperCase()}.svg`}
+                    alt={name}
+                    draggable={false}
+                    style={{ width: '70%', height: '70%', objectFit: 'contain' }}
+                  />
+                </button>
+              ))}
+            </div>
           )}
         </div>
       </div>

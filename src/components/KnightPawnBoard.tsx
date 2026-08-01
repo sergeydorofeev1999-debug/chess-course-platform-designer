@@ -195,13 +195,22 @@ function hasPromotedPiece(squares: Record<string, Piece>, color: 'w' | 'b'): boo
   return Object.values(squares).some(p => p.color === color && p.type !== 'p');
 }
 
+function hasPawnOnBackRank(squares: Record<string, Piece>, color: 'w' | 'b'): boolean {
+  const backRank = color === 'w' ? '8' : '1';
+  for (const sq in squares) {
+    const p = squares[sq];
+    if (p.color === color && p.type === 'p' && sq[1] === backRank) return true;
+  }
+  return false;
+}
+
 /* ═════════════════════════════════════════════════════════════════
    AI ENGINE
    ═════════════════════════════════════════════════════════════════ */
 
 function evaluatePosition(squares: Record<string, Piece>): number {
-  if (hasPromotedPiece(squares, 'w')) return -10000;
-  if (hasPromotedPiece(squares, 'b')) return 10000;
+  if (hasPawnOnBackRank(squares, 'w')) return -10000;
+  if (hasPawnOnBackRank(squares, 'b')) return 10000;
   if (!hasPieces(squares, 'w')) return 10000;
   if (!hasPieces(squares, 'b')) return -10000;
 
@@ -442,8 +451,8 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
   }, [reset]);
 
   const checkGameOver = useCallback((sqs: Record<string, Piece>, ep: string | null, currentTurn: 'w' | 'b'): string | null => {
-    if (hasPromotedPiece(sqs, 'w') || !hasPieces(sqs, 'b')) return 'Белые победили!';
-    if (hasPromotedPiece(sqs, 'b') || !hasPieces(sqs, 'w')) return 'Чёрные победили!';
+    if (hasPawnOnBackRank(sqs, 'w') || !hasPieces(sqs, 'b')) return 'Белые победили!';
+    if (hasPawnOnBackRank(sqs, 'b') || !hasPieces(sqs, 'w')) return 'Чёрные победили!';
     if (hasNoMoves(sqs, currentTurn, ep)) return 'Ничья';
     return null;
   }, []);
