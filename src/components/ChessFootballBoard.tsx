@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { RotateCcw, Star, Trophy, ChevronRight } from 'lucide-react';
+import { RotateCcw, Star, Trophy, ChevronRight, Lightbulb, Undo2 } from 'lucide-react';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const RANKS = ['1','2','3','4','5','6','7','8'];
@@ -298,6 +298,8 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
   const [validSquares, setValidSquares] = useState<string[]>([]);
   const [positionHistory, setPositionHistory] = useState<string[]>([]);
   const [sqSize, setSqSize] = useState(44);
+  const [moveHistory, setMoveHistory] = useState<Array<{ wKing: string; bKing: string; wScore: number; bScore: number; turn: 'w' | 'b'; positionHistory: string[] }>>([]);
+  const [showHint, setShowHint] = useState(false);
 
   const [dragPiece, setDragPiece] = useState<{ square: string; type: string; color: string } | null>(null);
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
@@ -375,6 +377,32 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
     positionHistoryRef.current = [];
   }, []);
 
+  const undo = useCallback(() => {
+    if (moveHistory.length === 0) return;
+    const last = moveHistory[moveHistory.length - 1];
+    setWKing(last.wKing);
+    wKingRef.current = last.wKing;
+    setBKing(last.bKing);
+    bKingRef.current = last.bKing;
+    setWScore(last.wScore);
+    wScoreRef.current = last.wScore;
+    setBScore(last.bScore);
+    bScoreRef.current = last.bScore;
+    setTurn(last.turn);
+    turnRef.current = last.turn;
+    setPositionHistory(last.positionHistory);
+    positionHistoryRef.current = last.positionHistory;
+    setMoveHistory(prev => prev.slice(0, -1));
+    setSelectedSquare(null);
+    setValidSquares([]);
+    selectedSquareRef.current = null;
+    setWinner(null);
+    winnerRef.current = null;
+    setDrawMessage(null);
+    drawMessageRef.current = null;
+    setComputerThinking(false);
+  }, [moveHistory]);
+
   const startLevel = useCallback((diff: Difficulty) => {
     setDifficulty(diff);
     reset();
@@ -410,9 +438,19 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
     winnerRef.current = null;
     setDrawMessage(null);
     drawMessageRef.current = null;
+    setMoveHistory([]);
   }, []);
 
   const doKingMove = useCallback((to: string) => {
+    // Save state for undo
+    setMoveHistory(prev => [...prev, {
+      wKing: wKingRef.current,
+      bKing: bKingRef.current,
+      wScore: wScoreRef.current,
+      bScore: bScoreRef.current,
+      turn: turnRef.current,
+      positionHistory: [...positionHistoryRef.current],
+    }]);
     const newWKing = to;
     setWKing(newWKing);
     wKingRef.current = newWKing;
@@ -799,71 +837,34 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
             </p>
           </div>
         </div>
-
-        {/* Level pills */}
-        <div className="w-full flex items-stretch gap-[1px]">
-          {LEVELS.map((level) => {
-            const isCurrent = difficulty === level.id;
-            const isDone = completedLevels[level.id];
-            const isLocked = !isCurrent && !isDone;
-            return (
-              <button
-                key={level.id}
-                onClick={() => { if (!isCurrent) { setDifficulty(level.id); reset(); } }}
-                disabled={isCurrent}
-                className={`flex-1 flex flex-col items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 ${
-                  isCurrent
-                    ? 'bg-[#2C241B] shadow-md'
-                    : isDone
-                    ? 'bg-[#C9A84C]'
-                    : 'bg-[#F0EBE4] border border-[#D4C5B5]'
-                } ${isCurrent ? 'cursor-not-allowed' : isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
-                title={isDone ? `${level.label} — пройден` : level.label}
-              >
-                {isDone ? (
-                  <div className="flex gap-[2px] justify-center w-full">
-                    {Array.from({ length: level.stars }, (_, s) => (
-                      <svg key={s} width="16" height="16" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
-                    ))}
-                  </div>
-                ) : (
-                  <span className={`text-sm font-bold leading-none ${isCurrent ? 'text-white' : 'text-[#9CA3AF]'}`}>
-                    {level.stars}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Задание label + progress */}
-        <div className="flex flex-col gap-1.5">
-          <span className="text-xs font-bold text-[var(--text-primary)]">
-            {LEVELS.find(l => l.id === difficulty)?.label}
-          </span>
-          <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
-            <div
-              className="h-full bg-[var(--accent)] rounded-full transition-all duration-500"
-              style={{ width: `${(() => {
-                const idx = LEVELS.findIndex(l => l.id === difficulty);
-                return ((idx + 1) / LEVELS.length) * 100;
-              })()}%` }}
-            />
-          </div>
-        </div>
-
         {/* Sidebar action buttons */}
+        <button
+          onClick={() => setShowHint(prev => !prev)}
+          className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all w-full"
+        >
+          <Lightbulb size={14} /> {showHint ? 'Скрыть' : 'Подсказка'}
+        </button>
+        {showHint && (
+          <div className="text-xs text-[#5A4A3A] bg-[#F5EFE6] rounded-lg p-2 border border-[#C9A84C]">
+            Двигайтесь к 8 ряду. Блокируйте путь чёрного короля пешками и создавайте оппозицию.
+          </div>
+        )}
+        <button
+          onClick={undo}
+          disabled={moveHistory.length === 0}
+          className={`flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border text-xs font-medium transition-all w-full ${
+            moveHistory.length === 0
+              ? 'border-[rgba(92,64,51,0.06)] text-[#B8AFA3] cursor-not-allowed opacity-50'
+              : 'border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'
+          }`}
+        >
+          <Undo2 size={14} /> Вернуть ход
+        </button>
         <button
           onClick={reset}
           className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all w-full"
         >
           <RotateCcw size={14} /> Заново
-        </button>
-        <button
-          onClick={() => { setDifficulty(null); reset(); }}
-          className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all w-full"
-        >
-          Сменить уровень
         </button>
       </div>
 
@@ -880,19 +881,6 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
                 Доведите белого короля до 8 ряда — гол! Игра до 3 голов. Короли не могут стоять рядом.
               </p>
             </div>
-          </div>
-        </div>
-
-        {/* Score */}
-        <div className="flex items-center gap-4 text-lg font-bold">
-          <div className="flex items-center gap-2">
-            <img src="/pieces/cburnett/wK.svg" alt="" width={24} height={24} draggable={false} />
-            <span>{wScore}</span>
-          </div>
-          <span className="text-[#B8AFA3]">:</span>
-          <div className="flex items-center gap-2">
-            <span>{bScore}</span>
-            <img src="/pieces/cburnett/bK.svg" alt="" width={24} height={24} draggable={false} />
           </div>
         </div>
 
@@ -1030,77 +1018,43 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
           </div>
         )}
 
-        {/* Goal indicators */}
-        <div className="flex justify-between w-full max-w-sm px-4 text-xs text-[#8B7355]">
-          <span>Гол чёрных ↓</span>
-          <span>↑ Гол белых</span>
-        </div>
-
-        {/* Mobile level pills */}
-        <div className="flex lg:hidden w-full items-stretch gap-[1px]">
-          {LEVELS.map((level) => {
-            const isCurrent = difficulty === level.id;
-            const isDone = completedLevels[level.id];
-            const isLocked = !isCurrent && !isDone;
-            return (
-              <button
-                key={level.id}
-                onClick={() => { if (!isCurrent) { setDifficulty(level.id); reset(); } }}
-                disabled={isCurrent}
-                className={`flex-1 flex flex-col items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 ${
-                  isCurrent
-                    ? 'bg-[#2C241B] shadow-md'
-                    : isDone
-                    ? 'bg-[#C9A84C]'
-                    : 'bg-[#F0EBE4] border border-[#D4C5B5]'
-                } ${isCurrent ? 'cursor-not-allowed' : isLocked ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
-                title={isDone ? `${level.label} — пройден` : level.label}
-              >
-                {isDone ? (
-                  <div className="flex gap-[2px] justify-center w-full">
-                    {Array.from({ length: level.stars }, (_, s) => (
-                      <svg key={s} width="14" height="14" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
-                    ))}
-                  </div>
-                ) : (
-                  <span className={`text-sm font-bold leading-none ${isCurrent ? 'text-white' : 'text-[#9CA3AF]'}`}>
-                    {level.stars}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Mobile progress */}
-        <div className="lg:hidden flex flex-col gap-1.5 w-full">
-          <span className="text-xs font-bold text-[var(--text-primary)]">
-            {LEVELS.find(l => l.id === difficulty)?.label}
-          </span>
-          <div className="w-full h-1.5 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
-            <div
-              className="h-full bg-[var(--accent)] rounded-full transition-all duration-500"
-              style={{ width: `${(() => {
-                const idx = LEVELS.findIndex(l => l.id === difficulty);
-                return ((idx + 1) / LEVELS.length) * 100;
-              })()}%` }}
-            />
+        {/* Score */}
+        <div className="flex items-center gap-4 text-lg font-bold">
+          <div className="flex items-center gap-2">
+            <img src="/pieces/cburnett/wK.svg" alt="" width={24} height={24} draggable={false} />
+            <span>{wScore}</span>
+          </div>
+          <span className="text-[#B8AFA3]">:</span>
+          <div className="flex items-center gap-2">
+            <span>{bScore}</span>
+            <img src="/pieces/cburnett/bK.svg" alt="" width={24} height={24} draggable={false} />
           </div>
         </div>
 
         {/* Mobile action buttons row */}
         <div className="flex lg:hidden gap-2 w-full">
           <button
+            onClick={() => setShowHint(prev => !prev)}
+            className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
+          >
+            <Lightbulb size={14} /> {showHint ? 'Скрыть' : 'Подсказка'}
+          </button>
+          <button
+            onClick={undo}
+            disabled={moveHistory.length === 0}
+            className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all ${
+              moveHistory.length === 0
+                ? 'border-[rgba(92,64,51,0.06)] text-[#B8AFA3] cursor-not-allowed opacity-50'
+                : 'border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'
+            }`}
+          >
+            <Undo2 size={14} /> Вернуть
+          </button>
+          <button
             onClick={reset}
             className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
           >
             <RotateCcw size={14} /> Заново
-          </button>
-          <button
-            onClick={() => { setDifficulty(null); reset(); }}
-            className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
-          >
-            Уровни
           </button>
         </div>
       </div>
