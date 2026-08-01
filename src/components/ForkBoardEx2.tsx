@@ -521,13 +521,6 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           </div>
         )}
 
-        <button
-          onClick={reset}
-          className="flex lg:hidden items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition"
-        >
-          <RotateCcw size={14} /> Заново
-        </button>
-
         <div className="text-center text-sm text-slate-600 max-w-sm px-4">
           <p className="font-medium mb-1">Цель:</p>
           <p>Поставьте шах ладьёй на d8, а затем съешьте чёрного коня на b8.</p>
