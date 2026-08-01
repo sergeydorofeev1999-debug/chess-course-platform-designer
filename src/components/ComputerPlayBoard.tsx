@@ -88,6 +88,8 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
   const [promotionPending, setPromotionPending] = useState<{from:string; to:string}|null>(null);
   const [history, setHistory] = useState<{fen: string; openingStep: number}[]>([]);
 
+  const [lastMove, setLastMove] = useState<{from: string; to: string} | null>(null);
+
   const mountedRef = useRef(true);
   const workerRef = useRef<Worker | null>(null);
   const openingStepRef = useRef(0);
@@ -164,6 +166,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
 
         try {
           g.move({ from: moveUci.slice(0, 2), to: moveUci.slice(2, 4), promotion: moveUci.slice(4, 5) || undefined });
+          setLastMove({ from: moveUci.slice(0, 2), to: moveUci.slice(2, 4) });
           setGame(new Chess(g.fen()));
           checkGameOver(g, 'after computer');
         } catch {}
@@ -224,6 +227,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
     setGameOver(null);
     setThinking(false);
     setPromotionPending(null);
+    setLastMove(null);
     openingStepRef.current = 0;
     setHistory([]);
 
@@ -275,6 +279,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
       const move = g.move({ from, to, promotion });
       if (!move) return;
 
+      setLastMove({ from, to });
       setGame(new Chess(g.fen()));
       setSelectedSquare(null);
       setHistory(h => [...h, { fen: prevFen, openingStep: prevStep }]);
@@ -295,11 +300,12 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
             const blackMove = ITALIAN_LINE[step].black;
             try {
               g.move({ from: blackMove.from, to: blackMove.to });
+              setLastMove({ from: blackMove.from, to: blackMove.to });
               setGame(new Chess(g.fen()));
               openingStepRef.current = step + 1;
               checkGameOver(g, 'after computer forced');
             } catch {}
-          }, 400);
+          }, 1000);
           return;
         } else {
           // White deviated — disable forced line
@@ -599,6 +605,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
                 const sel = selectedSquare === sq || dragPiece?.square === sq;
                 const isValidMove = validMoves.includes(sq);
                 const isDragSource = dragPiece?.square === sq;
+                const isLastMove = lastMove?.from === sq || lastMove?.to === sq;
 
                 return (
                   <div
@@ -619,6 +626,9 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
                   >
                     {sel && (
                       <div className="absolute inset-0 bg-[rgba(201,168,76,0.35)] pointer-events-none z-10" />
+                    )}
+                    {isLastMove && (
+                      <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
                     )}
                     {fi === 0 && (
                       <span className={`absolute top-0.5 left-1 text-[10px] font-bold ${light ? 'text-[#8B6914]' : 'text-[#E8D5B5]'}`}>
