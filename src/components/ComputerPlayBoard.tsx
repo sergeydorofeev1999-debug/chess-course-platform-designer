@@ -167,10 +167,11 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
         }
 
         try {
-          g.move({ from: moveUci.slice(0, 2), to: moveUci.slice(2, 4), promotion: moveUci.slice(4, 5) || undefined });
+          const newG = new Chess(g.fen());
+          newG.move({ from: moveUci.slice(0, 2), to: moveUci.slice(2, 4), promotion: moveUci.slice(4, 5) || undefined });
           setLastMove({ from: moveUci.slice(0, 2), to: moveUci.slice(2, 4) });
-          setGame(new Chess(g.fen()));
-          checkGameOver(g, 'after computer');
+          setGame(new Chess(newG.fen()));
+          checkGameOver(newG, 'after computer');
         } catch {}
       }
     };
@@ -561,7 +562,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
       <div className="flex-1 flex flex-col items-center gap-3 px-2">
         {/* Thinking indicator */}
         <div className="w-full h-1.5 bg-[#F5F0E8] rounded-full overflow-hidden mb-2">
-          <div className={`h-full bg-[#C9A84C] rounded-full w-full transition-opacity duration-300 ${thinking ? 'opacity-100 animate-pulse' : 'opacity-0'}`} />
+          <div className={`h-full bg-[#C9A84C] rounded-full w-full transition-opacity duration-300 ${thinking ? 'opacity-100' : 'opacity-0'}`} />
         </div>
 
         {message && (
@@ -616,7 +617,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
                     style={{
                       width: sqSize,
                       height: sqSize,
-                      cursor: pieceObj && pieceObj.color === playerColor && !gameOver && !isComplete && !thinking ? 'grab' : 'default',
+                      cursor: pieceObj && pieceObj.color === playerColor && !gameOver && !isComplete ? 'grab' : 'default',
                       touchAction: 'none',
                       backgroundColor: light ? 'var(--square-light)' : 'var(--square-dark)',
                       opacity: isDragSource ? 0.3 : 1,
