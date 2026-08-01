@@ -264,10 +264,10 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
                   setGame(new Chess(cg.fen()));
                   setAnimatingMove(null);
                   setMessage('Найдите мат!');
-                }, 350);
+                }, 250);
               });
             }
-          }, 400);
+          }, 250);
           return;
         } else {
           setGame(new Chess(g.fen()));
@@ -662,7 +662,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
                     width: sqSize,
                     height: sqSize,
                     zIndex: 60,
-                    animation: 'opponentMoveGhost 350ms ease-in-out forwards',
+                    animation: 'opponentMoveGhost 250ms ease-in-out forwards',
                     '--ghost-dx': `${x2 - x1}px`,
                     '--ghost-dy': `${y2 - y1}px`,
                   } as React.CSSProperties}
