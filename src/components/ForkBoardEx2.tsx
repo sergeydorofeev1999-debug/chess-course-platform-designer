@@ -356,31 +356,6 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           {turnText}
         </div>
 
-        {/* Fail banner */}
-        {isFail && (
-          <div className="w-full max-w-sm">
-            <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
-              <p className="text-white font-bold text-lg">{message || 'Провалено'}</p>
-              <button
-                onClick={reset}
-                className="bg-white text-[#c62828] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
-              >
-                ЕЩЁ РАЗ
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Success message */}
-        {message && !isFail && (
-          <div className={`px-6 py-3 rounded-xl text-center font-bold text-white ${
-            message.includes('Отлично') ? 'bg-green-500' : 'bg-yellow-500'
-          }`}>
-            {message.includes('Отлично') && <Trophy className="w-5 h-5 inline-block mr-2" />}
-            {message}
-          </div>
-        )}
-
         {/* Board */}
         <div className="flex justify-center w-full relative">
           <div
@@ -489,6 +464,62 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             </div>
           )}
         </div>
+
+        {/* Feedback Banner */}
+        {isFail && (
+          <div className="w-full lg:max-w-sm mt-2">
+            <div
+              className="rounded-2xl flex flex-col items-center gap-2"
+              style={{
+                backgroundColor: '#5C2A2A',
+                boxShadow: '0 4px 16px rgba(92, 42, 42, 0.3)',
+                padding: '18px 24px',
+                borderRadius: '16px',
+              }}
+            >
+              <p className="text-white font-semibold" style={{ fontSize: '18px' }}>Попробуйте ещё раз</p>
+              <p className="text-[#E8D5B5]" style={{ fontSize: '14px' }}>Попробуйте найти другой ход для двойного удара</p>
+              <button
+                onClick={reset}
+                className="mt-1 font-semibold text-sm px-5 py-2 rounded-xl shadow hover:brightness-110 transition"
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  color: '#5C2A2A',
+                  borderRadius: '12px',
+                }}
+              >
+                Вернуть ход
+              </button>
+            </div>
+          </div>
+        )}
+        {message && !isFail && (
+          <div className="w-full lg:max-w-sm mt-2">
+            <div
+              className="rounded-2xl flex flex-col items-center gap-2"
+              style={{
+                backgroundColor: '#4A7A3A',
+                boxShadow: '0 4px 16px rgba(74, 122, 58, 0.3)',
+                padding: '18px 24px',
+                borderRadius: '16px',
+              }}
+            >
+              <p className="text-white font-semibold" style={{ fontSize: '18px' }}>Верно!</p>
+              <p className="text-[#D4E8CC]" style={{ fontSize: '14px' }}>Задание выполнено</p>
+              <button
+                onClick={onComplete}
+                className="mt-1 font-semibold text-sm px-5 py-2 rounded-xl shadow hover:brightness-110 transition"
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  color: '#4A7A3A',
+                  borderRadius: '12px',
+                }}
+              >
+                Завершить урок ✓
+              </button>
+            </div>
+          </div>
+        )}
 
         <button
           onClick={reset}
