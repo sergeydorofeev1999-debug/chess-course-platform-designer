@@ -264,10 +264,10 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
                   setGame(new Chess(cg.fen()));
                   setAnimatingMove(null);
                   setMessage('Найдите мат!');
-                }, 600);
+                }, 350);
               });
             }
-          }, 600);
+          }, 400);
           return;
         } else {
           setGame(new Chess(g.fen()));
@@ -538,23 +538,15 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
             @keyframes opponentMoveGhost {
               0% {
                 transform: translate(0, 0) scale(1);
-                opacity: 1;
               }
-              25% {
-                transform: translate(calc(var(--ghost-dx) * 0.15), calc(var(--ghost-dy) * 0.15)) scale(1.1);
-                opacity: 1;
+              30% {
+                transform: translate(calc(var(--ghost-dx) * 0.3), calc(var(--ghost-dy) * 0.3)) scale(1.08);
               }
-              50% {
-                transform: translate(calc(var(--ghost-dx) * 0.5), calc(var(--ghost-dy) * 0.5)) scale(1.2);
-                opacity: 1;
-              }
-              75% {
-                transform: translate(calc(var(--ghost-dx) * 0.8), calc(var(--ghost-dy) * 0.8)) scale(1.08);
-                opacity: 0.9;
+              70% {
+                transform: translate(calc(var(--ghost-dx) * 0.85), calc(var(--ghost-dy) * 0.85)) scale(1.05);
               }
               100% {
                 transform: translate(var(--ghost-dx), var(--ghost-dy)) scale(1);
-                opacity: 0.7;
               }
             }
           `}</style>
@@ -670,7 +662,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
                     width: sqSize,
                     height: sqSize,
                     zIndex: 60,
-                    animation: 'opponentMoveGhost 600ms ease-out forwards',
+                    animation: 'opponentMoveGhost 350ms ease-in-out forwards',
                     '--ghost-dx': `${x2 - x1}px`,
                     '--ghost-dy': `${y2 - y1}px`,
                   } as React.CSSProperties}
