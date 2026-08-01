@@ -129,6 +129,11 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
     to: string;
     piece: { type: string; color: 'w' | 'b' };
   } | null>(null);
+  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{
+    from: string;
+    to: string;
+    piece: { type: string; color: 'w' | 'b' };
+  } | null>(null);
   const ghostRef = useRef<HTMLDivElement | null>(null);
 
   const storageKey = lessonId ? `mateintwo_progress_${lessonId}` : 'mateintwo_progress';
@@ -237,8 +242,12 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
 
       if (stage === 'first') {
         if (from === keyMove.from && to === keyMove.to) {
-          // Update board state immediately so React re-renders the user's move
-          setGame(new Chess(g.fen()));
+          const movedPiece = g.get(from as any);
+          setPlayerAnimatingMove({
+            from,
+            to,
+            piece: { type: movedPiece?.type.toUpperCase() || '', color: movedPiece?.color as 'w' | 'b' || 'w' },
+          });
           setSelectedSquare(null);
           setMessage('Отличный ход! Продолжайте!');
           setIsFail(false);
@@ -246,16 +255,18 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
 
           setTimeout(() => {
             if (!mountedRef.current) return;
+            setGame(new Chess(g.fen()));
+            setPlayerAnimatingMove(null);
             // Use the local g (already mutated with user move) instead of stale gameRef
             const cg = new Chess(g.fen());
             const compMoves = cg.moves({ verbose: true });
             if (compMoves.length > 0) {
               const compMove = compMoves[0];
-              const movedPiece = cg.get(compMove.from);
+              const compMovedPiece = cg.get(compMove.from);
               setAnimatingMove({
                 from: compMove.from,
                 to: compMove.to,
-                piece: { type: movedPiece?.type.toUpperCase() || '', color: movedPiece?.color as 'w' | 'b' || 'b' },
+                piece: { type: compMovedPiece?.type.toUpperCase() || '', color: compMovedPiece?.color as 'w' | 'b' || 'b' },
               });
               // Animate ghost piece then apply move
               requestAnimationFrame(() => {
@@ -631,7 +642,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
                         />
                       </div>
                     )}
-                    {pieceObj && !isDragSource && !(animatingMove && sq === animatingMove.from) && (
+                    {pieceObj && !isDragSource && !(animatingMove && sq === animatingMove.from) && !(playerAnimatingMove && sq === playerAnimatingMove.from) && (
                       <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
                         <PieceImg type={pieceObj.type} color={pieceObj.color} />
                       </div>
@@ -669,6 +680,38 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
                 >
                   <div className="w-full h-full flex items-center justify-center" style={{ padding: Math.round(sqSize * 0.075) }}>
                     <PieceImg type={animatingMove.piece.type} color={animatingMove.piece.color} />
+                  </div>
+                </div>
+              );
+            })()}
+            {/* Player move ghost piece */}
+            {playerAnimatingMove && (() => {
+              const isReversed = exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7;
+              const fromF = (isReversed ? REVERSED_FILES : FILES).indexOf(playerAnimatingMove.from[0]);
+              const fromR = (isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).indexOf(playerAnimatingMove.from[1]);
+              const toF = (isReversed ? REVERSED_FILES : FILES).indexOf(playerAnimatingMove.to[0]);
+              const toR = (isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).indexOf(playerAnimatingMove.to[1]);
+              const x1 = fromF * sqSize;
+              const y1 = fromR * sqSize;
+              const x2 = toF * sqSize;
+              const y2 = toR * sqSize;
+              return (
+                <div
+                  key={playerAnimatingMove.from + '-' + playerAnimatingMove.to}
+                  className="absolute pointer-events-none"
+                  style={{
+                    left: x1,
+                    top: y1,
+                    width: sqSize,
+                    height: sqSize,
+                    zIndex: 60,
+                    animation: 'opponentMoveGhost 150ms ease-in-out forwards',
+                    '--ghost-dx': `${x2 - x1}px`,
+                    '--ghost-dy': `${y2 - y1}px`,
+                  } as React.CSSProperties}
+                >
+                  <div className="w-full h-full flex items-center justify-center" style={{ padding: Math.round(sqSize * 0.075) }}>
+                    <PieceImg type={playerAnimatingMove.piece.type} color={playerAnimatingMove.piece.color} />
                   </div>
                 </div>
               );
