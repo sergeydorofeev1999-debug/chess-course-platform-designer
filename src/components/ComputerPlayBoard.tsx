@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { Chess } from 'chess.js';
 import { RotateCcw, Trophy, ChevronRight, Star, Eye, Undo2 } from 'lucide-react';
 
@@ -28,6 +28,8 @@ const PROMOTION_PIECES = [
   { code: 'b', name: 'Слон' },
   { code: 'n', name: 'Конь' },
 ];
+
+function isLight(f: number, r: number) { return (f + r) % 2 === 0; }
 
 function StarPng({ filled, size = 14 }: { filled: boolean; size?: number }) {
   return (
@@ -400,21 +402,21 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
     };
   }, [game, processMove]);
 
-  // ──── HELPERS ────
   const getPieceAt = (sq: string) => {
     if (!game) return null;
     const p = game.get(sq as any);
-    if (!p) return null;
-    return { type: p.type.toUpperCase(), color: p.color as 'w' | 'b' };
+    return p ? { type: p.type, color: p.color as 'w' | 'b' } : null;
   };
 
-  const isLight = (f: number, r: number) => (f + r) % 2 === 0;
-
-  const validMoves = selectedSquare && game
-    ? (game.moves({ square: selectedSquare as any, verbose: true }).map(m => m.to) as string[])
-    : dragPiece && game
-      ? (game.moves({ square: dragPiece.square as any, verbose: true }).map(m => m.to) as string[])
-      : [];
+  const validMoves = useMemo(() => {
+    if (selectedSquare && game) {
+      return game.moves({ square: selectedSquare as any, verbose: true }).map((m: any) => m.to) as string[];
+    }
+    if (dragPiece && game) {
+      return game.moves({ square: dragPiece.square as any, verbose: true }).map((m: any) => m.to) as string[];
+    }
+    return [];
+  }, [selectedSquare, dragPiece, game]);
 
   const turnText = game ? (game.turn() === 'w' ? 'Ход белых' : 'Ход чёрных') : '';
 
@@ -558,11 +560,9 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
       {/* CENTER COLUMN */}
       <div className="flex-1 flex flex-col items-center gap-3 px-2">
         {/* Thinking indicator */}
-        {thinking && (
-          <div className="w-full h-1.5 bg-[#F5F0E8] rounded-full overflow-hidden mb-2">
-            <div className="h-full bg-[#C9A84C] rounded-full animate-pulse w-full" />
-          </div>
-        )}
+        <div className="w-full h-1.5 bg-[#F5F0E8] rounded-full overflow-hidden mb-2">
+          <div className={`h-full bg-[#C9A84C] rounded-full w-full transition-opacity duration-300 ${thinking ? 'opacity-100 animate-pulse' : 'opacity-0'}`} />
+        </div>
 
         {message && (
           <div className={`px-6 py-3 rounded-xl text-center font-bold text-white w-full mb-2 flex items-center justify-center gap-2 ${
