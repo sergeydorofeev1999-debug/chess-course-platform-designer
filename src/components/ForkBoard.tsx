@@ -1389,7 +1389,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
 
         {/* Feedback Banner */}
         {isFail && (
-          <div className="w-full lg:max-w-sm mt-2">
+          <div className="w-full mt-2">
             <div
               className="rounded-2xl flex flex-col items-center gap-2"
               style={{
@@ -1416,7 +1416,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           </div>
         )}
         {isComplete && (
-          <div className="w-full lg:max-w-sm mt-2">
+          <div className="w-full mt-2">
             <div
               className="rounded-2xl flex flex-col items-center gap-2"
               style={{
