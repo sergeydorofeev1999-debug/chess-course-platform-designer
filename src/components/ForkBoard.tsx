@@ -1245,7 +1245,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         </div>
 
         {/* Board */}
-        <div className="flex justify-center w-full relative">
+        <div className="flex flex-col items-center w-full relative">
           <div
             className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none"
             style={{
