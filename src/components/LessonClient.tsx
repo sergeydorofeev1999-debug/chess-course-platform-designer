@@ -20,7 +20,7 @@ const ChessFootballBoard = dynamic(() => import('./ChessFootballBoard'), { ssr: 
 const TwoRooksMateBoard = dynamic(() => import('./TwoRooksMateBoard'), { ssr: false });
 const QueenMateBoard = dynamic(() => import('./QueenMateBoard'), { ssr: false });
 const RookMateBoard = dynamic(() => import('./RookMateBoard'), { ssr: false });
-const ForkBoard = dynamic(() => import('./ForkBoard'), { ssr: false });
+import ForkBoard from './ForkBoard';
 const PinBoard = dynamic(() => import('./PinBoard'), { ssr: false });
 const DiscoveredAttackBoard = dynamic(() => import('./DiscoveredAttackBoard'), { ssr: false });
 const MixedTacticsBoard = dynamic(() => import('./MixedTacticsBoard'), { ssr: false });
