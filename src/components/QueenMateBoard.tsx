@@ -335,6 +335,16 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [timerStarted, setTimerStarted] = useState(false);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
+  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{
+    from: string;
+    to: string;
+    piece: { type: string; color: 'w' | 'b' };
+  } | null>(null);
+  const [animatingMove, setAnimatingMove] = useState<{
+    from: string;
+    to: string;
+    piece: { type: string; color: 'w' | 'b' };
+  } | null>(null);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Drag state
@@ -398,6 +408,8 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
     setSelectedSquare(null);
     setMessage('');
     setLastMove(null);
+    setPlayerAnimatingMove(null);
+    setAnimatingMove(null);
     setDemoMode(false);
     setDemoStep(0);
     setDemoComment('');
@@ -418,6 +430,8 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
     setSelectedSquare(null);
     setMessage('');
     setLastMove(null);
+    setPlayerAnimatingMove(null);
+    setAnimatingMove(null);
     setDemoMode(false);
     setDemoStep(0);
     setDemoComment('');

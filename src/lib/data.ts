@@ -353,6 +353,8 @@ export async function updateCourse(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
+  await assertCanManageCourse(supabase, user.id, courseId);
+
   const { data, error } = await supabase
     .from('courses')
     .update(updates)
@@ -369,6 +371,8 @@ export async function deleteCourse(courseId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
+
+  await assertCanManageCourse(supabase, user.id, courseId);
 
   const { error } = await supabase
     .from('courses')
