@@ -450,6 +450,8 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
     setBlackCaptured(0);
     setHistory([]);
     setLastMove(null);
+    setPlayerAnimatingMove(null);
+    setOpponentAnimatingMove(null);
   }, []);
 
   const startLevel = useCallback((diff: Difficulty) => {

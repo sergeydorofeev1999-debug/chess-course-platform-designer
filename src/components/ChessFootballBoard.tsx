@@ -999,7 +999,7 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
                         />
                       </div>
                     )}
-                    {pieceObj && !isSource && !isPlayerAnimatingSource && !isOpponentAnimatingSource && (
+                    {pieceObj && !isSource && !(playerAnimatingMove?.from === sq) && !(opponentAnimatingMove?.from === sq) && (
                       <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
                         <PieceImg type={pieceObj.type} color={pieceObj.color} />
                       </div>
