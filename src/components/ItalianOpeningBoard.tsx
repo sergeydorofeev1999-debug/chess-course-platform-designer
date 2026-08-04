@@ -115,6 +115,8 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
   const [exercise, setExercise] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
   const [game, setGame] = useState<Chess | null>(null);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
+  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
+  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
   const [message, setMessage] = useState('');
   const [isFail, setIsFail] = useState(false);
   const [isComplete, setIsComplete] = useState(false);

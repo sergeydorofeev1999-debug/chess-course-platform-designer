@@ -72,13 +72,56 @@ function StarPng({ filled, size = 14 }: { filled: boolean; size?: number }) {
 function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
   const pieceKey = `${color}${type.toUpperCase()}`;
   return (
-    <img
-      src={`/pieces/cburnett/${pieceKey}.svg`}
-      alt=""
-      className="w-full h-full"
-      draggable={false}
-      style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}
+    <div
+      className="w-full h-full bg-contain bg-center bg-no-repeat"
+      style={{
+        backgroundImage: `url(/pieces/cburnett/${pieceKey}.svg)`,
+        filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))',
+      }}
     />
+  );
+}
+
+function GhostOverlay({
+  from,
+  to,
+  piece,
+  color,
+  sqSize,
+  isOpponent,
+}: {
+  from: string;
+  to: string;
+  piece: string;
+  color: 'w' | 'b';
+  sqSize: number;
+  isOpponent: boolean;
+}) {
+  const fromF = FILES.indexOf(from[0]);
+  const fromR = RANKS.indexOf(from[1]);
+  const toF = FILES.indexOf(to[0]);
+  const toR = RANKS.indexOf(to[1]);
+  const ghostDx = (toF - fromF) * sqSize;
+  const ghostDy = (toR - fromR) * sqSize;
+  return (
+    <div
+      className={`absolute z-40 pointer-events-none ${isOpponent ? 'animate-opponent-move' : 'animate-player-move'}`}
+      style={{
+        left: fromF * sqSize,
+        top: fromR * sqSize,
+        width: sqSize,
+        height: sqSize,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        '--ghost-dx': `${ghostDx}px`,
+        '--ghost-dy': `${ghostDy}px`,
+      } as React.CSSProperties}
+    >
+      <div style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
+        <PieceImg type={piece} color={color} />
+      </div>
+    </div>
   );
 }
 
@@ -117,6 +160,8 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const pointerStartRef = useRef<PointerStart | null>(null);
   const [promotionPending, setPromotionPending] = useState<{from: string; to: string} | null>(null);
+  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{ from: string; to: string; piece: string; color: 'w' | 'b' } | null>(null);
+  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: string; color: 'w' | 'b' } | null>(null);
 
   const storageKey = lessonId ? `discovered_attack_progress_${lessonId}` : 'discovered_attack_progress';
 
@@ -164,6 +209,8 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
     setIsFail(false);
     setIsComplete(false);
     setWhiteMoves(0);
+    setPlayerAnimatingMove(null);
+    setOpponentAnimatingMove(null);
   }, [exercise]);
 
   const saveStars = useCallback((ex: 1 | 2 | 3 | 4 | 5 | 6, stars: number) => {
@@ -185,6 +232,8 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
     setIsFail(false);
     setIsComplete(false);
     setWhiteMoves(0);
+    setPlayerAnimatingMove(null);
+    setOpponentAnimatingMove(null);
   }, []);
 
   const processWhiteMove = useCallback((from: string, to: string, promotionPiece?: string) => {
@@ -202,6 +251,8 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
       const move = g.move({ from, to, promotion: promotionPiece });
       if (!move) return;
       setLastMove({ from, to });
+      setPlayerAnimatingMove({ from, to, piece: move.piece.toUpperCase(), color: 'w' });
+      setTimeout(() => setPlayerAnimatingMove(null), 200);
 
       const nextWhiteMoves = whiteMoves + 1;
 
@@ -228,13 +279,19 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
             // After Nd4+, black king escapes to c4
             const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
             const kingToC4 = kingMoves.find((m: any) => m.to === 'c4');
+            let blackMove = null;
             if (kingToC4) {
-              g.move({ from: kingToC4.from, to: kingToC4.to });
-              setLastMove({ from: kingToC4.from, to: kingToC4.to });
+              blackMove = kingToC4;
+              g.move({ from: blackMove.from, to: blackMove.to });
+              setLastMove({ from: blackMove.from, to: blackMove.to });
             } else if (kingMoves.length > 0) {
-              const kingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
-              g.move({ from: kingMove.from, to: kingMove.to });
-              setLastMove({ from: kingMove.from, to: kingMove.to });
+              blackMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+              g.move({ from: blackMove.from, to: blackMove.to });
+              setLastMove({ from: blackMove.from, to: blackMove.to });
+            }
+            if (blackMove) {
+              setOpponentAnimatingMove({ from: blackMove.from, to: blackMove.to, piece: blackMove.piece.toUpperCase(), color: 'b' });
+              setTimeout(() => setOpponentAnimatingMove(null), 200);
             }
             setGame(new Chess(g.fen()));
             setWhiteMoves(nextWhiteMoves);
@@ -424,9 +481,15 @@ setLastMove({ from: cap.from, to: cap.to });
               if (!mountedRef.current) return;
               // After Nf6, black pawn g7 captures on f6
               const pawnCaptures = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'p' && m.to === 'f6');
+              let blackMove = null;
               if (pawnCaptures.length > 0) {
-                g.move({ from: pawnCaptures[0].from, to: pawnCaptures[0].to });
-                setLastMove({ from: pawnCaptures[0].from, to: pawnCaptures[0].to });
+                blackMove = pawnCaptures[0];
+                g.move({ from: blackMove.from, to: blackMove.to });
+                setLastMove({ from: blackMove.from, to: blackMove.to });
+              }
+              if (blackMove) {
+                setOpponentAnimatingMove({ from: blackMove.from, to: blackMove.to, piece: blackMove.piece.toUpperCase(), color: 'b' });
+                setTimeout(() => setOpponentAnimatingMove(null), 200);
               }
               setGame(new Chess(g.fen()));
               setWhiteMoves(nextWhiteMoves);
@@ -875,6 +938,26 @@ setLastMove({ from: preferred.from, to: preferred.to });
                 );
               })
             ))}
+          {playerAnimatingMove && (
+            <GhostOverlay
+              from={playerAnimatingMove.from}
+              to={playerAnimatingMove.to}
+              piece={playerAnimatingMove.piece}
+              color={playerAnimatingMove.color}
+              sqSize={sqSize}
+              isOpponent={false}
+            />
+          )}
+          {opponentAnimatingMove && (
+            <GhostOverlay
+              from={opponentAnimatingMove.from}
+              to={opponentAnimatingMove.to}
+              piece={opponentAnimatingMove.piece}
+              color={opponentAnimatingMove.color}
+              sqSize={sqSize}
+              isOpponent={true}
+            />
+          )}
           {/* Hint arrows SVG overlay */}
           {hintVisible && !isFail && !isComplete && !selectedSquare && !dragPiece && (
             (() => {
