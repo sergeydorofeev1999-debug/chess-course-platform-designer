@@ -330,6 +330,9 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
 
     if (selectedSquare === square) {
       setSelectedSquare(null);
+    } else if (selectedSquare && piece && piece.color === game.turn()) {
+      // Clicked on another own piece — switch selection
+      setSelectedSquare(square);
     } else if (selectedSquare) {
       applyMove(selectedSquare, square);
     } else {
