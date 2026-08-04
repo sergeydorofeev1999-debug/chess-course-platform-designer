@@ -48,6 +48,10 @@ function squaresToFen(squares: Record<string, Piece>): string {
   return rows + ' w - - 0 1';
 }
 
+function squareToCoords(square: string): { f: number; r: number } {
+  return { f: FILES.indexOf(square[0]), r: RANKS.indexOf(square[1]) };
+}
+
 /* ═════════════════════════════════════════════════════════════════
    MOVE GENERATION
    ═════════════════════════════════════════════════════════════════ */
@@ -351,6 +355,45 @@ function getBestMove(
 /* ═════════════════════════════════════════════════════════════════
    UI
    ═════════════════════════════════════════════════════════════════ */
+
+function GhostOverlay({
+  from,
+  to,
+  piece,
+  sqSize,
+  opponent,
+}: {
+  from: string;
+  to: string;
+  piece: { type: string; color: 'w' | 'b' };
+  sqSize: number;
+  opponent: boolean;
+}) {
+  const fromCoords = squareToCoords(from);
+  const toCoords = squareToCoords(to);
+  const dx = (toCoords.f - fromCoords.f) * sqSize;
+  const dy = (toCoords.r - fromCoords.r) * sqSize;
+  return (
+    <div
+      className={`absolute pointer-events-none z-40 ${opponent ? 'animate-opponent-move' : 'animate-player-move'}`}
+      style={{
+        left: fromCoords.f * sqSize,
+        top: fromCoords.r * sqSize,
+        width: sqSize,
+        height: sqSize,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        ['--ghost-dx' as string]: `${dx}px`,
+        ['--ghost-dy' as string]: `${dy}px`,
+      }}
+    >
+      <div style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
+        <PieceImg type={piece.type} color={piece.color} />
+      </div>
+    </div>
+  );
+}
 
 function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
   const pieceKey = `${color}${type.toUpperCase()}`;
@@ -937,7 +980,7 @@ export default function BishopPawnBoard({ onComplete, lessonId, lessonTitle }: {
                     </div>
                   )}
                   {/* Piece */}
-                  {pieceObj && !isSource && (
+                  {pieceObj && !isSource && !(playerAnimatingMove?.from === sq || opponentAnimatingMove?.from === sq) && (
                     <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
                       <PieceImg type={pieceObj.type} color={pieceObj.color as 'w' | 'b'} />
                     </div>
@@ -945,6 +988,26 @@ export default function BishopPawnBoard({ onComplete, lessonId, lessonTitle }: {
                 </div>
               );
             })
+          )}
+
+          {/* Ghost overlays */}
+          {playerAnimatingMove && (
+            <GhostOverlay
+              from={playerAnimatingMove.from}
+              to={playerAnimatingMove.to}
+              piece={playerAnimatingMove.piece}
+              sqSize={sqSize}
+              opponent={false}
+            />
+          )}
+          {opponentAnimatingMove && (
+            <GhostOverlay
+              from={opponentAnimatingMove.from}
+              to={opponentAnimatingMove.to}
+              piece={opponentAnimatingMove.piece}
+              sqSize={sqSize}
+              opponent={true}
+            />
           )}
         </div>
       </div>
