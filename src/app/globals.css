@@ -37,6 +37,15 @@
   100% { transform: translate(var(--ghost-dx), var(--ghost-dy)) scale(1); }
 }
 
+/* Keep keyframes alive — used inline in MateInTwoBoard */
+.animate-opponent-move {
+  animation: opponentMoveGhost 150ms ease-in-out forwards;
+}
+
+.animate-player-move {
+  animation: playerMoveGhost 150ms ease-in-out forwards;
+}
+
 @keyframes star-collect {
   0%   { transform: scale(1) rotate(0deg); filter: brightness(1); }
   40%  { transform: scale(1.6) rotate(180deg); filter: brightness(1.8) drop-shadow(0 0 12px rgba(201,168,76,0.8)); }

@@ -545,37 +545,6 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
 
         {/* Board */}
         <div className="flex justify-center w-full relative">
-          {/* Animation keyframes for opponent ghost piece */}
-          <style>{`
-            @keyframes opponentMoveGhost {
-              0% {
-                transform: translate(0, 0) scale(1);
-              }
-              30% {
-                transform: translate(calc(var(--ghost-dx) * 0.3), calc(var(--ghost-dy) * 0.3)) scale(1.08);
-              }
-              70% {
-                transform: translate(calc(var(--ghost-dx) * 0.85), calc(var(--ghost-dy) * 0.85)) scale(1.05);
-              }
-              100% {
-                transform: translate(var(--ghost-dx), var(--ghost-dy)) scale(1);
-              }
-            }
-            @keyframes playerMoveGhost {
-              0% {
-                transform: translate(0, 0) scale(1);
-              }
-              30% {
-                transform: translate(calc(var(--ghost-dx) * 0.3), calc(var(--ghost-dy) * 0.3)) scale(1.08);
-              }
-              70% {
-                transform: translate(calc(var(--ghost-dx) * 0.85), calc(var(--ghost-dy) * 0.85)) scale(1.05);
-              }
-              100% {
-                transform: translate(var(--ghost-dx), var(--ghost-dy)) scale(1);
-              }
-            }
-          `}</style>
           <div
             data-board
             className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none"
@@ -681,14 +650,13 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
                 <div
                   ref={ghostRef}
                   key={animatingMove.from + '-' + animatingMove.to}
-                  className="absolute pointer-events-none"
+                  className="absolute pointer-events-none animate-opponent-move"
                   style={{
                     left: x1,
                     top: y1,
                     width: sqSize,
                     height: sqSize,
                     zIndex: 60,
-                    animation: 'opponentMoveGhost 150ms ease-in-out forwards',
                     '--ghost-dx': `${x2 - x1}px`,
                     '--ghost-dy': `${y2 - y1}px`,
                   } as React.CSSProperties}
@@ -713,14 +681,13 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
               return (
                 <div
                   key={playerAnimatingMove.from + '-' + playerAnimatingMove.to}
-                  className="absolute pointer-events-none"
+                  className="absolute pointer-events-none animate-player-move"
                   style={{
                     left: x1,
                     top: y1,
                     width: sqSize,
                     height: sqSize,
                     zIndex: 60,
-                    animation: 'playerMoveGhost 150ms ease-in-out forwards',
                     '--ghost-dx': `${x2 - x1}px`,
                     '--ghost-dy': `${y2 - y1}px`,
                   } as React.CSSProperties}
