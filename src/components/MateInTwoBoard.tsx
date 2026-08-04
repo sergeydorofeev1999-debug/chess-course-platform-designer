@@ -72,12 +72,15 @@ const SECOND_HINTS: Record<number, { from: string; to: string }[]> = {
 function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
   const pieceKey = `${color}${type.toUpperCase()}`;
   return (
-    <img
-      src={`/pieces/cburnett/${pieceKey}.svg`}
-      alt=""
+    <div
       className="w-full h-full"
-      draggable={false}
-      style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}
+      style={{
+        backgroundImage: `url(/pieces/cburnett/${pieceKey}.svg)`,
+        backgroundSize: 'contain',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+        filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))',
+      }}
     />
   );
 }
