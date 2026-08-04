@@ -243,6 +243,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
       if (stage === 'first') {
         if (from === keyMove.from && to === keyMove.to) {
           const movedPiece = g.get(from as any);
+          setGame(new Chess(g.fen()));
           setPlayerAnimatingMove({
             from,
             to,
@@ -253,31 +254,33 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
           setIsFail(false);
           setStage('after_computer');
 
+          // Remove player ghost after 150ms
           setTimeout(() => {
             if (!mountedRef.current) return;
-            setGame(new Chess(g.fen()));
             setPlayerAnimatingMove(null);
-            // Use the local g (already mutated with user move) instead of stale gameRef
+          }, 150);
+
+          // Opponent move after 600ms pause
+          setTimeout(() => {
+            if (!mountedRef.current) return;
             const cg = new Chess(g.fen());
             const compMoves = cg.moves({ verbose: true });
             if (compMoves.length > 0) {
               const compMove = compMoves[0];
               const compMovedPiece = cg.get(compMove.from);
+              cg.move(compMove);
+              setGame(new Chess(cg.fen()));
               setAnimatingMove({
                 from: compMove.from,
                 to: compMove.to,
                 piece: { type: compMovedPiece?.type.toUpperCase() || '', color: compMovedPiece?.color as 'w' | 'b' || 'b' },
               });
               setLastMove({ from: compMove.from, to: compMove.to });
-              // Animate ghost piece then apply move
-              requestAnimationFrame(() => {
-                setTimeout(() => {
-                  cg.move(compMove);
-                  setGame(new Chess(cg.fen()));
-                  setAnimatingMove(null);
-                  setMessage('Найдите мат!');
-                }, 150);
-              });
+              // Remove opponent ghost after 150ms
+              setTimeout(() => {
+                setAnimatingMove(null);
+                setMessage('Найдите мат!');
+              }, 150);
             }
           }, 600);
           return;
