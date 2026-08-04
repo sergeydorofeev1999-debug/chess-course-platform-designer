@@ -238,18 +238,18 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
     }
 
     try {
-      const move = g.move({ from, to, promotion: promotionPiece });
+      const ng = new Chess(g.fen());
+      const move = ng.move({ from, to, promotion: promotionPiece });
       if (!move) return;
       setPromotionPending(null);
-      setLastMove({ from, to });
 
       if (stage === 'first') {
         if (from === keyMove.from && to === keyMove.to) {
-          const movedPiece = g.get(from as any);
+          const piece = g.get(from as any);
           setPlayerAnimatingMove({
             from,
             to,
-            piece: { type: movedPiece?.type.toUpperCase() || '', color: movedPiece?.color as 'w' | 'b' || 'w' },
+            piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' },
           });
           setSelectedSquare(null);
           setMessage('Отличный ход! Продолжайте!');
@@ -259,8 +259,9 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
           // Update board + remove player ghost after 800ms
           setTimeout(() => {
             if (!mountedRef.current) return;
-            setGame(new Chess(g.fen()));
+            setGame(ng);
             setPlayerAnimatingMove(null);
+            setLastMove({ from, to });
           }, 800);
 
           // Opponent move after 900ms pause
