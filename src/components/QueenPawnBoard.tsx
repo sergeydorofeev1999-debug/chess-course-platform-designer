@@ -48,6 +48,12 @@ function squaresToFen(squares: Record<string, Piece>): string {
   return rows + ' w - - 0 1';
 }
 
+function squareToCoords(square: string, sqSize: number): { x: number; y: number } {
+  const ff = FILES.indexOf(square[0]);
+  const fr = RANKS.indexOf(square[1]);
+  return { x: ff * sqSize, y: fr * sqSize };
+}
+
 /* ═════════════════════════════════════════════════════════════════
    MOVE GENERATION
    ═════════════════════════════════════════════════════════════════ */
@@ -358,6 +364,33 @@ function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
   );
 }
 
+function GhostOverlay({ from, to, piece, sqSize, className }: {
+  from: string;
+  to: string;
+  piece: Piece;
+  sqSize: number;
+  className: string;
+}) {
+  const fromCoords = squareToCoords(from, sqSize);
+  const toCoords = squareToCoords(to, sqSize);
+  return (
+    <div
+      className={`absolute pointer-events-none ${className}`}
+      style={{
+        left: fromCoords.x,
+        top: fromCoords.y,
+        width: sqSize,
+        height: sqSize,
+        zIndex: 60,
+        '--ghost-dx': `${toCoords.x - fromCoords.x}px`,
+        '--ghost-dy': `${toCoords.y - fromCoords.y}px`,
+      } as React.CSSProperties}
+    >
+      <PieceImg type={piece.type} color={piece.color} />
+    </div>
+  );
+}
+
 const START_FEN = '3q4/pppppppp/8/8/8/8/PPPPPPPP/3Q4 w - - 0 1';
 
 const LEVELS: { id: Difficulty; label: string; description: string; color: string; stars: number }[] = [
@@ -391,8 +424,10 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
   const [turn, setTurn] = useState<'w' | 'b'>('w');
   const [whiteCaptured, setWhiteCaptured] = useState(0);
   const [blackCaptured, setBlackCaptured] = useState(0);
-  const [history, setHistory] = useState<{ squares: Record<string, Piece>; whiteCaptured: number; blackCaptured: number; enPassant: string | null; turn: 'w' | 'b' }[]>([]);
+  const [history, setHistory] = useState<{ squares: Record<string, Piece>; whiteCaptured: number; blackCaptured: number; enPassant: string | null; turn: 'w' | 'b' }>[]>([]);
   const [sqSize, setSqSize] = useState(44);
+  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{ from: string; to: string; piece: Piece }> | null>(null);
+  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: Piece }> | null>(null);
   const [promotionPending, setPromotionPending] = useState<{ from: string; to: string } | null>(null);
 
   const [dragPiece, setDragPiece] = useState<{ square: string; type: string; color: string } | null>(null);
@@ -488,30 +523,39 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
       }
 
       const result = makeMove(sqs, enPassantRef.current, chosen.from, chosen.to);
+      const movingPiece = sqs[chosen.from];
 
       const win = checkGameOver(result.squares, result.enPassant, 'w', result.promoted);
       if (win) {
         setWinner(win);
-        setSquares(result.squares);
-        setEnPassant(result.enPassant);
-        setTurn('w');
-        setComputerThinking(false);
-        if (win === 'Белые победили!' && difficultyRef.current) {
-          const d = difficultyRef.current;
-          setCompletedLevels(prev => {
-            const next = { ...prev, [d]: true };
-            localStorage.setItem(savedKey, JSON.stringify(next));
-            return next;
-          });
-          onComplete();
-        }
+        setOpponentAnimatingMove({ from: chosen.from, to: chosen.to, piece: movingPiece! });
+        setTimeout(() => {
+          setSquares(result.squares);
+          setEnPassant(result.enPassant);
+          setTurn('w');
+          setOpponentAnimatingMove(null);
+          setComputerThinking(false);
+          if (win === 'Белые победили!' && difficultyRef.current) {
+            const d = difficultyRef.current;
+            setCompletedLevels(prev => {
+              const next = { ...prev, [d]: true };
+              localStorage.setItem(savedKey, JSON.stringify(next));
+              return next;
+            });
+            onComplete();
+          }
+        }, 200);
         return;
       }
 
-      setSquares(result.squares);
-      setEnPassant(result.enPassant);
-      setTurn('w');
-      setComputerThinking(false);
+      setOpponentAnimatingMove({ from: chosen.from, to: chosen.to, piece: movingPiece! });
+      setTimeout(() => {
+        setSquares(result.squares);
+        setEnPassant(result.enPassant);
+        setTurn('w');
+        setOpponentAnimatingMove(null);
+        setComputerThinking(false);
+      }, 200);
     }, 800);
 
     return () => clearTimeout(timer);
@@ -595,32 +639,40 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
         const win = checkGameOver(result.squares, result.enPassant, 'b', result.promoted);
         if (win) {
           setWinner(win);
-          setSquares(result.squares);
-          setEnPassant(result.enPassant);
-          setSelectedSquare(null);
-          setValidSquares([]);
-          selectedSquareRef.current = null;
-          if (win === 'Белые победили!' && difficultyRef.current) {
-            const d = difficultyRef.current;
-            setCompletedLevels(prev => {
-              const next = { ...prev, [d]: true };
-              localStorage.setItem(savedKey, JSON.stringify(next));
-              return next;
-            });
-            onComplete();
-          }
+          setPlayerAnimatingMove({ from: sel, to: square, piece: movingPiece! });
+          setTimeout(() => {
+            setSquares(result.squares);
+            setEnPassant(result.enPassant);
+            setPlayerAnimatingMove(null);
+            setSelectedSquare(null);
+            setValidSquares([]);
+            selectedSquareRef.current = null;
+            if (win === 'Белые победили!' && difficultyRef.current) {
+              const d = difficultyRef.current;
+              setCompletedLevels(prev => {
+                const next = { ...prev, [d]: true };
+                localStorage.setItem(savedKey, JSON.stringify(next));
+                return next;
+              });
+              onComplete();
+            }
+          }, 200);
           return;
         }
 
-        setSquares(result.squares);
-        setEnPassant(result.enPassant);
-        setTurn('b');
-        setSelectedSquare(null);
-        setValidSquares([]);
-        selectedSquareRef.current = null;
-        if (hasNoMoves(result.squares, 'b', result.enPassant)) {
-          setWinner('Ничья');
-        }
+        setPlayerAnimatingMove({ from: sel, to: square, piece: movingPiece! });
+        setTimeout(() => {
+          setSquares(result.squares);
+          setEnPassant(result.enPassant);
+          setTurn('b');
+          setPlayerAnimatingMove(null);
+          setSelectedSquare(null);
+          setValidSquares([]);
+          selectedSquareRef.current = null;
+          if (hasNoMoves(result.squares, 'b', result.enPassant)) {
+            setWinner('Ничья');
+          }
+        }, 200);
         return;
       }
 
@@ -712,30 +764,38 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
             const win = checkGameOver(result.squares, result.enPassant, 'b', result.promoted);
             if (win) {
               setWinner(win);
-              setSquares(result.squares);
-              setEnPassant(result.enPassant);
-              setSelectedSquare(null);
-              setValidSquares([]);
-              selectedSquareRef.current = null;
-              if (win === 'Белые победили!' && difficultyRef.current) {
-                const d = difficultyRef.current;
-                setCompletedLevels(prev => {
-                  const next = { ...prev, [d]: true };
-                  localStorage.setItem(savedKey, JSON.stringify(next));
-                  return next;
-                });
-                onComplete();
-              }
+              setPlayerAnimatingMove({ from: start.square, to: targetSquare, piece: movingPiece! });
+              setTimeout(() => {
+                setSquares(result.squares);
+                setEnPassant(result.enPassant);
+                setPlayerAnimatingMove(null);
+                setSelectedSquare(null);
+                setValidSquares([]);
+                selectedSquareRef.current = null;
+                if (win === 'Белые победили!' && difficultyRef.current) {
+                  const d = difficultyRef.current;
+                  setCompletedLevels(prev => {
+                    const next = { ...prev, [d]: true };
+                    localStorage.setItem(savedKey, JSON.stringify(next));
+                    return next;
+                  });
+                  onComplete();
+                }
+              }, 200);
             } else {
-              setSquares(result.squares);
-              setEnPassant(result.enPassant);
-              setTurn('b');
-              setSelectedSquare(null);
-              setValidSquares([]);
-              selectedSquareRef.current = null;
-              if (hasNoMoves(result.squares, 'b', result.enPassant)) {
-                setWinner('Ничья');
-              }
+              setPlayerAnimatingMove({ from: start.square, to: targetSquare, piece: movingPiece! });
+              setTimeout(() => {
+                setSquares(result.squares);
+                setEnPassant(result.enPassant);
+                setTurn('b');
+                setPlayerAnimatingMove(null);
+                setSelectedSquare(null);
+                setValidSquares([]);
+                selectedSquareRef.current = null;
+                if (hasNoMoves(result.squares, 'b', result.enPassant)) {
+                  setWinner('Ничья');
+                }
+              }, 200);
             }
           }
         }
@@ -945,6 +1005,24 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
                 </div>
               );
             })
+          )}
+          {playerAnimatingMove && (
+            <GhostOverlay
+              from={playerAnimatingMove.from}
+              to={playerAnimatingMove.to}
+              piece={playerAnimatingMove.piece}
+              sqSize={sqSize}
+              className="animate-player-move"
+            />
+          )}
+          {opponentAnimatingMove && (
+            <GhostOverlay
+              from={opponentAnimatingMove.from}
+              to={opponentAnimatingMove.to}
+              piece={opponentAnimatingMove.piece}
+              sqSize={sqSize}
+              className="animate-opponent-move"
+            />
           )}
           {promotionPending && (
             <div
