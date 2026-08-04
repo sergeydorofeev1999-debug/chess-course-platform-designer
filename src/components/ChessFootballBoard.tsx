@@ -1009,61 +1009,61 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
               })
             )}
           </div>
+
+            {/* Player ghost piece overlay */}
+            {playerAnimatingMove && (() => {
+              const fromF = FILES.indexOf(playerAnimatingMove.from[0]);
+              const fromR = DISPLAY_RANKS.indexOf(playerAnimatingMove.from[1]);
+              const toF = FILES.indexOf(playerAnimatingMove.to[0]);
+              const toR = DISPLAY_RANKS.indexOf(playerAnimatingMove.to[1]);
+              const dx = (toF - fromF) * sqSize;
+              const dy = (toR - fromR) * sqSize;
+              const fromX = fromF * sqSize;
+              const fromY = fromR * sqSize;
+              return (
+                <div
+                  className="absolute pointer-events-none z-40 animate-player-move"
+                  style={{
+                    left: fromX + (sqSize - Math.round(sqSize * 0.85)) / 2,
+                    top: fromY + (sqSize - Math.round(sqSize * 0.85)) / 2,
+                    width: Math.round(sqSize * 0.85),
+                    height: Math.round(sqSize * 0.85),
+                    '--ghost-dx': `${dx}px`,
+                    '--ghost-dy': `${dy}px`,
+                  } as React.CSSProperties}
+                >
+                  <PieceImg type={playerAnimatingMove.piece.type} color={playerAnimatingMove.piece.color} />
+                </div>
+              );
+            })()}
+
+            {/* Opponent ghost piece overlay */}
+            {opponentAnimatingMove && (() => {
+              const fromF = FILES.indexOf(opponentAnimatingMove.from[0]);
+              const fromR = DISPLAY_RANKS.indexOf(opponentAnimatingMove.from[1]);
+              const toF = FILES.indexOf(opponentAnimatingMove.to[0]);
+              const toR = DISPLAY_RANKS.indexOf(opponentAnimatingMove.to[1]);
+              const dx = (toF - fromF) * sqSize;
+              const dy = (toR - fromR) * sqSize;
+              const fromX = fromF * sqSize;
+              const fromY = fromR * sqSize;
+              return (
+                <div
+                  className="absolute pointer-events-none z-40 animate-opponent-move"
+                  style={{
+                    left: fromX + (sqSize - Math.round(sqSize * 0.85)) / 2,
+                    top: fromY + (sqSize - Math.round(sqSize * 0.85)) / 2,
+                    width: Math.round(sqSize * 0.85),
+                    height: Math.round(sqSize * 0.85),
+                    '--ghost-dx': `${dx}px`,
+                    '--ghost-dy': `${dy}px`,
+                  } as React.CSSProperties}
+                >
+                  <PieceImg type={opponentAnimatingMove.piece.type} color={opponentAnimatingMove.piece.color} />
+                </div>
+              );
+            })()}
         </div>
-
-        {/* Player ghost piece overlay */}
-        {playerAnimatingMove && (() => {
-          const fromF = FILES.indexOf(playerAnimatingMove.from[0]);
-          const fromR = DISPLAY_RANKS.indexOf(playerAnimatingMove.from[1]);
-          const toF = FILES.indexOf(playerAnimatingMove.to[0]);
-          const toR = DISPLAY_RANKS.indexOf(playerAnimatingMove.to[1]);
-          const dx = (toF - fromF) * sqSize;
-          const dy = (toR - fromR) * sqSize;
-          const fromX = fromF * sqSize;
-          const fromY = fromR * sqSize;
-          return (
-            <div
-              className="absolute pointer-events-none z-40 animate-player-move"
-              style={{
-                left: fromX + (sqSize - Math.round(sqSize * 0.85)) / 2,
-                top: fromY + (sqSize - Math.round(sqSize * 0.85)) / 2,
-                width: Math.round(sqSize * 0.85),
-                height: Math.round(sqSize * 0.85),
-                '--ghost-dx': `${dx}px`,
-                '--ghost-dy': `${dy}px`,
-              } as React.CSSProperties}
-            >
-              <PieceImg type={playerAnimatingMove.piece.type} color={playerAnimatingMove.piece.color} />
-            </div>
-          );
-        })()}
-
-        {/* Opponent ghost piece overlay */}
-        {opponentAnimatingMove && (() => {
-          const fromF = FILES.indexOf(opponentAnimatingMove.from[0]);
-          const fromR = DISPLAY_RANKS.indexOf(opponentAnimatingMove.from[1]);
-          const toF = FILES.indexOf(opponentAnimatingMove.to[0]);
-          const toR = DISPLAY_RANKS.indexOf(opponentAnimatingMove.to[1]);
-          const dx = (toF - fromF) * sqSize;
-          const dy = (toR - fromR) * sqSize;
-          const fromX = fromF * sqSize;
-          const fromY = fromR * sqSize;
-          return (
-            <div
-              className="absolute pointer-events-none z-40 animate-opponent-move"
-              style={{
-                left: fromX + (sqSize - Math.round(sqSize * 0.85)) / 2,
-                top: fromY + (sqSize - Math.round(sqSize * 0.85)) / 2,
-                width: Math.round(sqSize * 0.85),
-                height: Math.round(sqSize * 0.85),
-                '--ghost-dx': `${dx}px`,
-                '--ghost-dy': `${dy}px`,
-              } as React.CSSProperties}
-            >
-              <PieceImg type={opponentAnimatingMove.piece.type} color={opponentAnimatingMove.piece.color} />
-            </div>
-          );
-        })()}
 
         {/* Drag overlay */}
         {dragPiece && (
