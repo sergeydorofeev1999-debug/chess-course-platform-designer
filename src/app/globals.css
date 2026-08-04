@@ -24,26 +24,22 @@
 
 /* Ghost piece animations for MateInTwoBoard */
 @keyframes opponentMoveGhost {
-  0% { transform: translate(0, 0) scale(1); }
-  30% { transform: translate(calc(var(--ghost-dx) * 0.3), calc(var(--ghost-dy) * 0.3)) scale(1.08); }
-  70% { transform: translate(calc(var(--ghost-dx) * 0.85), calc(var(--ghost-dy) * 0.85)) scale(1.05); }
-  100% { transform: translate(var(--ghost-dx), var(--ghost-dy)) scale(1); }
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(var(--ghost-dx), var(--ghost-dy)); }
 }
 
 @keyframes playerMoveGhost {
-  0% { transform: translate(0, 0) scale(1); }
-  30% { transform: translate(calc(var(--ghost-dx) * 0.3), calc(var(--ghost-dy) * 0.3)) scale(1.08); }
-  70% { transform: translate(calc(var(--ghost-dx) * 0.85), calc(var(--ghost-dy) * 0.85)) scale(1.05); }
-  100% { transform: translate(var(--ghost-dx), var(--ghost-dy)) scale(1); }
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(var(--ghost-dx), var(--ghost-dy)); }
 }
 
 /* Keep keyframes alive — used inline in MateInTwoBoard */
 .animate-opponent-move {
-  animation: opponentMoveGhost 800ms ease-in-out forwards;
+  animation: opponentMoveGhost 800ms linear forwards;
 }
 
 .animate-player-move {
-  animation: playerMoveGhost 800ms ease-in-out forwards;
+  animation: playerMoveGhost 800ms linear forwards;
 }
 
 @keyframes star-collect {
