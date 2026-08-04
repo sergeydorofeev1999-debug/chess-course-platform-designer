@@ -268,6 +268,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
                 to: compMove.to,
                 piece: { type: compMovedPiece?.type.toUpperCase() || '', color: compMovedPiece?.color as 'w' | 'b' || 'b' },
               });
+              setLastMove({ from: compMove.from, to: compMove.to });
               // Animate ghost piece then apply move
               requestAnimationFrame(() => {
                 setTimeout(() => {
@@ -278,7 +279,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
                 }, 150);
               });
             }
-          }, 150);
+          }, 600);
           return;
         } else {
           setGame(new Chess(g.fen()));
@@ -560,6 +561,20 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
                 transform: translate(var(--ghost-dx), var(--ghost-dy)) scale(1);
               }
             }
+            @keyframes playerMoveGhost {
+              0% {
+                transform: translate(0, 0) scale(1);
+              }
+              30% {
+                transform: translate(calc(var(--ghost-dx) * 0.3), calc(var(--ghost-dy) * 0.3)) scale(1.08);
+              }
+              70% {
+                transform: translate(calc(var(--ghost-dx) * 0.85), calc(var(--ghost-dy) * 0.85)) scale(1.05);
+              }
+              100% {
+                transform: translate(var(--ghost-dx), var(--ghost-dy)) scale(1);
+              }
+            }
           `}</style>
           <div
             data-board
@@ -705,7 +720,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
                     width: sqSize,
                     height: sqSize,
                     zIndex: 60,
-                    animation: 'opponentMoveGhost 150ms ease-in-out forwards',
+                    animation: 'playerMoveGhost 150ms ease-in-out forwards',
                     '--ghost-dx': `${x2 - x1}px`,
                     '--ghost-dy': `${y2 - y1}px`,
                   } as React.CSSProperties}
