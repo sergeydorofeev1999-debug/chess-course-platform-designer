@@ -729,6 +729,59 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
                 );
               })
             ))}
+          {/* Ghost overlays */}
+          {playerAnimatingMove && (() => {
+            const fromF = FILES.indexOf(playerAnimatingMove.from[0]);
+            const fromR = DISPLAY_RANKS.indexOf(playerAnimatingMove.from[1]);
+            const toF = FILES.indexOf(playerAnimatingMove.to[0]);
+            const toR = DISPLAY_RANKS.indexOf(playerAnimatingMove.to[1]);
+            const x1 = fromF * sqSize;
+            const y1 = fromR * sqSize;
+            const x2 = toF * sqSize;
+            const y2 = toR * sqSize;
+            return (
+              <div
+                className="absolute pointer-events-none animate-player-move"
+                style={{
+                  left: x1,
+                  top: y1,
+                  width: sqSize,
+                  height: sqSize,
+                  zIndex: 60,
+                  '--ghost-dx': `${x2 - x1}px`,
+                  '--ghost-dy': `${y2 - y1}px`,
+                } as React.CSSProperties}
+              >
+                <PieceImg type={playerAnimatingMove.piece.type} color={playerAnimatingMove.piece.color} />
+              </div>
+            );
+          })()}
+          {opponentAnimatingMove && (() => {
+            const fromF = FILES.indexOf(opponentAnimatingMove.from[0]);
+            const fromR = DISPLAY_RANKS.indexOf(opponentAnimatingMove.from[1]);
+            const toF = FILES.indexOf(opponentAnimatingMove.to[0]);
+            const toR = DISPLAY_RANKS.indexOf(opponentAnimatingMove.to[1]);
+            const x1 = fromF * sqSize;
+            const y1 = fromR * sqSize;
+            const x2 = toF * sqSize;
+            const y2 = toR * sqSize;
+            return (
+              <div
+                className="absolute pointer-events-none animate-opponent-move"
+                style={{
+                  left: x1,
+                  top: y1,
+                  width: sqSize,
+                  height: sqSize,
+                  zIndex: 60,
+                  '--ghost-dx': `${x2 - x1}px`,
+                  '--ghost-dy': `${y2 - y1}px`,
+                } as React.CSSProperties}
+              >
+                <PieceImg type={opponentAnimatingMove.piece.type} color={opponentAnimatingMove.piece.color} />
+              </div>
+            );
+          })()}
           {/* Hint arrows SVG overlay */}
           {hintVisible && !isFail && !isComplete && !selectedSquare && !dragPiece && (
             (() => {
