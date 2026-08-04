@@ -48,6 +48,10 @@ function squaresToFen(squares: Record<string, Piece>): string {
   return rows + ' w - - 0 1';
 }
 
+function squareToCoords(square: string): { f: number; r: number } {
+  return { f: FILES.indexOf(square[0]), r: RANKS.indexOf(square[1]) };
+}
+
 /* ═════════════════════════════════════════════════════════════════
    MOVE GENERATION
    ═════════════════════════════════════════════════════════════════ */
@@ -345,6 +349,45 @@ function getBestMove(
 /* ═════════════════════════════════════════════════════════════════
    UI
    ═════════════════════════════════════════════════════════════════ */
+
+function GhostOverlay({
+  from,
+  to,
+  piece,
+  sqSize,
+  opponent,
+}: {
+  from: string;
+  to: string;
+  piece: { type: string; color: 'w' | 'b' };
+  sqSize: number;
+  opponent: boolean;
+}) {
+  const fromCoords = squareToCoords(from);
+  const toCoords = squareToCoords(to);
+  const dx = (toCoords.f - fromCoords.f) * sqSize;
+  const dy = (toCoords.r - fromCoords.r) * sqSize;
+  return (
+    <div
+      className={`absolute pointer-events-none z-40 ${opponent ? 'animate-opponent-move' : 'animate-player-move'}`}
+      style={{
+        left: fromCoords.f * sqSize,
+        top: fromCoords.r * sqSize,
+        width: sqSize,
+        height: sqSize,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        ['--ghost-dx' as string]: `${dx}px`,
+        ['--ghost-dy' as string]: `${dy}px`,
+      }}
+    >
+      <div style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
+        <PieceImg type={piece.type} color={piece.color} />
+      </div>
+    </div>
+  );
+}
 
 function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
   const pieceKey = `${color}${type.toUpperCase()}`;
@@ -894,66 +937,25 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
               );
             })
           )}
-          {/* Player ghost piece */}
-          {playerAnimatingMove && (() => {
-            const fromF = FILES.indexOf(playerAnimatingMove.from[0]);
-            const fromR = RANKS.indexOf(playerAnimatingMove.from[1]);
-            const toF = FILES.indexOf(playerAnimatingMove.to[0]);
-            const toR = RANKS.indexOf(playerAnimatingMove.to[1]);
-            const x1 = fromF * sqSize;
-            const y1 = fromR * sqSize;
-            const x2 = toF * sqSize;
-            const y2 = toR * sqSize;
-            return (
-              <div
-                key={playerAnimatingMove.from + '-' + playerAnimatingMove.to}
-                className="absolute pointer-events-none animate-player-move"
-                style={{
-                  left: x1,
-                  top: y1,
-                  width: sqSize,
-                  height: sqSize,
-                  zIndex: 60,
-                  '--ghost-dx': `${x2 - x1}px`,
-                  '--ghost-dy': `${y2 - y1}px`,
-                } as React.CSSProperties}
-              >
-                <div className="w-full h-full flex items-center justify-center" style={{ padding: Math.round(sqSize * 0.075) }}>
-                  <PieceImg type={playerAnimatingMove.piece.type} color={playerAnimatingMove.piece.color} />
-                </div>
-              </div>
-            );
-          })()}
-          {/* Opponent ghost piece */}
-          {opponentAnimatingMove && (() => {
-            const fromF = FILES.indexOf(opponentAnimatingMove.from[0]);
-            const fromR = RANKS.indexOf(opponentAnimatingMove.from[1]);
-            const toF = FILES.indexOf(opponentAnimatingMove.to[0]);
-            const toR = RANKS.indexOf(opponentAnimatingMove.to[1]);
-            const x1 = fromF * sqSize;
-            const y1 = fromR * sqSize;
-            const x2 = toF * sqSize;
-            const y2 = toR * sqSize;
-            return (
-              <div
-                key={opponentAnimatingMove.from + '-' + opponentAnimatingMove.to}
-                className="absolute pointer-events-none animate-opponent-move"
-                style={{
-                  left: x1,
-                  top: y1,
-                  width: sqSize,
-                  height: sqSize,
-                  zIndex: 60,
-                  '--ghost-dx': `${x2 - x1}px`,
-                  '--ghost-dy': `${y2 - y1}px`,
-                } as React.CSSProperties}
-              >
-                <div className="w-full h-full flex items-center justify-center" style={{ padding: Math.round(sqSize * 0.075) }}>
-                  <PieceImg type={opponentAnimatingMove.piece.type} color={opponentAnimatingMove.piece.color} />
-                </div>
-              </div>
-            );
-          })()}
+          {/* Ghost overlays */}
+          {playerAnimatingMove && (
+            <GhostOverlay
+              from={playerAnimatingMove.from}
+              to={playerAnimatingMove.to}
+              piece={playerAnimatingMove.piece}
+              sqSize={sqSize}
+              opponent={false}
+            />
+          )}
+          {opponentAnimatingMove && (
+            <GhostOverlay
+              from={opponentAnimatingMove.from}
+              to={opponentAnimatingMove.to}
+              piece={opponentAnimatingMove.piece}
+              sqSize={sqSize}
+              opponent={true}
+            />
+          )}
         </div>
       </div>
 
