@@ -14,11 +14,16 @@ const REVERSED_DISPLAY_RANKS = ['1','2','3','4','5','6','7','8'];
 function PieceImg({ type, color, size }: { type: string; color: 'w' | 'b'; size?: number }) {
   const pieceKey = `${color}${type.toUpperCase()}`;
   return (
-    <img
-      src={`/pieces/cburnett/${pieceKey}.svg`}
-      alt=""
-      draggable={false}
-      style={size ? { width: size, height: size, filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' } : { filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}
+    <div
+      style={{
+        width: size || '100%',
+        height: size || '100%',
+        backgroundImage: `url(/pieces/cburnett/${pieceKey}.svg)`,
+        backgroundSize: 'contain',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+        filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))',
+      }}
     />
   );
 }
@@ -58,6 +63,8 @@ export default function TacticalStormBoard({ onComplete }: Props) {
   const [showCorrect, setShowCorrect] = useState(false);
   const [moveIndex, setMoveIndex] = useState(0);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
+  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
+  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
 
   const moveIndexRef = useRef(0);
   const [message, setMessage] = useState('');
@@ -195,6 +202,8 @@ export default function TacticalStormBoard({ onComplete }: Props) {
     setGame(ng);
     setSelectedSquare(null);
     setDragPiece(null);
+    setPlayerAnimatingMove(null);
+    setOpponentAnimatingMove(null);
     setMoveIndex(0);
     moveIndexRef.current = 0;
     puzzleStartTimeRef.current = Date.now();
@@ -219,6 +228,8 @@ export default function TacticalStormBoard({ onComplete }: Props) {
     setPuzzleHistory([]);
     setActiveTab('tasks');
     setReviewIndex(null);
+    setPlayerAnimatingMove(null);
+    setOpponentAnimatingMove(null);
     usedPuzzlesRef.current.clear();
 
     const first = pickPuzzle(0);
@@ -299,6 +310,8 @@ export default function TacticalStormBoard({ onComplete }: Props) {
       setShowCorrect(false);
       setMessage('');
       setMessageType('none');
+      setPlayerAnimatingMove(null);
+      setOpponentAnimatingMove(null);
       
       puzzleIndexRef.current += 1;
       setPuzzleIndex(puzzleIndexRef.current);
@@ -352,37 +365,56 @@ export default function TacticalStormBoard({ onComplete }: Props) {
     // Correct move
     moveIndexRef.current += 1;
     setMoveIndex(moveIndexRef.current);
+    setSelectedSquare(null);
+
+    const movingPiece = { type: move.piece.toUpperCase(), color: move.color as 'w' | 'b' };
 
     if (moveIndexRef.current >= currentPuzzleRef.current.moves.length) {
       // All moves solved — puzzle complete
-      setGame(newGame);
-      setShowCorrect(true);
+      setPlayerAnimatingMove({ from, to, piece: movingPiece });
       flashTimeoutRef.current = setTimeout(() => {
-        setShowCorrect(false);
-        nextPuzzle(true);
-      }, 1200);
+        setGame(newGame);
+        setPlayerAnimatingMove(null);
+        setShowCorrect(true);
+        flashTimeoutRef.current = setTimeout(() => {
+          setShowCorrect(false);
+          nextPuzzle(true);
+        }, 1200);
+      }, 200);
       return;
     }
 
-    // More moves needed — apply opponent's move after delay
-    setGame(newGame);
-    setSelectedSquare(null);
+    // More moves needed — animate player move, then schedule opponent
+    setPlayerAnimatingMove({ from, to, piece: movingPiece });
 
-    opponentTimeoutRef.current = setTimeout(() => {
-      if (!currentPuzzleRef.current || moveIndexRef.current >= currentPuzzleRef.current.moves.length) return;
-      
-      const oppMove = currentPuzzleRef.current.moves[moveIndexRef.current];
-      const oppFrom = oppMove.slice(0, 2);
-      const oppTo = oppMove.slice(2, 4);
-      
-      const afterOpp = new Chess(newGame.fen());
-      afterOpp.move({ from: oppFrom, to: oppTo, promotion: 'q' });
-      
-      moveIndexRef.current += 1;
-      setMoveIndex(moveIndexRef.current);
-      setGame(afterOpp);
-      setIsBlack(afterOpp.turn() === 'b');
-    }, 800);
+    flashTimeoutRef.current = setTimeout(() => {
+      setGame(newGame);
+      setPlayerAnimatingMove(null);
+
+      opponentTimeoutRef.current = setTimeout(() => {
+        if (!currentPuzzleRef.current || moveIndexRef.current >= currentPuzzleRef.current.moves.length) return;
+
+        const oppMove = currentPuzzleRef.current.moves[moveIndexRef.current];
+        const oppFrom = oppMove.slice(0, 2);
+        const oppTo = oppMove.slice(2, 4);
+
+        const oppPiece = newGame.get(oppFrom as any);
+        if (oppPiece) {
+          setOpponentAnimatingMove({ from: oppFrom, to: oppTo, piece: { type: oppPiece.type.toUpperCase(), color: oppPiece.color as 'w' | 'b' } });
+        }
+
+        opponentTimeoutRef.current = setTimeout(() => {
+          const afterOpp = new Chess(newGame.fen());
+          afterOpp.move({ from: oppFrom, to: oppTo, promotion: 'q' });
+
+          moveIndexRef.current += 1;
+          setMoveIndex(moveIndexRef.current);
+          setGame(afterOpp);
+          setOpponentAnimatingMove(null);
+          setIsBlack(afterOpp.turn() === 'b');
+        }, 200);
+      }, 600); // total ~800ms from player move
+    }, 200);
   }, [game, nextPuzzle]);
 
   /* ─── CLICK ─── */
@@ -944,6 +976,60 @@ export default function TacticalStormBoard({ onComplete }: Props) {
             })
           )}
         </div>
+
+        {/* Player ghost */}
+        {playerAnimatingMove && (() => {
+          const files = isBlack ? REVERSED_FILES : FILES;
+          const ranks = isBlack ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS;
+          const fromFi = files.indexOf(playerAnimatingMove.from[0]);
+          const fromRi = ranks.indexOf(playerAnimatingMove.from[1]);
+          const toFi = files.indexOf(playerAnimatingMove.to[0]);
+          const toRi = ranks.indexOf(playerAnimatingMove.to[1]);
+          return (
+            <div
+              className="absolute pointer-events-none z-40 animate-player-move flex items-center justify-center"
+              style={{
+                left: fromFi * sqSize,
+                top: fromRi * sqSize,
+                width: sqSize,
+                height: sqSize,
+                ['--ghost-dx' as any]: `${(toFi - fromFi) * sqSize}px`,
+                ['--ghost-dy' as any]: `${(toRi - fromRi) * sqSize}px`,
+              }}
+            >
+              <div style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
+                <PieceImg type={playerAnimatingMove.piece.type} color={playerAnimatingMove.piece.color} />
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Opponent ghost */}
+        {opponentAnimatingMove && (() => {
+          const files = isBlack ? REVERSED_FILES : FILES;
+          const ranks = isBlack ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS;
+          const fromFi = files.indexOf(opponentAnimatingMove.from[0]);
+          const fromRi = ranks.indexOf(opponentAnimatingMove.from[1]);
+          const toFi = files.indexOf(opponentAnimatingMove.to[0]);
+          const toRi = ranks.indexOf(opponentAnimatingMove.to[1]);
+          return (
+            <div
+              className="absolute pointer-events-none z-40 animate-opponent-move flex items-center justify-center"
+              style={{
+                left: fromFi * sqSize,
+                top: fromRi * sqSize,
+                width: sqSize,
+                height: sqSize,
+                ['--ghost-dx' as any]: `${(toFi - fromFi) * sqSize}px`,
+                ['--ghost-dy' as any]: `${(toRi - fromRi) * sqSize}px`,
+              }}
+            >
+              <div style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
+                <PieceImg type={opponentAnimatingMove.piece.type} color={opponentAnimatingMove.piece.color} />
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Floating dragged piece */}
         {dragPiece && (
