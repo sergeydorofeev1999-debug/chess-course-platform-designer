@@ -43,7 +43,7 @@
 }
 
 .animate-player-move {
-  animation: playerMoveGhost 150ms ease-in-out forwards;
+  animation: playerMoveGhost 800ms ease-in-out forwards;
 }
 
 @keyframes star-collect {
