@@ -195,32 +195,79 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
       // ── Exercise 5: multi-move sequence ──
       if (exercise === 5) {
         if (sequenceStep === 0 && from === 'h8' && to === 'c8') {
-          g.move({ from, to });
-          setGame(new Chess(g.fen()));
-          setSelectedSquare(null);
-          setSequenceStep(1);
-          setMessage('Хорошо! Чёрный король отходит...');
-
-          // Computer reply: Kc6-d7 (or Kc6-b7 if d7 illegal)
+          const ng = new Chess(g.fen());
+          ng.move({ from, to });
+          const piece = g.get(from as any);
+          setLastMove({ from, to });
+          setPlayerAnimatingMove({
+            from, to,
+            piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' },
+          });
           setTimeout(() => {
             if (!mountedRef.current) return;
-            try {
-              const afterComp = new Chess(g.fen());
-              const compMove = afterComp.move({ from: 'c6', to: 'd7' });
-              if (!compMove) afterComp.move({ from: 'c6', to: 'b7' });
-              setGame(new Chess(afterComp.fen()));
-              setMessage('Съешьте черного слона!');
-            } catch {}
-          }, 1200);
+            setGame(ng);
+            setPlayerAnimatingMove(null);
+            setSelectedSquare(null);
+            setSequenceStep(1);
+            setMessage('Хорошо! Чёрный король отходит...');
+
+            // Computer reply: Kc6-d7 (or Kc6-b7 if d7 illegal)
+            setTimeout(() => {
+              if (!mountedRef.current) return;
+              try {
+                const afterComp = new Chess(ng.fen());
+                const compMovedPiece = afterComp.get('c6');
+                const compMove = afterComp.move({ from: 'c6', to: 'd7' });
+                if (compMove) {
+                  setOpponentAnimatingMove({
+                    from: 'c6', to: 'd7',
+                    piece: { type: compMovedPiece?.type.toUpperCase() || '', color: compMovedPiece?.color as 'w' | 'b' || 'b' },
+                  });
+                  setLastMove({ from: 'c6', to: 'd7' });
+                  setTimeout(() => {
+                    if (!mountedRef.current) return;
+                    setGame(new Chess(afterComp.fen()));
+                    setOpponentAnimatingMove(null);
+                    setMessage('Съешьте черного слона!');
+                  }, 200);
+                } else {
+                  const compMovedPiece2 = afterComp.get('c6');
+                  afterComp.move({ from: 'c6', to: 'b7' });
+                  setOpponentAnimatingMove({
+                    from: 'c6', to: 'b7',
+                    piece: { type: compMovedPiece2?.type.toUpperCase() || '', color: compMovedPiece2?.color as 'w' | 'b' || 'b' },
+                  });
+                  setLastMove({ from: 'c6', to: 'b7' });
+                  setTimeout(() => {
+                    if (!mountedRef.current) return;
+                    setGame(new Chess(afterComp.fen()));
+                    setOpponentAnimatingMove(null);
+                    setMessage('Съешьте черного слона!');
+                  }, 200);
+                }
+              } catch {}
+            }, 1000);
+          }, 200);
           return;
         }
         if (sequenceStep === 1 && from === 'c8' && to === 'c3') {
-          g.move({ from, to });
-          setGame(new Chess(g.fen()));
-          setSelectedSquare(null);
-          setIsComplete(true);
-          setMessage('Отлично! Вы защитились от мата!');
-          saveStars(exercise, 3);
+          const ng = new Chess(g.fen());
+          ng.move({ from, to });
+          const piece = g.get(from as any);
+          setLastMove({ from, to });
+          setPlayerAnimatingMove({
+            from, to,
+            piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' },
+          });
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            setGame(ng);
+            setPlayerAnimatingMove(null);
+            setSelectedSquare(null);
+            setIsComplete(true);
+            setMessage('Отлично! Вы защитились от мата!');
+            saveStars(exercise, 3);
+          }, 200);
           return;
         }
         // Wrong move in sequence — fall through to fail logic
@@ -232,51 +279,83 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
         setPromotionPending({ from, to });
         return;
       }
-      const move = g.move({ from, to, promotion: promotionPiece });
+
+      // Player move with ghost (board copy pattern)
+      const ng = new Chess(g.fen());
+      const move = ng.move({ from, to, promotion: promotionPiece });
       if (!move) return;
+
       setLastMove({ from, to });
+      setPlayerAnimatingMove({
+        from, to,
+        piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' },
+      });
 
-      if (validMoves.has(`${from},${to}`)) {
-        setGame(new Chess(g.fen()));
+      setTimeout(() => {
+        if (!mountedRef.current) return;
+        setGame(ng);
+        setPlayerAnimatingMove(null);
         setSelectedSquare(null);
-        setIsComplete(true);
-        setMessage('Отлично! Вы защитились от мата!');
-        saveStars(exercise, 3);
-        if (exercise === 8) onComplete();
-        return;
-      }
 
-      const wrongMoveFen = g.fen();
-      const afterWhite = new Chess(wrongMoveFen);
+        if (validMoves.has(`${from},${to}`)) {
+          setIsComplete(true);
+          setMessage('Отлично! Вы защитились от мата!');
+          saveStars(exercise, 3);
+          if (exercise === 8) onComplete();
+          return;
+        }
 
-      const mateMove = afterWhite.moves({ verbose: true }).find((m: any) => m.san.includes('#'));
-      const captureMoves = afterWhite.moves({ verbose: true }).filter((m: any) => m.captured);
+        // Wrong move — computer response
+        const afterWhite = new Chess(ng.fen());
+        const mateMove = afterWhite.moves({ verbose: true }).find((m: any) => m.san.includes('#'));
+        const captureMoves = afterWhite.moves({ verbose: true }).filter((m: any) => m.captured);
 
-      setGame(new Chess(wrongMoveFen));
-      setSelectedSquare(null);
-      setIsFail(true);
+        setIsFail(true);
 
-      if (mateMove) {
-        setMessage('Не защитились! Соперник ставит мат.');
-        setTimeout(() => {
-          if (!mountedRef.current) return;
-          try {
-            afterWhite.move(mateMove);
-            setGame(new Chess(afterWhite.fen()));
-          } catch {}
-        }, 1000);
-      } else if (captureMoves.length > 0) {
-        setMessage('Вы потеряли фигуру!');
-        setTimeout(() => {
-          if (!mountedRef.current) return;
-          try {
-            afterWhite.move(captureMoves[0]);
-            setGame(new Chess(afterWhite.fen()));
-          } catch {}
-        }, 1000);
-      } else {
-        setMessage('Не защитились! Соперник ставит мат.');
-      }
+        if (mateMove) {
+          setMessage('Не защитились! Соперник ставит мат.');
+          const compMovedPiece = afterWhite.get(mateMove.from);
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            setOpponentAnimatingMove({
+              from: mateMove.from,
+              to: mateMove.to,
+              piece: { type: compMovedPiece?.type.toUpperCase() || '', color: compMovedPiece?.color as 'w' | 'b' || 'b' },
+            });
+            setLastMove({ from: mateMove.from, to: mateMove.to });
+            setTimeout(() => {
+              if (!mountedRef.current) return;
+              try {
+                afterWhite.move(mateMove);
+                setGame(new Chess(afterWhite.fen()));
+                setOpponentAnimatingMove(null);
+              } catch {}
+            }, 200);
+          }, 800);
+        } else if (captureMoves.length > 0) {
+          setMessage('Вы потеряли фигуру!');
+          const compMovedPiece = afterWhite.get(captureMoves[0].from);
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            setOpponentAnimatingMove({
+              from: captureMoves[0].from,
+              to: captureMoves[0].to,
+              piece: { type: compMovedPiece?.type.toUpperCase() || '', color: compMovedPiece?.color as 'w' | 'b' || 'b' },
+            });
+            setLastMove({ from: captureMoves[0].from, to: captureMoves[0].to });
+            setTimeout(() => {
+              if (!mountedRef.current) return;
+              try {
+                afterWhite.move(captureMoves[0]);
+                setGame(new Chess(afterWhite.fen()));
+                setOpponentAnimatingMove(null);
+              } catch {}
+            }, 200);
+          }, 800);
+        } else {
+          setMessage('Не защитились! Соперник ставит мат.');
+        }
+      }, 200);
     } catch {
       // invalid move
     }
@@ -575,6 +654,8 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
                 const sel = selectedSquare === chessSq || dragPiece?.square === chessSq;
                 const isValidMove = validMoves.includes(sq);
                 const isDragSource = dragPiece?.square === chessSq;
+                const isAnimatingSource = opponentAnimatingMove && sq === opponentAnimatingMove.from;
+                const isPlayerAnimatingSource = playerAnimatingMove && sq === playerAnimatingMove.from;
 
                 return (
                   <div
@@ -639,7 +720,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
                         />
                       </div>
                     )}
-                    {pieceObj && !isDragSource && (
+                    {pieceObj && !isDragSource && !isAnimatingSource && !isPlayerAnimatingSource && (
                       <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
                         <PieceImg type={pieceObj.type} color={pieceObj.color} />
                       </div>
