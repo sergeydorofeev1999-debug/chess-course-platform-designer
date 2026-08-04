@@ -917,8 +917,8 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
       const piece = gameRef.current.get(sq as any);
       if (selectedSquare) {
         if (selectedSquare === sq) { setSelectedSquare(null); return; }
+        if (piece && piece.color === 'w' && piece.type === 'p') { setSelectedSquare(sq); return; }
         processWhiteMoveEx2(selectedSquare, sq);
-        if (piece && piece.color === 'w' && piece.type === 'p') setSelectedSquare(sq);
       } else {
         if (piece && piece.color === 'w' && piece.type === 'p') setSelectedSquare(sq);
       }
@@ -930,8 +930,8 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
       const piece = gameRef.current.get(sq as any);
       if (selectedSquare) {
         if (selectedSquare === sq) { setSelectedSquare(null); return; }
+        if (piece && piece.color === 'b' && piece.type === 'k') { setSelectedSquare(sq); return; }
         processBlackMoveEx2(selectedSquare, sq);
-        if (piece && piece.color === 'b' && piece.type === 'k') setSelectedSquare(sq);
       } else {
         if (piece && piece.color === 'b' && piece.type === 'k') setSelectedSquare(sq);
       }
@@ -942,8 +942,8 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
       const piece = gameRef.current.get(sq as any);
       if (selectedSquare) {
         if (selectedSquare === sq) { setSelectedSquare(null); return; }
+        if (piece && piece.color === 'w' && piece.type === 'p') { setSelectedSquare(sq); return; }
         processWhiteMoveEx3(selectedSquare, sq);
-        if (piece && piece.color === 'w' && piece.type === 'p') setSelectedSquare(sq);
       } else {
         if (piece && piece.color === 'w' && piece.type === 'p') setSelectedSquare(sq);
       }
@@ -955,8 +955,8 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
       const piece = gameRef.current.get(sq as any);
       if (selectedSquare) {
         if (selectedSquare === sq) { setSelectedSquare(null); return; }
+        if (piece && piece.color === 'b' && piece.type === 'k') { setSelectedSquare(sq); return; }
         processBlackMoveEx3(selectedSquare, sq);
-        if (piece && piece.color === 'b' && piece.type === 'k') setSelectedSquare(sq);
       } else {
         if (piece && piece.color === 'b' && piece.type === 'k') setSelectedSquare(sq);
       }
@@ -967,8 +967,8 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
       const piece = gameRef.current.get(sq as any);
       if (selectedSquare) {
         if (selectedSquare === sq) { setSelectedSquare(null); return; }
+        if (piece && piece.color === 'w' && piece.type === 'p') { setSelectedSquare(sq); return; }
         processWhiteMoveEx4(selectedSquare, sq);
-        if (piece && piece.color === 'w' && piece.type === 'p') setSelectedSquare(sq);
       } else {
         if (piece && piece.color === 'w' && piece.type === 'p') setSelectedSquare(sq);
       }
@@ -980,8 +980,8 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
       const piece = gameRef.current.get(sq as any);
       if (selectedSquare) {
         if (selectedSquare === sq) { setSelectedSquare(null); return; }
+        if (piece && piece.color === 'b' && piece.type === 'k') { setSelectedSquare(sq); return; }
         processBlackMoveEx4(selectedSquare, sq);
-        if (piece && piece.color === 'b' && piece.type === 'k') setSelectedSquare(sq);
       } else {
         if (piece && piece.color === 'b' && piece.type === 'k') setSelectedSquare(sq);
       }

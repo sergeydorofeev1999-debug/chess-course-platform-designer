@@ -134,6 +134,11 @@ export default function SimpleChessBoard({
       const piece = game.get(square as any);
 
       if (selectedSquare) {
+        if (piece && piece.color === game.turn()) {
+          setSelectedSquare(square);
+          setMessage('');
+          return;
+        }
         try {
           const move = game.move({ from: selectedSquare, to: square });
           if (move) {
@@ -157,13 +162,8 @@ export default function SimpleChessBoard({
           // Invalid move
         }
 
-        if (piece && piece.color === game.turn()) {
-          setSelectedSquare(square);
-          setMessage('');
-        } else {
-          setSelectedSquare(null);
-          setMessage('Недопустимый ход');
-        }
+        setSelectedSquare(null);
+        setMessage('Недопустимый ход');
       } else {
         if (piece && piece.color === game.turn()) {
           setSelectedSquare(square);

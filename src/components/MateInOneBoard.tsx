@@ -235,6 +235,8 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
 
     if (selectedSquare === square) {
       setSelectedSquare(null);
+    } else if (selectedSquare && piece && piece.color === game.turn()) {
+      setSelectedSquare(square);
     } else if (selectedSquare) {
       processMove(selectedSquare, square);
     } else {

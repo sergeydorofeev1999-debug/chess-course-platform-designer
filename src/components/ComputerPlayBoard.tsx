@@ -331,6 +331,8 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
 
     if (selectedSquare === sq) {
       setSelectedSquare(null);
+    } else if (selectedSquare && piece && piece.color === playerColor) {
+      setSelectedSquare(sq);
     } else if (selectedSquare) {
       processMove(selectedSquare, sq);
     } else {

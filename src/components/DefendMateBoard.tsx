@@ -305,6 +305,8 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
 
     if (selectedSquare === sq) {
       setSelectedSquare(null);
+    } else if (selectedSquare && piece && piece.color === game.turn()) {
+      setSelectedSquare(sq);
     } else if (selectedSquare) {
       processMove(selectedSquare, sq);
       setSelectedSquare(null);

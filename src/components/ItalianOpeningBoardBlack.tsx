@@ -1562,6 +1562,10 @@ setLastMove({ from: 'e1', to: 'g1' });
         setSelectedSquare(null);
         return;
       }
+      if (piece && piece.color === 'b') {
+        setSelectedSquare(square);
+        return;
+      }
       const fromPiece = game.get(selectedSquare as any);
       if (!fromPiece || fromPiece.color !== 'b') {
         setSelectedSquare(null);
