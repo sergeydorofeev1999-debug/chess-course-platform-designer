@@ -52,12 +52,15 @@ function StarPng({ filled, size = 14 }: { filled: boolean; size?: number }) {
 function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
   const pieceKey = `${color}${type.toUpperCase()}`;
   return (
-    <img
-      src={`/pieces/cburnett/${pieceKey}.svg`}
-      alt=""
+    <div
       className="w-full h-full"
-      draggable={false}
-      style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}
+      style={{
+        backgroundImage: `url(/pieces/cburnett/${pieceKey}.svg)`,
+        backgroundSize: 'contain',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+        filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))',
+      }}
     />
   );
 }
@@ -76,6 +79,12 @@ interface PointerStart {
   pointerId: number;
 }
 
+interface AnimatingMove {
+  from: string;
+  to: string;
+  piece: { type: string; color: 'w' | 'b' };
+}
+
 export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }: { onComplete: () => void; lessonId?: string; lessonTitle?: string }) {
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null);
   const [game, setGame] = useState<Chess | null>(null);
@@ -91,6 +100,10 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
   const [history, setHistory] = useState<{fen: string; openingStep: number}[]>([]);
 
   const [lastMove, setLastMove] = useState<{from: string; to: string} | null>(null);
+
+  // Ghost animation states
+  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<AnimatingMove | null>(null);
+  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<AnimatingMove | null>(null);
 
   const mountedRef = useRef(true);
   const workerRef = useRef<Worker | null>(null);
@@ -167,11 +180,28 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
         }
 
         try {
-          const newG = new Chess(g.fen());
-          newG.move({ from: moveUci.slice(0, 2), to: moveUci.slice(2, 4), promotion: moveUci.slice(4, 5) || undefined });
-          setLastMove({ from: moveUci.slice(0, 2), to: moveUci.slice(2, 4) });
-          setGame(new Chess(newG.fen()));
-          checkGameOver(newG, 'after computer');
+          const from = moveUci.slice(0, 2);
+          const to = moveUci.slice(2, 4);
+          const promotion = moveUci.slice(4, 5) || undefined;
+
+          const movedPiece = g.get(from as any);
+          const pieceData = movedPiece
+            ? { type: movedPiece.type.toUpperCase(), color: movedPiece.color as 'w' | 'b' }
+            : { type: 'P', color: 'b' as 'w' | 'b' };
+
+          // Show opponent ghost animation
+          setOpponentAnimatingMove({ from, to, piece: pieceData });
+          setLastMove({ from, to });
+
+          // After 200ms update board and remove ghost
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            const newG = new Chess(g.fen());
+            newG.move({ from, to, promotion });
+            setGame(new Chess(newG.fen()));
+            setOpponentAnimatingMove(null);
+            checkGameOver(newG, 'after computer');
+          }, 200);
         } catch {}
       }
     };
@@ -231,6 +261,8 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
     setThinking(false);
     setPromotionPending(null);
     setLastMove(null);
+    setPlayerAnimatingMove(null);
+    setOpponentAnimatingMove(null);
     openingStepRef.current = 0;
     setHistory([]);
 
@@ -249,6 +281,8 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
     openingStepRef.current = last.openingStep;
     setSelectedSquare(null);
     setPromotionPending(null);
+    setPlayerAnimatingMove(null);
+    setOpponentAnimatingMove(null);
     setHistory(h => h.slice(0, -1));
   }, [history, game]);
 
@@ -282,45 +316,72 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
       const move = g.move({ from, to, promotion });
       if (!move) return;
 
+      const pieceData = piece
+        ? { type: piece.type.toUpperCase(), color: piece.color as 'w' | 'b' }
+        : { type: 'P', color: playerColor };
+
+      // Show player ghost animation
+      setPlayerAnimatingMove({ from, to, piece: pieceData });
       setLastMove({ from, to });
-      setGame(g);
       setSelectedSquare(null);
       setHistory(h => [...h, { fen: prevFen, openingStep: prevStep }]);
 
-      if (g.isGameOver()) {
-        checkGameOver(g, 'after player');
-        return;
-      }
-
-      // ── Italian opening forced line ──
-      const step = openingStepRef.current;
-      if (playerColor === 'w' && step < ITALIAN_LINE.length) {
-        const expected = ITALIAN_LINE[step].white;
-        if (move.from === expected.from && move.to === expected.to) {
-          // White followed the line — play forced black response
-          setTimeout(() => {
-            if (!mountedRef.current) return;
-            const blackMove = ITALIAN_LINE[step].black;
-            try {
-              const newG = new Chess(g.fen());
-              newG.move({ from: blackMove.from, to: blackMove.to });
-              setLastMove({ from: blackMove.from, to: blackMove.to });
-              setGame(new Chess(newG.fen()));
-              openingStepRef.current = step + 1;
-              checkGameOver(newG, 'after computer forced');
-            } catch {}
-          }, 800);
-          return;
-        } else {
-          // White deviated — disable forced line
-          openingStepRef.current = ITALIAN_LINE.length;
-        }
-      }
-
-      // Computer's turn (Stockfish)
+      // After 200ms update board and remove ghost
       setTimeout(() => {
-        if (mountedRef.current) makeComputerMove(new Chess(g.fen()), selectedLevel, openingStepRef.current);
-      }, 600);
+        if (!mountedRef.current) return;
+        setGame(new Chess(g.fen()));
+        setPlayerAnimatingMove(null);
+
+        if (g.isGameOver()) {
+          checkGameOver(g, 'after player');
+          return;
+        }
+
+        // ── Italian opening forced line ──
+        const step = openingStepRef.current;
+        if (playerColor === 'w' && step < ITALIAN_LINE.length) {
+          const expected = ITALIAN_LINE[step].white;
+          if (move.from === expected.from && move.to === expected.to) {
+            // White followed the line — play forced black response
+            setTimeout(() => {
+              if (!mountedRef.current) return;
+              const blackMove = ITALIAN_LINE[step].black;
+              try {
+                const blackPiece = g.get(blackMove.from as any);
+                const blackPieceData = blackPiece
+                  ? { type: blackPiece.type.toUpperCase(), color: blackPiece.color as 'w' | 'b' }
+                  : { type: 'P', color: 'b' as 'w' | 'b' };
+
+                setOpponentAnimatingMove({
+                  from: blackMove.from,
+                  to: blackMove.to,
+                  piece: blackPieceData,
+                });
+                setLastMove({ from: blackMove.from, to: blackMove.to });
+
+                setTimeout(() => {
+                  if (!mountedRef.current) return;
+                  const newG = new Chess(g.fen());
+                  newG.move({ from: blackMove.from, to: blackMove.to });
+                  setGame(new Chess(newG.fen()));
+                  setOpponentAnimatingMove(null);
+                  openingStepRef.current = step + 1;
+                  checkGameOver(newG, 'after computer forced');
+                }, 200);
+              } catch {}
+            }, 600);
+            return;
+          } else {
+            // White deviated — disable forced line
+            openingStepRef.current = ITALIAN_LINE.length;
+          }
+        }
+
+        // Computer's turn (Stockfish)
+        setTimeout(() => {
+          if (mountedRef.current) makeComputerMove(new Chess(g.fen()), selectedLevel, openingStepRef.current);
+        }, 600);
+      }, 200);
     } catch {}
   }, [game, selectedLevel, isComplete, gameOver, playerColor, checkGameOver, makeComputerMove]);
 
@@ -610,6 +671,10 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
                 const isValidMove = validMoves.includes(sq);
                 const isDragSource = dragPiece?.square === sq;
                 const isLastMove = lastMove?.from === sq || lastMove?.to === sq;
+                // Hide original piece if it's being animated from this square
+                const isAnimatingSource =
+                  (playerAnimatingMove && sq === playerAnimatingMove.from) ||
+                  (opponentAnimatingMove && sq === opponentAnimatingMove.from);
 
                 return (
                   <div
@@ -673,7 +738,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
                         />
                       </div>
                     )}
-                    {pieceObj && !isDragSource && (
+                    {pieceObj && !isDragSource && !isAnimatingSource && (
                       <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
                         <PieceImg type={pieceObj.type} color={pieceObj.color} />
                       </div>
@@ -682,6 +747,69 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
                 );
               })
             ))}
+
+            {/* Player move ghost piece */}
+            {playerAnimatingMove && (() => {
+              const fromF = FILES.indexOf(playerAnimatingMove.from[0]);
+              const fromR = DISPLAY_RANKS.indexOf(playerAnimatingMove.from[1]);
+              const toF = FILES.indexOf(playerAnimatingMove.to[0]);
+              const toR = DISPLAY_RANKS.indexOf(playerAnimatingMove.to[1]);
+              const x1 = fromF * sqSize;
+              const y1 = fromR * sqSize;
+              const x2 = toF * sqSize;
+              const y2 = toR * sqSize;
+              return (
+                <div
+                  key={playerAnimatingMove.from + '-' + playerAnimatingMove.to}
+                  className="absolute pointer-events-none animate-player-move"
+                  style={{
+                    left: x1,
+                    top: y1,
+                    width: sqSize,
+                    height: sqSize,
+                    zIndex: 60,
+                    '--ghost-dx': `${x2 - x1}px`,
+                    '--ghost-dy': `${y2 - y1}px`,
+                  } as React.CSSProperties}
+                >
+                  <div className="w-full h-full flex items-center justify-center" style={{ padding: Math.round(sqSize * 0.075) }}>
+                    <PieceImg type={playerAnimatingMove.piece.type} color={playerAnimatingMove.piece.color} />
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* Opponent move ghost piece */}
+            {opponentAnimatingMove && (() => {
+              const fromF = FILES.indexOf(opponentAnimatingMove.from[0]);
+              const fromR = DISPLAY_RANKS.indexOf(opponentAnimatingMove.from[1]);
+              const toF = FILES.indexOf(opponentAnimatingMove.to[0]);
+              const toR = DISPLAY_RANKS.indexOf(opponentAnimatingMove.to[1]);
+              const x1 = fromF * sqSize;
+              const y1 = fromR * sqSize;
+              const x2 = toF * sqSize;
+              const y2 = toR * sqSize;
+              return (
+                <div
+                  key={opponentAnimatingMove.from + '-' + opponentAnimatingMove.to}
+                  className="absolute pointer-events-none animate-opponent-move"
+                  style={{
+                    left: x1,
+                    top: y1,
+                    width: sqSize,
+                    height: sqSize,
+                    zIndex: 60,
+                    '--ghost-dx': `${x2 - x1}px`,
+                    '--ghost-dy': `${y2 - y1}px`,
+                  } as React.CSSProperties}
+                >
+                  <div className="w-full h-full flex items-center justify-center" style={{ padding: Math.round(sqSize * 0.075) }}>
+                    <PieceImg type={opponentAnimatingMove.piece.type} color={opponentAnimatingMove.piece.color} />
+                  </div>
+                </div>
+              );
+            })()}
+
           {promotionPending && (
             <div className="absolute z-50 pointer-events-auto" style={{
               left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
