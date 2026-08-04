@@ -39,7 +39,7 @@
 
 /* Keep keyframes alive — used inline in MateInTwoBoard */
 .animate-opponent-move {
-  animation: opponentMoveGhost 150ms ease-in-out forwards;
+  animation: opponentMoveGhost 800ms ease-in-out forwards;
 }
 
 .animate-player-move {

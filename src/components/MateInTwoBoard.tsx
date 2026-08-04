@@ -279,11 +279,11 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
                 piece: { type: compMovedPiece?.type.toUpperCase() || '', color: compMovedPiece?.color as 'w' | 'b' || 'b' },
               });
               setLastMove({ from: compMove.from, to: compMove.to });
-              // Remove opponent ghost after 150ms
+              // Remove opponent ghost after 800ms
               setTimeout(() => {
                 setAnimatingMove(null);
                 setMessage('Найдите мат!');
-              }, 150);
+              }, 800);
             }
           }, 900);
           return;
