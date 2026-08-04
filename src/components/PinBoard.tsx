@@ -64,13 +64,54 @@ function StarPng({ filled, size = 14 }: { filled: boolean; size?: number }) {
 function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
   const pieceKey = `${color}${type.toUpperCase()}`;
   return (
-    <img
-      src={`/pieces/cburnett/${pieceKey}.svg`}
-      alt=""
+    <div
       className="w-full h-full"
-      draggable={false}
-      style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}
+      style={{
+        backgroundImage: `url(/pieces/cburnett/${pieceKey}.svg)`,
+        backgroundSize: 'contain',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+        filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))',
+      }}
     />
+  );
+}
+
+function squareToCoords(sq: string, sqSize: number): { x: number; y: number } {
+  const f = FILES.indexOf(sq[0]);
+  const r = DISPLAY_RANKS.indexOf(sq[1]);
+  return { x: f * sqSize, y: r * sqSize };
+}
+
+function GhostOverlay({
+  animatingMove,
+  sqSize,
+  className,
+}: {
+  animatingMove: { from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null;
+  sqSize: number;
+  className: string;
+}) {
+  if (!animatingMove) return null;
+  const fromCoords = squareToCoords(animatingMove.from, sqSize);
+  const toCoords = squareToCoords(animatingMove.to, sqSize);
+  const dx = toCoords.x - fromCoords.x;
+  const dy = toCoords.y - fromCoords.y;
+  return (
+    <div
+      className={`absolute pointer-events-none ${className}`}
+      style={{
+        left: fromCoords.x,
+        top: fromCoords.y,
+        width: sqSize,
+        height: sqSize,
+        zIndex: 60,
+        '--ghost-dx': `${dx}px`,
+        '--ghost-dy': `${dy}px`,
+      } as React.CSSProperties}
+    >
+      <PieceImg type={animatingMove.piece.type} color={animatingMove.piece.color} />
+    </div>
   );
 }
 
@@ -189,6 +230,8 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
   const [hintVisible, setHintVisible] = useState(false);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
+  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
+  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
 
   const isCompleteRef = useRef(false);
   const isFailRef = useRef(false);
@@ -241,6 +284,8 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
     setSelectedSquare(null);
     setMessage('');
     setLastMove(null);
+    setPlayerAnimatingMove(null);
+    setOpponentAnimatingMove(null);
     setHintVisible(false);
     setIsFail(false);
     setIsComplete(false);
@@ -263,6 +308,8 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
     setSelectedSquare(null);
     setMessage('');
     setLastMove(null);
+    setPlayerAnimatingMove(null);
+    setOpponentAnimatingMove(null);
     setIsFail(false);
     setIsComplete(false);
     setWhiteMoves(0);

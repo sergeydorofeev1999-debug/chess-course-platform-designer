@@ -8,6 +8,12 @@ const FILES = ['a','b','c','d','e','f','g','h'];
 const RANKS = ['8','7','6','5','4','3','2','1'];
 const DISPLAY_RANKS = ['8','7','6','5','4','3','2','1'];
 
+function squareToCoords(square: string, sqSize: number): { x: number; y: number } {
+  const ff = FILES.indexOf(square[0]);
+  const fr = DISPLAY_RANKS.indexOf(square[1]);
+  return { x: ff * sqSize, y: fr * sqSize };
+}
+
 const PROMOTION_PIECES = [
   { code: 'q', name: 'Ферзь' },
   { code: 'n', name: 'Конь' },
@@ -101,13 +107,45 @@ function StarPng({ filled, size = 14 }: { filled: boolean; size?: number }) {
 function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
   const pieceKey = `${color}${type.toUpperCase()}`;
   return (
-    <img
-      src={`/pieces/cburnett/${pieceKey}.svg`}
-      alt=""
+    <div
       className="w-full h-full"
-      draggable={false}
-      style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}
+      style={{
+        backgroundImage: `url(/pieces/cburnett/${pieceKey}.svg)`,
+        backgroundSize: 'contain',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+        filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))',
+      }}
     />
+  );
+}
+
+function GhostOverlay({ from, to, piece, sqSize, className }: {
+  from: string;
+  to: string;
+  piece: { type: string; color: 'w' | 'b' };
+  sqSize: number;
+  className: string;
+}) {
+  const fromCoords = squareToCoords(from, sqSize);
+  const toCoords = squareToCoords(to, sqSize);
+  return (
+    <div
+      className={`absolute pointer-events-none ${className}`}
+      style={{
+        left: fromCoords.x,
+        top: fromCoords.y,
+        width: sqSize,
+        height: sqSize,
+        zIndex: 60,
+        '--ghost-dx': `${toCoords.x - fromCoords.x}px`,
+        '--ghost-dy': `${toCoords.y - fromCoords.y}px`,
+      } as React.CSSProperties}
+    >
+      <div className="w-full h-full flex items-center justify-center" style={{ padding: Math.round(sqSize * 0.075) }}>
+        <PieceImg type={piece.type} color={piece.color} />
+      </div>
+    </div>
   );
 }
 
@@ -194,6 +232,16 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
   const [hintVisible, setHintVisible] = useState(false);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
+  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{
+    from: string;
+    to: string;
+    piece: { type: string; color: 'w' | 'b' };
+  } | null>(null);
+  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{
+    from: string;
+    to: string;
+    piece: { type: string; color: 'w' | 'b' };
+  } | null>(null);
 
   const isCompleteRef = useRef(false);
   const isFailRef = useRef(false);

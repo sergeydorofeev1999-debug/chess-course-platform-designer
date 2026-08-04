@@ -63,16 +63,53 @@ function StarPng({ filled, size = 14 }: { filled: boolean; size?: number }) {
   );
 }
 
-function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
+function PieceImg({ type, color, className = '' }: { type: string; color: 'w' | 'b'; className?: string }) {
   const pieceKey = `${color}${type.toUpperCase()}`;
   return (
-    <img
-      src={`/pieces/cburnett/${pieceKey}.svg`}
-      alt=""
-      className="w-full h-full"
+    <div
+      className={`w-full h-full bg-contain bg-center bg-no-repeat ${className}`}
       draggable={false}
-      style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}
+      style={{
+        backgroundImage: `url(/pieces/cburnett/${pieceKey}.svg)`,
+        filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))',
+      }}
     />
+  );
+}
+
+function GhostOverlay({
+  move,
+  sqSize,
+  animClass,
+}: {
+  move: { from: string; to: string; piece: string; color: 'w' | 'b' } | null;
+  sqSize: number;
+  animClass: string;
+}) {
+  if (!move) return null;
+  const fromF = FILES.indexOf(move.from[0]);
+  const fromR = RANKS.indexOf(move.from[1]);
+  const toF = FILES.indexOf(move.to[0]);
+  const toR = RANKS.indexOf(move.to[1]);
+  const dx = (toF - fromF) * sqSize;
+  const dy = (toR - fromR) * sqSize;
+  const size = Math.round(sqSize * 0.85);
+  const pad = Math.round(sqSize * 0.075);
+  return (
+    <div
+      className={`absolute pointer-events-none ${animClass}`}
+      style={{
+        left: fromF * sqSize + pad,
+        top: fromR * sqSize + pad,
+        width: size,
+        height: size,
+        zIndex: 40,
+        ['--ghost-dx' as any]: `${dx}px`,
+        ['--ghost-dy' as any]: `${dy}px`,
+      }}
+    >
+      <PieceImg type={move.piece} color={move.color} />
+    </div>
   );
 }
 
@@ -128,6 +165,8 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
   const [hintVisible, setHintVisible] = useState(false);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
+  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{ from: string; to: string; piece: string; color: 'w' | 'b' } | null>(null);
+  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: string; color: 'w' | 'b' } | null>(null);
 
   const isCompleteRef = useRef(false);
   const isFailRef = useRef(false);
@@ -180,6 +219,8 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
     setSelectedSquare(null);
     setMessage('');
     setLastMove(null);
+    setPlayerAnimatingMove(null);
+    setOpponentAnimatingMove(null);
     setHintVisible(false);
     setIsFail(false);
     setIsComplete(false);
@@ -202,9 +243,19 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
     setSelectedSquare(null);
     setMessage('');
     setLastMove(null);
+    setPlayerAnimatingMove(null);
+    setOpponentAnimatingMove(null);
     setIsFail(false);
     setIsComplete(false);
     setWhiteMoves(0);
+  }, []);
+
+  const triggerOpponentGhost = useCallback((g: Chess, from: string, to: string) => {
+    const piece = g.get(from as any);
+    if (piece) {
+      setOpponentAnimatingMove({ from, to, piece: piece.type.toUpperCase(), color: 'b' });
+      setTimeout(() => setOpponentAnimatingMove(null), 220);
+    }
   }, []);
 
   const processWhiteMove = useCallback((from: string, to: string, promotionPiece?: string) => {
@@ -212,8 +263,13 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
     const g = game;
     if (g.turn() !== 'w') return;
 
+    const piece = g.get(from as any);
+    if (piece) {
+      setPlayerAnimatingMove({ from, to, piece: piece.type.toUpperCase(), color: piece.color as 'w' | 'b' });
+      setTimeout(() => setPlayerAnimatingMove(null), 220);
+    }
+
     try {
-      const piece = g.get(from as any);
       const isPromotion = piece?.type === 'p' && (to[1] === '8' || to[1] === '1');
       if (isPromotion && !promotionPiece) {
         setPromotionPending({ from, to });
@@ -236,6 +292,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
               if (!mountedRef.current) return;
               const cap = getBestBlackCapture(g);
               if (cap) {
+                triggerOpponentGhost(g, cap.from, cap.to);
                 g.move({ from: cap.from, to: cap.to });
                 setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
@@ -257,10 +314,12 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             const preferred = kingMoves.filter((m: any) => m.to === 'd6' || m.to === 'e6');
             if (preferred.length > 0) {
               const km = preferred[Math.floor(Math.random() * preferred.length)];
+              triggerOpponentGhost(g, km.from, km.to);
               g.move({ from: km.from, to: km.to });
               setLastMove({ from: km.from, to: km.to });
             } else if (kingMoves.length > 0) {
               const km = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+              triggerOpponentGhost(g, km.from, km.to);
               g.move({ from: km.from, to: km.to });
             setLastMove({ from: km.from, to: km.to });
             }
@@ -297,6 +356,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
               if (!mountedRef.current) return;
               const cap = getBestBlackCapture(g);
               if (cap) {
+                triggerOpponentGhost(g, cap.from, cap.to);
                 g.move({ from: cap.from, to: cap.to });
           setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
@@ -317,10 +377,12 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
             const kingToB7 = kingMoves.find((m: any) => m.to === 'b7');
             if (kingToB7) {
+              triggerOpponentGhost(g, kingToB7.from, kingToB7.to);
               g.move({ from: kingToB7.from, to: kingToB7.to });
             setLastMove({ from: kingToB7.from, to: kingToB7.to });
             } else if (kingMoves.length > 0) {
               const km = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+              triggerOpponentGhost(g, km.from, km.to);
               g.move({ from: km.from, to: km.to });
        setLastMove({ from: km.from, to: km.to });
             }
@@ -349,10 +411,12 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             const preferred = ['c7', 'b6'];
             const escape = kingMoves.find((m: any) => preferred.includes(m.to));
             if (escape) {
+              triggerOpponentGhost(g, escape.from, escape.to);
               g.move({ from: escape.from, to: escape.to });
        setLastMove({ from: escape.from, to: escape.to });
             } else if (kingMoves.length > 0) {
               const km = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+              triggerOpponentGhost(g, km.from, km.to);
               g.move({ from: km.from, to: km.to });
          setLastMove({ from: km.from, to: km.to });
             }
@@ -388,6 +452,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
               if (!mountedRef.current) return;
               const cap = getBestBlackCapture(g);
               if (cap) {
+                triggerOpponentGhost(g, cap.from, cap.to);
                 g.move({ from: cap.from, to: cap.to });
         setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
@@ -409,10 +474,12 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             const preferred = ['f6', 'c6', 'e7'];
             const escape = queenMoves.find((m: any) => preferred.includes(m.to));
             if (escape) {
+              triggerOpponentGhost(g, escape.from, escape.to);
               g.move({ from: escape.from, to: escape.to });
  setLastMove({ from: escape.from, to: escape.to });
             } else if (queenMoves.length > 0) {
               const qm = queenMoves[Math.floor(Math.random() * queenMoves.length)];
+              triggerOpponentGhost(g, qm.from, qm.to);
               g.move({ from: qm.from, to: qm.to });
             setLastMove({ from: qm.from, to: qm.to });
             }
@@ -448,6 +515,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
               if (!mountedRef.current) return;
               const cap = getBestBlackCapture(g);
               if (cap) {
+                triggerOpponentGhost(g, cap.from, cap.to);
                 g.move({ from: cap.from, to: cap.to });
           setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
@@ -467,6 +535,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             if (!mountedRef.current) return;
             const pawnMove = g.moves({ verbose: true }).find((m: any) => m.color === 'b' && m.piece === 'p' && m.from === 'g7' && m.to === 'g6');
             if (pawnMove) {
+              triggerOpponentGhost(g, pawnMove.from, pawnMove.to);
               g.move({ from: pawnMove.from, to: pawnMove.to });
           setLastMove({ from: pawnMove.from, to: pawnMove.to });
             }
@@ -502,6 +571,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
               if (!mountedRef.current) return;
               const cap = getBestBlackCapture(g);
               if (cap) {
+                triggerOpponentGhost(g, cap.from, cap.to);
                 g.move({ from: cap.from, to: cap.to });
         setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
@@ -521,6 +591,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             if (!mountedRef.current) return;
             const kingCap = g.moves({ verbose: true }).find((m: any) => m.color === 'b' && m.piece === 'k' && m.to === 'h7');
             if (kingCap) {
+              triggerOpponentGhost(g, kingCap.from, kingCap.to);
               g.move({ from: kingCap.from, to: kingCap.to });
         setLastMove({ from: kingCap.from, to: kingCap.to });
               setGame(new Chess(g.fen()));
@@ -556,6 +627,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
               if (!mountedRef.current) return;
               const cap = getBestBlackCapture(g);
               if (cap) {
+                triggerOpponentGhost(g, cap.from, cap.to);
                 g.move({ from: cap.from, to: cap.to });
             setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
@@ -577,10 +649,12 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             const preferred = ['f7', 'e8'];
             const escape = kingMoves.find((m: any) => preferred.includes(m.to));
             if (escape) {
+              triggerOpponentGhost(g, escape.from, escape.to);
               g.move({ from: escape.from, to: escape.to });
      setLastMove({ from: escape.from, to: escape.to });
             } else if (kingMoves.length > 0) {
               const km = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+              triggerOpponentGhost(g, km.from, km.to);
               g.move({ from: km.from, to: km.to });
       setLastMove({ from: km.from, to: km.to });
             }
@@ -616,6 +690,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
               if (!mountedRef.current) return;
               const cap = getBestBlackCapture(g);
               if (cap) {
+                triggerOpponentGhost(g, cap.from, cap.to);
                 g.move({ from: cap.from, to: cap.to });
             setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
@@ -636,10 +711,12 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
             const kingToG8 = kingMoves.find((m: any) => m.to === 'g8');
             if (kingToG8) {
+              triggerOpponentGhost(g, kingToG8.from, kingToG8.to);
               g.move({ from: kingToG8.from, to: kingToG8.to });
         setLastMove({ from: kingToG8.from, to: kingToG8.to });
             } else if (kingMoves.length > 0) {
               const km = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+              triggerOpponentGhost(g, km.from, km.to);
               g.move({ from: km.from, to: km.to });
               setLastMove({ from: km.from, to: km.to });
             }
@@ -675,6 +752,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
               if (!mountedRef.current) return;
               const cap = getBestBlackCapture(g);
               if (cap) {
+                triggerOpponentGhost(g, cap.from, cap.to);
                 g.move({ from: cap.from, to: cap.to });
               setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
@@ -694,6 +772,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             if (!mountedRef.current) return;
             const pawnCap = g.moves({ verbose: true }).find((m: any) => m.color === 'b' && m.piece === 'p' && m.from === 'g7' && m.to === 'f6');
             if (pawnCap) {
+              triggerOpponentGhost(g, pawnCap.from, pawnCap.to);
               g.move({ from: pawnCap.from, to: pawnCap.to });
           setLastMove({ from: pawnCap.from, to: pawnCap.to });
               setGame(new Chess(g.fen()));
@@ -731,6 +810,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             if (!mountedRef.current) return;
             const cap = getBestBlackCapture(g);
             if (cap) {
+              triggerOpponentGhost(g, cap.from, cap.to);
               g.move({ from: cap.from, to: cap.to });
             setLastMove({ from: cap.from, to: cap.to });
               setGame(new Chess(g.fen()));
@@ -752,6 +832,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
               if (!mountedRef.current) return;
               const cap = getBestBlackCapture(g);
               if (cap) {
+                triggerOpponentGhost(g, cap.from, cap.to);
                 g.move({ from: cap.from, to: cap.to });
         setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
@@ -773,10 +854,12 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             const preferred = ['d7', 'b8'];
             const escape = kingMoves.find((m: any) => preferred.includes(m.to));
             if (escape) {
+              triggerOpponentGhost(g, escape.from, escape.to);
               g.move({ from: escape.from, to: escape.to });
       setLastMove({ from: escape.from, to: escape.to });
             } else if (kingMoves.length > 0) {
               const km = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+              triggerOpponentGhost(g, km.from, km.to);
               g.move({ from: km.from, to: km.to });
         setLastMove({ from: km.from, to: km.to });
             }
@@ -812,6 +895,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
               if (!mountedRef.current) return;
               const cap = getBestBlackCapture(g);
               if (cap) {
+                triggerOpponentGhost(g, cap.from, cap.to);
                 g.move({ from: cap.from, to: cap.to });
             setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
@@ -832,10 +916,12 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
             const kingToF8 = kingMoves.find((m: any) => m.to === 'f8');
             if (kingToF8) {
+              triggerOpponentGhost(g, kingToF8.from, kingToF8.to);
               g.move({ from: kingToF8.from, to: kingToF8.to });
          setLastMove({ from: kingToF8.from, to: kingToF8.to });
             } else if (kingMoves.length > 0) {
               const km = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+              triggerOpponentGhost(g, km.from, km.to);
               g.move({ from: km.from, to: km.to });
           setLastMove({ from: km.from, to: km.to });
             }
@@ -873,6 +959,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
             if (!mountedRef.current) return;
             const cap = getBestBlackCapture(g);
             if (cap) {
+              triggerOpponentGhost(g, cap.from, cap.to);
               g.move({ from: cap.from, to: cap.to });
           setLastMove({ from: cap.from, to: cap.to });
               setGame(new Chess(g.fen()));
@@ -1256,6 +1343,10 @@ const getExerciseGoal = (ex: number) => {
                 );
               })
             ))}
+          {/* Ghost piece overlays */}
+          <GhostOverlay move={playerAnimatingMove} sqSize={sqSize} animClass="animate-player-move" />
+          <GhostOverlay move={opponentAnimatingMove} sqSize={sqSize} animClass="animate-opponent-move" />
+
           {/* Hint arrows SVG overlay */}
           {hintVisible && !isFail && !isComplete && !selectedSquare && !dragPiece && (
             (() => {
