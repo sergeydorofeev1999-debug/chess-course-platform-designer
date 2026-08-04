@@ -426,8 +426,8 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
   const [blackCaptured, setBlackCaptured] = useState(0);
   const [history, setHistory] = useState<{ squares: Record<string, Piece>; whiteCaptured: number; blackCaptured: number; enPassant: string | null; turn: 'w' | 'b' }>[]>([]);
   const [sqSize, setSqSize] = useState(44);
-  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{ from: string; to: string; piece: Piece }> | null>(null);
-  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: Piece }> | null>(null);
+  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{ from: string; to: string; piece: Piece } | null>(null);
+  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: Piece } | null>(null);
   const [promotionPending, setPromotionPending] = useState<{ from: string; to: string } | null>(null);
 
   const [dragPiece, setDragPiece] = useState<{ square: string; type: string; color: string } | null>(null);
