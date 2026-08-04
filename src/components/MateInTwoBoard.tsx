@@ -267,7 +267,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
           // Opponent move after 900ms pause
           setTimeout(() => {
             if (!mountedRef.current) return;
-            const cg = new Chess(g.fen());
+            const cg = new Chess(ng.fen());
             const compMoves = cg.moves({ verbose: true });
             if (compMoves.length > 0) {
               const compMove = compMoves[0];
