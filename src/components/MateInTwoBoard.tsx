@@ -271,16 +271,16 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
             if (compMoves.length > 0) {
               const compMove = compMoves[0];
               const compMovedPiece = cg.get(compMove.from);
-              cg.move(compMove);
-              setGame(new Chess(cg.fen()));
               setAnimatingMove({
                 from: compMove.from,
                 to: compMove.to,
                 piece: { type: compMovedPiece?.type.toUpperCase() || '', color: compMovedPiece?.color as 'w' | 'b' || 'b' },
               });
               setLastMove({ from: compMove.from, to: compMove.to });
-              // Remove opponent ghost after 800ms
+              // Update board + remove opponent ghost after 800ms
               setTimeout(() => {
+                cg.move(compMove);
+                setGame(new Chess(cg.fen()));
                 setAnimatingMove(null);
                 setMessage('Найдите мат!');
               }, 800);
