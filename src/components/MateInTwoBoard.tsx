@@ -257,14 +257,14 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
           setIsFail(false);
           setStage('after_computer');
 
-          // Update board + remove player ghost after 800ms
+          // Update board + remove player ghost after 150ms
           setTimeout(() => {
             if (!mountedRef.current) return;
             setGame(ng);
             setPlayerAnimatingMove(null);
-          }, 800);
+          }, 150);
 
-          // Opponent move after 900ms pause
+          // Opponent move after 600ms pause (150ms player + 600ms pause)
           setTimeout(() => {
             if (!mountedRef.current) return;
             const cg = new Chess(ng.fen());
@@ -278,15 +278,15 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
                 piece: { type: compMovedPiece?.type.toUpperCase() || '', color: compMovedPiece?.color as 'w' | 'b' || 'b' },
               });
               setLastMove({ from: compMove.from, to: compMove.to });
-              // Update board + remove opponent ghost after 800ms
+              // Update board + remove opponent ghost after 150ms
               setTimeout(() => {
                 cg.move(compMove);
                 setGame(new Chess(cg.fen()));
                 setAnimatingMove(null);
                 setMessage('Найдите мат!');
-              }, 800);
+              }, 150);
             }
-          }, 1400);
+          }, 750);
           return;
         } else {
           setGame(new Chess(g.fen()));

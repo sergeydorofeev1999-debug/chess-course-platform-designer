@@ -35,12 +35,12 @@
 
 /* Keep keyframes alive — used inline in MateInTwoBoard */
 .animate-opponent-move {
-  animation: opponentMoveGhost 800ms linear forwards;
+  animation: opponentMoveGhost 150ms linear forwards;
   will-change: transform;
 }
 
 .animate-player-move {
-  animation: playerMoveGhost 800ms linear forwards;
+  animation: playerMoveGhost 150ms linear forwards;
   will-change: transform;
 }
 
