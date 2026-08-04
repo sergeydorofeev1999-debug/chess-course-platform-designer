@@ -145,12 +145,15 @@ const EXERCISES: Exercise[] = [
 function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
   const pieceKey = `${color}${type.toUpperCase()}`;
   return (
-    <img
-      src={`/pieces/cburnett/${pieceKey}.svg`}
-      alt=""
+    <div
       className="w-full h-full"
-      draggable={false}
-      style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}
+      style={{
+        backgroundImage: `url(/pieces/cburnett/${pieceKey}.svg)`,
+        backgroundSize: 'contain',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+        filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))',
+      }}
     />
   );
 }
@@ -264,6 +267,8 @@ export default function RookMateBoard({ onComplete, lessonId }: { onComplete: ()
   const [currentExercise, setCurrentExercise] = useState<ExerciseId>(1);
   const [game, setGame] = useState<Chess | null>(null);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
+  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
+  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
   const [message, setMessage] = useState('');
   const [demoMode, setDemoMode] = useState(false);
   const [demoStep, setDemoStep] = useState(0);
@@ -287,6 +292,18 @@ export default function RookMateBoard({ onComplete, lessonId }: { onComplete: ()
   const isCompleteRef = useRef(false);
   const demoModeRef = useRef(false);
   const mountedRef = useRef(true);
+  const isAnimatingRef = useRef(false);
+
+  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{
+    from: string;
+    to: string;
+    piece: { type: string; color: 'w' | 'b' };
+  } | null>(null);
+  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{
+    from: string;
+    to: string;
+    piece: { type: string; color: 'w' | 'b' };
+  } | null>(null);
 
   const storageKey = lessonId ? `rookmate_progress_${lessonId}` : 'rookmate_progress';
 
@@ -345,6 +362,9 @@ export default function RookMateBoard({ onComplete, lessonId }: { onComplete: ()
     setIsComplete(false);
     setIsStalemate(false);
     setWhiteMoves(0);
+    setPlayerAnimatingMove(null);
+    setOpponentAnimatingMove(null);
+    isAnimatingRef.current = false;
     if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
     timerIntervalRef.current = null;
     setTimerStarted(false);
@@ -365,6 +385,9 @@ export default function RookMateBoard({ onComplete, lessonId }: { onComplete: ()
     setIsComplete(false);
     setIsStalemate(false);
     setWhiteMoves(0);
+    setPlayerAnimatingMove(null);
+    setOpponentAnimatingMove(null);
+    isAnimatingRef.current = false;
     if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
     timerIntervalRef.current = null;
     setTimerStarted(false);

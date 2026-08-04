@@ -45,12 +45,15 @@ function StarPng({ filled, size = 14 }: { filled: boolean; size?: number }) {
 function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
   const pieceKey = `${color}${type.toUpperCase()}`;
   return (
-    <img
-      src={`/pieces/cburnett/${pieceKey}.svg`}
-      alt=""
+    <div
       className="w-full h-full"
-      draggable={false}
-      style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}
+      style={{
+        backgroundImage: `url(/pieces/cburnett/${pieceKey}.svg)`,
+        backgroundSize: 'contain',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+        filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))',
+      }}
     />
   );
 }
@@ -138,6 +141,17 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
   const gameRef = useRef(game);
   const justDraggedRef = useRef(false);
 
+  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{
+    from: string;
+    to: string;
+    piece: { type: string; color: 'w' | 'b' };
+  } | null>(null);
+  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{
+    from: string;
+    to: string;
+    piece: { type: string; color: 'w' | 'b' };
+  } | null>(null);
+
   // Synchronous wrapper so gameRef always matches the latest game state
   const setGame = useCallback((newGame: Chess) => {
     gameRef.current = newGame;
@@ -193,6 +207,8 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
     setIsFail(false);
     setDragPiece(null);
     setPromotionPending(null);
+    setPlayerAnimatingMove(null);
+    setOpponentAnimatingMove(null);
     if (exercise === 2) setEx2Mode(null);
     if (exercise === 3) setEx3Mode(null);
     if (exercise === 4) setEx4Mode(null);
@@ -219,6 +235,8 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
     setEx4Mode(null);
     setEx5Mode(null);
     setEx6Mode(null);
+    setPlayerAnimatingMove(null);
+    setOpponentAnimatingMove(null);
   }, [clearTimers]);
 
   // ═══════════════════════════════════════════════════════════════
@@ -446,24 +464,35 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
         }
       }
 
-      setGame(new Chess(g1.fen()));
-      setSelectedSquare(null);
+      const piece = gameRef.current.get(from as any);
+      setPlayerAnimatingMove({
+        from,
+        to,
+        piece: { type: piece?.type?.toUpperCase() || 'K', color: piece?.color as 'w' | 'b' || 'b' },
+      });
 
-      // If black king captured a piece → success
-      if (move.captured) {
-        setIsComplete(true);
-        saveStars(2, 3);
-        setMessage('Король съел ферзя! Правило квадрата: король внутри квадрата — догнал.');
-        onComplete();
-        return;
-      }
+      setTimeout(() => {
+        if (!mountedRef.current) return;
+        setGame(new Chess(g1.fen()));
+        setPlayerAnimatingMove(null);
+        setSelectedSquare(null);
 
-      // After user moves black king, schedule auto white pawn move in 1 second
-      const t = setTimeout(() => {
-        if (!mountedRef.current || isCompleteRef.current) return;
-        doAutoWhitePawnMove('king', g1);
-      }, 1000);
-      timersRef.current.push(t);
+        // If black king captured a piece → success
+        if (move.captured) {
+          setIsComplete(true);
+          saveStars(2, 3);
+          setMessage('Король съел ферзя! Правило квадрата: король внутри квадрата — догнал.');
+          onComplete();
+          return;
+        }
+
+        // After user moves black king, schedule auto white pawn move in 1 second
+        const t = setTimeout(() => {
+          if (!mountedRef.current || isCompleteRef.current) return;
+          doAutoWhitePawnMove('king', g1);
+        }, 1000);
+        timersRef.current.push(t);
+      }, 200);
     } catch {}
   }, [isFail, promotionPending, doAutoWhitePawnMove, onComplete, ex2Mode, saveStars]);
 
@@ -479,7 +508,6 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
   const processWhiteMoveEx2 = useCallback((from: string, to: string) => {
     if (isCompleteRef.current || isFail || promotionPending) return;
     try {
-      // Check if this is a promotion move
       const toRank = parseInt(to[1]);
       if (toRank === 8) {
         setPromotionPending({ mode: 'pawn', from, to, afterGameFen: gameRef.current.fen() });
@@ -488,33 +516,54 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
 
       const m = gameRef.current.move({ from, to });
       if (!m) return;
-      setGame(new Chess(gameRef.current.fen()));
-      setSelectedSquare(null);
-
-      if (toRank === 8) {
-        setIsComplete(true);
-        saveStars(2, 3);
-        setMessage('Пешка прошла! Король не догнал.');
-        onComplete();
-        return;
-      }
+      const piece = gameRef.current.get(from as any);
+      setPlayerAnimatingMove({
+        from,
+        to,
+        piece: { type: piece?.type?.toUpperCase() || 'P', color: piece?.color as 'w' | 'b' || 'w' },
+      });
 
       setTimeout(() => {
         if (!mountedRef.current) return;
-        const g2 = new Chess(gameRef.current.fen());
-        const ps = getPawnSquare(g2);
-        if (ps) {
-          const bk = getBlackKingMoveTowards(g2, ps);
-          if (bk) {
-            g2.move({ from: bk.from, to: bk.to });
-            setGame(new Chess(g2.fen()));
-            if (!getPawnSquare(g2)) {
-              setIsFail(true);
-              setMessage('Провалено. Король съел пешку.');
+        setGame(new Chess(gameRef.current.fen()));
+        setPlayerAnimatingMove(null);
+        setSelectedSquare(null);
+
+        if (toRank === 8) {
+          setIsComplete(true);
+          saveStars(2, 3);
+          setMessage('Пешка прошла! Король не догнал.');
+          onComplete();
+          return;
+        }
+
+        setTimeout(() => {
+          if (!mountedRef.current) return;
+          const g2 = new Chess(gameRef.current.fen());
+          const ps = getPawnSquare(g2);
+          if (ps) {
+            const bk = getBlackKingMoveTowards(g2, ps);
+            if (bk) {
+              const bkPiece = g2.get(bk.from);
+              setOpponentAnimatingMove({
+                from: bk.from,
+                to: bk.to,
+                piece: { type: bkPiece?.type?.toUpperCase() || 'K', color: bkPiece?.color as 'w' | 'b' || 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g2.move({ from: bk.from, to: bk.to });
+                setGame(new Chess(g2.fen()));
+                setOpponentAnimatingMove(null);
+                if (!getPawnSquare(g2)) {
+                  setIsFail(true);
+                  setMessage('Провалено. Король съел пешку.');
+                }
+              }, 200);
             }
           }
-        }
-      }, 500);
+        }, 500);
+      }, 200);
     } catch {}
   }, [isFail, promotionPending, onComplete, saveStars]);
 
@@ -541,8 +590,6 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
       const move = g1.move({ from, to });
       if (!move) return;
 
-      // In king chase mode: after pawn promotes to queen (no pawn on board),
-      // user MUST capture the queen. While pawn still exists, king can move freely.
       if (ex3Mode === 'king') {
         const pawnStillOnBoard = getPawnSquare(g1) !== null;
         if (!pawnStillOnBoard && !move.captured) {
@@ -552,24 +599,33 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
         }
       }
 
-      setGame(new Chess(g1.fen()));
-      setSelectedSquare(null);
+      const piece = gameRef.current.get(from as any);
+      setPlayerAnimatingMove({
+        from,
+        to,
+        piece: { type: piece?.type?.toUpperCase() || 'K', color: piece?.color as 'w' | 'b' || 'b' },
+      });
 
-      // If black king captured a piece → success
-      if (move.captured) {
-        setIsComplete(true);
-        saveStars(3, 3);
-        setMessage('Король съел ферзя! Правило квадрата: король внутри квадрата — догнал.');
-        onComplete();
-        return;
-      }
+      setTimeout(() => {
+        if (!mountedRef.current) return;
+        setGame(new Chess(g1.fen()));
+        setPlayerAnimatingMove(null);
+        setSelectedSquare(null);
 
-      // After user moves black king, schedule auto white pawn move in 1 second
-      const t = setTimeout(() => {
-        if (!mountedRef.current || isCompleteRef.current) return;
-        doAutoWhitePawnMove('king', g1);
-      }, 1000);
-      timersRef.current.push(t);
+        if (move.captured) {
+          setIsComplete(true);
+          saveStars(3, 3);
+          setMessage('Король съел ферзя! Правило квадрата: король внутри квадрата — догнал.');
+          onComplete();
+          return;
+        }
+
+        const t = setTimeout(() => {
+          if (!mountedRef.current || isCompleteRef.current) return;
+          doAutoWhitePawnMove('king', g1);
+        }, 1000);
+        timersRef.current.push(t);
+      }, 200);
     } catch {}
   }, [isFail, promotionPending, doAutoWhitePawnMove, onComplete, ex3Mode, saveStars]);
 
@@ -585,7 +641,6 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
   const processWhiteMoveEx3 = useCallback((from: string, to: string) => {
     if (isCompleteRef.current || isFail || promotionPending) return;
     try {
-      // Check if this is a promotion move
       const toRank = parseInt(to[1]);
       if (toRank === 8) {
         setPromotionPending({ mode: 'pawn', from, to, afterGameFen: gameRef.current.fen() });
@@ -594,33 +649,54 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
 
       const m = gameRef.current.move({ from, to });
       if (!m) return;
-      setGame(new Chess(gameRef.current.fen()));
-      setSelectedSquare(null);
-
-      if (toRank === 8) {
-        setIsComplete(true);
-        saveStars(3, 3);
-        setMessage('Пешка прошла! Король не догнал.');
-        onComplete();
-        return;
-      }
+      const piece = gameRef.current.get(from as any);
+      setPlayerAnimatingMove({
+        from,
+        to,
+        piece: { type: piece?.type?.toUpperCase() || 'P', color: piece?.color as 'w' | 'b' || 'w' },
+      });
 
       setTimeout(() => {
         if (!mountedRef.current) return;
-        const g2 = new Chess(gameRef.current.fen());
-        const ps = getPawnSquare(g2);
-        if (ps) {
-          const bk = getBlackKingMoveTowards(g2, ps);
-          if (bk) {
-            g2.move({ from: bk.from, to: bk.to });
-            setGame(new Chess(g2.fen()));
-            if (!getPawnSquare(g2)) {
-              setIsFail(true);
-              setMessage('Провалено. Король съел пешку.');
+        setGame(new Chess(gameRef.current.fen()));
+        setPlayerAnimatingMove(null);
+        setSelectedSquare(null);
+
+        if (toRank === 8) {
+          setIsComplete(true);
+          saveStars(3, 3);
+          setMessage('Пешка прошла! Король не догнал.');
+          onComplete();
+          return;
+        }
+
+        setTimeout(() => {
+          if (!mountedRef.current) return;
+          const g2 = new Chess(gameRef.current.fen());
+          const ps = getPawnSquare(g2);
+          if (ps) {
+            const bk = getBlackKingMoveTowards(g2, ps);
+            if (bk) {
+              const bkPiece = g2.get(bk.from);
+              setOpponentAnimatingMove({
+                from: bk.from,
+                to: bk.to,
+                piece: { type: bkPiece?.type?.toUpperCase() || 'K', color: bkPiece?.color as 'w' | 'b' || 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g2.move({ from: bk.from, to: bk.to });
+                setGame(new Chess(g2.fen()));
+                setOpponentAnimatingMove(null);
+                if (!getPawnSquare(g2)) {
+                  setIsFail(true);
+                  setMessage('Провалено. Король съел пешку.');
+                }
+              }, 200);
             }
           }
-        }
-      }, 500);
+        }, 500);
+      }, 200);
     } catch {}
   }, [isFail, promotionPending, onComplete, saveStars]);
 
@@ -653,20 +729,32 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
           return;
         }
       }
-      setGame(new Chess(g1.fen()));
-      setSelectedSquare(null);
-      if (move.captured) {
-        setIsComplete(true);
-        saveStars(4, 3);
-        setMessage('Король съел ферзя! Правило квадрата: король внутри квадрата — догнал.');
-        onComplete();
-        return;
-      }
-      const t = setTimeout(() => {
-        if (!mountedRef.current || isCompleteRef.current) return;
-        doAutoWhitePawnMove('king', g1);
-      }, 1000);
-      timersRef.current.push(t);
+
+      const piece = gameRef.current.get(from as any);
+      setPlayerAnimatingMove({
+        from,
+        to,
+        piece: { type: piece?.type?.toUpperCase() || 'K', color: piece?.color as 'w' | 'b' || 'b' },
+      });
+
+      setTimeout(() => {
+        if (!mountedRef.current) return;
+        setGame(new Chess(g1.fen()));
+        setPlayerAnimatingMove(null);
+        setSelectedSquare(null);
+        if (move.captured) {
+          setIsComplete(true);
+          saveStars(4, 3);
+          setMessage('Король съел ферзя! Правило квадрата: король внутри квадрата — догнал.');
+          onComplete();
+          return;
+        }
+        const t = setTimeout(() => {
+          if (!mountedRef.current || isCompleteRef.current) return;
+          doAutoWhitePawnMove('king', g1);
+        }, 1000);
+        timersRef.current.push(t);
+      }, 200);
     } catch {}
   }, [isFail, promotionPending, doAutoWhitePawnMove, onComplete, ex4Mode, saveStars]);
 
@@ -689,31 +777,52 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
       }
       const m = gameRef.current.move({ from, to });
       if (!m) return;
-      setGame(new Chess(gameRef.current.fen()));
-      setSelectedSquare(null);
-      if (toRank === 8) {
-        setIsComplete(true);
-        saveStars(4, 3);
-        setMessage('Пешка прошла! Король не догнал.');
-        onComplete();
-        return;
-      }
+      const piece = gameRef.current.get(from as any);
+      setPlayerAnimatingMove({
+        from,
+        to,
+        piece: { type: piece?.type?.toUpperCase() || 'P', color: piece?.color as 'w' | 'b' || 'w' },
+      });
+
       setTimeout(() => {
         if (!mountedRef.current) return;
-        const g2 = new Chess(gameRef.current.fen());
-        const ps = getPawnSquare(g2);
-        if (ps) {
-          const bk = getBlackKingMoveTowards(g2, ps);
-          if (bk) {
-            g2.move({ from: bk.from, to: bk.to });
-            setGame(new Chess(g2.fen()));
-            if (!getPawnSquare(g2)) {
-              setIsFail(true);
-              setMessage('Провалено. Король съел пешку.');
+        setGame(new Chess(gameRef.current.fen()));
+        setPlayerAnimatingMove(null);
+        setSelectedSquare(null);
+        if (toRank === 8) {
+          setIsComplete(true);
+          saveStars(4, 3);
+          setMessage('Пешка прошла! Король не догнал.');
+          onComplete();
+          return;
+        }
+        setTimeout(() => {
+          if (!mountedRef.current) return;
+          const g2 = new Chess(gameRef.current.fen());
+          const ps = getPawnSquare(g2);
+          if (ps) {
+            const bk = getBlackKingMoveTowards(g2, ps);
+            if (bk) {
+              const bkPiece = g2.get(bk.from);
+              setOpponentAnimatingMove({
+                from: bk.from,
+                to: bk.to,
+                piece: { type: bkPiece?.type?.toUpperCase() || 'K', color: bkPiece?.color as 'w' | 'b' || 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g2.move({ from: bk.from, to: bk.to });
+                setGame(new Chess(g2.fen()));
+                setOpponentAnimatingMove(null);
+                if (!getPawnSquare(g2)) {
+                  setIsFail(true);
+                  setMessage('Провалено. Король съел пешку.');
+                }
+              }, 200);
             }
           }
-        }
-      }, 500);
+        }, 500);
+      }, 200);
     } catch {}
   }, [isFail, promotionPending, onComplete, saveStars]);
 
@@ -746,20 +855,32 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
           return;
         }
       }
-      setGame(new Chess(g1.fen()));
-      setSelectedSquare(null);
-      if (move.captured) {
-        setIsComplete(true);
-        saveStars(5, 3);
-        setMessage('Король съел ферзя! Правило квадрата: король внутри квадрата — догнал.');
-        onComplete();
-        return;
-      }
-      const t = setTimeout(() => {
-        if (!mountedRef.current || isCompleteRef.current) return;
-        doAutoWhitePawnMove('king', g1);
-      }, 1000);
-      timersRef.current.push(t);
+
+      const piece = gameRef.current.get(from as any);
+      setPlayerAnimatingMove({
+        from,
+        to,
+        piece: { type: piece?.type?.toUpperCase() || 'K', color: piece?.color as 'w' | 'b' || 'b' },
+      });
+
+      setTimeout(() => {
+        if (!mountedRef.current) return;
+        setGame(new Chess(g1.fen()));
+        setPlayerAnimatingMove(null);
+        setSelectedSquare(null);
+        if (move.captured) {
+          setIsComplete(true);
+          saveStars(5, 3);
+          setMessage('Король съел ферзя! Правило квадрата: король внутри квадрата — догнал.');
+          onComplete();
+          return;
+        }
+        const t = setTimeout(() => {
+          if (!mountedRef.current || isCompleteRef.current) return;
+          doAutoWhitePawnMove('king', g1);
+        }, 1000);
+        timersRef.current.push(t);
+      }, 200);
     } catch {}
   }, [isFail, promotionPending, doAutoWhitePawnMove, onComplete, ex5Mode, saveStars]);
 
@@ -782,31 +903,52 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
       }
       const m = gameRef.current.move({ from, to });
       if (!m) return;
-      setGame(new Chess(gameRef.current.fen()));
-      setSelectedSquare(null);
-      if (toRank === 8) {
-        setIsComplete(true);
-        saveStars(5, 3);
-        setMessage('Пешка прошла! Король не догнал.');
-        onComplete();
-        return;
-      }
+      const piece = gameRef.current.get(from as any);
+      setPlayerAnimatingMove({
+        from,
+        to,
+        piece: { type: piece?.type?.toUpperCase() || 'P', color: piece?.color as 'w' | 'b' || 'w' },
+      });
+
       setTimeout(() => {
         if (!mountedRef.current) return;
-        const g2 = new Chess(gameRef.current.fen());
-        const ps = getPawnSquare(g2);
-        if (ps) {
-          const bk = getBlackKingMoveTowards(g2, ps);
-          if (bk) {
-            g2.move({ from: bk.from, to: bk.to });
-            setGame(new Chess(g2.fen()));
-            if (!getPawnSquare(g2)) {
-              setIsFail(true);
-              setMessage('Провалено. Король съел пешку.');
+        setGame(new Chess(gameRef.current.fen()));
+        setPlayerAnimatingMove(null);
+        setSelectedSquare(null);
+        if (toRank === 8) {
+          setIsComplete(true);
+          saveStars(5, 3);
+          setMessage('Пешка прошла! Король не догнал.');
+          onComplete();
+          return;
+        }
+        setTimeout(() => {
+          if (!mountedRef.current) return;
+          const g2 = new Chess(gameRef.current.fen());
+          const ps = getPawnSquare(g2);
+          if (ps) {
+            const bk = getBlackKingMoveTowards(g2, ps);
+            if (bk) {
+              const bkPiece = g2.get(bk.from);
+              setOpponentAnimatingMove({
+                from: bk.from,
+                to: bk.to,
+                piece: { type: bkPiece?.type?.toUpperCase() || 'K', color: bkPiece?.color as 'w' | 'b' || 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g2.move({ from: bk.from, to: bk.to });
+                setGame(new Chess(g2.fen()));
+                setOpponentAnimatingMove(null);
+                if (!getPawnSquare(g2)) {
+                  setIsFail(true);
+                  setMessage('Провалено. Король съел пешку.');
+                }
+              }, 200);
             }
           }
-        }
-      }, 500);
+        }, 500);
+      }, 200);
     } catch {}
   }, [isFail, promotionPending, onComplete, saveStars]);
 
@@ -839,20 +981,32 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
           return;
         }
       }
-      setGame(new Chess(g1.fen()));
-      setSelectedSquare(null);
-      if (move.captured) {
-        setIsComplete(true);
-        saveStars(6, 3);
-        setMessage('Король съел ферзя! Правило квадрата: король внутри квадрата — догнал.');
-        onComplete();
-        return;
-      }
-      const t = setTimeout(() => {
-        if (!mountedRef.current || isCompleteRef.current) return;
-        doAutoWhitePawnMove('king', g1);
-      }, 1000);
-      timersRef.current.push(t);
+
+      const piece = gameRef.current.get(from as any);
+      setPlayerAnimatingMove({
+        from,
+        to,
+        piece: { type: piece?.type?.toUpperCase() || 'K', color: piece?.color as 'w' | 'b' || 'b' },
+      });
+
+      setTimeout(() => {
+        if (!mountedRef.current) return;
+        setGame(new Chess(g1.fen()));
+        setPlayerAnimatingMove(null);
+        setSelectedSquare(null);
+        if (move.captured) {
+          setIsComplete(true);
+          saveStars(6, 3);
+          setMessage('Король съел ферзя! Правило квадрата: король внутри квадрата — догнал.');
+          onComplete();
+          return;
+        }
+        const t = setTimeout(() => {
+          if (!mountedRef.current || isCompleteRef.current) return;
+          doAutoWhitePawnMove('king', g1);
+        }, 1000);
+        timersRef.current.push(t);
+      }, 200);
     } catch {}
   }, [isFail, promotionPending, doAutoWhitePawnMove, onComplete, ex6Mode, saveStars]);
 
@@ -875,31 +1029,52 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
       }
       const m = gameRef.current.move({ from, to });
       if (!m) return;
-      setGame(new Chess(gameRef.current.fen()));
-      setSelectedSquare(null);
-      if (toRank === 8) {
-        setIsComplete(true);
-        saveStars(6, 3);
-        setMessage('Пешка прошла! Король не догнал.');
-        onComplete();
-        return;
-      }
+      const piece = gameRef.current.get(from as any);
+      setPlayerAnimatingMove({
+        from,
+        to,
+        piece: { type: piece?.type?.toUpperCase() || 'P', color: piece?.color as 'w' | 'b' || 'w' },
+      });
+
       setTimeout(() => {
         if (!mountedRef.current) return;
-        const g2 = new Chess(gameRef.current.fen());
-        const ps = getPawnSquare(g2);
-        if (ps) {
-          const bk = getBlackKingMoveTowards(g2, ps);
-          if (bk) {
-            g2.move({ from: bk.from, to: bk.to });
-            setGame(new Chess(g2.fen()));
-            if (!getPawnSquare(g2)) {
-              setIsFail(true);
-              setMessage('Провалено. Король съел пешку.');
+        setGame(new Chess(gameRef.current.fen()));
+        setPlayerAnimatingMove(null);
+        setSelectedSquare(null);
+        if (toRank === 8) {
+          setIsComplete(true);
+          saveStars(6, 3);
+          setMessage('Пешка прошла! Король не догнал.');
+          onComplete();
+          return;
+        }
+        setTimeout(() => {
+          if (!mountedRef.current) return;
+          const g2 = new Chess(gameRef.current.fen());
+          const ps = getPawnSquare(g2);
+          if (ps) {
+            const bk = getBlackKingMoveTowards(g2, ps);
+            if (bk) {
+              const bkPiece = g2.get(bk.from);
+              setOpponentAnimatingMove({
+                from: bk.from,
+                to: bk.to,
+                piece: { type: bkPiece?.type?.toUpperCase() || 'K', color: bkPiece?.color as 'w' | 'b' || 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g2.move({ from: bk.from, to: bk.to });
+                setGame(new Chess(g2.fen()));
+                setOpponentAnimatingMove(null);
+                if (!getPawnSquare(g2)) {
+                  setIsFail(true);
+                  setMessage('Провалено. Король съел пешку.');
+                }
+              }, 200);
             }
           }
-        }
-      }, 500);
+        }, 500);
+      }, 200);
     } catch {}
   }, [isFail, promotionPending, onComplete, saveStars]);
 
@@ -1388,6 +1563,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
                   const sel = selectedSquare === sq;
                   const isValidMove = validMoves.includes(sq);
                   const isDragSource = dragPiece?.square === sq;
+                  const isAnimatingSource = (playerAnimatingMove?.from === sq) || (opponentAnimatingMove?.from === sq);
                   const isSquareBorder = showSquare && squareCells.includes(sq);
                   const canInteract = ((exercise === 2 && ex2Mode !== null) || (exercise === 3 && ex3Mode !== null) || (exercise === 4 && ex4Mode !== null) || (exercise === 5 && ex5Mode !== null) || (exercise === 6 && ex6Mode !== null)) && !isComplete && !isFail && !promotionPending;
                   return (
@@ -1409,7 +1585,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
                           <div style={{ width: sqSize, height: sqSize, borderRadius: '50%', border: '4px solid var(--square-valid)', boxSizing: 'border-box' }} />
                         </div>
                       )}
-                      {pieceObj && !isDragSource && (
+                      {pieceObj && !isDragSource && !isAnimatingSource && (
                         <div className="relative pointer-events-none z-[15]" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
                           <PieceImg type={pieceObj.type} color={pieceObj.color} />
                         </div>
