@@ -286,7 +286,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
                 setMessage('Найдите мат!');
               }, 800);
             }
-          }, 600);
+          }, 1400);
           return;
         } else {
           setGame(new Chess(g.fen()));
