@@ -6,6 +6,57 @@ import { Chess } from 'chess.js';
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 const RANKS = ['8', '7', '6', '5', '4', '3', '2', '1'];
 
+function squareToCoords(square: string, sqSize: number): { x: number; y: number } {
+  const ff = FILES.indexOf(square[0]);
+  const fr = RANKS.indexOf(square[1]);
+  return { x: ff * sqSize, y: fr * sqSize };
+}
+
+// ─── Piece Image (CSS background-image — no broken-image placeholder) ───
+function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
+  const pieceKey = `${color}${type.toUpperCase()}`;
+  return (
+    <div
+      className="w-full h-full"
+      style={{
+        backgroundImage: `url(/pieces/cburnett/${pieceKey}.svg)`,
+        backgroundSize: 'contain',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+        filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))',
+      }}
+    />
+  );
+}
+
+// ─── Ghost Overlay ─────────────────────────────────────────────────────
+function GhostOverlay({ from, to, piece, sqSize, className }: {
+  from: string;
+  to: string;
+  piece: { type: string; color: 'w' | 'b' };
+  sqSize: number;
+  className: string;
+}) {
+  const fromCoords = squareToCoords(from, sqSize);
+  const toCoords = squareToCoords(to, sqSize);
+  return (
+    <div
+      className={`absolute pointer-events-none ${className}`}
+      style={{
+        left: fromCoords.x,
+        top: fromCoords.y,
+        width: sqSize,
+        height: sqSize,
+        zIndex: 60,
+        '--ghost-dx': `${toCoords.x - fromCoords.x}px`,
+        '--ghost-dy': `${toCoords.y - fromCoords.y}px`,
+      } as React.CSSProperties}
+    >
+      <PieceImg type={piece.type} color={piece.color} />
+    </div>
+  );
+}
+
 // ─── SVG Chess Pieces (Lichess-style) ───────────────────────────
 function PieceSvg({ type, color }: { type: string; color: 'w' | 'b' }) {
   const fill = color === 'w' ? '#fff' : '#333';
@@ -108,6 +159,8 @@ interface Props {
   highlightSquares?: string[];
 }
 
+const SQ_SIZE = 52;
+
 export default function SimpleChessBoard({
   fen,
   stars = [],
@@ -120,6 +173,11 @@ export default function SimpleChessBoard({
   const [position, setPosition] = useState(fen);
   const [collectedStars, setCollectedStars] = useState<Set<string>>(new Set());
   const [message, setMessage] = useState('');
+  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{
+    from: string;
+    to: string;
+    piece: { type: string; color: 'w' | 'b' };
+  } | null>(null);
 
   const getPiece = (square: string): { type: string; color: 'w' | 'b' } | null => {
     const piece = game.get(square as any);
@@ -131,35 +189,55 @@ export default function SimpleChessBoard({
 
   const handleSquareClick = useCallback(
     (square: string) => {
+      if (playerAnimatingMove) return; // Block during animation
+
       const piece = game.get(square as any);
 
       if (selectedSquare) {
+        if (selectedSquare === square) {
+          setSelectedSquare(null);
+          setMessage('');
+          return;
+        }
         if (piece && piece.color === game.turn()) {
           setSelectedSquare(square);
           setMessage('');
           return;
         }
-        try {
-          const move = game.move({ from: selectedSquare, to: square });
-          if (move) {
-            setPosition(game.fen());
-            setSelectedSquare(null);
-            setMessage('');
 
-            if (stars.includes(square) && !collectedStars.has(square)) {
-              setCollectedStars((prev) => {
-                const next = new Set(prev);
-                next.add(square);
-                return next;
-              });
-              onStarCollect?.(square);
-            }
+        // Board copy pattern: validate on copy, animate on original
+        const ng = new Chess(game.fen());
+        const moveResult = ng.move({ from: selectedSquare, to: square });
 
-            onMove?.(selectedSquare, square);
+        if (moveResult) {
+          const movingPiece = game.get(selectedSquare as any);
+          if (movingPiece) {
+            setPlayerAnimatingMove({
+              from: selectedSquare,
+              to: square,
+              piece: { type: movingPiece.type.toUpperCase(), color: movingPiece.color as 'w' | 'b' },
+            });
+
+            setTimeout(() => {
+              game.move({ from: selectedSquare, to: square });
+              setPosition(game.fen());
+              setPlayerAnimatingMove(null);
+              setSelectedSquare(null);
+              setMessage('');
+
+              if (stars.includes(square) && !collectedStars.has(square)) {
+                setCollectedStars((prev) => {
+                  const next = new Set(prev);
+                  next.add(square);
+                  return next;
+                });
+                onStarCollect?.(square);
+              }
+
+              onMove?.(selectedSquare, square);
+            }, 200);
             return;
           }
-        } catch {
-          // Invalid move
         }
 
         setSelectedSquare(null);
@@ -170,16 +248,16 @@ export default function SimpleChessBoard({
         }
       }
     },
-    [selectedSquare, game, stars, collectedStars, onMove, onStarCollect]
+    [selectedSquare, game, stars, collectedStars, onMove, onStarCollect, playerAnimatingMove]
   );
 
   return (
     <div className="flex flex-col items-center gap-4">
       <div
-        className="grid border-2 border-slate-700 rounded"
+        className="grid border-2 border-slate-700 rounded relative"
         style={{
-          gridTemplateColumns: 'repeat(8, 52px)',
-          gridTemplateRows: 'repeat(8, 52px)',
+          gridTemplateColumns: `repeat(8, ${SQ_SIZE}px)`,
+          gridTemplateRows: `repeat(8, ${SQ_SIZE}px)`,
         }}
       >
         {RANKS.map((rank, rankIdx) =>
@@ -190,6 +268,7 @@ export default function SimpleChessBoard({
             const isSelected = selectedSquare === square;
             const isHighlighted = highlightSquares.includes(square);
             const hasStar = stars.includes(square) && !collectedStars.has(square);
+            const isPlayerAnimatingSource = playerAnimatingMove?.from === square;
 
             return (
               <div
@@ -202,7 +281,7 @@ export default function SimpleChessBoard({
                   ${isHighlighted ? 'ring-2 ring-[rgba(184,149,106,0.6)] ring-inset' : ''}
                   hover:opacity-90 transition
                 `}
-                style={{ width: 52, height: 52, backgroundColor: isLight ? '#f0d9b5' : '#b58863' }}
+                style={{ width: SQ_SIZE, height: SQ_SIZE, backgroundColor: isLight ? '#f0d9b5' : '#b58863' }}
               >
                 {/* Coordinate labels */}
                 {fileIdx === 0 && (
@@ -225,8 +304,8 @@ export default function SimpleChessBoard({
                   </div>
                 )}
 
-                {/* Piece SVG */}
-                {piece && (
+                {/* Piece SVG — hidden while ghost animates from this square */}
+                {piece && !isPlayerAnimatingSource && (
                   <div className="w-[42px] h-[42px] relative z-0">
                     <PieceSvg type={piece.type} color={piece.color} />
                   </div>
@@ -234,6 +313,17 @@ export default function SimpleChessBoard({
               </div>
             );
           })
+        )}
+
+        {/* Ghost piece animation overlay */}
+        {playerAnimatingMove && (
+          <GhostOverlay
+            from={playerAnimatingMove.from}
+            to={playerAnimatingMove.to}
+            piece={playerAnimatingMove.piece}
+            sqSize={SQ_SIZE}
+            className="animate-player-move"
+          />
         )}
       </div>
 
@@ -243,4 +333,3 @@ export default function SimpleChessBoard({
     </div>
   );
 }
-// Thu Jun 18 14:38:02 WITA 2026
