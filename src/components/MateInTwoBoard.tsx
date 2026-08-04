@@ -243,7 +243,6 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
       if (stage === 'first') {
         if (from === keyMove.from && to === keyMove.to) {
           const movedPiece = g.get(from as any);
-          setGame(new Chess(g.fen()));
           setPlayerAnimatingMove({
             from,
             to,
@@ -254,9 +253,10 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
           setIsFail(false);
           setStage('after_computer');
 
-          // Remove player ghost after 800ms
+          // Update board + remove player ghost after 800ms
           setTimeout(() => {
             if (!mountedRef.current) return;
+            setGame(new Chess(g.fen()));
             setPlayerAnimatingMove(null);
           }, 800);
 
