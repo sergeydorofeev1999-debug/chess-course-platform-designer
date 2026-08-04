@@ -254,20 +254,23 @@ function getBestMove(
 function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
   const pieceKey = `${color}${type.toUpperCase()}`;
   return (
-    <img
-      src={`/pieces/cburnett/${pieceKey}.svg`}
-      alt=""
+    <div
       className="w-full h-full"
-      draggable={false}
-      style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}
+      style={{
+        backgroundImage: `url(/pieces/cburnett/${pieceKey}.svg)`,
+        backgroundSize: 'contain',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+        filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))',
+      }}
     />
   );
 }
 
 const LEVELS: { id: Difficulty; label: string; description: string; color: string; stars: number }[] = [
-  { id: 'easy', label: 'Лёгкий', description: 'Чёрные часто ошибаются', color: '#C4A35A', stars: 1 },
-  { id: 'medium', label: 'Средний', description: 'Чёрные иногда ошибаются', color: '#8B7355', stars: 2 },
-  { id: 'hard', label: 'Продвинутый', description: 'Чёрные почти не ошибаются', color: '#3D3B36', stars: 3 },
+  { id: 'easy', label: 'Лёгкий', description: 'Чёрные часто ошибаются', color: '#D4A84C', stars: 1 },
+  { id: 'medium', label: 'Средний', description: 'Чёрные иногда ошибаются', color: '#B07838', stars: 2 },
+  { id: 'hard', label: 'Продвинутый', description: 'Чёрные почти не ошибаются', color: '#4A2A1A', stars: 3 },
 ];
 
 const START_W_KING = 'e1';
@@ -304,6 +307,16 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
   const [dragPiece, setDragPiece] = useState<{ square: string; type: string; color: string } | null>(null);
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
+  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{
+    from: string;
+    to: string;
+    piece: { type: string; color: 'w' | 'b' };
+  } | null>(null);
+  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{
+    from: string;
+    to: string;
+    piece: { type: string; color: 'w' | 'b' };
+  } | null>(null);
   const pointerStartRef = useRef<{ x: number; y: number; square: string; moved: boolean; pointerId: number } | null>(null);
 
   const turnRef = useRef(turn);
@@ -451,67 +464,81 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
       turn: turnRef.current,
       positionHistory: [...positionHistoryRef.current],
     }]);
-    const newWKing = to;
-    setWKing(newWKing);
-    wKingRef.current = newWKing;
 
+    const from = wKingRef.current;
+    const newWKing = to;
     let newWScore = wScoreRef.current;
     let goalScored = false;
     if (RANKS.indexOf(newWKing[1]) === 7) {
       newWScore += 1;
-      setWScore(newWScore);
-      wScoreRef.current = newWScore;
       if (newWScore < 3) {
         goalScored = true;
       }
     }
 
-    if (goalScored) {
-      setTimeout(() => {
-        if (!mountedRef.current) return;
-        resetKings(true);
-        setTurn('w');
-        turnRef.current = 'w';
-      }, 3000);
-      return;
-    }
-
-    const newHistory = [...positionHistoryRef.current, `${newWKing}-${bKingRef.current}`];
-    setPositionHistory(newHistory);
-    positionHistoryRef.current = newHistory;
-
-    if (newWScore >= 3) {
-      setWinner('Белые победили!');
-      setSelectedSquare(null);
-      setValidSquares([]);
-      selectedSquareRef.current = null;
-
-      if (difficultyRef.current) {
-        const d = difficultyRef.current;
-        setCompletedLevels(prev => {
-          if (prev[d]) return prev;
-          const next = { ...prev, [d]: true };
-          if (savedKey) localStorage.setItem(savedKey, JSON.stringify(next));
-          return next;
-        });
-        onCompleteRef.current();
-      }
-      return;
-    }
-
-    if (checkRepetition(newHistory)) {
-      setDrawMessage('Ничья через трехкратное повторение ходов');
-      setSelectedSquare(null);
-      setValidSquares([]);
-      selectedSquareRef.current = null;
-      return;
-    }
-
-    setTurn('b');
-    turnRef.current = 'b';
+    // Start ghost animation
+    setPlayerAnimatingMove({
+      from,
+      to,
+      piece: { type: 'k', color: 'w' },
+    });
+    setLastMove({ from, to });
     setSelectedSquare(null);
     setValidSquares([]);
     selectedSquareRef.current = null;
+
+    setTimeout(() => {
+      if (!mountedRef.current) return;
+
+      setWKing(newWKing);
+      wKingRef.current = newWKing;
+
+      if (newWScore !== wScoreRef.current) {
+        setWScore(newWScore);
+        wScoreRef.current = newWScore;
+      }
+
+      if (goalScored) {
+        setTimeout(() => {
+          if (!mountedRef.current) return;
+          resetKings(true);
+          setTurn('w');
+          turnRef.current = 'w';
+        }, 3000);
+        setPlayerAnimatingMove(null);
+        return;
+      }
+
+      const newHistory = [...positionHistoryRef.current, `${newWKing}-${bKingRef.current}`];
+      setPositionHistory(newHistory);
+      positionHistoryRef.current = newHistory;
+
+      if (newWScore >= 3) {
+        setWinner('Белые победили!');
+        if (difficultyRef.current) {
+          const d = difficultyRef.current;
+          setCompletedLevels(prev => {
+            if (prev[d]) return prev;
+            const next = { ...prev, [d]: true };
+            if (savedKey) localStorage.setItem(savedKey, JSON.stringify(next));
+            return next;
+          });
+          onCompleteRef.current();
+        }
+        setPlayerAnimatingMove(null);
+        return;
+      }
+
+      if (checkRepetition(newHistory)) {
+        setDrawMessage('Ничья через трехкратное повторение ходов');
+        setPlayerAnimatingMove(null);
+        return;
+      }
+
+      setTurn('b');
+      turnRef.current = 'b';
+      setPlayerAnimatingMove(null);
+    }, 200);
   }, [savedKey, checkRepetition, resetKings]);
 
   useEffect(() => {
@@ -556,51 +583,71 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
         return;
       }
 
+      const from = chosen.from;
       const newBKing = chosen.to;
-      setBKing(newBKing);
-      bKingRef.current = newBKing;
-
       let newBScore = bScoreRef.current;
       let bGoalScored = false;
       if (RANKS.indexOf(newBKing[1]) === 0) {
         newBScore += 1;
-        setBScore(newBScore);
-        bScoreRef.current = newBScore;
         if (newBScore < 3) {
           bGoalScored = true;
         }
       }
 
-      if (bGoalScored) {
-        setTimeout(() => {
-          if (!mountedRef.current) return;
-          resetKings(true);
+      // Start opponent ghost animation
+      setOpponentAnimatingMove({
+        from,
+        to: newBKing,
+        piece: { type: 'k', color: 'b' },
+      });
+      setLastMove({ from, to: newBKing });
+
+      setTimeout(() => {
+        if (!mountedRef.current) return;
+
+        setBKing(newBKing);
+        bKingRef.current = newBKing;
+
+        if (newBScore !== bScoreRef.current) {
+          setBScore(newBScore);
+          bScoreRef.current = newBScore;
+        }
+
+        if (bGoalScored) {
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            resetKings(true);
+            setComputerThinking(false);
+            setTurn('w');
+            turnRef.current = 'w';
+          }, 3000);
+          setOpponentAnimatingMove(null);
+          return;
+        }
+
+        const newHistory = [...positionHistoryRef.current, `${wKingRef.current}-${newBKing}`];
+        setPositionHistory(newHistory);
+        positionHistoryRef.current = newHistory;
+
+        if (newBScore >= 3) {
+          setWinner('Чёрные победили!');
           setComputerThinking(false);
-          setTurn('w');
-          turnRef.current = 'w';
-        }, 3000);
-        return;
-      }
+          setOpponentAnimatingMove(null);
+          return;
+        }
 
-      const newHistory = [...positionHistoryRef.current, `${wKingRef.current}-${newBKing}`];
-      setPositionHistory(newHistory);
-      positionHistoryRef.current = newHistory;
+        if (checkRepetition(newHistory)) {
+          setDrawMessage('Ничья через трехкратное повторение ходов');
+          setComputerThinking(false);
+          setOpponentAnimatingMove(null);
+          return;
+        }
 
-      if (newBScore >= 3) {
-        setWinner('Чёрные победили!');
+        setTurn('w');
+        turnRef.current = 'w';
         setComputerThinking(false);
-        return;
-      }
-
-      if (checkRepetition(newHistory)) {
-        setDrawMessage('Ничья через трехкратное повторение ходов');
-        setComputerThinking(false);
-        return;
-      }
-
-      setTurn('w');
-      turnRef.current = 'w';
-      setComputerThinking(false);
+        setOpponentAnimatingMove(null);
+      }, 200);
     }, 1000);
 
     return () => clearTimeout(timer);
@@ -952,7 +999,7 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
                         />
                       </div>
                     )}
-                    {pieceObj && !isSource && (
+                    {pieceObj && !isSource && !isPlayerAnimatingSource && !isOpponentAnimatingSource && (
                       <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
                         <PieceImg type={pieceObj.type} color={pieceObj.color} />
                       </div>
@@ -963,6 +1010,60 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
             )}
           </div>
         </div>
+
+        {/* Player ghost piece overlay */}
+        {playerAnimatingMove && (() => {
+          const fromF = FILES.indexOf(playerAnimatingMove.from[0]);
+          const fromR = DISPLAY_RANKS.indexOf(playerAnimatingMove.from[1]);
+          const toF = FILES.indexOf(playerAnimatingMove.to[0]);
+          const toR = DISPLAY_RANKS.indexOf(playerAnimatingMove.to[1]);
+          const dx = (toF - fromF) * sqSize;
+          const dy = (toR - fromR) * sqSize;
+          const fromX = fromF * sqSize;
+          const fromY = fromR * sqSize;
+          return (
+            <div
+              className="absolute pointer-events-none z-40 animate-player-move"
+              style={{
+                left: fromX + (sqSize - Math.round(sqSize * 0.85)) / 2,
+                top: fromY + (sqSize - Math.round(sqSize * 0.85)) / 2,
+                width: Math.round(sqSize * 0.85),
+                height: Math.round(sqSize * 0.85),
+                '--ghost-dx': `${dx}px`,
+                '--ghost-dy': `${dy}px`,
+              } as React.CSSProperties}
+            >
+              <PieceImg type={playerAnimatingMove.piece.type} color={playerAnimatingMove.piece.color} />
+            </div>
+          );
+        })()}
+
+        {/* Opponent ghost piece overlay */}
+        {opponentAnimatingMove && (() => {
+          const fromF = FILES.indexOf(opponentAnimatingMove.from[0]);
+          const fromR = DISPLAY_RANKS.indexOf(opponentAnimatingMove.from[1]);
+          const toF = FILES.indexOf(opponentAnimatingMove.to[0]);
+          const toR = DISPLAY_RANKS.indexOf(opponentAnimatingMove.to[1]);
+          const dx = (toF - fromF) * sqSize;
+          const dy = (toR - fromR) * sqSize;
+          const fromX = fromF * sqSize;
+          const fromY = fromR * sqSize;
+          return (
+            <div
+              className="absolute pointer-events-none z-40 animate-opponent-move"
+              style={{
+                left: fromX + (sqSize - Math.round(sqSize * 0.85)) / 2,
+                top: fromY + (sqSize - Math.round(sqSize * 0.85)) / 2,
+                width: Math.round(sqSize * 0.85),
+                height: Math.round(sqSize * 0.85),
+                '--ghost-dx': `${dx}px`,
+                '--ghost-dy': `${dy}px`,
+              } as React.CSSProperties}
+            >
+              <PieceImg type={opponentAnimatingMove.piece.type} color={opponentAnimatingMove.piece.color} />
+            </div>
+          );
+        })()}
 
         {/* Drag overlay */}
         {dragPiece && (

@@ -349,12 +349,15 @@ function getBestMove(
 function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
   const pieceKey = `${color}${type.toUpperCase()}`;
   return (
-    <img
-      src={`/pieces/cburnett/${pieceKey}.svg`}
-      alt=""
+    <div
       className="w-full h-full"
-      draggable={false}
-      style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}
+      style={{
+        backgroundImage: `url(/pieces/cburnett/${pieceKey}.svg)`,
+        backgroundSize: 'contain',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+        filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))',
+      }}
     />
   );
 }
@@ -391,6 +394,10 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
   const [dragPiece, setDragPiece] = useState<{ square: string; type: string; color: string } | null>(null);
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
+
+  // Ghost piece animation states
+  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{ from: string; to: string; piece: Piece } | null>(null);
+  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: Piece } | null>(null);
   const pointerStartRef = useRef<{ x: number; y: number; square: string; moved: boolean; pointerId: number } | null>(null);
   const processLockRef = useRef(false);
   const whiteCapturedRef = useRef(0);
@@ -483,13 +490,21 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
       setHistory(h => [...h, { squares: sqs, whiteCaptured: whiteCapturedRef.current, blackCaptured: blackCapturedRef.current, enPassant: enPassantRef.current!, turn: 'b' }]);
 
       const win = checkGameOver(result.squares, result.enPassant, 'w');
+      setOpponentAnimatingMove({ from: chosen.from, to: chosen.to, piece: sqs[chosen.from] });
+      setLastMove({ from: chosen.from, to: chosen.to });
+
       if (win) {
         setWinner(win);
+      }
+
+      setTimeout(() => {
+        if (!mountedRef.current) return;
         setSquares(result.squares);
         setEnPassant(result.enPassant);
         setTurn('w');
         setComputerThinking(false);
-        if (win === 'Белые победили!' && difficultyRef.current) {
+        setOpponentAnimatingMove(null);
+        if (win && win === 'Белые победили!' && difficultyRef.current) {
           const d = difficultyRef.current;
           setCompletedLevels(prev => {
             const next = { ...prev, [d]: true };
@@ -498,13 +513,7 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
           });
           onComplete();
         }
-        return;
-      }
-
-      setSquares(result.squares);
-      setEnPassant(result.enPassant);
-      setTurn('w');
-      setComputerThinking(false);
+      }, 200);
     }, 800);
 
     return () => clearTimeout(timer);
@@ -537,14 +546,22 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
         setHistory(h => [...h, { squares: sqs, whiteCaptured: whiteCapturedRef.current, blackCaptured: blackCapturedRef.current, enPassant: enPassantRef.current!, turn: 'w' }]);
 
         const win = checkGameOver(result.squares, result.enPassant, 'b');
+        setPlayerAnimatingMove({ from: sel, to: square, piece: sqs[sel] });
+        setLastMove({ from: sel, to: square });
+        setSelectedSquare(null);
+        setValidSquares([]);
+        selectedSquareRef.current = null;
+
         if (win) {
           setWinner(win);
+        }
+
+        setTimeout(() => {
+          if (!mountedRef.current) return;
           setSquares(result.squares);
           setEnPassant(result.enPassant);
-          setSelectedSquare(null);
-          setValidSquares([]);
-          selectedSquareRef.current = null;
-          if (win === 'Белые победили!' && difficultyRef.current) {
+          setPlayerAnimatingMove(null);
+          if (win && win === 'Белые победили!' && difficultyRef.current) {
             const d = difficultyRef.current;
             setCompletedLevels(prev => {
               const next = { ...prev, [d]: true };
@@ -553,18 +570,13 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
             });
             onComplete();
           }
-          return;
-        }
-
-        setSquares(result.squares);
-        setEnPassant(result.enPassant);
-        setTurn('b');
-        setSelectedSquare(null);
-        setValidSquares([]);
-        selectedSquareRef.current = null;
-        if (hasNoMoves(result.squares, 'b', result.enPassant)) {
-          setWinner('Ничья');
-        }
+          if (!win) {
+            setTurn('b');
+            if (hasNoMoves(result.squares, 'b', result.enPassant)) {
+              setWinner('Ничья');
+            }
+          }
+        }, 200);
         return;
       }
 
@@ -646,14 +658,22 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
             }
             setHistory(h => [...h, { squares: squaresRef.current, whiteCaptured: whiteCapturedRef.current, blackCaptured: blackCapturedRef.current, enPassant: enPassantRef.current!, turn: 'w' }]);
             const win = checkGameOver(result.squares, result.enPassant, 'b');
+            setPlayerAnimatingMove({ from: start.square, to: targetSquare, piece: squaresRef.current[start.square] });
+            setLastMove({ from: start.square, to: targetSquare });
+            setSelectedSquare(null);
+            setValidSquares([]);
+            selectedSquareRef.current = null;
+
             if (win) {
               setWinner(win);
+            }
+
+            setTimeout(() => {
+              if (!mountedRef.current) return;
               setSquares(result.squares);
               setEnPassant(result.enPassant);
-              setSelectedSquare(null);
-              setValidSquares([]);
-              selectedSquareRef.current = null;
-              if (win === 'Белые победили!' && difficultyRef.current) {
+              setPlayerAnimatingMove(null);
+              if (win && win === 'Белые победили!' && difficultyRef.current) {
                 const d = difficultyRef.current;
                 setCompletedLevels(prev => {
                   const next = { ...prev, [d]: true };
@@ -662,17 +682,13 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
                 });
                 onComplete();
               }
-            } else {
-              setSquares(result.squares);
-              setEnPassant(result.enPassant);
-              setTurn('b');
-              setSelectedSquare(null);
-              setValidSquares([]);
-              selectedSquareRef.current = null;
-              if (hasNoMoves(result.squares, 'b', result.enPassant)) {
-                setWinner('Ничья');
+              if (!win) {
+                setTurn('b');
+                if (hasNoMoves(result.squares, 'b', result.enPassant)) {
+                  setWinner('Ничья');
+                }
               }
-            }
+            }, 200);
           }
         }
         setDragPiece(null);
@@ -840,12 +856,6 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
                   {lastMove && sq === lastMove.to && (
                     <div className="absolute inset-0 bg-[rgba(201,168,76,0.70)] pointer-events-none z-[5]" />
                   )}
-                    {lastMove && sq === lastMove.from && (
-                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
-                    )}
-                    {lastMove && sq === lastMove.to && (
-                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.70)] pointer-events-none z-[5]" />
-                    )}
 
                   {/* Coordinates */}
                   {fi === 0 && (
@@ -873,7 +883,7 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
                     </div>
                   )}
                   {/* Piece */}
-                  {pieceObj && !isSource && (
+                  {pieceObj && !isSource && !(playerAnimatingMove && sq === playerAnimatingMove.from) && !(opponentAnimatingMove && sq === opponentAnimatingMove.from) && (
                     <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
                       <PieceImg type={pieceObj.type} color={pieceObj.color as 'w' | 'b'} />
                     </div>
@@ -882,6 +892,66 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
               );
             })
           )}
+          {/* Player ghost piece */}
+          {playerAnimatingMove && (() => {
+            const fromF = FILES.indexOf(playerAnimatingMove.from[0]);
+            const fromR = RANKS.indexOf(playerAnimatingMove.from[1]);
+            const toF = FILES.indexOf(playerAnimatingMove.to[0]);
+            const toR = RANKS.indexOf(playerAnimatingMove.to[1]);
+            const x1 = fromF * sqSize;
+            const y1 = fromR * sqSize;
+            const x2 = toF * sqSize;
+            const y2 = toR * sqSize;
+            return (
+              <div
+                key={playerAnimatingMove.from + '-' + playerAnimatingMove.to}
+                className="absolute pointer-events-none animate-player-move"
+                style={{
+                  left: x1,
+                  top: y1,
+                  width: sqSize,
+                  height: sqSize,
+                  zIndex: 60,
+                  '--ghost-dx': `${x2 - x1}px`,
+                  '--ghost-dy': `${y2 - y1}px`,
+                } as React.CSSProperties}
+              >
+                <div className="w-full h-full flex items-center justify-center" style={{ padding: Math.round(sqSize * 0.075) }}>
+                  <PieceImg type={playerAnimatingMove.piece.type} color={playerAnimatingMove.piece.color} />
+                </div>
+              </div>
+            );
+          })()}
+          {/* Opponent ghost piece */}
+          {opponentAnimatingMove && (() => {
+            const fromF = FILES.indexOf(opponentAnimatingMove.from[0]);
+            const fromR = RANKS.indexOf(opponentAnimatingMove.from[1]);
+            const toF = FILES.indexOf(opponentAnimatingMove.to[0]);
+            const toR = RANKS.indexOf(opponentAnimatingMove.to[1]);
+            const x1 = fromF * sqSize;
+            const y1 = fromR * sqSize;
+            const x2 = toF * sqSize;
+            const y2 = toR * sqSize;
+            return (
+              <div
+                key={opponentAnimatingMove.from + '-' + opponentAnimatingMove.to}
+                className="absolute pointer-events-none animate-opponent-move"
+                style={{
+                  left: x1,
+                  top: y1,
+                  width: sqSize,
+                  height: sqSize,
+                  zIndex: 60,
+                  '--ghost-dx': `${x2 - x1}px`,
+                  '--ghost-dy': `${y2 - y1}px`,
+                } as React.CSSProperties}
+              >
+                <div className="w-full h-full flex items-center justify-center" style={{ padding: Math.round(sqSize * 0.075) }}>
+                  <PieceImg type={opponentAnimatingMove.piece.type} color={opponentAnimatingMove.piece.color} />
+                </div>
+              </div>
+            );
+          })()}
         </div>
       </div>
 
