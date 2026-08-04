@@ -251,6 +251,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
             to,
             piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' },
           });
+          setLastMove({ from, to });
           setSelectedSquare(null);
           setMessage('Отличный ход! Продолжайте!');
           setIsFail(false);
@@ -261,7 +262,6 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
             if (!mountedRef.current) return;
             setGame(ng);
             setPlayerAnimatingMove(null);
-            setLastMove({ from, to });
           }, 800);
 
           // Opponent move after 900ms pause
