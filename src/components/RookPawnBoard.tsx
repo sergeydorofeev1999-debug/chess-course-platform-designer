@@ -355,13 +355,44 @@ function getBestMove(
 function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
   const pieceKey = `${color}${type.toUpperCase()}`;
   return (
-    <img
-      src={`/pieces/cburnett/${pieceKey}.svg`}
-      alt=""
+    <div
       className="w-full h-full"
-      draggable={false}
-      style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}
+      style={{
+        backgroundImage: `url(/pieces/cburnett/${pieceKey}.svg)`,
+        backgroundSize: 'contain',
+        backgroundRepeat: 'no-repeat',
+        backgroundPosition: 'center',
+        filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))',
+      }}
     />
+  );
+}
+
+function GhostOverlay({ move, sqSize, className }: { move: { from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null; sqSize: number; className: string }) {
+  if (!move) return null;
+  const fromF = FILES.indexOf(move.from[0]);
+  const fromR = RANKS.indexOf(move.from[1]);
+  const toF = FILES.indexOf(move.to[0]);
+  const toR = RANKS.indexOf(move.to[1]);
+  const x1 = fromF * sqSize;
+  const y1 = fromR * sqSize;
+  const x2 = toF * sqSize;
+  const y2 = toR * sqSize;
+  return (
+    <div
+      className={`absolute pointer-events-none ${className}`}
+      style={{
+        left: x1,
+        top: y1,
+        width: sqSize,
+        height: sqSize,
+        zIndex: 60,
+        '--ghost-dx': `${x2 - x1}px`,
+        '--ghost-dy': `${y2 - y1}px`,
+      } as React.CSSProperties}
+    >
+      <PieceImg type={move.piece.type} color={move.piece.color} />
+    </div>
   );
 }
 
@@ -395,6 +426,8 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const [history, setHistory] = useState<Array<{ squares: Record<string, Piece>; enPassant: string | null; turn: 'w' | 'b' }>>([]);
+  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
+  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
   const pointerStartRef = useRef<{ x: number; y: number; square: string; moved: boolean; pointerId: number } | null>(null);
   const processLockRef = useRef(false);
   const squaresRef = useRef(squares);
@@ -440,6 +473,9 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
     setEnPassant(null);
     setTurn('w');
     setHistory([]);
+    setLastMove(null);
+    setPlayerAnimatingMove(null);
+    setOpponentAnimatingMove(null);
   }, []);
 
   const startLevel = useCallback((diff: Difficulty) => {
@@ -473,31 +509,44 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
         return;
       }
 
-      const result = makeMove(sqs, enPassantRef.current, chosen.from, chosen.to);
+      const movedPiece = sqs[chosen.from];
+      setOpponentAnimatingMove({
+        from: chosen.from,
+        to: chosen.to,
+        piece: { type: movedPiece?.type || '', color: movedPiece?.color as 'w' | 'b' || 'b' },
+      });
+      setLastMove({ from: chosen.from, to: chosen.to });
 
-      const win = checkGameOver(result.squares, result.enPassant, 'w');
-      if (win) {
-        setWinner(win);
+      setTimeout(() => {
+        if (!mountedRef.current) return;
+        const result = makeMove(squaresRef.current, enPassantRef.current, chosen.from, chosen.to);
+
+        const win = checkGameOver(result.squares, result.enPassant, 'w');
+        if (win) {
+          setWinner(win);
+          setSquares(result.squares);
+          setEnPassant(result.enPassant);
+          setTurn('w');
+          setComputerThinking(false);
+          setOpponentAnimatingMove(null);
+          if (win === 'Белые победили!' && difficultyRef.current) {
+            const d = difficultyRef.current;
+            setCompletedLevels(prev => {
+              const next = { ...prev, [d]: true };
+              localStorage.setItem(savedKey, JSON.stringify(next));
+              return next;
+            });
+            onComplete();
+          }
+          return;
+        }
+
         setSquares(result.squares);
         setEnPassant(result.enPassant);
         setTurn('w');
         setComputerThinking(false);
-        if (win === 'Белые победили!' && difficultyRef.current) {
-          const d = difficultyRef.current;
-          setCompletedLevels(prev => {
-            const next = { ...prev, [d]: true };
-            localStorage.setItem(savedKey, JSON.stringify(next));
-            return next;
-          });
-          onComplete();
-        }
-        return;
-      }
-
-      setSquares(result.squares);
-      setEnPassant(result.enPassant);
-      setTurn('w');
-      setComputerThinking(false);
+        setOpponentAnimatingMove(null);
+      }, 200);
     }, 800);
 
     return () => clearTimeout(timer);
@@ -523,38 +572,47 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
       }
 
       if (validSquaresRef.current.includes(square)) {
-        const result = makeMove(sqs, enPassantRef.current, sel, square);
-
-        const win = checkGameOver(result.squares, result.enPassant, 'b');
-        if (win) {
-          setWinner(win);
-          setSquares(result.squares);
-          setEnPassant(result.enPassant);
-          setSelectedSquare(null);
-          setValidSquares([]);
-          selectedSquareRef.current = null;
-          if (win === 'Белые победили!' && difficultyRef.current) {
-            const d = difficultyRef.current;
-            setCompletedLevels(prev => {
-              const next = { ...prev, [d]: true };
-              localStorage.setItem(savedKey, JSON.stringify(next));
-              return next;
-            });
-            onComplete();
-          }
-          return;
-        }
-
-        setHistory(prev => [...prev, { squares: sqs, enPassant: enPassantRef.current, turn: turnRef.current }]);
-        setSquares(result.squares);
-        setEnPassant(result.enPassant);
-        setTurn('b');
+        const movingPiece = sqs[sel];
+        setLastMove({ from: sel, to: square });
+        setPlayerAnimatingMove({
+          from: sel,
+          to: square,
+          piece: { type: movingPiece?.type || '', color: movingPiece?.color as 'w' | 'b' || 'w' },
+        });
         setSelectedSquare(null);
         setValidSquares([]);
         selectedSquareRef.current = null;
-        if (hasNoMoves(result.squares, 'b', result.enPassant)) {
-          setWinner('Ничья');
-        }
+
+        setTimeout(() => {
+          if (!mountedRef.current) return;
+          const result = makeMove(sqs, enPassantRef.current, sel, square);
+          const win = checkGameOver(result.squares, result.enPassant, 'b');
+          if (win) {
+            setWinner(win);
+            setSquares(result.squares);
+            setEnPassant(result.enPassant);
+            setPlayerAnimatingMove(null);
+            if (win === 'Белые победили!' && difficultyRef.current) {
+              const d = difficultyRef.current;
+              setCompletedLevels(prev => {
+                const next = { ...prev, [d]: true };
+                localStorage.setItem(savedKey, JSON.stringify(next));
+                return next;
+              });
+              onComplete();
+            }
+            return;
+          }
+
+          setHistory(prev => [...prev, { squares: sqs, enPassant: enPassantRef.current, turn: turnRef.current }]);
+          setSquares(result.squares);
+          setEnPassant(result.enPassant);
+          setTurn('b');
+          setPlayerAnimatingMove(null);
+          if (hasNoMoves(result.squares, 'b', result.enPassant)) {
+            setWinner('Ничья');
+          }
+        }, 200);
         return;
       }
 
@@ -630,36 +688,49 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
         if (targetSquare && targetSquare !== start.square) {
           const valid = getPieceMoves(start.square, squaresRef.current, 'w', enPassantRef.current);
           if (valid.includes(targetSquare)) {
-            const result = makeMove(squaresRef.current, enPassantRef.current, start.square, targetSquare);
-            const win = checkGameOver(result.squares, result.enPassant, 'b');
-            if (win) {
-              setWinner(win);
-              setSquares(result.squares);
-              setEnPassant(result.enPassant);
-              setSelectedSquare(null);
-              setValidSquares([]);
-              selectedSquareRef.current = null;
-              if (win === 'Белые победили!' && difficultyRef.current) {
-                const d = difficultyRef.current;
-                setCompletedLevels(prev => {
-                  const next = { ...prev, [d]: true };
-                  localStorage.setItem(savedKey, JSON.stringify(next));
-                  return next;
-                });
-                onComplete();
+            const movingPiece = squaresRef.current[start.square];
+            setLastMove({ from: start.square, to: targetSquare });
+            setPlayerAnimatingMove({
+              from: start.square,
+              to: targetSquare,
+              piece: { type: movingPiece?.type || '', color: movingPiece?.color as 'w' | 'b' || 'w' },
+            });
+            setSelectedSquare(null);
+            setValidSquares([]);
+            selectedSquareRef.current = null;
+            setDragPiece(null);
+            pointerStartRef.current = null;
+
+            setTimeout(() => {
+              if (!mountedRef.current) return;
+              const result = makeMove(squaresRef.current, enPassantRef.current, start.square, targetSquare);
+              const win = checkGameOver(result.squares, result.enPassant, 'b');
+              if (win) {
+                setWinner(win);
+                setSquares(result.squares);
+                setEnPassant(result.enPassant);
+                setPlayerAnimatingMove(null);
+                if (win === 'Белые победили!' && difficultyRef.current) {
+                  const d = difficultyRef.current;
+                  setCompletedLevels(prev => {
+                    const next = { ...prev, [d]: true };
+                    localStorage.setItem(savedKey, JSON.stringify(next));
+                    return next;
+                  });
+                  onComplete();
+                }
+              } else {
+                setHistory(prev => [...prev, { squares: squaresRef.current, enPassant: enPassantRef.current, turn: turnRef.current }]);
+                setSquares(result.squares);
+                setEnPassant(result.enPassant);
+                setTurn('b');
+                setPlayerAnimatingMove(null);
+                if (hasNoMoves(result.squares, 'b', result.enPassant)) {
+                  setWinner('Ничья');
+                }
               }
-            } else {
-              setHistory(prev => [...prev, { squares: squaresRef.current, enPassant: enPassantRef.current, turn: turnRef.current }]);
-              setSquares(result.squares);
-              setEnPassant(result.enPassant);
-              setTurn('b');
-              setSelectedSquare(null);
-              setValidSquares([]);
-              selectedSquareRef.current = null;
-              if (hasNoMoves(result.squares, 'b', result.enPassant)) {
-                setWinner('Ничья');
-              }
-            }
+            }, 200);
+            return;
           }
         }
         setDragPiece(null);
@@ -805,6 +876,8 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
               const light = isLight(fi, ri);
               const sel = selectedSquare === sq;
               const isSource = dragPiece?.square === sq;
+              const isPlayerAnimatingSource = playerAnimatingMove && sq === playerAnimatingMove.from;
+              const isOpponentAnimatingSource = opponentAnimatingMove && sq === opponentAnimatingMove.from;
               const isValidMove = validMoves.includes(sq);
 
               return (
@@ -860,7 +933,7 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
                     </div>
                   )}
                   {/* Piece */}
-                  {pieceObj && !isSource && (
+                  {pieceObj && !isSource && !isPlayerAnimatingSource && !isOpponentAnimatingSource && (
                     <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
                       <PieceImg type={pieceObj.type} color={pieceObj.color as 'w' | 'b'} />
                     </div>
@@ -869,6 +942,8 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
               );
             })
           )}
+          <GhostOverlay move={playerAnimatingMove} sqSize={sqSize} className="animate-player-move" />
+          <GhostOverlay move={opponentAnimatingMove} sqSize={sqSize} className="animate-opponent-move" />
         </div>
       </div>
 
