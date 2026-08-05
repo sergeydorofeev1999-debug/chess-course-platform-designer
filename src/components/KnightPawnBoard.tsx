@@ -583,6 +583,13 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
         return;
       }
 
+      if (piece && piece.color === 'w') {
+        selectedSquareRef.current = square;
+        setSelectedSquare(square);
+        setValidSquares(getValidSquares(piece.type, square, sqs, 'w', [], enPassantRef.current));
+        return;
+      }
+
       if (validSquaresRef.current.includes(square)) {
         const result = makeMove(sqs, enPassantRef.current, sel, square);
         if (result.captured && result.captured.color === 'b') {

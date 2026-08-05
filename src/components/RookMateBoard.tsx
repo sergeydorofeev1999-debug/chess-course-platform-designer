@@ -622,10 +622,11 @@ export default function RookMateBoard({ onComplete, lessonId }: { onComplete: ()
         setSelectedSquare(null);
         return;
       }
-      processWhiteMove(selectedSquare, square);
       if (piece && piece.color === 'w') {
         setSelectedSquare(square);
+        return;
       }
+      processWhiteMove(selectedSquare, square);
     } else {
       if (piece && piece.color === 'w') {
         setSelectedSquare(square);

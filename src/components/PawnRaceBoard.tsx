@@ -624,6 +624,13 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
         return;
       }
 
+      if (piece && piece.color === 'w') {
+        selectedSquareRef.current = square;
+        setSelectedSquare(square);
+        setValidSquares(getValidSquares(piece.type, square, sqs, 'w', [], enPassantRef.current));
+        return;
+      }
+
       if (validSquaresRef.current.includes(square)) {
         // Save state for undo
         setHistory(prev => [...prev, {

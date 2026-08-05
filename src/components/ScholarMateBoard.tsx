@@ -873,10 +873,12 @@ const handleSquareClick = useCallback((square: string) => {
         setSelectedSquare(null);
         return;
       }
-      processWhiteMove(selectedSquare, square);
+      // Switch selection before processing move
       if (piece && ((exercise === 5 || exercise === 6 || exercise === 7 || exercise === 8) ? piece.color === 'b' : piece.color === 'w')) {
         setSelectedSquare(square);
+        return;
       }
+      processWhiteMove(selectedSquare, square);
     } else {
       if (piece && ((exercise === 5 || exercise === 6 || exercise === 7 || exercise === 8) ? piece.color === 'b' : piece.color === 'w')) {
         setSelectedSquare(square);
