@@ -685,11 +685,11 @@ function InlineChessBoard({
           setPlayerAnimatingMove({ from: sel, to: square, piece: movingPiece });
         }
         setTimeout(() => {
-          setPlayerAnimatingMove(null);
           const accepted = onMoveRef.current?.(sel, square);
           if (accepted !== false) {
             setMsg('');
           }
+          setPlayerAnimatingMove(null);
         }, 200);
       } else {
         if (piece && piece.color === 'w') {
@@ -790,8 +790,8 @@ function InlineChessBoard({
             setPlayerAnimatingMove({ from: start, to: targetSquare, piece: movingPiece });
           }
           setTimeout(() => {
-            setPlayerAnimatingMove(null);
             onMoveRef.current?.(start, targetSquare);
+            setPlayerAnimatingMove(null);
           }, 200);
         }
       }
@@ -923,7 +923,7 @@ function InlineChessBoard({
                     />
                   </div>
                 )}
-                {pieceObj && !isSource && !(playerAnimatingMove && (sq === playerAnimatingMove.from || sq === playerAnimatingMove.to)) && !(opponentAnimatingMove && (sq === opponentAnimatingMove.from || sq === opponentAnimatingMove.to)) && (
+                {pieceObj && !isSource && !(playerAnimatingMove && (sq === playerAnimatingMove.from || sq === playerAnimatingMove.to)) && (
                   <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize*0.85), height: Math.round(sqSize*0.85) }}>
                     <PieceImg type={pieceObj.type} color={pieceObj.color} />
                   </div>
