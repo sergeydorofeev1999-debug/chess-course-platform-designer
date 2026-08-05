@@ -59,11 +59,17 @@ function handleFailWithBlackCapture(
       const ghostPiece = g.get(cap.from as any);
       if (ghostPiece) {
         setOpponentAnimatingMoveFn({ from: cap.from, to: cap.to, piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } });
-        setTimeout(() => setOpponentAnimatingMoveFn(null), 200);
+        setTimeout(() => {
+          setOpponentAnimatingMoveFn(null);
+          g.move({ from: cap.from, to: cap.to });
+          setLastMoveFn({ from: cap.from, to: cap.to });
+          setGameFn(new Chess(g.fen()));
+        }, 200);
+      } else {
+        g.move({ from: cap.from, to: cap.to });
+        setLastMoveFn({ from: cap.from, to: cap.to });
+        setGameFn(new Chess(g.fen()));
       }
-      g.move({ from: cap.from, to: cap.to });
-      setLastMoveFn({ from: cap.from, to: cap.to });
-      setGameFn(new Chess(g.fen()));
       setTimeout(() => {
         if (mountedRef.current) { setIsFailFn(true); setMessageFn('Провалено'); }
       }, 1000);
@@ -213,10 +219,15 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         if (!mountedRef.current) return;
         const g = game;
         const ghostPiece = g.get('e2' as any);
-        if (ghostPiece) { setOpponentAnimatingMove({ from: 'e2', to: 'e4', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } }); setTimeout(() => setOpponentAnimatingMove(null), 200); }
-        g.move({ from: 'e2', to: 'e4' });
-        setLastMove({ from: 'e2', to: 'e4' });
-        setGame(new Chess(g.fen()));
+        if (ghostPiece) {
+          setOpponentAnimatingMove({ from: 'e2', to: 'e4', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } });
+          setTimeout(() => {
+            setOpponentAnimatingMove(null);
+            g.move({ from: 'e2', to: 'e4' });
+            setLastMove({ from: 'e2', to: 'e4' });
+            setGame(new Chess(g.fen()));
+          }, 200);
+        }
         if (exercise === 7) {
           setMessage('Ответьте на e4 — сыграйте e5 и откройте диагональ для слона. Затем защититесь от атаки белых.');
         }
@@ -321,10 +332,15 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             setTimeout(() => {
               if (!mountedRef.current) return;
               const ghostPiece = g.get('f1' as any);
-              if (ghostPiece) { setOpponentAnimatingMove({ from: 'f1', to: 'c4', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } }); setTimeout(() => setOpponentAnimatingMove(null), 200); }
-              g.move({ from: 'f1', to: 'c4' });
-            setLastMove({ from: 'f1', to: 'c4' });
-              setGame(new Chess(g.fen()));
+              if (ghostPiece) {
+                setOpponentAnimatingMove({ from: 'f1', to: 'c4', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } });
+                setTimeout(() => {
+                  setOpponentAnimatingMove(null);
+                  g.move({ from: 'f1', to: 'c4' });
+                  setLastMove({ from: 'f1', to: 'c4' });
+                  setGame(new Chess(g.fen()));
+                }, 200);
+              }
             }, 1000);
             return;
           } else {
@@ -359,10 +375,15 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             setTimeout(() => {
               if (!mountedRef.current) return;
               const ghostPiece = g.get('f1' as any);
-              if (ghostPiece) { setOpponentAnimatingMove({ from: 'f1', to: 'c4', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } }); setTimeout(() => setOpponentAnimatingMove(null), 200); }
-              g.move({ from: 'f1', to: 'c4' });
-            setLastMove({ from: 'f1', to: 'c4' });
-              setGame(new Chess(g.fen()));
+              if (ghostPiece) {
+                setOpponentAnimatingMove({ from: 'f1', to: 'c4', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } });
+                setTimeout(() => {
+                  setOpponentAnimatingMove(null);
+                  g.move({ from: 'f1', to: 'c4' });
+                  setLastMove({ from: 'f1', to: 'c4' });
+                  setGame(new Chess(g.fen()));
+                }, 200);
+              }
             }, 1000);
             return;
           } else {
@@ -399,10 +420,15 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             setTimeout(() => {
               if (!mountedRef.current) return;
               const ghostPiece = g.get('d1' as any);
-              if (ghostPiece) { setOpponentAnimatingMove({ from: 'd1', to: 'h5', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } }); setTimeout(() => setOpponentAnimatingMove(null), 200); }
-              g.move({ from: 'd1', to: 'h5' });
-            setLastMove({ from: 'd1', to: 'h5' });
-              setGame(new Chess(g.fen()));
+              if (ghostPiece) {
+                setOpponentAnimatingMove({ from: 'd1', to: 'h5', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } });
+                setTimeout(() => {
+                  setOpponentAnimatingMove(null);
+                  g.move({ from: 'd1', to: 'h5' });
+                  setLastMove({ from: 'd1', to: 'h5' });
+                  setGame(new Chess(g.fen()));
+                }, 200);
+              }
             }, 2000);
             return;
           } else {
@@ -419,10 +445,15 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             setTimeout(() => {
               if (!mountedRef.current) return;
               const ghostPiece = g.get('f1' as any);
-              if (ghostPiece) { setOpponentAnimatingMove({ from: 'f1', to: 'c4', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } }); setTimeout(() => setOpponentAnimatingMove(null), 200); }
-              g.move({ from: 'f1', to: 'c4' });
-   setLastMove({ from: 'f1', to: 'c4' });
-              setGame(new Chess(g.fen()));
+              if (ghostPiece) {
+                setOpponentAnimatingMove({ from: 'f1', to: 'c4', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } });
+                setTimeout(() => {
+                  setOpponentAnimatingMove(null);
+                  g.move({ from: 'f1', to: 'c4' });
+                  setLastMove({ from: 'f1', to: 'c4' });
+                  setGame(new Chess(g.fen()));
+                }, 200);
+              }
             }, 2000);
             return;
           } else {
@@ -439,10 +470,15 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             setTimeout(() => {
               if (!mountedRef.current) return;
               const ghostPiece = g.get('h5' as any);
-              if (ghostPiece) { setOpponentAnimatingMove({ from: 'h5', to: 'f3', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } }); setTimeout(() => setOpponentAnimatingMove(null), 200); }
-              g.move({ from: 'h5', to: 'f3' });
-     setLastMove({ from: 'h5', to: 'f3' });
-              setGame(new Chess(g.fen()));
+              if (ghostPiece) {
+                setOpponentAnimatingMove({ from: 'h5', to: 'f3', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } });
+                setTimeout(() => {
+                  setOpponentAnimatingMove(null);
+                  g.move({ from: 'h5', to: 'f3' });
+                  setLastMove({ from: 'h5', to: 'f3' });
+                  setGame(new Chess(g.fen()));
+                }, 200);
+              }
             }, 2000);
             return;
           } else {
@@ -479,10 +515,15 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             setTimeout(() => {
               if (!mountedRef.current) return;
               const ghostPiece = g.get('d1' as any);
-              if (ghostPiece) { setOpponentAnimatingMove({ from: 'd1', to: 'h5', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } }); setTimeout(() => setOpponentAnimatingMove(null), 200); }
-              g.move({ from: 'd1', to: 'h5' });
-          setLastMove({ from: 'd1', to: 'h5' });
-              setGame(new Chess(g.fen()));
+              if (ghostPiece) {
+                setOpponentAnimatingMove({ from: 'd1', to: 'h5', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } });
+                setTimeout(() => {
+                  setOpponentAnimatingMove(null);
+                  g.move({ from: 'd1', to: 'h5' });
+                  setLastMove({ from: 'd1', to: 'h5' });
+                  setGame(new Chess(g.fen()));
+                }, 200);
+              }
             }, 2000);
             return;
           } else {
@@ -499,10 +540,15 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             setTimeout(() => {
               if (!mountedRef.current) return;
               const ghostPiece = g.get('f1' as any);
-              if (ghostPiece) { setOpponentAnimatingMove({ from: 'f1', to: 'c4', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } }); setTimeout(() => setOpponentAnimatingMove(null), 200); }
-              g.move({ from: 'f1', to: 'c4' });
-        setLastMove({ from: 'f1', to: 'c4' });
-              setGame(new Chess(g.fen()));
+              if (ghostPiece) {
+                setOpponentAnimatingMove({ from: 'f1', to: 'c4', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } });
+                setTimeout(() => {
+                  setOpponentAnimatingMove(null);
+                  g.move({ from: 'f1', to: 'c4' });
+                  setLastMove({ from: 'f1', to: 'c4' });
+                  setGame(new Chess(g.fen()));
+                }, 200);
+              }
             }, 2000);
             return;
           } else {
@@ -519,10 +565,15 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             setTimeout(() => {
               if (!mountedRef.current) return;
               const ghostPiece = g.get('h5' as any);
-              if (ghostPiece) { setOpponentAnimatingMove({ from: 'h5', to: 'f3', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } }); setTimeout(() => setOpponentAnimatingMove(null), 200); }
-              g.move({ from: 'h5', to: 'f3' });
-       setLastMove({ from: 'h5', to: 'f3' });
-              setGame(new Chess(g.fen()));
+              if (ghostPiece) {
+                setOpponentAnimatingMove({ from: 'h5', to: 'f3', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } });
+                setTimeout(() => {
+                  setOpponentAnimatingMove(null);
+                  g.move({ from: 'h5', to: 'f3' });
+                  setLastMove({ from: 'h5', to: 'f3' });
+                  setGame(new Chess(g.fen()));
+                }, 200);
+              }
             }, 2000);
             return;
           } else {
@@ -556,10 +607,15 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             setTimeout(() => {
               if (!mountedRef.current) return;
               const ghostPiece = g.get('e7' as any);
-              if (ghostPiece) { setOpponentAnimatingMove({ from: 'e7', to: 'e5', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } }); setTimeout(() => setOpponentAnimatingMove(null), 200); }
-              g.move({ from: 'e7', to: 'e5' });
-            setLastMove({ from: 'e7', to: 'e5' });
-              setGame(new Chess(g.fen()));
+              if (ghostPiece) {
+                setOpponentAnimatingMove({ from: 'e7', to: 'e5', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } });
+                setTimeout(() => {
+                  setOpponentAnimatingMove(null);
+                  g.move({ from: 'e7', to: 'e5' });
+                  setLastMove({ from: 'e7', to: 'e5' });
+                  setGame(new Chess(g.fen()));
+                }, 200);
+              }
             }, 1000);
             return;
           } else {
@@ -575,10 +631,15 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             setTimeout(() => {
               if (!mountedRef.current) return;
               const ghostPiece = g.get('b8' as any);
-              if (ghostPiece) { setOpponentAnimatingMove({ from: 'b8', to: 'c6', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } }); setTimeout(() => setOpponentAnimatingMove(null), 200); }
-              g.move({ from: 'b8', to: 'c6' });
-              setLastMove({ from: 'b8', to: 'c6' });
-              setGame(new Chess(g.fen()));
+              if (ghostPiece) {
+                setOpponentAnimatingMove({ from: 'b8', to: 'c6', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } });
+                setTimeout(() => {
+                  setOpponentAnimatingMove(null);
+                  g.move({ from: 'b8', to: 'c6' });
+                  setLastMove({ from: 'b8', to: 'c6' });
+                  setGame(new Chess(g.fen()));
+                }, 200);
+              }
             }, 1000);
             return;
           } else {
@@ -594,10 +655,15 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             setTimeout(() => {
               if (!mountedRef.current) return;
               const ghostPiece = g.get('g8' as any);
-              if (ghostPiece) { setOpponentAnimatingMove({ from: 'g8', to: 'f6', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } }); setTimeout(() => setOpponentAnimatingMove(null), 200); }
-              g.move({ from: 'g8', to: 'f6' });
-              setLastMove({ from: 'g8', to: 'f6' });
-              setGame(new Chess(g.fen()));
+              if (ghostPiece) {
+                setOpponentAnimatingMove({ from: 'g8', to: 'f6', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } });
+                setTimeout(() => {
+                  setOpponentAnimatingMove(null);
+                  g.move({ from: 'g8', to: 'f6' });
+                  setLastMove({ from: 'g8', to: 'f6' });
+                  setGame(new Chess(g.fen()));
+                }, 200);
+              }
             }, 1000);
             return;
           } else {
@@ -630,10 +696,15 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             setTimeout(() => {
               if (!mountedRef.current) return;
               const ghostPiece = g.get('e7' as any);
-              if (ghostPiece) { setOpponentAnimatingMove({ from: 'e7', to: 'e5', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } }); setTimeout(() => setOpponentAnimatingMove(null), 200); }
-              g.move({ from: 'e7', to: 'e5' });
-       setLastMove({ from: 'e7', to: 'e5' });
-              setGame(new Chess(g.fen()));
+              if (ghostPiece) {
+                setOpponentAnimatingMove({ from: 'e7', to: 'e5', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } });
+                setTimeout(() => {
+                  setOpponentAnimatingMove(null);
+                  g.move({ from: 'e7', to: 'e5' });
+                  setLastMove({ from: 'e7', to: 'e5' });
+                  setGame(new Chess(g.fen()));
+                }, 200);
+              }
             }, 1000);
             return;
           } else {
@@ -672,17 +743,36 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             if (whiteMoves === 1) {
               // After first development move, black plays Nc6
               const ghostPiece = g.get('b8' as any);
-              if (ghostPiece) { setOpponentAnimatingMove({ from: 'b8', to: 'c6', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } }); setTimeout(() => setOpponentAnimatingMove(null), 200); }
-              g.move({ from: 'b8', to: 'c6' });
-         setLastMove({ from: 'b8', to: 'c6' });
+              if (ghostPiece) {
+                setOpponentAnimatingMove({ from: 'b8', to: 'c6', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } });
+                setTimeout(() => {
+                  setOpponentAnimatingMove(null);
+                  g.move({ from: 'b8', to: 'c6' });
+                  setLastMove({ from: 'b8', to: 'c6' });
+                  setGame(new Chess(g.fen()));
+                }, 200);
+              } else {
+                g.move({ from: 'b8', to: 'c6' });
+                setLastMove({ from: 'b8', to: 'c6' });
+                setGame(new Chess(g.fen()));
+              }
             } else if (whiteMoves === 2) {
               // After second development move, black plays Nf6
               const ghostPiece = g.get('g8' as any);
-              if (ghostPiece) { setOpponentAnimatingMove({ from: 'g8', to: 'f6', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } }); setTimeout(() => setOpponentAnimatingMove(null), 200); }
-              g.move({ from: 'g8', to: 'f6' });
-              setLastMove({ from: 'g8', to: 'f6' });
+              if (ghostPiece) {
+                setOpponentAnimatingMove({ from: 'g8', to: 'f6', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } });
+                setTimeout(() => {
+                  setOpponentAnimatingMove(null);
+                  g.move({ from: 'g8', to: 'f6' });
+                  setLastMove({ from: 'g8', to: 'f6' });
+                  setGame(new Chess(g.fen()));
+                }, 200);
+              } else {
+                g.move({ from: 'g8', to: 'f6' });
+                setLastMove({ from: 'g8', to: 'f6' });
+                setGame(new Chess(g.fen()));
+              }
             }
-            setGame(new Chess(g.fen()));
           }, 1000);
           return;
         }
@@ -710,10 +800,15 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             setTimeout(() => {
               if (!mountedRef.current) return;
               const ghostPiece = g.get('e7' as any);
-              if (ghostPiece) { setOpponentAnimatingMove({ from: 'e7', to: 'e5', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } }); setTimeout(() => setOpponentAnimatingMove(null), 200); }
-              g.move({ from: 'e7', to: 'e5' });
-            setLastMove({ from: 'e7', to: 'e5' });
-              setGame(new Chess(g.fen()));
+              if (ghostPiece) {
+                setOpponentAnimatingMove({ from: 'e7', to: 'e5', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } });
+                setTimeout(() => {
+                  setOpponentAnimatingMove(null);
+                  g.move({ from: 'e7', to: 'e5' });
+                  setLastMove({ from: 'e7', to: 'e5' });
+                  setGame(new Chess(g.fen()));
+                }, 200);
+              }
             }, 1000);
             return;
           } else {
@@ -729,10 +824,15 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             setTimeout(() => {
               if (!mountedRef.current) return;
               const ghostPiece = g.get('b8' as any);
-              if (ghostPiece) { setOpponentAnimatingMove({ from: 'b8', to: 'c6', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } }); setTimeout(() => setOpponentAnimatingMove(null), 200); }
-              g.move({ from: 'b8', to: 'c6' });
-            setLastMove({ from: 'b8', to: 'c6' });
-              setGame(new Chess(g.fen()));
+              if (ghostPiece) {
+                setOpponentAnimatingMove({ from: 'b8', to: 'c6', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } });
+                setTimeout(() => {
+                  setOpponentAnimatingMove(null);
+                  g.move({ from: 'b8', to: 'c6' });
+                  setLastMove({ from: 'b8', to: 'c6' });
+                  setGame(new Chess(g.fen()));
+                }, 200);
+              }
             }, 1000);
             return;
           } else {
@@ -748,10 +848,15 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             setTimeout(() => {
               if (!mountedRef.current) return;
               const ghostPiece = g.get('f8' as any);
-              if (ghostPiece) { setOpponentAnimatingMove({ from: 'f8', to: 'c5', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } }); setTimeout(() => setOpponentAnimatingMove(null), 200); }
-              g.move({ from: 'f8', to: 'c5' });
-          setLastMove({ from: 'f8', to: 'c5' });
-              setGame(new Chess(g.fen()));
+              if (ghostPiece) {
+                setOpponentAnimatingMove({ from: 'f8', to: 'c5', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } });
+                setTimeout(() => {
+                  setOpponentAnimatingMove(null);
+                  g.move({ from: 'f8', to: 'c5' });
+                  setLastMove({ from: 'f8', to: 'c5' });
+                  setGame(new Chess(g.fen()));
+                }, 200);
+              }
             }, 1000);
             return;
           } else {
@@ -782,10 +887,15 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             setTimeout(() => {
               if (!mountedRef.current) return;
               const ghostPiece = g.get('e7' as any);
-              if (ghostPiece) { setOpponentAnimatingMove({ from: 'e7', to: 'e5', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } }); setTimeout(() => setOpponentAnimatingMove(null), 200); }
-              g.move({ from: 'e7', to: 'e5' });
-        setLastMove({ from: 'e7', to: 'e5' });
-              setGame(new Chess(g.fen()));
+              if (ghostPiece) {
+                setOpponentAnimatingMove({ from: 'e7', to: 'e5', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } });
+                setTimeout(() => {
+                  setOpponentAnimatingMove(null);
+                  g.move({ from: 'e7', to: 'e5' });
+                  setLastMove({ from: 'e7', to: 'e5' });
+                  setGame(new Chess(g.fen()));
+                }, 200);
+              }
             }, 1000);
             return;
           } else {
@@ -824,17 +934,36 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             if (whiteMoves === 1) {
               // После первого развивающего хода — Nc6
               const ghostPiece = g.get('b8' as any);
-              if (ghostPiece) { setOpponentAnimatingMove({ from: 'b8', to: 'c6', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } }); setTimeout(() => setOpponentAnimatingMove(null), 200); }
-              g.move({ from: 'b8', to: 'c6' });
-         setLastMove({ from: 'b8', to: 'c6' });
+              if (ghostPiece) {
+                setOpponentAnimatingMove({ from: 'b8', to: 'c6', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } });
+                setTimeout(() => {
+                  setOpponentAnimatingMove(null);
+                  g.move({ from: 'b8', to: 'c6' });
+                  setLastMove({ from: 'b8', to: 'c6' });
+                  setGame(new Chess(g.fen()));
+                }, 200);
+              } else {
+                g.move({ from: 'b8', to: 'c6' });
+                setLastMove({ from: 'b8', to: 'c6' });
+                setGame(new Chess(g.fen()));
+              }
             } else if (whiteMoves === 2) {
               // После второго развивающего хода — Bc5
               const ghostPiece = g.get('f8' as any);
-              if (ghostPiece) { setOpponentAnimatingMove({ from: 'f8', to: 'c5', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } }); setTimeout(() => setOpponentAnimatingMove(null), 200); }
-              g.move({ from: 'f8', to: 'c5' });
-            setLastMove({ from: 'f8', to: 'c5' });
+              if (ghostPiece) {
+                setOpponentAnimatingMove({ from: 'f8', to: 'c5', piece: { type: ghostPiece.type.toUpperCase(), color: ghostPiece.color as 'w' | 'b' } });
+                setTimeout(() => {
+                  setOpponentAnimatingMove(null);
+                  g.move({ from: 'f8', to: 'c5' });
+                  setLastMove({ from: 'f8', to: 'c5' });
+                  setGame(new Chess(g.fen()));
+                }, 200);
+              } else {
+                g.move({ from: 'f8', to: 'c5' });
+                setLastMove({ from: 'f8', to: 'c5' });
+                setGame(new Chess(g.fen()));
+              }
             }
-            setGame(new Chess(g.fen()));
           }, 1000);
           return;
         }
