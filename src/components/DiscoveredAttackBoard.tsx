@@ -945,7 +945,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
                         />
                       </div>
                     )}
-                    {pieceObj && !isDragSource && (
+                    {pieceObj && !isDragSource && !(playerAnimatingMove && sq === playerAnimatingMove.from) && (
                       <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
                         <PieceImg type={pieceObj.type} color={pieceObj.color} />
                       </div>
