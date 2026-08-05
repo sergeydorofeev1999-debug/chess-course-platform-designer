@@ -309,17 +309,24 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         setPromotionPending({ from, to });
         return;
       }
-      const move = g.move({ from, to, promotion: promotionPiece });
+
+      // Validate on a board copy first
+      const ng = new Chess(g.fen());
+      const move = ng.move({ from, to, promotion: promotionPiece });
       if (!move) return;
+
       if (piece) {
         setPlayerAnimatingMove({ from, to, piece: { type: piece.type.toUpperCase(), color: piece.color as 'w' | 'b' } });
-        setTimeout(() => setPlayerAnimatingMove(null), 200);
-      }
-      setLastMove({ from, to });
+        setTimeout(() => {
+          setPlayerAnimatingMove(null);
 
-      const nextWhiteMoves = whiteMoves + 1;
+          const realMove = g.move({ from, to, promotion: promotionPiece });
+          if (!realMove) return;
+          setLastMove({ from, to });
 
-      if (exercise === 5) {
+          const nextWhiteMoves = whiteMoves + 1;
+
+          if (exercise === 5) {
         // Exercise 5: Защита от детского мата — ученик играет за чёрных
         // После g.move() чёрных очередь белых (g.turn() === 'w')
         if (g.turn() !== 'w') return; // не чёрный ход — игнорируем
@@ -982,6 +989,9 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
           }
         }
       }
+
+      }, 200);
+    } // closes if (piece)
 
     } catch {
       // Invalid move
