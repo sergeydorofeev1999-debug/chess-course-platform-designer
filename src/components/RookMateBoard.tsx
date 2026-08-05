@@ -158,6 +158,39 @@ function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
   );
 }
 
+function squareToCoords(square: string, sqSize: number): { x: number; y: number } {
+  const ff = FILES.indexOf(square[0]);
+  const fr = RANKS.indexOf(square[1]);
+  return { x: ff * sqSize, y: fr * sqSize };
+}
+
+function GhostOverlay({ from, to, piece, sqSize, className }: {
+  from: string;
+  to: string;
+  piece: { type: string; color: 'w' | 'b' };
+  sqSize: number;
+  className: string;
+}) {
+  const fromCoords = squareToCoords(from, sqSize);
+  const toCoords = squareToCoords(to, sqSize);
+  return (
+    <div
+      className={`absolute pointer-events-none ${className}`}
+      style={{
+        left: fromCoords.x,
+        top: fromCoords.y,
+        width: sqSize,
+        height: sqSize,
+        zIndex: 60,
+        '--ghost-dx': `${toCoords.x - fromCoords.x}px`,
+        '--ghost-dy': `${toCoords.y - fromCoords.y}px`,
+      } as React.CSSProperties}
+    >
+      <PieceImg type={piece.type} color={piece.color} />
+    </div>
+  );
+}
+
 function getBlackKingMove(game: Chess): { from: string; to: string } | null {
   const moves = game.moves({ verbose: true }).filter(m => m.piece === 'k');
   if (moves.length === 0) return null;
@@ -881,6 +914,8 @@ export default function RookMateBoard({ onComplete, lessonId }: { onComplete: ()
                 const sel = selectedSquare === sq;
                 const isValidMove = validMoves.includes(sq);
                 const isDragSource = dragPiece?.square === sq;
+                const isPlayerAnimatingSource = playerAnimatingMove?.from === sq;
+                const isOpponentAnimatingSource = opponentAnimatingMove?.from === sq;
 
                 return (
                   <div
@@ -945,7 +980,7 @@ export default function RookMateBoard({ onComplete, lessonId }: { onComplete: ()
                         />
                       </div>
                     )}
-                    {pieceObj && !isDragSource && (
+                    {pieceObj && !isDragSource && !isPlayerAnimatingSource && !isOpponentAnimatingSource && (
                       <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
                         <PieceImg type={pieceObj.type} color={pieceObj.color} />
                       </div>
@@ -954,6 +989,27 @@ export default function RookMateBoard({ onComplete, lessonId }: { onComplete: ()
                 );
               })
             ))}
+
+          {/* Ghost overlays */}
+          {playerAnimatingMove && (
+            <GhostOverlay
+              from={playerAnimatingMove.from}
+              to={playerAnimatingMove.to}
+              piece={playerAnimatingMove.piece}
+              sqSize={sqSize}
+              className="animate-player-move"
+            />
+          )}
+          {opponentAnimatingMove && (
+            <GhostOverlay
+              from={opponentAnimatingMove.from}
+              to={opponentAnimatingMove.to}
+              piece={opponentAnimatingMove.piece}
+              sqSize={sqSize}
+              className="animate-opponent-move"
+            />
+          )}
+
           {promotionPending && (
             <div className="absolute z-50 pointer-events-auto" style={{
               left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
