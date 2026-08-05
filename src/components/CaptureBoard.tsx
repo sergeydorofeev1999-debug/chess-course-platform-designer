@@ -538,6 +538,7 @@ function InlineChessBoard({
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const squaresRef = useRef(squares);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
+  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
   const selectedSquareRef = useRef(selectedSquare);
   const [hoveredSquare, setHoveredSquare] = useState<string | null>(null);
   const [dragState, setDragState] = useState<{
@@ -643,10 +644,17 @@ function InlineChessBoard({
         }
         selectedSquareRef.current = null;
         setSelectedSquare(null);
-        const accepted = onMoveRef.current?.(sel, square);
-        if (accepted !== false) {
-          setMsg('');
+        const movingPiece = sqs[sel];
+        if (movingPiece) {
+          setPlayerAnimatingMove({ from: sel, to: square, piece: movingPiece });
         }
+        setTimeout(() => {
+          setPlayerAnimatingMove(null);
+          const accepted = onMoveRef.current?.(sel, square);
+          if (accepted !== false) {
+            setMsg('');
+          }
+        }, 200);
       } else {
         if (piece && piece.color === 'w') {
           selectedSquareRef.current = square;
@@ -741,7 +749,14 @@ function InlineChessBoard({
         if (start && targetSquare !== start) {
           selectedSquareRef.current = null;
           setSelectedSquare(null);
-          onMoveRef.current?.(start, targetSquare);
+          const movingPiece = squaresRef.current[start];
+          if (movingPiece) {
+            setPlayerAnimatingMove({ from: start, to: targetSquare, piece: movingPiece });
+          }
+          setTimeout(() => {
+            setPlayerAnimatingMove(null);
+            onMoveRef.current?.(start, targetSquare);
+          }, 200);
         }
       }
     }

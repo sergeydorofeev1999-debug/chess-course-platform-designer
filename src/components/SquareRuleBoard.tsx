@@ -544,7 +544,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
           if (ps) {
             const bk = getBlackKingMoveTowards(g2, ps);
             if (bk) {
-              const bkPiece = g2.get(bk.from);
+              const bkPiece = g2.get(bk.from as any);
               setOpponentAnimatingMove({
                 from: bk.from,
                 to: bk.to,
@@ -677,7 +677,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
           if (ps) {
             const bk = getBlackKingMoveTowards(g2, ps);
             if (bk) {
-              const bkPiece = g2.get(bk.from);
+              const bkPiece = g2.get(bk.from as any);
               setOpponentAnimatingMove({
                 from: bk.from,
                 to: bk.to,
@@ -803,7 +803,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
           if (ps) {
             const bk = getBlackKingMoveTowards(g2, ps);
             if (bk) {
-              const bkPiece = g2.get(bk.from);
+              const bkPiece = g2.get(bk.from as any);
               setOpponentAnimatingMove({
                 from: bk.from,
                 to: bk.to,
@@ -929,7 +929,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
           if (ps) {
             const bk = getBlackKingMoveTowards(g2, ps);
             if (bk) {
-              const bkPiece = g2.get(bk.from);
+              const bkPiece = g2.get(bk.from as any);
               setOpponentAnimatingMove({
                 from: bk.from,
                 to: bk.to,
@@ -1055,7 +1055,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
           if (ps) {
             const bk = getBlackKingMoveTowards(g2, ps);
             if (bk) {
-              const bkPiece = g2.get(bk.from);
+              const bkPiece = g2.get(bk.from as any);
               setOpponentAnimatingMove({
                 from: bk.from,
                 to: bk.to,

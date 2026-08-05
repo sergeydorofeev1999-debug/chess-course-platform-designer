@@ -294,17 +294,6 @@ export default function RookMateBoard({ onComplete, lessonId }: { onComplete: ()
   const mountedRef = useRef(true);
   const isAnimatingRef = useRef(false);
 
-  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{
-    from: string;
-    to: string;
-    piece: { type: string; color: 'w' | 'b' };
-  } | null>(null);
-  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{
-    from: string;
-    to: string;
-    piece: { type: string; color: 'w' | 'b' };
-  } | null>(null);
-
   const storageKey = lessonId ? `rookmate_progress_${lessonId}` : 'rookmate_progress';
 
   useEffect(() => () => { mountedRef.current = false; }, []);
@@ -443,124 +432,146 @@ export default function RookMateBoard({ onComplete, lessonId }: { onComplete: ()
         setPromotionPending({ from, to });
         return;
       }
-      const move = g.move({ from, to, promotion: promotionPiece });
+
+      // Board copy pattern: animate on original, apply copy after 200ms
+      const ng = new Chess(g.fen());
+      const move = ng.move({ from, to, promotion: promotionPiece });
       if (!move) return;
+
       setLastMove({ from, to });
+      setPlayerAnimatingMove({
+        from,
+        to,
+        piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' },
+      });
 
-      const fenAfter = g.fen();
       const nextWhiteMoves = whiteMoves + 1;
-      setGame(new Chess(fenAfter));
-      setSelectedSquare(null);
-      setMessage('');
-      setWhiteMoves(nextWhiteMoves);
-
       const ex = EXERCISES.find(e => e.id === currentExercise)!;
 
-      // Start timer on first white move in exercises with timeLimit
-      if (ex.timeLimit && !timerStarted && nextWhiteMoves === 1) {
-        setTimeLeft(ex.timeLimit);
-        setTimerStarted(true);
-        timerIntervalRef.current = setInterval(() => {
-          setTimeLeft(prev => {
-            if (prev === null || prev <= 1) {
-              // Time's up — stop timer and show fail
-              if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-              timerIntervalRef.current = null;
-              setIsStalemate(true);
-              setMessage('Провалено');
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
-      }
-
-      if (g.isCheckmate()) {
-        const earned = calcStars(ex, nextWhiteMoves);
-        setMessage(`Мат чёрному королю! ${earned} ★`);
-        setIsComplete(true);
-        saveStars(currentExercise, earned);
-        if (currentExercise === 7) onComplete();
-        return;
-      }
-
-      if (g.isStalemate()) {
-        setIsStalemate(true);
-        setMessage(ex.timeLimit ? 'Пат. Провалено.' : 'Пат. Провалено.');
-        return;
-      }
-
-      if (g.isDraw()) {
-        setMessage('Ничья! Начните заново.');
-        return;
-      }
-
-      // Black's turn — AI move
-      const delayMs = ex.matIn1 ? 1000 : 500;
       setTimeout(() => {
         if (!mountedRef.current) return;
-        const blackMove = getBlackKingMove(g);
-        if (blackMove) {
-          g.move({ from: blackMove.from, to: blackMove.to });
-        setLastMove({ from: blackMove.from, to: blackMove.to });
-          const fenAfterBlack = g.fen();
-          setGame(new Chess(fenAfterBlack));
+        setGame(new Chess(ng.fen()));
+        setSelectedSquare(null);
+        setMessage('');
+        setWhiteMoves(nextWhiteMoves);
+        setPlayerAnimatingMove(null);
 
-          // If black king captured the white rook → instant fail
-          const squaresAfterBlack = g.board();
-          let rookExists = false;
-          for (let r = 0; r < 8; r++) {
-            for (let c = 0; c < 8; c++) {
-              const p = squaresAfterBlack[r][c];
-              if (p && p.type === 'r' && p.color === 'w') {
-                rookExists = true;
+        // Start timer on first white move in exercises with timeLimit
+        if (ex.timeLimit && !timerStarted && nextWhiteMoves === 1) {
+          setTimeLeft(ex.timeLimit);
+          setTimerStarted(true);
+          timerIntervalRef.current = setInterval(() => {
+            setTimeLeft(prev => {
+              if (prev === null || prev <= 1) {
+                if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+                timerIntervalRef.current = null;
+                setIsStalemate(true);
+                setMessage('Провалено');
+                return 0;
               }
+              return prev - 1;
+            });
+          }, 1000);
+        }
+
+        if (ng.isCheckmate()) {
+          const earned = calcStars(ex, nextWhiteMoves);
+          setMessage(`Мат чёрному королю! ${earned} ★`);
+          setIsComplete(true);
+          saveStars(currentExercise, earned);
+          if (currentExercise === 7) onComplete();
+          return;
+        }
+
+        if (ng.isStalemate()) {
+          setIsStalemate(true);
+          setMessage(ex.timeLimit ? 'Пат. Провалено.' : 'Пат. Провалено.');
+          return;
+        }
+
+        if (ng.isDraw()) {
+          setMessage('Ничья! Начните заново.');
+          return;
+        }
+
+        // Black's turn — AI move after 600ms pause (total 800ms from player start)
+        const pauseMs = ex.matIn1 ? 800 : 600;
+        setTimeout(() => {
+          if (!mountedRef.current) return;
+          const blackMove = getBlackKingMove(ng);
+          if (blackMove) {
+            // Animate opponent ghost
+            const blackPiece = ng.get(blackMove.from as any);
+            setOpponentAnimatingMove({
+              from: blackMove.from,
+              to: blackMove.to,
+              piece: { type: blackPiece?.type.toUpperCase() || 'K', color: 'b' },
+            });
+            setLastMove({ from: blackMove.from, to: blackMove.to });
+
+            setTimeout(() => {
+              if (!mountedRef.current) return;
+              ng.move({ from: blackMove.from, to: blackMove.to });
+              setGame(new Chess(ng.fen()));
+              setOpponentAnimatingMove(null);
+
+              // If black king captured the white rook → instant fail
+              const squaresAfterBlack = ng.board();
+              let rookExists = false;
+              for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                  const p = squaresAfterBlack[r][c];
+                  if (p && p.type === 'r' && p.color === 'w') {
+                    rookExists = true;
+                  }
+                }
+              }
+              if (!rookExists) {
+                setIsStalemate(true);
+                setMessage('Провалено');
+                return;
+              }
+
+              if (ng.isCheckmate()) {
+                const earned = calcStars(ex, nextWhiteMoves);
+                setMessage(`Мат чёрному королю! ${earned} ★`);
+                setIsComplete(true);
+                saveStars(currentExercise, earned);
+                if (currentExercise === 7) onComplete();
+              } else if (ex.matIn1) {
+                setIsStalemate(true);
+                setMessage('Провалено');
+              } else if (ex.matIn2 && nextWhiteMoves >= 2) {
+                setIsStalemate(true);
+                setMessage('Провалено');
+              }
+              // For matIn2 with nextWhiteMoves === 1: do nothing, wait for 2nd white move
+            }, 200);
+          } else {
+            if (ng.isCheckmate()) {
+              const earned = calcStars(ex, nextWhiteMoves);
+              setMessage(`Мат чёрному королю! ${earned} ★`);
+              setIsComplete(true);
+              saveStars(currentExercise, earned);
+              if (currentExercise === 7) onComplete();
+            } else if (ng.isStalemate()) {
+              setIsStalemate(true);
+              setMessage('Пат. Провалено.');
+            } else if (ex.matIn1 || (ex.matIn2 && nextWhiteMoves >= 2)) {
+              setIsStalemate(true);
+              setMessage('Провалено');
+            } else if (ex.matIn2) {
+              // matIn2, black has no legal move after 1st white move — wait for white's 2nd move
+            } else {
+              setMessage('Ничья! Начните заново.');
             }
           }
-          if (!rookExists) {
-            setIsStalemate(true);
-            setMessage('Провалено');
-            return;
-          }
-
-          if (g.isCheckmate()) {
-            const earned = calcStars(ex, nextWhiteMoves);
-            setMessage(`Мат чёрному королю! ${earned} ★`);
-            setIsComplete(true);
-            saveStars(currentExercise, earned);
-            if (currentExercise === 7) onComplete();
-          } else if (ex.matIn1) {
-            setIsStalemate(true);
-            setMessage('Провалено');
-          } else if (ex.matIn2 && nextWhiteMoves >= 2) {
-            setIsStalemate(true);
-            setMessage('Провалено');
-          }
-          // For matIn2 with nextWhiteMoves === 1: do nothing, wait for 2nd white move
-        } else {
-          if (g.isCheckmate()) {
-            const earned = calcStars(ex, nextWhiteMoves);
-            setMessage(`Мат чёрному королю! ${earned} ★`);
-            setIsComplete(true);
-            saveStars(currentExercise, earned);
-            if (currentExercise === 7) onComplete();
-          } else if (g.isStalemate()) {
-            setIsStalemate(true);
-            setMessage('Пат. Провалено.');
-          } else if (ex.matIn1 || (ex.matIn2 && nextWhiteMoves >= 2)) {
-            setIsStalemate(true);
-            setMessage('Провалено');
-          } else if (ex.matIn2) {
-            // matIn2, black has no legal move after 1st white move — wait for white's 2nd move
-          } else {
-            setMessage('Ничья! Начните заново.');
-          }
-        }
-      }, delayMs);
+        }, pauseMs);
+      }, 200);
     } catch {
       // Invalid move
     }
-  }, [game, whiteMoves, currentExercise, saveStars, onComplete]);
+  }, [game, whiteMoves, currentExercise, saveStars, onComplete, timerStarted]);
 
   // ═══════════════════════════════════════════════════════════════
   // CLICK HANDLER
