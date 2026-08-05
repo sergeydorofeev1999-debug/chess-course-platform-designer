@@ -685,6 +685,17 @@ function InlineChessBoard({
           setPlayerAnimatingMove({ from: sel, to: square, piece: movingPiece });
         }
         setTimeout(() => {
+          // Update squares locally to remove source piece immediately
+          const currentSquares = squaresRef.current;
+          const movingPiece = currentSquares[sel];
+          if (movingPiece) {
+            const newSquares = { ...currentSquares };
+            delete newSquares[sel];
+            newSquares[square] = movingPiece;
+            setSquares(newSquares);
+            squaresRef.current = newSquares;
+          }
+          
           const accepted = onMoveRef.current?.(sel, square);
           if (accepted !== false) {
             setMsg('');
