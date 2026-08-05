@@ -685,22 +685,18 @@ function InlineChessBoard({
           setPlayerAnimatingMove({ from: sel, to: square, piece: movingPiece });
         }
         setTimeout(() => {
-          // Update squares locally to remove source piece immediately
-          const currentSquares = squaresRef.current;
-          const movingPiece = currentSquares[sel];
-          if (movingPiece) {
-            const newSquares = { ...currentSquares };
-            delete newSquares[sel];
-            newSquares[square] = movingPiece;
-            setSquares(newSquares);
-            squaresRef.current = newSquares;
-          }
-          
+          // Обновляем board локально, чтобы исходная фигура пропала
+          setSquares(prev => {
+            const next = { ...prev };
+            delete next[sel];
+            next[square] = movingPiece;
+            return next;
+          });
+          setPlayerAnimatingMove(null);
           const accepted = onMoveRef.current?.(sel, square);
           if (accepted !== false) {
             setMsg('');
           }
-          setPlayerAnimatingMove(null);
         }, 200);
       } else {
         if (piece && piece.color === 'w') {
@@ -801,8 +797,15 @@ function InlineChessBoard({
             setPlayerAnimatingMove({ from: start, to: targetSquare, piece: movingPiece });
           }
           setTimeout(() => {
-            onMoveRef.current?.(start, targetSquare);
+            // Обновляем board локально
+            setSquares(prev => {
+              const next = { ...prev };
+              delete next[start];
+              next[targetSquare] = movingPiece;
+              return next;
+            });
             setPlayerAnimatingMove(null);
+            onMoveRef.current?.(start, targetSquare);
           }, 200);
         }
       }
