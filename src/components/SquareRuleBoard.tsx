@@ -1646,6 +1646,63 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
               </div>
             )}
             </div>
+
+            {/* Player ghost */}
+            {playerAnimatingMove && (() => {
+              const fromF = FILES.indexOf(playerAnimatingMove.from[0]);
+              const fromR = DISPLAY_RANKS.indexOf(playerAnimatingMove.from[1]);
+              const toF   = FILES.indexOf(playerAnimatingMove.to[0]);
+              const toR   = DISPLAY_RANKS.indexOf(playerAnimatingMove.to[1]);
+              const x1 = fromF * sqSize;
+              const y1 = fromR * sqSize;
+              const x2 = toF   * sqSize;
+              const y2 = toR   * sqSize;
+              return (
+                <div
+                  className="absolute pointer-events-none animate-player-move"
+                  style={{
+                    left: x1,
+                    top: y1,
+                    width: sqSize,
+                    height: sqSize,
+                    zIndex: 60,
+                    '--ghost-dx': `${x2 - x1}px`,
+                    '--ghost-dy': `${y2 - y1}px`,
+                  } as React.CSSProperties}
+                >
+                  <PieceImg type={playerAnimatingMove.piece.type} color={playerAnimatingMove.piece.color} />
+                </div>
+              );
+            })()}
+
+            {/* Opponent ghost */}
+            {opponentAnimatingMove && (() => {
+              const fromF = FILES.indexOf(opponentAnimatingMove.from[0]);
+              const fromR = DISPLAY_RANKS.indexOf(opponentAnimatingMove.from[1]);
+              const toF   = FILES.indexOf(opponentAnimatingMove.to[0]);
+              const toR   = DISPLAY_RANKS.indexOf(opponentAnimatingMove.to[1]);
+              const x1 = fromF * sqSize;
+              const y1 = fromR * sqSize;
+              const x2 = toF   * sqSize;
+              const y2 = toR   * sqSize;
+              return (
+                <div
+                  className="absolute pointer-events-none animate-opponent-move"
+                  style={{
+                    left: x1,
+                    top: y1,
+                    width: sqSize,
+                    height: sqSize,
+                    zIndex: 60,
+                    '--ghost-dx': `${x2 - x1}px`,
+                    '--ghost-dy': `${y2 - y1}px`,
+                  } as React.CSSProperties}
+                >
+                  <PieceImg type={opponentAnimatingMove.piece.type} color={opponentAnimatingMove.piece.color} />
+                </div>
+              );
+            })()}
+
             {dragPiece && (
               <div className="fixed pointer-events-none z-50" style={{ left: dragPos.x - sqSize * 0.425, top: dragPos.y - sqSize * 0.425, width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
                 <PieceImg type={dragPiece.type} color={dragPiece.color} />
