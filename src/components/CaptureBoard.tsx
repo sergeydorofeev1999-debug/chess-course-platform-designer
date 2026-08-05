@@ -617,14 +617,12 @@ function InlineChessBoard({
   }, [sqSize]);
 
   useEffect(() => {
-    if (playerAnimatingMove) return; // Блокируем обновление board во время ghost анимации
     const p = parseFen(fen);
     setSquares(p.squares);
     squaresRef.current = p.squares;
-    // Reset selection when FEN changes (level switch / reset)
     selectedSquareRef.current = null;
     setSelectedSquare(null);
-  }, [fen, playerAnimatingMove]);
+  }, [fen]);
 
   useEffect(() => {
     selectedSquareRef.current = selectedSquare;
@@ -683,16 +681,15 @@ function InlineChessBoard({
         setSelectedSquare(null);
         const movingPiece = sqs[sel];
         if (movingPiece) {
-          setPlayerAnimatingMove({ from: sel, to: square, piece: movingPiece });
-        }
-        setTimeout(() => {
-          // Обновляем board локально, чтобы исходная фигура пропала
+          // Убираем фигуру с исходной клетки сразу
           setSquares(prev => {
             const next = { ...prev };
             delete next[sel];
-            next[square] = movingPiece;
             return next;
           });
+          setPlayerAnimatingMove({ from: sel, to: square, piece: movingPiece });
+        }
+        setTimeout(() => {
           setPlayerAnimatingMove(null);
           const accepted = onMoveRef.current?.(sel, square);
           if (accepted !== false) {
@@ -795,16 +792,15 @@ function InlineChessBoard({
           setSelectedSquare(null);
           const movingPiece = squaresRef.current[start];
           if (movingPiece) {
-            setPlayerAnimatingMove({ from: start, to: targetSquare, piece: movingPiece });
-          }
-          setTimeout(() => {
-            // Обновляем board локально
+            // Убираем фигуру с исходной клетки сразу
             setSquares(prev => {
               const next = { ...prev };
               delete next[start];
-              next[targetSquare] = movingPiece;
               return next;
             });
+            setPlayerAnimatingMove({ from: start, to: targetSquare, piece: movingPiece });
+          }
+          setTimeout(() => {
             setPlayerAnimatingMove(null);
             onMoveRef.current?.(start, targetSquare);
           }, 200);
