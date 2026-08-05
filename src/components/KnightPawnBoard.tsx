@@ -586,7 +586,7 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
       if (piece && piece.color === 'w') {
         selectedSquareRef.current = square;
         setSelectedSquare(square);
-        setValidSquares(getValidSquares(piece.type, square, sqs, 'w', [], enPassantRef.current));
+        setValidSquares(getPieceMoves(square, sqs, 'w', enPassantRef.current));
         return;
       }
 
