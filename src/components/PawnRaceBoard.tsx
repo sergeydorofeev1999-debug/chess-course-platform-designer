@@ -996,6 +996,9 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
               const isSource = dragPiece?.square === sq;
               const isPlayerAnimatingSource = playerAnimatingMove && sq === playerAnimatingMove.from;
               const isOpponentAnimatingSource = opponentAnimatingMove && sq === opponentAnimatingMove.from;
+              const isPlayerAnimatingTarget = playerAnimatingMove && sq === playerAnimatingMove.to;
+              const isOpponentAnimatingTarget = opponentAnimatingMove && sq === opponentAnimatingMove.to;
+              const isGhostTarget = isPlayerAnimatingTarget || isOpponentAnimatingTarget;
               const isValidMove = validMoves.includes(sq);
 
               return (
@@ -1051,7 +1054,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
                     </div>
                   )}
                   {/* Piece */}
-                  {pieceObj && !isSource && !isPlayerAnimatingSource && !isOpponentAnimatingSource && (
+                  {pieceObj && !isSource && !isPlayerAnimatingSource && !isOpponentAnimatingSource && !isGhostTarget && (
                     <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
                       <PieceImg type={pieceObj.type} color={pieceObj.color as 'w' | 'b'} />
                     </div>

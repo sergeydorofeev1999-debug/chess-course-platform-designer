@@ -885,6 +885,9 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
               const isSource = dragPiece?.square === sq;
               const isPlayerAnimatingSource = playerAnimatingMove && sq === playerAnimatingMove.from;
               const isOpponentAnimatingSource = opponentAnimatingMove && sq === opponentAnimatingMove.from;
+              const isPlayerAnimatingTarget = playerAnimatingMove && sq === playerAnimatingMove.to;
+              const isOpponentAnimatingTarget = opponentAnimatingMove && sq === opponentAnimatingMove.to;
+              const isGhostTarget = isPlayerAnimatingTarget || isOpponentAnimatingTarget;
               const isValidMove = validMoves.includes(sq);
 
               return (
