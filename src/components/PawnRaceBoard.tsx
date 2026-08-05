@@ -627,7 +627,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
       if (piece && piece.color === 'w') {
         selectedSquareRef.current = square;
         setSelectedSquare(square);
-        setValidSquares(getPieceMoves(square, sqs, 'w', enPassantRef.current));
+        setValidSquares(getPawnMoves(square, sqs, 'w', enPassantRef.current));
         return;
       }
 
