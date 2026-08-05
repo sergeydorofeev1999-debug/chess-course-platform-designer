@@ -654,8 +654,9 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
                 const sel = selectedSquare === chessSq || dragPiece?.square === chessSq;
                 const isValidMove = validMoves.includes(sq);
                 const isDragSource = dragPiece?.square === chessSq;
-                const isAnimatingSource = opponentAnimatingMove && sq === opponentAnimatingMove.from;
                 const isPlayerAnimatingSource = playerAnimatingMove && sq === playerAnimatingMove.from;
+                const isOpponentAnimatingSource = opponentAnimatingMove && sq === opponentAnimatingMove.from;
+                const isGhostTarget = (playerAnimatingMove && sq === playerAnimatingMove.to) || (opponentAnimatingMove && sq === opponentAnimatingMove.to);
 
                 return (
                   <div
@@ -720,7 +721,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
                         />
                       </div>
                     )}
-                    {pieceObj && !isDragSource && !isAnimatingSource && !isPlayerAnimatingSource && (
+                    {pieceObj && !isDragSource && !isOpponentAnimatingSource && !isPlayerAnimatingSource && !isGhostTarget && (
                       <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
                         <PieceImg type={pieceObj.type} color={pieceObj.color} />
                       </div>

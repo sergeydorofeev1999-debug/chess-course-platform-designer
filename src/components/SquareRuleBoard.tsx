@@ -1563,7 +1563,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
                   const sel = selectedSquare === sq;
                   const isValidMove = validMoves.includes(sq);
                   const isDragSource = dragPiece?.square === sq;
-                  const isAnimatingSource = (playerAnimatingMove?.from === sq) || (opponentAnimatingMove?.from === sq);
+                  const isAnimatingSource = (playerAnimatingMove?.from === sq) || (opponentAnimatingMove?.from === sq) || (playerAnimatingMove?.to === sq) || (opponentAnimatingMove?.to === sq);
                   const isSquareBorder = showSquare && squareCells.includes(sq);
                   const canInteract = ((exercise === 2 && ex2Mode !== null) || (exercise === 3 && ex3Mode !== null) || (exercise === 4 && ex4Mode !== null) || (exercise === 5 && ex5Mode !== null) || (exercise === 6 && ex6Mode !== null)) && !isComplete && !isFail && !promotionPending;
                   return (

@@ -673,8 +673,8 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
                 const isLastMove = lastMove?.from === sq || lastMove?.to === sq;
                 // Hide original piece if it's being animated from this square
                 const isAnimatingSource =
-                  (playerAnimatingMove && sq === playerAnimatingMove.from) ||
-                  (opponentAnimatingMove && sq === opponentAnimatingMove.from);
+                  (playerAnimatingMove && (sq === playerAnimatingMove.from || sq === playerAnimatingMove.to)) ||
+                  (opponentAnimatingMove && (sq === opponentAnimatingMove.from || sq === opponentAnimatingMove.to));
 
                 return (
                   <div

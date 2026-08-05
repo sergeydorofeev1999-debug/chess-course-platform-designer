@@ -305,7 +305,7 @@ export default function SimpleChessBoard({
                 )}
 
                 {/* Piece SVG — hidden while ghost animates from this square */}
-                {piece && !isPlayerAnimatingSource && (
+                {piece && !isPlayerAnimatingSource && !(opponentAnimatingMove && (square === opponentAnimatingMove.from || square === opponentAnimatingMove.to)) && (
                   <div className="w-[42px] h-[42px] relative z-0">
                     <PieceSvg type={piece.type} color={piece.color} />
                   </div>
