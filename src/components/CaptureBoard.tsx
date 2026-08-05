@@ -617,13 +617,14 @@ function InlineChessBoard({
   }, [sqSize]);
 
   useEffect(() => {
+    if (playerAnimatingMove) return; // Блокируем обновление board во время ghost анимации
     const p = parseFen(fen);
     setSquares(p.squares);
     squaresRef.current = p.squares;
     // Reset selection when FEN changes (level switch / reset)
     selectedSquareRef.current = null;
     setSelectedSquare(null);
-  }, [fen]);
+  }, [fen, playerAnimatingMove]);
 
   useEffect(() => {
     selectedSquareRef.current = selectedSquare;
