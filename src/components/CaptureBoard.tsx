@@ -511,6 +511,42 @@ function isLight(fi: number, ri: number) {
   return (fi + ri) % 2 === 0;
 }
 
+function squareToCoords(square: string, sqSize: number): { x: number; y: number } {
+  const ff = FILES.indexOf(square[0]);
+  const fr = RANKS.indexOf(square[1]);
+  return { x: ff * sqSize, y: fr * sqSize };
+}
+
+function GhostOverlay({ move, sqSize, isOpponent = false }: { move: { from: string; to: string; piece: { type: string; color: 'w' | 'b' } }; sqSize: number; isOpponent?: boolean }) {
+  const fromCoords = squareToCoords(move.from, sqSize);
+  const toCoords = squareToCoords(move.to, sqSize);
+  const dx = toCoords.x - fromCoords.x;
+  const dy = toCoords.y - fromCoords.y;
+  return (
+    <div
+      className={`absolute z-40 pointer-events-none ${isOpponent ? 'animate-opponent-move' : 'animate-player-move'}`}
+      style={{
+        width: sqSize,
+        height: sqSize,
+        left: fromCoords.x,
+        top: fromCoords.y,
+        ['--ghost-dx' as any]: `${dx}px`,
+        ['--ghost-dy' as any]: `${dy}px`,
+      }}
+    >
+      <div
+        style={{
+          width: Math.round(sqSize * 0.85),
+          height: Math.round(sqSize * 0.85),
+          margin: 'auto',
+        }}
+      >
+        <PieceImg type={move.piece.type} color={move.piece.color} />
+      </div>
+    </div>
+  );
+}
+
 /* ====== Inline Chess Board (white + black pieces, click & drag) ====== */
 function InlineChessBoard({
   fen,
@@ -909,6 +945,9 @@ function InlineChessBoard({
           >
             <PieceImg type={dragState.type} color={dragState.color as 'w' | 'b'} />
           </div>
+        )}
+        {playerAnimatingMove && (
+          <GhostOverlay move={playerAnimatingMove} sqSize={sqSize} />
         )}
         {/* Hint arrows SVG - always rendered, high visibility */}
         <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize, display: hintArrows.length > 0 ? 'block' : 'none' }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
