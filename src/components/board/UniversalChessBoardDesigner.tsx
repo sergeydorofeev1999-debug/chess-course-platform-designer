@@ -1,12 +1,47 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Chess } from 'chess.js';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const REVERSED_FILES = ['h','g','f','e','d','c','b','a'];
 const DISPLAY_RANKS = ['8','7','6','5','4','3','2','1'];
 const REVERSED_DISPLAY_RANKS = ['1','2','3','4','5','6','7','8'];
+// Utility: compare two FENs and detect piece movements using chess.js
+function diffFen(prevFen: string, nextFen: string): {
+  moved: { from: string; to: string; piece: { type: string; color: 'w' | 'b' } }[];
+  captured: string[];
+} {
+  const moved: { from: string; to: string; piece: { type: string; color: 'w' | 'b' } }[] = [];
+  const captured: string[] = [];
+
+  try {
+    const prev = new Chess(prevFen);
+    const allMoves = prev.moves({ verbose: true });
+    
+    for (const move of allMoves) {
+      const test = new Chess(prev.fen());
+      try {
+        test.move(move);
+        if (test.fen() === nextFen) {
+          moved.push({
+            from: move.from,
+            to: move.to,
+            piece: { type: move.piece.toUpperCase(), color: move.color as 'w' | 'b' },
+          });
+          break;
+        }
+      } catch {
+        // ignore invalid moves
+      }
+    }
+  } catch {
+    // ignore FEN parse errors
+  }
+
+  return { moved, captured };
+}
+
 
 const PROMOTION_PIECES = [
   { code: 'q', name: 'Ферзь' },
@@ -25,6 +60,65 @@ function PieceImg({ type, color, theme }: { type: string; color: 'w' | 'b'; them
       draggable={false}
       style={{ filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))' }}
     />
+  );
+}
+
+function GhostAnimPiece({
+  from, to, piece, sqSize, pieceTheme, isReversed = false
+}: {
+  from: string;
+  to: string;
+  piece: { type: string; color: 'w' | 'b' };
+  sqSize: number;
+  pieceTheme: string;
+  isReversed?: boolean;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  
+  const files = isReversed ? REVERSED_FILES : FILES;
+  const ranks = isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS;
+  
+  const fromF = files.indexOf(from[0]);
+  const fromR = ranks.indexOf(from[1]);
+  const toF = files.indexOf(to[0]);
+  const toR = ranks.indexOf(to[1]);
+  
+  const x1 = fromF * sqSize + (sqSize - sqSize * 0.85) / 2;
+  const y1 = fromR * sqSize + (sqSize - sqSize * 0.85) / 2;
+  const x2 = toF * sqSize + (sqSize - sqSize * 0.85) / 2;
+  const y2 = toR * sqSize + (sqSize - sqSize * 0.85) / 2;
+  
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    // Start position, no transition
+    el.style.transition = 'none';
+    el.style.left = `${x1}px`;
+    el.style.top = `${y1}px`;
+    // Force reflow so browser registers the starting position
+    void el.getBoundingClientRect();
+    // Use rAF to guarantee initial paint before starting animation
+    requestAnimationFrame(() => {
+      el.style.transition = 'left 200ms linear, top 200ms linear';
+      el.style.left = `${x2}px`;
+      el.style.top = `${y2}px`;
+    });
+  }, [from, to, sqSize, x1, y1, x2, y2]);
+  
+  return (
+    <div
+      ref={ref}
+      className="absolute pointer-events-none"
+      style={{
+        left: x1,
+        top: y1,
+        width: Math.round(sqSize * 0.85),
+        height: Math.round(sqSize * 0.85),
+        zIndex: 60,
+      }}
+    >
+      <PieceImg type={piece.type} color={piece.color} theme={pieceTheme} />
+    </div>
   );
 }
 
@@ -100,13 +194,74 @@ export default function UniversalChessBoardDesigner({
 
   // Internal fen for instant drag feedback
   const [internalFen, setInternalFen] = useState<string | null>(null);
+  
+  // Track previous FEN for auto-detecting piece movements
+  const prevFenRef = useRef<string>(fen || 'start');
+  const skipAutoAnimRef = useRef(false); // skip auto-animation after drag (internalFen already did instant move)
+  const [animatingFen, setAnimatingFen] = useState<string | null>(null); // old FEN displayed during ghost animation
+  const [autoAnimatingMoves, setAutoAnimatingMoves] = useState<{
+    from: string;
+    to: string;
+    piece: { type: string; color: 'w' | 'b' };
+    startTime: number;
+  }[]>([]);
 
   // Sync internalFen when external fen changes (new position from parent)
   useEffect(() => {
     setInternalFen(null);
   }, [fen]);
 
-  const displayFen = internalFen || fen;
+  // Reset internalFen during animations to avoid duplicate pieces
+  useEffect(() => {
+    if (playerAnimatingMove || opponentAnimatingMove) {
+      setInternalFen(null);
+    }
+  }, [playerAnimatingMove, opponentAnimatingMove]);
+
+  // Auto-detect piece movements when fen changes
+  useEffect(() => {
+    const currentFen = fen || 'start';
+    const prevFen = prevFenRef.current;
+    
+    alert('EFFECT RUNNING current=' + currentFen.substring(0, 20) + ' prev=' + prevFen.substring(0, 20));
+    
+    // Always update ref for next comparison
+    prevFenRef.current = currentFen;
+    
+    if (skipAutoAnimRef.current) {
+      skipAutoAnimRef.current = false;
+      return;
+    }
+    if (playerAnimatingMove || opponentAnimatingMove) return;
+    if (currentFen === prevFen) return;
+    if (currentFen === 'start' || prevFen === 'start') return;
+    
+    try {
+      const { moved } = diffFen(prevFen, currentFen);
+      if (moved.length > 0) {
+        alert('FOUND ' + moved.length + ' MOVES: ' + moved[0].from + '>' + moved[0].to);
+        const now = Date.now();
+        setAnimatingFen(prevFen);
+        setAutoAnimatingMoves(moved.map(m => ({
+          from: m.from,
+          to: m.to,
+          piece: m.piece,
+          startTime: now,
+        })));
+        const timeout = setTimeout(() => {
+          setAutoAnimatingMoves([]);
+          setAnimatingFen(null);
+        }, 200);
+        return () => clearTimeout(timeout);
+      } else {
+        alert('diffFen found 0 moves');
+      }
+    } catch (e) {
+      alert('diffFen ERROR: ' + e);
+    }
+  }, [fen, playerAnimatingMove, opponentAnimatingMove]);
+
+  const displayFen = animatingFen || internalFen || fen;
 
   const game = useMemo(() => {
     try { return new Chess(displayFen); } catch { return new Chess(); }
@@ -278,6 +433,7 @@ export default function UniversalChessBoardDesigner({
               const move = tempGame.move({ from: start.square, to: targetSquare });
               if (move) {
                 setInternalFen(tempGame.fen());
+                skipAutoAnimRef.current = true; // skip auto-animation for instant drag move
               }
               onMove(start.square, targetSquare);
             }
@@ -317,6 +473,10 @@ export default function UniversalChessBoardDesigner({
 
   return (
     <div className={`relative select-none ${className}`}>
+      {/* DEBUG INFO - ALWAYS VISIBLE */}
+      <div className="absolute top-0 left-0 bg-yellow-400 text-black z-[9999] text-[10px] p-1 leading-none">
+        auto:{autoAnimatingMoves.length} animFen:{animatingFen ? 'Y' : 'N'}
+      </div>
       <div
         data-board
         className="grid border-[3px] border-[#2b2b2b] rounded-sm relative"
@@ -324,6 +484,7 @@ export default function UniversalChessBoardDesigner({
           gridTemplateColumns: `repeat(8, ${sqSize}px)`,
           gridTemplateRows: `repeat(8, ${sqSize}px)`,
           touchAction: 'none',
+          backgroundColor: autoAnimatingMoves.length > 0 ? 'rgba(255,0,0,0.3)' : 'transparent',
         }}
       >
         {ranks.map((rank, ri) => (
@@ -342,8 +503,12 @@ export default function UniversalChessBoardDesigner({
             const isGhostSource = ghostAnim?.from === sq && (ghostAnim.phase === 'out' || ghostAnim.phase === 'pause');
             const isGhostTarget = ghostAnim?.to === sq && (ghostAnim.phase === 'out' || ghostAnim.phase === 'pause');
             const isPlayerAnimatingSource = playerAnimatingMove?.from === sq;
+            const isPlayerAnimatingTarget = playerAnimatingMove?.to === sq;
             const isOpponentAnimatingSource = opponentAnimatingMove?.from === sq;
-            const hidePiece = isDragSource || isGhostSource || isGhostTarget || isPlayerAnimatingSource || isOpponentAnimatingSource;
+            const isOpponentAnimatingTarget = opponentAnimatingMove?.to === sq;
+            const isAutoAnimatingSource = autoAnimatingMoves.some(m => m.from === sq);
+            const isAutoAnimatingTarget = autoAnimatingMoves.some(m => m.to === sq);
+            const hidePiece = isDragSource || isGhostSource || isGhostTarget || isPlayerAnimatingSource || isPlayerAnimatingTarget || isOpponentAnimatingSource || isOpponentAnimatingTarget || isAutoAnimatingSource || isAutoAnimatingTarget;
             const showGhostPiece = ghostAnim?.to === sq && ghostAnim.phase === 'in';
 
             return (
@@ -470,67 +635,41 @@ export default function UniversalChessBoardDesigner({
           </div>
         )}
 
-        {playerAnimatingMove && (() => {
-          const fromF = files.indexOf(playerAnimatingMove.from[0]);
-          const fromR = ranks.indexOf(playerAnimatingMove.from[1]);
-          const toF = files.indexOf(playerAnimatingMove.to[0]);
-          const toR = ranks.indexOf(playerAnimatingMove.to[1]);
-          if (fromF === -1 || fromR === -1 || toF === -1 || toR === -1) return null;
-          const x1 = fromF * sqSize;
-          const y1 = fromR * sqSize;
-          const x2 = toF * sqSize;
-          const y2 = toR * sqSize;
-          return (
-            <div
-              key={playerAnimatingMove.from + '-' + playerAnimatingMove.to}
-              className="absolute pointer-events-none animate-player-move"
-              style={{
-                left: x1,
-                top: y1,
-                width: sqSize,
-                height: sqSize,
-                zIndex: 60,
-                '--ghost-dx': `${x2 - x1}px`,
-                '--ghost-dy': `${y2 - y1}px`,
-              } as React.CSSProperties}
-            >
-              <div className="w-full h-full flex items-center justify-center" style={{ padding: Math.round(sqSize * 0.075) }}>
-                <PieceImg type={playerAnimatingMove.piece.type} color={playerAnimatingMove.piece.color} theme={pieceTheme} />
-              </div>
-            </div>
-          );
-        })()}
+        {playerAnimatingMove && (
+          <GhostAnimPiece
+            key={playerAnimatingMove.from + '-' + playerAnimatingMove.to}
+            from={playerAnimatingMove.from}
+            to={playerAnimatingMove.to}
+            piece={playerAnimatingMove.piece}
+            isReversed={isReversed}
+            sqSize={sqSize}
+            pieceTheme={pieceTheme}
+          />
+        )}
 
-        {opponentAnimatingMove && (() => {
-          const fromF = files.indexOf(opponentAnimatingMove.from[0]);
-          const fromR = ranks.indexOf(opponentAnimatingMove.from[1]);
-          const toF = files.indexOf(opponentAnimatingMove.to[0]);
-          const toR = ranks.indexOf(opponentAnimatingMove.to[1]);
-          if (fromF === -1 || fromR === -1 || toF === -1 || toR === -1) return null;
-          const x1 = fromF * sqSize;
-          const y1 = fromR * sqSize;
-          const x2 = toF * sqSize;
-          const y2 = toR * sqSize;
-          return (
-            <div
-              key={opponentAnimatingMove.from + '-' + opponentAnimatingMove.to}
-              className="absolute pointer-events-none animate-opponent-move"
-              style={{
-                left: x1,
-                top: y1,
-                width: sqSize,
-                height: sqSize,
-                zIndex: 60,
-                '--ghost-dx': `${x2 - x1}px`,
-                '--ghost-dy': `${y2 - y1}px`,
-              } as React.CSSProperties}
-            >
-              <div className="w-full h-full flex items-center justify-center" style={{ padding: Math.round(sqSize * 0.075) }}>
-                <PieceImg type={opponentAnimatingMove.piece.type} color={opponentAnimatingMove.piece.color} theme={pieceTheme} />
-              </div>
-            </div>
-          );
-        })()}
+        {opponentAnimatingMove && (
+          <GhostAnimPiece
+            key={opponentAnimatingMove.from + '-' + opponentAnimatingMove.to}
+            from={opponentAnimatingMove.from}
+            to={opponentAnimatingMove.to}
+            piece={opponentAnimatingMove.piece}
+            isReversed={isReversed}
+            sqSize={sqSize}
+            pieceTheme={pieceTheme}
+          />
+        )}
+
+        {autoAnimatingMoves.map((m, i) => (
+          <GhostAnimPiece
+            key={m.from + '-' + m.to + '-auto-' + i}
+            from={m.from}
+            to={m.to}
+            piece={m.piece}
+            isReversed={isReversed}
+            sqSize={sqSize}
+            pieceTheme={pieceTheme}
+          />
+        ))}
       </div>
 
       {dragPiece && (
@@ -569,6 +708,7 @@ export default function UniversalChessBoardDesigner({
                   const tempGame = new Chess(game.fen());
                   tempGame.move({ from: promotionPending.from, to: promotionPending.to, promotion: code });
                   setInternalFen(tempGame.fen());
+                  skipAutoAnimRef.current = true; // skip auto-animation for instant drag move
                   setPromotionPending(null);
                   onMove?.(promotionPending.from, promotionPending.to, code);
                 }
@@ -594,22 +734,7 @@ styleSheet.textContent = `
     from { opacity: 0; transform: scale(0.9); }
     to { opacity: 1; transform: scale(1); }
   }
-  @keyframes opponentMoveGhost {
-    0% { transform: translate(0, 0); }
-    100% { transform: translate(var(--ghost-dx), var(--ghost-dy)); }
-  }
-  @keyframes playerMoveGhost {
-    0% { transform: translate(0, 0); }
-    100% { transform: translate(var(--ghost-dx), var(--ghost-dy)); }
-  }
-  .animate-opponent-move {
-    animation: opponentMoveGhost 200ms linear forwards;
-    will-change: transform;
-  }
-  .animate-player-move {
-    animation: playerMoveGhost 200ms linear forwards;
-    will-change: transform;
-  }
+  /* Ghost animations use inline transition via GhostAnimPiece component */
 `;
 if (typeof document !== 'undefined') {
   document.head.appendChild(styleSheet);
