@@ -77,6 +77,8 @@ interface PointerStart {
 
 export default function UniversalChessBoardDesigner({
   fen,
+  pieces: propPieces,
+  validMoves: propValidMoves,
   isReversed = false,
   selectedSquare = null,
   autoValidMoves = false,
@@ -88,6 +90,7 @@ export default function UniversalChessBoardDesigner({
   onDragPieceChange,
   playerAnimatingMove,
   opponentAnimatingMove,
+  turn,
   interactive = true,
   customOverlays = [],
   sqSize: propSqSize,
@@ -134,6 +137,7 @@ export default function UniversalChessBoardDesigner({
   const [promotionPending, setPromotionPending] = useState<{ from: string; to: string } | null>(null);
 
   const validMoves = useMemo(() => {
+    if (propValidMoves) return propValidMoves;
     if (!autoValidMoves) return [];
     const targetSquare = selectedSquare || dragPiece?.square;
     if (!targetSquare) return [];
@@ -142,7 +146,7 @@ export default function UniversalChessBoardDesigner({
     } catch {
       return [];
     }
-  }, [game, selectedSquare, dragPiece, autoValidMoves]);
+  }, [game, selectedSquare, dragPiece, autoValidMoves, propValidMoves]);
 
   const [ghostAnim, setGhostAnim] = useState<{
     from: string;
@@ -157,6 +161,11 @@ export default function UniversalChessBoardDesigner({
   const ranks = isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS;
 
   const getPieceAt = useCallback((sq: string) => {
+    if (propPieces) {
+      const p = propPieces[sq];
+      if (!p) return null;
+      return { type: p.type.toUpperCase(), color: p.color };
+    }
     try {
       const p = game.get(sq as any);
       if (!p) return null;
@@ -164,7 +173,7 @@ export default function UniversalChessBoardDesigner({
     } catch {
       return null;
     }
-  }, [game]);
+  }, [game, propPieces]);
 
   const isLight = (fi: number, ri: number) => (fi + ri) % 2 === 0;
 
@@ -210,7 +219,7 @@ export default function UniversalChessBoardDesigner({
     const piece = getPieceAt(square);
     if (!piece) return;
     // Only allow dragging pieces of the side to move
-    if (piece.color !== game.turn()) return;
+    if (piece.color !== (turn || game.turn())) return;
     if (e.pointerType === 'touch' && !(e as any).isPrimary) return;
 
     pointerStartRef.current = {
@@ -260,13 +269,18 @@ export default function UniversalChessBoardDesigner({
           if (isPromotion) {
             setPromotionPending({ from: start.square, to: targetSquare });
           } else {
-            // Instant visual update: apply move internally first
-            const tempGame = new Chess(game.fen());
-            const move = tempGame.move({ from: start.square, to: targetSquare });
-            if (move) {
-              setInternalFen(tempGame.fen());
+            if (propPieces) {
+              // Custom engine: just notify, no internal Chess.js update
+              onMove(start.square, targetSquare);
+            } else {
+              // Instant visual update: apply move internally first
+              const tempGame = new Chess(game.fen());
+              const move = tempGame.move({ from: start.square, to: targetSquare });
+              if (move) {
+                setInternalFen(tempGame.fen());
+              }
+              onMove(start.square, targetSquare);
             }
-            onMove(start.square, targetSquare);
           }
         }
       }
@@ -546,12 +560,18 @@ export default function UniversalChessBoardDesigner({
               key={code}
               className="w-10 h-10 flex items-center justify-center hover:bg-[#333] rounded transition-colors"
               onClick={() => {
-                // Apply internally for instant visual
-                const tempGame = new Chess(game.fen());
-                tempGame.move({ from: promotionPending.from, to: promotionPending.to, promotion: code });
-                setInternalFen(tempGame.fen());
-                setPromotionPending(null);
-                onMove?.(promotionPending.from, promotionPending.to, code);
+                if (propPieces) {
+                  // Custom engine: just notify
+                  setPromotionPending(null);
+                  onMove?.(promotionPending.from, promotionPending.to, code);
+                } else {
+                  // Apply internally for instant visual
+                  const tempGame = new Chess(game.fen());
+                  tempGame.move({ from: promotionPending.from, to: promotionPending.to, promotion: code });
+                  setInternalFen(tempGame.fen());
+                  setPromotionPending(null);
+                  onMove?.(promotionPending.from, promotionPending.to, code);
+                }
               }}
             >
               <img
