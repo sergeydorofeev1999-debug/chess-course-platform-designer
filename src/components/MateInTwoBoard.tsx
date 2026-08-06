@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef, useLayoutEffect } from 'react';
 import { Chess } from 'chess.js';
 import { RotateCcw, Trophy, Eye } from 'lucide-react';
+import UniversalChessBoardDesigner from './board/UniversalChessBoardDesigner';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const REVERSED_FILES = ['h','g','f','e','d','c','b','a'];
@@ -69,36 +70,6 @@ const SECOND_HINTS: Record<number, { from: string; to: string }[]> = {
   8: [{ from: 'c8', to: 'f8' }],
 };
 
-function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
-  const pieceKey = `${color}${type.toUpperCase()}`;
-  return (
-    <div
-      className="w-full h-full"
-      style={{
-        backgroundImage: `url(/pieces/cburnett/${pieceKey}.svg)`,
-        backgroundSize: 'contain',
-        backgroundRepeat: 'no-repeat',
-        backgroundPosition: 'center',
-        filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))',
-      }}
-    />
-  );
-}
-
-interface DragState {
-  square: string;
-  type: string;
-  color: 'w' | 'b';
-}
-
-interface PointerStart {
-  x: number;
-  y: number;
-  square: string;
-  moved: boolean;
-  pointerId: number;
-}
-
 export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: () => void; lessonId?: string }) {
   const [exercise, setExercise] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7 | 8>(1);
   const [game, setGame] = useState<Chess | null>(null);
@@ -115,16 +86,11 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
   const isFailRef = useRef(false);
   const mountedRef = useRef(true);
   const gameRef = useRef<Chess | null>(null);
-  useEffect(() => { gameRef.current = game; }, [game]);
-
-  const initialColorRef = useRef<'w' | 'b'>('w');
 
   const [stage, setStage] = useState<'first' | 'after_computer' | 'complete' | 'fail'>('first');
+  const [dragPiece, setDragPiece] = useState<{ square: string; type: string; color: 'w' | 'b' } | null>(null);
 
-  const [dragPiece, setDragPiece] = useState<DragState | null>(null);
-  const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
-  const pointerStartRef = useRef<PointerStart | null>(null);
-  const [promotionPending, setPromotionPending] = useState<{from: string; to: string} | null>(null);
+  const initialColorRef = useRef<'w' | 'b'>('w');
 
   // Animation for opponent move
   const [animatingMove, setAnimatingMove] = useState<{
@@ -223,28 +189,53 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
   }, [isComplete, exercise, switchExercise]);
 
   // ──── MATE IN 2 LOGIC ────
-  const applyMove = useCallback((from: string, to: string, promotionPiece?: string) => {
+  const applyMove = useCallback((from: string, to: string, promotionPiece?: string, skipAnimation?: boolean) => {
     if (!game) return;
     setHintVisible(false);
     const g = game;
     const keyMove = EXERCISE_KEYS[exercise];
 
     // ── PROMOTION CHECK ──
-    const piece = g.get(from as any);
-    const isPromotion = piece?.type === 'p' && (to[1] === '8' || to[1] === '1');
-    if (isPromotion && !promotionPiece) {
-      setPromotionPending({ from, to });
-      return;
-    }
-
     try {
-      const ng = new Chess(g.fen());
-      const move = ng.move({ from, to, promotion: promotionPiece });
-      if (!move) return;
-      setPromotionPending(null);
-
       if (stage === 'first') {
         if (from === keyMove.from && to === keyMove.to) {
+          const ng = new Chess(g.fen());
+          const move = ng.move({ from, to, promotion: promotionPiece });
+          if (!move) return;
+
+          if (skipAnimation) {
+            setLastMove({ from, to });
+            setSelectedSquare(null);
+            setMessage('Отличный ход! Продолжайте!');
+            setIsFail(false);
+            setStage('after_computer');
+            setGame(ng);
+
+            // Opponent move after small delay with ghost animation
+            setTimeout(() => {
+              if (!mountedRef.current) return;
+              const cg = new Chess(ng.fen());
+              const compMoves = cg.moves({ verbose: true });
+              if (compMoves.length > 0) {
+                const compMove = compMoves[0];
+                const compMovedPiece = cg.get(compMove.from);
+                setAnimatingMove({
+                  from: compMove.from,
+                  to: compMove.to,
+                  piece: { type: compMovedPiece?.type.toUpperCase() || '', color: compMovedPiece?.color as 'w' | 'b' || 'b' },
+                });
+                setLastMove({ from: compMove.from, to: compMove.to });
+                setTimeout(() => {
+                  cg.move(compMove);
+                  setGame(new Chess(cg.fen()));
+                  setAnimatingMove(null);
+                  setMessage('Найдите мат!');
+                }, 200);
+              }
+            }, 600);
+            return;
+          }
+
           const piece = g.get(from as any);
           setPlayerAnimatingMove({
             from,
@@ -289,31 +280,119 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
           }, 800);
           return;
         } else {
-          setGame(new Chess(g.fen()));
+          const ng = new Chess(g.fen());
+          ng.move({ from, to, promotion: promotionPiece });
+
+          if (skipAnimation) {
+            setLastMove({ from, to });
+            setSelectedSquare(null);
+            setGame(ng);
+            setIsFail(true);
+            setStage('fail');
+            setMessage('Неправильно. Попробуйте найти ключевой ход!');
+            return;
+          }
+
+          const piece = g.get(from as any);
+          setPlayerAnimatingMove({
+            from,
+            to,
+            piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' },
+          });
+          setLastMove({ from, to });
           setSelectedSquare(null);
-          setIsFail(true);
-          setStage('fail');
-          setMessage('Неправильно. Попробуйте найти ключевой ход!');
+
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            setGame(ng);
+            setPlayerAnimatingMove(null);
+          }, 200);
+
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            setIsFail(true);
+            setStage('fail');
+            setMessage('Неправильно. Попробуйте найти ключевой ход!');
+          }, 500);
           return;
         }
       }
 
       if (stage === 'after_computer') {
-        if (g.isCheckmate()) {
-          setGame(new Chess(g.fen()));
+        // Test move first without changing game state
+        const testGame = new Chess(g.fen());
+        const testMove = testGame.move({ from, to, promotion: promotionPiece });
+        if (!testMove) return;
+
+        if (testGame.isCheckmate()) {
+          if (skipAnimation) {
+            setLastMove({ from, to });
+            setSelectedSquare(null);
+            setMessage('Браво! Мат в 2 хода!');
+            setIsComplete(true);
+            setStage('complete');
+            saveStars(exercise, 3);
+            if (exercise === 8) onComplete();
+            setGame(testGame);
+            return;
+          }
+
+          const piece = g.get(from as any);
+          setPlayerAnimatingMove({
+            from,
+            to,
+            piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' },
+          });
+          setLastMove({ from, to });
           setSelectedSquare(null);
+          setMessage('Браво! Мат в 2 хода!');
           setIsComplete(true);
           setStage('complete');
-          setMessage('Браво! Мат в 2 хода!');
           saveStars(exercise, 3);
           if (exercise === 8) onComplete();
+
+          // Update board + remove player ghost after 200ms
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            setGame(testGame);
+            setPlayerAnimatingMove(null);
+          }, 200);
           return;
         } else {
-          setGame(new Chess(g.fen()));
+          const ng = new Chess(g.fen());
+          ng.move({ from, to, promotion: promotionPiece });
+
+          if (skipAnimation) {
+            // setLastMove({ from, to }); // NO lastMove highlight for instant drag
+            setSelectedSquare(null);
+            setGame(ng);
+            setIsFail(true);
+            setStage('fail');
+            setMessage('Это не мат. Попробуйте найти мат!');
+            return;
+          }
+
+          const piece = g.get(from as any);
+          setPlayerAnimatingMove({
+            from,
+            to,
+            piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' },
+          });
+          setLastMove({ from, to });
           setSelectedSquare(null);
-          setIsFail(true);
-          setStage('fail');
-          setMessage('Это не мат. Попробуйте найти мат!');
+
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            setGame(ng);
+            setPlayerAnimatingMove(null);
+          }, 200);
+
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            setIsFail(true);
+            setStage('fail');
+            setMessage('Это не мат. Попробуйте найти мат!');
+          }, 500);
           return;
         }
       }
@@ -341,72 +420,6 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
       }
     }
   }, [game, selectedSquare, applyMove]);
-
-  // ──── DRAG & DROP ────
-  const handlePointerDown = useCallback((e: React.PointerEvent, square: string) => {
-    if (isCompleteRef.current || isFailRef.current) return;
-    if (!game) return;
-    const piece = game.get(square as any);
-    if (!piece || piece.color !== game.turn()) return;
-    if (e.pointerType === 'touch' && !(e as any).isPrimary) return;
-
-    pointerStartRef.current = { x: e.clientX, y: e.clientY, square, moved: false, pointerId: e.pointerId };
-  }, [game]);
-
-  useEffect(() => {
-    const handleGlobalMove = (e: PointerEvent) => {
-      const start = pointerStartRef.current;
-      if (!start) return;
-      if (e.pointerId !== start.pointerId) return;
-      const dx = e.clientX - start.x;
-      const dy = e.clientY - start.y;
-      if (!start.moved && (Math.abs(dx) > 20 || Math.abs(dy) > 20)) {
-        start.moved = true;
-        const piece = game?.get(start.square as any);
-        if (piece) {
-          setDragPiece({ square: start.square, type: piece.type.toUpperCase(), color: piece.color as 'w' | 'b' });
-          setSelectedSquare(null);
-        }
-      }
-      if (start.moved) {
-        setDragPos({ x: e.clientX, y: e.clientY });
-      }
-    };
-
-    const handleGlobalUp = (e: PointerEvent) => {
-      const start = pointerStartRef.current;
-      if (!start) return;
-      if (e.pointerId !== start.pointerId) return;
-      if (!start.moved) {
-        // click handled by onClick
-      } else {
-        const el = document.elementFromPoint(e.clientX, e.clientY);
-        const cell = el?.closest('[data-square]') as HTMLElement | null;
-        const targetSquare = cell?.dataset.square || null;
-        if (targetSquare && targetSquare !== start.square) {
-          applyMove(start.square, targetSquare);
-        }
-        setDragPiece(null);
-      }
-      pointerStartRef.current = null;
-    };
-
-    const handleGlobalCancel = (e: PointerEvent) => {
-      if (pointerStartRef.current && e.pointerId === pointerStartRef.current.pointerId) {
-        setDragPiece(null);
-        pointerStartRef.current = null;
-      }
-    };
-
-    window.addEventListener('pointermove', handleGlobalMove);
-    window.addEventListener('pointerup', handleGlobalUp);
-    window.addEventListener('pointercancel', handleGlobalCancel);
-    return () => {
-      window.removeEventListener('pointermove', handleGlobalMove);
-      window.removeEventListener('pointerup', handleGlobalUp);
-      window.removeEventListener('pointercancel', handleGlobalCancel);
-    };
-  }, [game, applyMove]);
 
   // ──── HELPERS ────
   const getPieceAt = (sq: string) => {
@@ -554,160 +567,21 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
         )}
 
         {/* Board */}
-        <div className="flex justify-center w-full relative">
-          <div
-            data-board
-            className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none"
-            style={{
-              gridTemplateColumns: `repeat(8, ${sqSize}px)`,
-              gridTemplateRows: `repeat(8, ${sqSize}px)`,
-              touchAction: 'none',
-            }}
-          >
-            {(exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7 ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).map((rank, ri) => (
-              (exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7 ? REVERSED_FILES : FILES).map((file, fi) => {
-                const sq = `${file}${rank}`;
-                const pieceObj = getPieceAt(sq);
-                const light = isLight(exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7 ? 7-fi : fi, exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7 ? 7-ri : ri);
-                const sel = selectedSquare === sq || dragPiece?.square === sq;
-                const isValidMove = validMoves.includes(sq);
-                const isDragSource = dragPiece?.square === sq;
-
-                return (
-                  <div
-                    key={sq}
-                    data-square={sq}
-                    className="flex items-center justify-center relative select-none"
-                    style={{
-                      width: sqSize,
-                      height: sqSize,
-                      cursor: pieceObj && pieceObj.color === game?.turn() && !isFail && !isComplete ? 'grab' : 'default',
-                      touchAction: 'none',
-                      backgroundColor: light ? 'var(--square-light)' : 'var(--square-dark)',
-                      opacity: isDragSource ? 0.3 : 1,
-                    }}
-                    onClick={() => handleSquareClick(sq)}
-                    onPointerDown={(e) => handlePointerDown(e, sq)}
-                    onDragStart={(e) => e.preventDefault()}
-                  >
-                    {sel && (
-                      <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
-                    )}
-                    {lastMove && sq === lastMove.from && (
-                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
-                    )}
-                    {lastMove && sq === lastMove.to && (
-                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.70)] pointer-events-none z-[5]" />
-                    )}
-
-                    {fi === 0 && (
-                      <span className={`absolute top-0.5 left-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>
-                        {rank}
-                      </span>
-                    )}
-                    {ri === 7 && (
-                      <span className={`absolute bottom-0.5 right-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>
-                        {file}
-                      </span>
-                    )}
-                    {isValidMove && !pieceObj && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                        <div
-                          style={{ 
-                            width: Math.round(sqSize * 0.3), 
-                            height: Math.round(sqSize * 0.3), 
-                            backgroundColor: 'var(--square-valid)', 
-                            borderRadius: '50%', 
-                            opacity: 0.85, 
-                          }}
-                        />
-                      </div>
-                    )}
-                    {isValidMove && pieceObj && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 50 }}>
-                        <div
-                          style={{ 
-                            width: sqSize, 
-                            height: sqSize, 
-                            borderRadius: '50%', 
-                            border: '4px solid var(--square-valid)', 
-                            boxSizing: 'border-box', 
-                          }}
-                        />
-                      </div>
-                    )}
-                    {pieceObj && !isDragSource && !(animatingMove && sq === animatingMove.from) && !(playerAnimatingMove && sq === playerAnimatingMove.from) && (
-                      <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
-                        <PieceImg type={pieceObj.type} color={pieceObj.color} />
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-            ))}
-            {/* Opponent move ghost piece */}
-            {animatingMove && (() => {
-              const isReversed = exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7;
-              const fromF = (isReversed ? REVERSED_FILES : FILES).indexOf(animatingMove.from[0]);
-              const fromR = (isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).indexOf(animatingMove.from[1]);
-              const toF = (isReversed ? REVERSED_FILES : FILES).indexOf(animatingMove.to[0]);
-              const toR = (isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).indexOf(animatingMove.to[1]);
-              const x1 = fromF * sqSize;
-              const y1 = fromR * sqSize;
-              const x2 = toF * sqSize;
-              const y2 = toR * sqSize;
-              return (
-                <div
-                  ref={ghostRef}
-                  key={animatingMove.from + '-' + animatingMove.to}
-                  className="absolute pointer-events-none animate-opponent-move"
-                  style={{
-                    left: x1,
-                    top: y1,
-                    width: sqSize,
-                    height: sqSize,
-                    zIndex: 60,
-                    '--ghost-dx': `${x2 - x1}px`,
-                    '--ghost-dy': `${y2 - y1}px`,
-                  } as React.CSSProperties}
-                >
-                  <div className="w-full h-full flex items-center justify-center" style={{ padding: Math.round(sqSize * 0.075) }}>
-                    <PieceImg type={animatingMove.piece.type} color={animatingMove.piece.color} />
-                  </div>
-                </div>
-              );
-            })()}
-            {/* Player move ghost piece */}
-            {playerAnimatingMove && (() => {
-              const isReversed = exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7;
-              const fromF = (isReversed ? REVERSED_FILES : FILES).indexOf(playerAnimatingMove.from[0]);
-              const fromR = (isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).indexOf(playerAnimatingMove.from[1]);
-              const toF = (isReversed ? REVERSED_FILES : FILES).indexOf(playerAnimatingMove.to[0]);
-              const toR = (isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).indexOf(playerAnimatingMove.to[1]);
-              const x1 = fromF * sqSize;
-              const y1 = fromR * sqSize;
-              const x2 = toF * sqSize;
-              const y2 = toR * sqSize;
-              return (
-                <div
-                  key={playerAnimatingMove.from + '-' + playerAnimatingMove.to}
-                  className="absolute pointer-events-none animate-player-move"
-                  style={{
-                    left: x1,
-                    top: y1,
-                    width: sqSize,
-                    height: sqSize,
-                    zIndex: 60,
-                    '--ghost-dx': `${x2 - x1}px`,
-                    '--ghost-dy': `${y2 - y1}px`,
-                  } as React.CSSProperties}
-                >
-                  <div className="w-full h-full flex items-center justify-center" style={{ padding: Math.round(sqSize * 0.075) }}>
-                    <PieceImg type={playerAnimatingMove.piece.type} color={playerAnimatingMove.piece.color} />
-                  </div>
-                </div>
-              );
-            })()}
+        <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
+          <UniversalChessBoardDesigner
+            fen={game.fen()}
+            isReversed={exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7}
+            selectedSquare={selectedSquare}
+            autoValidMoves={true}
+            lastMove={lastMove}
+            onSquareClick={handleSquareClick}
+            onMove={(from, to, promotion) => applyMove(from, to, promotion, true)}
+            onDragPieceChange={(piece) => setDragPiece(piece ? { square: piece.square, type: piece.type, color: piece.color } : null)}
+            playerAnimatingMove={playerAnimatingMove || null}
+            opponentAnimatingMove={animatingMove || null}
+            interactive={!isComplete && !isFail}
+            sqSize={sqSize}
+          />
           {/* Hint arrows SVG overlay */}
           {hintVisible && !isFail && !isComplete && !selectedSquare && !dragPiece && (
             (() => {
@@ -757,71 +631,6 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
                 </svg>
               );
             })()
-          )}
-          {promotionPending && (
-            <div className="absolute z-50 pointer-events-auto" style={{
-              left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
-              top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
-              width: sqSize,
-              height: 4 * sqSize,
-              backgroundColor: '#2C241B',
-              borderRadius: '0px',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
-            }}>
-              {PROMOTION_PIECES.map(({ code, name }) => (
-                <button
-                  key={code}
-                  onClick={() => { setPromotionPending(null); applyMove(promotionPending.from, promotionPending.to, code); }}
-                  className="w-full aspect-square flex items-center justify-center transition-all duration-150"
-                  style={{
-                    backgroundColor: 'transparent',
-                    border: '2px solid transparent',
-                    borderRadius: '0px',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
-                    e.currentTarget.style.borderColor = '#C9A84C';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.borderColor = 'transparent';
-                  }}
-                  onMouseDown={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.25)';
-                  }}
-                  onMouseUp={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
-                  }}
-                  title={name}
-                >
-                  <img
-                    src={`/pieces/cburnett/${promotionPending.from[1] === '2' ? 'b' : 'w'}${code.toUpperCase()}.svg`}
-                    alt={name}
-                    draggable={false}
-                    style={{ width: '70%', height: '70%', objectFit: 'contain' }}
-                  />
-                </button>
-              ))}
-            </div>
-          )}
-          </div>
-          {dragPiece && (
-            <div
-              className="fixed pointer-events-none z-50"
-              style={{
-                left: dragPos.x - sqSize * 0.425,
-                top: dragPos.y - sqSize * 0.425,
-                width: Math.round(sqSize * 0.85),
-                height: Math.round(sqSize * 0.85),
-              }}
-            >
-              <PieceImg type={dragPiece.type} color={dragPiece.color} />
-            </div>
           )}
         </div>
 

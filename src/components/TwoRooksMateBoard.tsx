@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
 import { RotateCcw, Eye, Trophy } from 'lucide-react';
+import UniversalChessBoardDesigner from './board/UniversalChessBoardDesigner';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const RANKS = ['8','7','6','5','4','3','2','1'];
@@ -163,33 +164,6 @@ function squareToCoords(square: string, sqSize: number): { x: number; y: number 
   const ff = FILES.indexOf(square[0]);
   const fr = RANKS.indexOf(square[1]);
   return { x: ff * sqSize, y: fr * sqSize };
-}
-
-function GhostOverlay({ from, to, piece, sqSize, className }: {
-  from: string;
-  to: string;
-  piece: { type: string; color: 'w' | 'b' };
-  sqSize: number;
-  className: string;
-}) {
-  const fromCoords = squareToCoords(from, sqSize);
-  const toCoords = squareToCoords(to, sqSize);
-  return (
-    <div
-      className={`absolute pointer-events-none ${className}`}
-      style={{
-        left: fromCoords.x,
-        top: fromCoords.y,
-        width: sqSize,
-        height: sqSize,
-        zIndex: 60,
-        '--ghost-dx': `${toCoords.x - fromCoords.x}px`,
-        '--ghost-dy': `${toCoords.y - fromCoords.y}px`,
-      } as React.CSSProperties}
-    >
-      <PieceImg type={piece.type} color={piece.color} />
-    </div>
-  );
 }
 
 function getBlackKingMove(game: Chess): { from: string; to: string } | null {
@@ -847,168 +821,20 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
         )}
 
         {/* Board */}
-        <div className="flex justify-center w-full relative">
-          <div
-            className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none"
-            style={{
-              gridTemplateColumns: `repeat(8, ${sqSize}px)`,
-              gridTemplateRows: `repeat(8, ${sqSize}px)`,
-              touchAction: 'none',
-            }}
-          >
-            {DISPLAY_RANKS.map((rank, ri) => (
-              FILES.map((file, fi) => {
-                const sq = `${file}${rank}`;
-                const pieceObj = getPieceAt(sq);
-                const light = isLight(fi, ri);
-                const sel = selectedSquare === sq;
-                const isValidMove = validMoves.includes(sq);
-                const isDragSource = dragPiece?.square === sq;
-
-                return (
-                  <div
-                    key={sq}
-                    data-square={sq}
-                    className="flex items-center justify-center relative select-none"
-                    style={{
-                      width: sqSize,
-                      height: sqSize,
-                      cursor: pieceObj && pieceObj.color === 'w' && !demoMode && !isComplete ? 'grab' : 'default',
-                      touchAction: 'none',
-                      backgroundColor: light ? 'var(--square-light)' : 'var(--square-dark)',
-                      opacity: isDragSource ? 0.3 : 1,
-                    }}
-                    onClick={() => handleSquareClick(sq)}
-                    onPointerDown={(e) => handlePointerDown(e, sq)}
-                    onDragStart={(e) => e.preventDefault()}
-                  >
-                    {sel && (
-                      <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
-                    )}
-                    {lastMove && sq === lastMove.from && (
-                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
-                    )}
-                    {lastMove && sq === lastMove.to && (
-                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.70)] pointer-events-none z-[5]" />
-                    )}
-
-                    {fi === 0 && (
-                      <span className={`absolute top-0.5 left-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>
-                        {rank}
-                      </span>
-                    )}
-                    {ri === 7 && (
-                      <span className={`absolute bottom-0.5 right-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>
-                        {file}
-                      </span>
-                    )}
-                    {isValidMove && !pieceObj && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                        <div
-                          style={{
-                            width: Math.round(sqSize * 0.3),
-                            height: Math.round(sqSize * 0.3),
-                            backgroundColor: 'var(--square-valid)',
-                            borderRadius: '50%',
-                            opacity: 0.85,
-                          }}
-                        />
-                      </div>
-                    )}
-                    {isValidMove && pieceObj && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 50 }}>
-                        <div
-                          style={{
-                            width: sqSize,
-                            height: sqSize,
-                            borderRadius: '50%',
-                            border: '4px solid var(--square-valid)',
-                            boxSizing: 'border-box',
-                          }}
-                        />
-                      </div>
-                    )}
-                    {pieceObj && !isDragSource && !(playerAnimatingMove && sq === playerAnimatingMove.from) && !(playerAnimatingMove && sq === playerAnimatingMove.to) && (
-                      <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
-                        <PieceImg type={pieceObj.type} color={pieceObj.color} />
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-            ))}
-          {promotionPending && (
-            <div className="absolute z-50 pointer-events-auto" style={{
-              left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
-              top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
-              width: sqSize,
-              height: 4 * sqSize,
-              backgroundColor: '#2C241B',
-              borderRadius: '0px',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
-            }}>
-              {PROMOTION_PIECES.map(({ code, name }) => (
-                <button
-                  key={code}
-                  onClick={() => handlePromotion(code)}
-                  className="w-full aspect-square flex items-center justify-center transition-all duration-150"
-                  style={{
-                    backgroundColor: 'transparent',
-                    border: '2px solid transparent',
-                    borderRadius: '0px',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
-                    e.currentTarget.style.borderColor = '#C9A84C';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.borderColor = 'transparent';
-                  }}
-                  onMouseDown={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.25)';
-                  }}
-                  onMouseUp={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
-                  }}
-                  title={name}
-                >
-                  <img
-                    src={`/pieces/cburnett/${promotionPending.from[1] === '2' ? 'b' : 'w'}${code.toUpperCase()}.svg`}
-                    alt={name}
-                    draggable={false}
-                    style={{ width: '70%', height: '70%', objectFit: 'contain' }}
-                  />
-                </button>
-              ))}
-            </div>
-          )}
-          </div>
-
-{/* Promotion panel */}
-
-
-          {/* Dragged piece overlay */}
-          {dragPiece && (
-            <div
-              className="fixed pointer-events-none z-50"
-              style={{
-                left: dragPos.x - sqSize * 0.425,
-                top: dragPos.y - sqSize * 0.425,
-                width: Math.round(sqSize * 0.85),
-                height: Math.round(sqSize * 0.85),
-              }}
-            >
-              <PieceImg type={dragPiece.type} color={dragPiece.color} />
-            </div>
-          )}
+        <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
+          <UniversalChessBoardDesigner
+            fen={game?.fen() || ''}
+            selectedSquare={selectedSquare}
+            lastMove={lastMove}
+            autoValidMoves={true}
+            onMove={(from, to) => processWhiteMove(from, to)}
+            onSquareClick={handleSquareClick}
+            playerAnimatingMove={playerAnimatingMove}
+            opponentAnimatingMove={opponentAnimatingMove}
+            interactive={!isComplete && !isStalemate && !demoMode}
+            sqSize={sqSize}
+          />
         </div>
-
         {/* Mobile exercise pills */}
         <div className="flex lg:hidden w-full items-stretch gap-[1px]">
           {EXERCISES.map((ex) => {

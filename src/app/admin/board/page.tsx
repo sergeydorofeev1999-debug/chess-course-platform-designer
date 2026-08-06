@@ -4,16 +4,27 @@ import { useEffect, useState } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import BoardEditor from '@/components/board/BoardEditor';
 
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+function getSupabase() {
+  try {
+    return createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+  } catch {
+    return null;
+  }
+}
 
 export default function BoardEditorPage() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [checked, setChecked] = useState(false);
 
   useEffect(() => {
+    const supabase = getSupabase();
+    if (!supabase) {
+      setChecked(true);
+      return;
+    }
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (!user) {
         window.location.href = '/auth';

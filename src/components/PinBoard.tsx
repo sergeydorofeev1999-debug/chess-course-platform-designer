@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
 import { RotateCcw, Trophy, Eye } from 'lucide-react';
+import UniversalChessBoardDesigner from './board/UniversalChessBoardDesigner';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const RANKS = ['8','7','6','5','4','3','2','1'];
@@ -82,39 +83,6 @@ function squareToCoords(sq: string, sqSize: number): { x: number; y: number } {
   const r = DISPLAY_RANKS.indexOf(sq[1]);
   return { x: f * sqSize, y: r * sqSize };
 }
-
-function GhostOverlay({
-  animatingMove,
-  sqSize,
-  className,
-}: {
-  animatingMove: { from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null;
-  sqSize: number;
-  className: string;
-}) {
-  if (!animatingMove) return null;
-  const fromCoords = squareToCoords(animatingMove.from, sqSize);
-  const toCoords = squareToCoords(animatingMove.to, sqSize);
-  const dx = toCoords.x - fromCoords.x;
-  const dy = toCoords.y - fromCoords.y;
-  return (
-    <div
-      className={`absolute pointer-events-none ${className}`}
-      style={{
-        left: fromCoords.x,
-        top: fromCoords.y,
-        width: sqSize,
-        height: sqSize,
-        zIndex: 60,
-        '--ghost-dx': `${dx}px`,
-        '--ghost-dy': `${dy}px`,
-      } as React.CSSProperties}
-    >
-      <PieceImg type={animatingMove.piece.type} color={animatingMove.piece.color} />
-    </div>
-  );
-}
-
 function getWhiteRookSquare(game: Chess): string | null {
   const squares = game.board();
   for (let r = 0; r < 8; r++) {
@@ -1398,220 +1366,20 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
         )}
 
         {/* Board */}
-        <div className="flex justify-center w-full relative">
-          <div
-            className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none"
-            style={{
-              gridTemplateColumns: `repeat(8, ${sqSize}px)`,
-              gridTemplateRows: `repeat(8, ${sqSize}px)`,
-              touchAction: 'none',
-            }}
-          >
-            {DISPLAY_RANKS.map((rank, ri) => (
-              FILES.map((file, fi) => {
-                const sq = `${file}${rank}`;
-                const pieceObj = getPieceAt(sq);
-                const light = isLight(fi, ri);
-                const sel = selectedSquare === sq;
-                const isValidMove = validMoves.includes(sq);
-                const isDragSource = dragPiece?.square === sq;
-
-                return (
-                  <div
-                    key={sq}
-                    data-square={sq}
-                    className="flex items-center justify-center relative select-none"
-                    style={{
-                      width: sqSize,
-                      height: sqSize,
-                      cursor: pieceObj && pieceObj.color === 'w' && !isFail && !isComplete ? 'grab' : 'default',
-                      touchAction: 'none',
-                      backgroundColor: light ? 'var(--square-light)' : 'var(--square-dark)',
-                      opacity: isDragSource ? 0.3 : 1,
-                    }}
-                    onClick={() => handleSquareClick(sq)}
-                    onPointerDown={(e) => handlePointerDown(e, sq)}
-                    onDragStart={(e) => e.preventDefault()}
-                  >
-                    {sel && (
-                      <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
-                    )}
-                    {lastMove && sq === lastMove.from && (
-                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
-                    )}
-                    {lastMove && sq === lastMove.to && (
-                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.70)] pointer-events-none z-[5]" />
-                    )}
-
-                    {fi === 0 && (
-                      <span className={`absolute top-0.5 left-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>
-                        {rank}
-                      </span>
-                    )}
-                    {ri === 7 && (
-                      <span className={`absolute bottom-0.5 right-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>
-                        {file}
-                      </span>
-                    )}
-                    {isValidMove && !pieceObj && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                        <div
-                          style={{ 
-                            width: Math.round(sqSize * 0.3), 
-                            height: Math.round(sqSize * 0.3), 
-                            backgroundColor: 'var(--square-valid)', 
-                            borderRadius: '50%', 
-                            opacity: 0.85, 
-                          }}
-                        />
-                      </div>
-                    )}
-                    {isValidMove && pieceObj && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 50 }}>
-                        <div
-                          style={{ 
-                            width: sqSize, 
-                            height: sqSize, 
-                            borderRadius: '50%', 
-                            border: '4px solid var(--square-valid)', 
-                            boxSizing: 'border-box', 
-                          }}
-                        />
-                      </div>
-                    )}
-                    {pieceObj && !isDragSource && !(playerAnimatingMove && sq === playerAnimatingMove.from) && !(playerAnimatingMove && sq === playerAnimatingMove.to) && (
-                      <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
-                        <PieceImg type={pieceObj.type} color={pieceObj.color} />
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-            ))}
-          {/* Hint arrows SVG overlay */}
-          {hintVisible && !isFail && !isComplete && !selectedSquare && !dragPiece && (
-            (() => {
-              const arrows = HINTS[exercise] || [];
-              const phaseArrows = arrows.filter(a => a.phase === whiteMoves);
-              if (phaseArrows.length === 0) return null;
-              return (
-                <svg className="absolute inset-0 pointer-events-none z-[35]" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
-                  {phaseArrows.map((arrow, i) => {
-                    const fromF = FILES.indexOf(arrow.from[0]);
-                    const fromR = RANKS.indexOf(arrow.from[1]);
-                    const toF = FILES.indexOf(arrow.to[0]);
-                    const toR = RANKS.indexOf(arrow.to[1]);
-                    const x1 = (fromF + 0.5) * sqSize;
-                    const y1 = (fromR + 0.5) * sqSize;
-                    const x2 = (toF + 0.5) * sqSize;
-                    const y2 = (toR + 0.5) * sqSize;
-                    const strokeW = sqSize < 60 ? 14 : 18;
-                    const halfW = strokeW / 2;
-                    const dx = x2 - x1;
-                    const dy = y2 - y1;
-                    const len = Math.sqrt(dx * dx + dy * dy) || 1;
-                    const headHeight = sqSize * 0.6;
-                    const headBase = strokeW * 3;
-                    const nx = -dy / len;
-                    const ny = dx / len;
-                    const blx = x1 + nx * halfW;   const bly = y1 + ny * halfW;
-                    const brx = x1 - nx * halfW;   const bry = y1 - ny * halfW;
-                    const tailX = x2 - (dx / len) * headHeight;
-                    const tailY = y2 - (dy / len) * headHeight;
-                    const tlx = tailX + nx * halfW; const tly = tailY + ny * halfW;
-                    const trx = tailX - nx * halfW; const try_ = tailY - ny * halfW;
-                    const hlx = tailX + nx * headBase / 2; const hly = tailY + ny * headBase / 2;
-                    const hrx = tailX - nx * headBase / 2; const hry = tailY - ny * headBase / 2;
-                    const cross = (brx - blx) * (-dy / len) - (bry - bly) * (-dx / len);
-                    const sweep = cross > 0 ? 1 : 0;
-                    const pathD = `M ${blx} ${bly} L ${tlx} ${tly} L ${hlx} ${hly} L ${x2} ${y2} L ${hrx} ${hry} L ${trx} ${try_} L ${brx} ${bry} A ${halfW} ${halfW} 0 1 ${sweep} ${blx} ${bly} Z`;
-                    return (
-                      <path
-                        key={i}
-                        d={pathD}
-                        fill="rgba(44, 36, 27, 0.35)"
-                        className="arrow-hint-line"
-                      />
-                    );
-                  })}
-                </svg>
-              );
-            })()
-          )}
-          {promotionPending && (
-            <div className="absolute z-50 pointer-events-auto" style={{
-              left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
-              top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
-              width: sqSize,
-              height: 4 * sqSize,
-              backgroundColor: '#2C241B',
-              borderRadius: '0px',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
-            }}>
-              {PROMOTION_PIECES.map(({ code, name }) => (
-                <button
-                  key={code}
-                  onClick={() => handlePromotion(code)}
-                  className="w-full aspect-square flex items-center justify-center transition-all duration-150"
-                  style={{
-                    backgroundColor: 'transparent',
-                    border: '2px solid transparent',
-                    borderRadius: '0px',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
-                    e.currentTarget.style.borderColor = '#C9A84C';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.borderColor = 'transparent';
-                  }}
-                  onMouseDown={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.25)';
-                  }}
-                  onMouseUp={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
-                  }}
-                  title={name}
-                >
-                  <img
-                    src={`/pieces/cburnett/${promotionPending.from[1] === '2' ? 'b' : 'w'}${code.toUpperCase()}.svg`}
-                    alt={name}
-                    draggable={false}
-                    style={{ width: '70%', height: '70%', objectFit: 'contain' }}
-                  />
-                </button>
-              ))}
-            </div>
-          )}
+        <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
+          <UniversalChessBoardDesigner
+            fen={game?.fen() || ''}
+            selectedSquare={selectedSquare}
+            lastMove={lastMove}
+            autoValidMoves={true}
+            onMove={(from, to) => processWhiteMove(from, to)}
+            onSquareClick={handleSquareClick}
+            playerAnimatingMove={playerAnimatingMove}
+            opponentAnimatingMove={opponentAnimatingMove}
+            interactive={!isComplete && !isFail}
+            sqSize={sqSize}
+          />
         </div>
-
-{/* Promotion panel */}
-
-
-          {/* Dragged piece overlay */}
-          {dragPiece && (
-            <div
-              className="fixed pointer-events-none z-50"
-              style={{
-                left: dragPos.x - sqSize * 0.425,
-                top: dragPos.y - sqSize * 0.425,
-                width: Math.round(sqSize * 0.85),
-                height: Math.round(sqSize * 0.85),
-              }}
-            >
-              <PieceImg type={dragPiece.type} color={dragPiece.color} />
-            </div>
-          )}
-        </div>
-
-
-
         {/* Mobile exercise pills — 2 rows of 6 */}
         <div className="flex lg:hidden flex-col gap-[1px] w-full">
           <div className="flex w-full items-stretch gap-[1px]">

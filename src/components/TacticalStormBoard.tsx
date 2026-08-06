@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
 import { Trophy, Zap, Timer, RotateCcw, ArrowLeft, Flame, Heart, X, Check, ChevronLeft, ChevronRight, Clock } from 'lucide-react';
+import UniversalChessBoardDesigner from './board/UniversalChessBoardDesigner';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const REVERSED_FILES = ['h','g','f','e','d','c','b','a'];
@@ -881,172 +882,20 @@ export default function TacticalStormBoard({ onComplete }: Props) {
       </div>
 
       {/* Board */}
-      <div className="flex justify-center w-full relative">
-        <div
-          data-board
-          className="grid border-[3px] border-[#2C241B] rounded-sm relative select-none"
-          style={{
-            gridTemplateColumns: `repeat(8, ${sqSize}px)`,
-            gridTemplateRows: `repeat(8, ${sqSize}px)`,
-            touchAction: 'none',
-          }}
-        >
-          {(isBlack ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).map((rank, ri) =>
-            (isBlack ? REVERSED_FILES : FILES).map((file, fi) => {
-              const sq = `${file}${rank}`;
-              const pieceObj = getPieceAt(sq);
-              const light = isLight(isBlack ? 7-fi : fi, isBlack ? 7-ri : ri);
-              const sel = selectedSquare === sq || dragPiece?.square === sq;
-              const isValidMove = validMoves.includes(sq);
-              const isDragSource = dragPiece?.square === sq;
-
-              return (
-                <div
-                  key={sq}
-                  data-square={sq}
-                  className="flex items-center justify-center relative select-none"
-                  style={{
-                    width: sqSize,
-                    height: sqSize,
-                    cursor: pieceObj && pieceObj.color === game?.turn() ? 'grab' : 'default',
-                    touchAction: 'none',
-                    backgroundColor: light ? 'var(--square-light)' : 'var(--square-dark)',
-                    opacity: isDragSource ? 0.3 : 1,
-                  }}
-                  onClick={() => handleSquareClick(sq)}
-                  onPointerDown={(e) => handlePointerDown(e, sq)}
-                  onDragStart={(e) => e.preventDefault()}
-                >
-                  {/* Selection highlight */}
-                  {sel && (
-                    <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
-                  )}
-                    {lastMove && sq === lastMove.from && (
-                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
-                    )}
-                    {lastMove && sq === lastMove.to && (
-                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.70)] pointer-events-none z-[5]" />
-                    )}
-
-
-                  {/* Coordinates */}
-                  {fi === 0 && (
-                    <span className={`absolute top-0.5 left-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>{rank}</span>
-                  )}
-                  {ri === 7 && (
-                    <span className={`absolute bottom-0.5 right-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>{file}</span>
-                  )}
-
-                  {/* Valid move indicator */}
-                  {isValidMove && !pieceObj && (
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                      <div
-                        style={{ 
-                          width: Math.round(sqSize * 0.3), 
-                          height: Math.round(sqSize * 0.3), 
-                          backgroundColor: 'var(--square-valid)', 
-                          borderRadius: '50%', 
-                          opacity: 0.85, 
-                        }}
-                      />
-                    </div>
-                  )}
-                  {isValidMove && pieceObj && (
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 50 }}>
-                      <div
-                        style={{ 
-                          width: sqSize, 
-                          height: sqSize, 
-                          borderRadius: '50%', 
-                          border: '4px solid var(--square-valid)', 
-                          boxSizing: 'border-box', 
-                        }}
-                      />
-                    </div>
-                  )}
-
-                  {/* Piece */}
-                  {pieceObj && !isDragSource && !(playerAnimatingMove && sq === playerAnimatingMove.from) && !(playerAnimatingMove && sq === playerAnimatingMove.to) && (
-                    <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
-                      <PieceImg type={pieceObj.type} color={pieceObj.color} />
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          )}
-        </div>
-
-        {/* Player ghost */}
-        {playerAnimatingMove && (() => {
-          const files = isBlack ? REVERSED_FILES : FILES;
-          const ranks = isBlack ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS;
-          const fromFi = files.indexOf(playerAnimatingMove.from[0]);
-          const fromRi = ranks.indexOf(playerAnimatingMove.from[1]);
-          const toFi = files.indexOf(playerAnimatingMove.to[0]);
-          const toRi = ranks.indexOf(playerAnimatingMove.to[1]);
-          return (
-            <div
-              className="absolute pointer-events-none z-40 animate-player-move flex items-center justify-center"
-              style={{
-                left: fromFi * sqSize,
-                top: fromRi * sqSize,
-                width: sqSize,
-                height: sqSize,
-                ['--ghost-dx' as any]: `${(toFi - fromFi) * sqSize}px`,
-                ['--ghost-dy' as any]: `${(toRi - fromRi) * sqSize}px`,
-              }}
-            >
-              <div style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
-                <PieceImg type={playerAnimatingMove.piece.type} color={playerAnimatingMove.piece.color} />
-              </div>
-            </div>
-          );
-        })()}
-
-        {/* Opponent ghost */}
-        {opponentAnimatingMove && (() => {
-          const files = isBlack ? REVERSED_FILES : FILES;
-          const ranks = isBlack ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS;
-          const fromFi = files.indexOf(opponentAnimatingMove.from[0]);
-          const fromRi = ranks.indexOf(opponentAnimatingMove.from[1]);
-          const toFi = files.indexOf(opponentAnimatingMove.to[0]);
-          const toRi = ranks.indexOf(opponentAnimatingMove.to[1]);
-          return (
-            <div
-              className="absolute pointer-events-none z-40 animate-opponent-move flex items-center justify-center"
-              style={{
-                left: fromFi * sqSize,
-                top: fromRi * sqSize,
-                width: sqSize,
-                height: sqSize,
-                ['--ghost-dx' as any]: `${(toFi - fromFi) * sqSize}px`,
-                ['--ghost-dy' as any]: `${(toRi - fromRi) * sqSize}px`,
-              }}
-            >
-              <div style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
-                <PieceImg type={opponentAnimatingMove.piece.type} color={opponentAnimatingMove.piece.color} />
-              </div>
-            </div>
-          );
-        })()}
-
-        {/* Floating dragged piece */}
-        {dragPiece && (
-          <div
-            className="fixed pointer-events-none z-50"
-            style={{
-              left: dragPos.x - Math.round(sqSize * 0.425),
-              top: dragPos.y - Math.round(sqSize * 0.425),
-              width: Math.round(sqSize * 0.85),
-              height: Math.round(sqSize * 0.85),
-            }}
-          >
-            <PieceImg type={dragPiece.type} color={dragPiece.color} size={Math.round(sqSize * 0.85)} />
-          </div>
-        )}
+      <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
+        <UniversalChessBoardDesigner
+          fen={game?.fen() || ''}
+          selectedSquare={selectedSquare}
+          lastMove={lastMove}
+          autoValidMoves={true}
+          onMove={(from, to) => processMove(from, to)}
+          onSquareClick={handleSquareClick}
+          playerAnimatingMove={playerAnimatingMove}
+          opponentAnimatingMove={opponentAnimatingMove}
+          interactive={phase === 'playing'}
+          sqSize={sqSize}
+        />
       </div>
-
       {/* Error indicators + Difficulty */}
       <div className="flex w-full justify-between items-center mt-1">
         <div className="flex gap-1">

@@ -1,9 +1,8 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useLayoutEffect } from 'react';
 import { Chess } from 'chess.js';
 import { RotateCcw, Trophy, Eye } from 'lucide-react';
-import UniversalChessBoardDesigner from './board/UniversalChessBoardDesigner';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const REVERSED_FILES = ['h','g','f','e','d','c','b','a'];
@@ -17,29 +16,24 @@ const PROMOTION_PIECES = [
   { code: 'b', name: 'Слон' },
 ];
 
-const START_FEN_1 = 'r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 1';
-const START_FEN_2 = 'r2q1rk1/4bpp1/b1p1p2p/pp2P3/3P4/2PQ4/P1BN1PPP/R2R2K1 w - - 0 1';
-const START_FEN_3 = 'r2q1rk1/pp3pp1/4p3/b2pP1N1/3n1P1P/P1NQn3/1P6/R4RK1 w - - 0 1';
+const START_FEN_1 = '3r2k1/1pp2p1p/p2r2pP/8/2n5/2Pq1PQ1/PP2R3/2K1R3 w - - 0 1';
+const START_FEN_2 = '8/p4bpk/3P1np1/qp5p/4B2P/3Q1P2/PPPR4/1K2R3 b - - 0 1';
+const START_FEN_3 = 'rnb3k1/1p3rpp/p2Q4/4p3/4P3/2N1P2q/PPP1KR2/R7 w - - 0 1';
+const START_FEN_4 = '2r1r1k1/5pp1/p1p4p/1p2P3/P1bP3q/2P2R2/1Q4PP/RB4K1 b - - 0 1';
+const START_FEN_5 = '5N2/3R4/5p1p/5k2/4n3/4r2P/6PK/8 w - - 0 1';
+const START_FEN_6 = '2r4k/8/p3Q3/1p6/4n2P/8/PP3PP1/1K1N4 b - - 0 1';
+const START_FEN_7 = '4r1k1/p1p3pp/3p1b2/2pP4/2q2P2/PP3QP1/5N1P/1RB3K1 b - - 0 1';
+const START_FEN_8 = '6k1/p1R2r1p/1p1p2pQ/3Pbp2/1P2p3/q5PP/5P1K/8 w - - 0 1';
 
-const START_FEN_4 = '2k2b1r/ppp2ppp/8/4p1B1/2P4P/5q2/PP3P2/R2R2K1 w - - 0 1';
-
-const START_FEN_5 = '8/2r1k1p1/3Npp1p/2Pq4/QP6/4P1P1/4K2P/8 w - - 0 1';
-
-const START_FEN_6 = 'r3k2r/ppp2ppp/2n5/2b1p3/3qP1P1/1PN2PR1/PB1P4/R2QK1N1 b Qkq - 0 1';
-
-const START_FEN_7 = 'r4r2/k1p5/ppQ5/1P4B1/3P4/2N5/1PP1KP2/q7 w - - 0 1';
-
-const START_FEN_8 = '6rk/6bp/6pN/8/1pp5/q1P3PP/5P2/2R1R1K1 w - - 0 1';
-
-const HINTS: Record<number, { from: string; to: string }[]> = {
-  1: [{ from: 'h5', to: 'f7' }],
-  2: [{ from: 'd3', to: 'h7' }],
-  3: [{ from: 'd3', to: 'h7' }],
-  4: [{ from: 'd1', to: 'd8' }],
-  5: [{ from: 'a4', to: 'e8' }],
-  6: [{ from: 'd4', to: 'f2' }],
-  7: [{ from: 'c6', to: 'c7' }],
-  8: [{ from: 'h6', to: 'f7' }],
+const EXERCISE_KEYS: Record<1|2|3|4|5|6|7|8, { from: string; to: string }> = {
+  1: { from: 'e2', to: 'e8' },
+  2: { from: 'a5', to: 'a2' },
+  3: { from: 'd6', to: 'd8' },
+  4: { from: 'h4', to: 'e1' },
+  5: { from: 'd7', to: 'd5' },
+  6: { from: 'e4', to: 'd2' },
+  7: { from: 'e8', to: 'e1' },
+  8: { from: 'c7', to: 'c8' },
 };
 
 const EXERCISE_FENS: Record<1|2|3|4|5|6|7|8, string> = {
@@ -53,29 +47,27 @@ const EXERCISE_FENS: Record<1|2|3|4|5|6|7|8, string> = {
   8: START_FEN_8,
 };
 
-function squareToCoords(square: string, sqSize: number): { x: number; y: number } {
-  const ff = FILES.indexOf(square[0]);
-  const fr = DISPLAY_RANKS.indexOf(square[1]);
-  return { x: ff * sqSize, y: fr * sqSize };
-}
+const HINTS: Record<number, { from: string; to: string }[]> = {
+  1: [{ from: 'e2', to: 'e8' }],
+  2: [{ from: 'a5', to: 'a2' }],
+  3: [{ from: 'd6', to: 'd8' }],
+  4: [{ from: 'h4', to: 'e1' }],
+  5: [{ from: 'd7', to: 'd5' }],
+  6: [{ from: 'e4', to: 'd2' }],
+  7: [{ from: 'e8', to: 'e1' }],
+  8: [{ from: 'c7', to: 'c8' }],
+};
 
-function StarPng({ filled, size = 14 }: { filled: boolean; size?: number }) {
-  return (
-    <img
-      src="/images/learn/star.png"
-      alt=""
-      className="shrink-0"
-      style={{
-        width: size,
-        height: size,
-        filter: filled
-          ? 'brightness(1.2) drop-shadow(0 0 1px rgba(255,255,255,0.6))'
-          : 'grayscale(100%) brightness(0.4)',
-      }}
-      draggable={false}
-    />
-  );
-}
+const SECOND_HINTS: Record<number, { from: string; to: string }[]> = {
+  1: [{ from: 'e1', to: 'e8' }],
+  2: [{ from: 'a2', to: 'a1' }],
+  3: [{ from: 'd8', to: 'f8' }],
+  4: [{ from: 'e1', to: 'f1' }],
+  5: [{ from: 'f8', to: 'g6' }],
+  6: [{ from: 'c8', to: 'c1' }],
+  7: [{ from: 'c4', to: 'f1' }],
+  8: [{ from: 'c8', to: 'f8' }],
+};
 
 function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
   const pieceKey = `${color}${type.toUpperCase()}`;
@@ -93,33 +85,6 @@ function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
   );
 }
 
-function GhostOverlay({ from, to, piece, sqSize, className }: {
-  from: string;
-  to: string;
-  piece: { type: string; color: 'w' | 'b' };
-  sqSize: number;
-  className: string;
-}) {
-  const fromCoords = squareToCoords(from, sqSize);
-  const toCoords = squareToCoords(to, sqSize);
-  return (
-    <div
-      className={`absolute pointer-events-none ${className}`}
-      style={{
-        left: fromCoords.x,
-        top: fromCoords.y,
-        width: sqSize,
-        height: sqSize,
-        zIndex: 60,
-        '--ghost-dx': `${toCoords.x - fromCoords.x}px`,
-        '--ghost-dy': `${toCoords.y - fromCoords.y}px`,
-      } as React.CSSProperties}
-    >
-      <PieceImg type={piece.type} color={piece.color} />
-    </div>
-  );
-}
-
 interface DragState {
   square: string;
   type: string;
@@ -134,7 +99,7 @@ interface PointerStart {
   pointerId: number;
 }
 
-export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: () => void; lessonId?: string }) {
+export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: () => void; lessonId?: string }) {
   const [exercise, setExercise] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7 | 8>(1);
   const [game, setGame] = useState<Chess | null>(null);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
@@ -145,19 +110,36 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
   const [hintVisible, setHintVisible] = useState(false);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
-  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
-  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
 
   const isCompleteRef = useRef(false);
   const isFailRef = useRef(false);
   const mountedRef = useRef(true);
+  const gameRef = useRef<Chess | null>(null);
+  useEffect(() => { gameRef.current = game; }, [game]);
+
+  const initialColorRef = useRef<'w' | 'b'>('w');
+
+  const [stage, setStage] = useState<'first' | 'after_computer' | 'complete' | 'fail'>('first');
 
   const [dragPiece, setDragPiece] = useState<DragState | null>(null);
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const pointerStartRef = useRef<PointerStart | null>(null);
   const [promotionPending, setPromotionPending] = useState<{from: string; to: string} | null>(null);
 
-  const storageKey = lessonId ? `mateinone_progress_${lessonId}` : 'mateinone_progress';
+  // Animation for opponent move
+  const [animatingMove, setAnimatingMove] = useState<{
+    from: string;
+    to: string;
+    piece: { type: string; color: 'w' | 'b' };
+  } | null>(null);
+  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{
+    from: string;
+    to: string;
+    piece: { type: string; color: 'w' | 'b' };
+  } | null>(null);
+  const ghostRef = useRef<HTMLDivElement | null>(null);
+
+  const storageKey = lessonId ? `mateintwo_progress_${lessonId}` : 'mateintwo_progress';
 
   useEffect(() => () => { mountedRef.current = false; }, []);
   useEffect(() => { isCompleteRef.current = isComplete; }, [isComplete]);
@@ -190,17 +172,17 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
   }, []);
 
   const reset = useCallback(() => {
-    setGame(new Chess(EXERCISE_FENS[exercise]));
+    const g = new Chess(EXERCISE_FENS[exercise]);
+    setGame(g);
+    initialColorRef.current = g.turn();
     setSelectedSquare(null);
     setMessage('');
     setLastMove(null);
     setHintVisible(false);
     setIsFail(false);
     setIsComplete(false);
+    setStage('first');
     setDragPiece(null);
-    setPromotionPending(null);
-    setPlayerAnimatingMove(null);
-    setOpponentAnimatingMove(null);
   }, [exercise]);
 
   const saveStars = useCallback((ex: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8, stars: number) => {
@@ -218,24 +200,36 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
   const switchExercise = useCallback((num: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8) => {
     setExercise(num);
     setHintVisible(false);
-    setGame(new Chess(EXERCISE_FENS[num]));
+    const g = new Chess(EXERCISE_FENS[num]);
+    setGame(g);
+    initialColorRef.current = g.turn();
     setSelectedSquare(null);
     setMessage('');
     setLastMove(null);
-    setHintVisible(false);
     setIsFail(false);
     setIsComplete(false);
+    setStage('first');
     setDragPiece(null);
-    setPromotionPending(null);
-    setPlayerAnimatingMove(null);
-    setOpponentAnimatingMove(null);
   }, []);
 
-  // ──── MATE IN 1 LOGIC ────
-  const processMove = useCallback((from: string, to: string, promotionPiece?: string) => {
-    if (!game) return;
-    const g = game;
+  // Auto-advance to next exercise after completion (like Lesson 7 ForkBoard)
+  useEffect(() => {
+    if (isComplete && exercise < 8) {
+      const timer = setTimeout(() => {
+        switchExercise((exercise + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isComplete, exercise, switchExercise]);
 
+  // ──── MATE IN 2 LOGIC ────
+  const applyMove = useCallback((from: string, to: string, promotionPiece?: string) => {
+    if (!game) return;
+    setHintVisible(false);
+    const g = game;
+    const keyMove = EXERCISE_KEYS[exercise];
+
+    // ── PROMOTION CHECK ──
     const piece = g.get(from as any);
     const isPromotion = piece?.type === 'p' && (to[1] === '8' || to[1] === '1');
     if (isPromotion && !promotionPiece) {
@@ -244,54 +238,112 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
     }
 
     try {
-      const move = g.move({ from, to, promotion: promotionPiece });
+      const ng = new Chess(g.fen());
+      const move = ng.move({ from, to, promotion: promotionPiece });
       if (!move) return;
+      setPromotionPending(null);
 
-      if (g.isCheckmate()) {
-        setGame(new Chess(g.fen()));
-        setLastMove({ from, to });
-        setSelectedSquare(null);
-        setIsComplete(true);
-        setMessage('Отлично! Мат в 1 ход!');
-        saveStars(exercise, 3);
-        if (exercise === 8) onComplete();
-        return;
+      if (stage === 'first') {
+        if (from === keyMove.from && to === keyMove.to) {
+          const piece = g.get(from as any);
+          setPlayerAnimatingMove({
+            from,
+            to,
+            piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' },
+          });
+          setLastMove({ from, to });
+          setSelectedSquare(null);
+          setMessage('Отличный ход! Продолжайте!');
+          setIsFail(false);
+          setStage('after_computer');
+
+          // Update board + remove player ghost after 200ms
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            setGame(ng);
+            setPlayerAnimatingMove(null);
+          }, 200);
+
+          // Opponent move after 600ms pause (200ms player + 600ms pause)
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            const cg = new Chess(ng.fen());
+            const compMoves = cg.moves({ verbose: true });
+            if (compMoves.length > 0) {
+              const compMove = compMoves[0];
+              const compMovedPiece = cg.get(compMove.from);
+              setAnimatingMove({
+                from: compMove.from,
+                to: compMove.to,
+                piece: { type: compMovedPiece?.type.toUpperCase() || '', color: compMovedPiece?.color as 'w' | 'b' || 'b' },
+              });
+              setLastMove({ from: compMove.from, to: compMove.to });
+              // Update board + remove opponent ghost after 200ms
+              setTimeout(() => {
+                cg.move(compMove);
+                setGame(new Chess(cg.fen()));
+                setAnimatingMove(null);
+                setMessage('Найдите мат!');
+              }, 200);
+            }
+          }, 800);
+          return;
+        } else {
+          setGame(new Chess(g.fen()));
+          setSelectedSquare(null);
+          setIsFail(true);
+          setStage('fail');
+          setMessage('Неправильно. Попробуйте найти ключевой ход!');
+          return;
+        }
       }
 
-      setGame(new Chess(g.fen()));
-      setLastMove({ from, to });
-      setSelectedSquare(null);
-      setIsFail(true);
-      setMessage('Это не мат. Попробуйте найти мат в 1 ход!');
+      if (stage === 'after_computer') {
+        if (g.isCheckmate()) {
+          setGame(new Chess(g.fen()));
+          setSelectedSquare(null);
+          setIsComplete(true);
+          setStage('complete');
+          setMessage('Браво! Мат в 2 хода!');
+          saveStars(exercise, 3);
+          if (exercise === 8) onComplete();
+          return;
+        } else {
+          setGame(new Chess(g.fen()));
+          setSelectedSquare(null);
+          setIsFail(true);
+          setStage('fail');
+          setMessage('Это не мат. Попробуйте найти мат!');
+          return;
+        }
+      }
     } catch {
       // invalid move
     }
-  }, [game, exercise, saveStars, onComplete]);
+  }, [game, exercise, stage, saveStars, onComplete]);
 
   // ──── CLICK ────
   const handleSquareClick = useCallback((square: string) => {
-    if (promotionPending) return;
     if (isCompleteRef.current || isFailRef.current) return;
     if (!game) return;
-    const g = game;
     const piece = game.get(square as any);
 
     if (selectedSquare === square) {
       setSelectedSquare(null);
     } else if (selectedSquare && piece && piece.color === game.turn()) {
+      // Clicked on another own piece — switch selection
       setSelectedSquare(square);
     } else if (selectedSquare) {
-      processMove(selectedSquare, square);
+      applyMove(selectedSquare, square);
     } else {
       if (piece && piece.color === game.turn()) {
         setSelectedSquare(square);
       }
     }
-  }, [game, selectedSquare, processMove, promotionPending]);
+  }, [game, selectedSquare, applyMove]);
 
   // ──── DRAG & DROP ────
   const handlePointerDown = useCallback((e: React.PointerEvent, square: string) => {
-    if (promotionPending) return;
     if (isCompleteRef.current || isFailRef.current) return;
     if (!game) return;
     const piece = game.get(square as any);
@@ -299,7 +351,7 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
     if (e.pointerType === 'touch' && !(e as any).isPrimary) return;
 
     pointerStartRef.current = { x: e.clientX, y: e.clientY, square, moved: false, pointerId: e.pointerId };
-  }, [game, promotionPending]);
+  }, [game]);
 
   useEffect(() => {
     const handleGlobalMove = (e: PointerEvent) => {
@@ -332,7 +384,7 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
         const cell = el?.closest('[data-square]') as HTMLElement | null;
         const targetSquare = cell?.dataset.square || null;
         if (targetSquare && targetSquare !== start.square) {
-          processMove(start.square, targetSquare);
+          applyMove(start.square, targetSquare);
         }
         setDragPiece(null);
       }
@@ -354,15 +406,7 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
       window.removeEventListener('pointerup', handleGlobalUp);
       window.removeEventListener('pointercancel', handleGlobalCancel);
     };
-  }, [game, processMove]);
-
-  // ──── PROMOTION ────
-  const handlePromotion = useCallback((pieceCode: string) => {
-    if (!promotionPending) return;
-    const { from, to } = promotionPending;
-    setPromotionPending(null);
-    processMove(from, to, pieceCode);
-  }, [promotionPending, processMove]);
+  }, [game, applyMove]);
 
   // ──── HELPERS ────
   const getPieceAt = (sq: string) => {
@@ -396,7 +440,7 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
           </div>
           <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2.5 shadow-sm border border-[rgba(92,64,51,0.06)]">
             <p className="text-sm text-[var(--text-primary)] leading-snug">
-              Поставьте мат в 1 ход!
+              Поставьте мат в 2 хода!
             </p>
           </div>
         </div>
@@ -453,20 +497,19 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
           </div>
         </div>
 
-        {/* Подсказка */}
-        <button onClick={handleHint} className={`w-full flex items-center justify-center gap-1.5 h-9 rounded-lg border text-xs font-medium transition-all duration-200 ${hintVisible ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
-          <Eye size={14} /> Подсказка
-        </button>
-
         {/* Заново */}
         <button onClick={reset} className="w-full flex items-center justify-center gap-1.5 h-9 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200">
           <RotateCcw size={14} /> Заново
+        </button>
+
+        {/* Подсказка */}
+        <button onClick={handleHint} className={`w-full flex items-center justify-center gap-1.5 h-9 rounded-lg border text-xs font-medium transition-all duration-200 ${hintVisible ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
+          <Eye size={14} /> Подсказка
         </button>
       </div>
 
       {/* CENTER COLUMN */}
       <div className="flex-1 flex flex-col items-center gap-3">
-
         {/* Mobile avatar + speech bubble */}
         <div className="lg:hidden w-full flex flex-col gap-2">
           <div className="flex items-start gap-3">
@@ -475,10 +518,14 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
             </div>
             <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
               <p className="text-sm text-[var(--text-primary)] leading-snug line-clamp-3">
-                Поставьте мат в 1 ход!
+                Поставьте мат в 2 хода!
               </p>
             </div>
           </div>
+        </div>
+
+        <div className="hidden lg:block text-center font-bold text-slate-700 text-lg">
+          {turnText}
         </div>
 
         {/* Fail banner */}
@@ -499,34 +546,177 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
         {/* Success message */}
         {message && !isFail && (
           <div className={`px-6 py-3 rounded-xl text-center font-bold text-white ${
-            message.includes('Отлично') ? 'bg-green-500' : 'bg-yellow-500'
+            message.includes('Браво') ? 'bg-green-500' : 'bg-yellow-500'
           }`}>
-            {message.includes('Отлично') && <Trophy className="w-5 h-5 inline-block mr-2" />}
+            {message.includes('Браво') && <Trophy className="w-5 h-5 inline-block mr-2" />}
             {message}
           </div>
         )}
 
         {/* Board */}
-        <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
-          <UniversalChessBoardDesigner
-            fen={game.fen()}
-            isReversed={exercise === 6}
-            selectedSquare={selectedSquare}
-            lastMove={lastMove}
-            autoValidMoves={true}
-            onMove={(from, to, _promotion) => processMove(from, to)}
-            onSquareClick={handleSquareClick}
-            pieceTheme="cburnett"
-          />
+        <div className="flex justify-center w-full relative">
+          <div
+            data-board
+            className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none"
+            style={{
+              gridTemplateColumns: `repeat(8, ${sqSize}px)`,
+              gridTemplateRows: `repeat(8, ${sqSize}px)`,
+              touchAction: 'none',
+            }}
+          >
+            {(exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7 ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).map((rank, ri) => (
+              (exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7 ? REVERSED_FILES : FILES).map((file, fi) => {
+                const sq = `${file}${rank}`;
+                const pieceObj = getPieceAt(sq);
+                const light = isLight(exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7 ? 7-fi : fi, exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7 ? 7-ri : ri);
+                const sel = selectedSquare === sq || dragPiece?.square === sq;
+                const isValidMove = validMoves.includes(sq);
+                const isDragSource = dragPiece?.square === sq;
+
+                return (
+                  <div
+                    key={sq}
+                    data-square={sq}
+                    className="flex items-center justify-center relative select-none"
+                    style={{
+                      width: sqSize,
+                      height: sqSize,
+                      cursor: pieceObj && pieceObj.color === game?.turn() && !isFail && !isComplete ? 'grab' : 'default',
+                      touchAction: 'none',
+                      backgroundColor: light ? 'var(--square-light)' : 'var(--square-dark)',
+                      opacity: isDragSource ? 0.3 : 1,
+                    }}
+                    onClick={() => handleSquareClick(sq)}
+                    onPointerDown={(e) => handlePointerDown(e, sq)}
+                    onDragStart={(e) => e.preventDefault()}
+                  >
+                    {sel && (
+                      <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
+                    )}
+                    {lastMove && sq === lastMove.from && (
+                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
+                    )}
+                    {lastMove && sq === lastMove.to && (
+                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.70)] pointer-events-none z-[5]" />
+                    )}
+
+                    {fi === 0 && (
+                      <span className={`absolute top-0.5 left-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>
+                        {rank}
+                      </span>
+                    )}
+                    {ri === 7 && (
+                      <span className={`absolute bottom-0.5 right-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>
+                        {file}
+                      </span>
+                    )}
+                    {isValidMove && !pieceObj && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                        <div
+                          style={{ 
+                            width: Math.round(sqSize * 0.3), 
+                            height: Math.round(sqSize * 0.3), 
+                            backgroundColor: 'var(--square-valid)', 
+                            borderRadius: '50%', 
+                            opacity: 0.85, 
+                          }}
+                        />
+                      </div>
+                    )}
+                    {isValidMove && pieceObj && (
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 50 }}>
+                        <div
+                          style={{ 
+                            width: sqSize, 
+                            height: sqSize, 
+                            borderRadius: '50%', 
+                            border: '4px solid var(--square-valid)', 
+                            boxSizing: 'border-box', 
+                          }}
+                        />
+                      </div>
+                    )}
+                    {pieceObj && !isDragSource && !(animatingMove && sq === animatingMove.from) && !(playerAnimatingMove && sq === playerAnimatingMove.from) && (
+                      <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
+                        <PieceImg type={pieceObj.type} color={pieceObj.color} />
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            ))}
+            {/* Opponent move ghost piece */}
+            {animatingMove && (() => {
+              const isReversed = exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7;
+              const fromF = (isReversed ? REVERSED_FILES : FILES).indexOf(animatingMove.from[0]);
+              const fromR = (isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).indexOf(animatingMove.from[1]);
+              const toF = (isReversed ? REVERSED_FILES : FILES).indexOf(animatingMove.to[0]);
+              const toR = (isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).indexOf(animatingMove.to[1]);
+              const x1 = fromF * sqSize;
+              const y1 = fromR * sqSize;
+              const x2 = toF * sqSize;
+              const y2 = toR * sqSize;
+              return (
+                <div
+                  ref={ghostRef}
+                  key={animatingMove.from + '-' + animatingMove.to}
+                  className="absolute pointer-events-none animate-opponent-move"
+                  style={{
+                    left: x1,
+                    top: y1,
+                    width: sqSize,
+                    height: sqSize,
+                    zIndex: 60,
+                    '--ghost-dx': `${x2 - x1}px`,
+                    '--ghost-dy': `${y2 - y1}px`,
+                  } as React.CSSProperties}
+                >
+                  <div className="w-full h-full flex items-center justify-center" style={{ padding: Math.round(sqSize * 0.075) }}>
+                    <PieceImg type={animatingMove.piece.type} color={animatingMove.piece.color} />
+                  </div>
+                </div>
+              );
+            })()}
+            {/* Player move ghost piece */}
+            {playerAnimatingMove && (() => {
+              const isReversed = exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7;
+              const fromF = (isReversed ? REVERSED_FILES : FILES).indexOf(playerAnimatingMove.from[0]);
+              const fromR = (isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).indexOf(playerAnimatingMove.from[1]);
+              const toF = (isReversed ? REVERSED_FILES : FILES).indexOf(playerAnimatingMove.to[0]);
+              const toR = (isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).indexOf(playerAnimatingMove.to[1]);
+              const x1 = fromF * sqSize;
+              const y1 = fromR * sqSize;
+              const x2 = toF * sqSize;
+              const y2 = toR * sqSize;
+              return (
+                <div
+                  key={playerAnimatingMove.from + '-' + playerAnimatingMove.to}
+                  className="absolute pointer-events-none animate-player-move"
+                  style={{
+                    left: x1,
+                    top: y1,
+                    width: sqSize,
+                    height: sqSize,
+                    zIndex: 60,
+                    '--ghost-dx': `${x2 - x1}px`,
+                    '--ghost-dy': `${y2 - y1}px`,
+                  } as React.CSSProperties}
+                >
+                  <div className="w-full h-full flex items-center justify-center" style={{ padding: Math.round(sqSize * 0.075) }}>
+                    <PieceImg type={playerAnimatingMove.piece.type} color={playerAnimatingMove.piece.color} />
+                  </div>
+                </div>
+              );
+            })()}
           {/* Hint arrows SVG overlay */}
           {hintVisible && !isFail && !isComplete && !selectedSquare && !dragPiece && (
             (() => {
-              const arrows = HINTS[exercise] || [];
+              const arrows = stage === 'after_computer' ? (SECOND_HINTS[exercise] || []) : (HINTS[exercise] || []);
               if (arrows.length === 0) return null;
               return (
                 <svg className="absolute inset-0 pointer-events-none z-[35]" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
                   {arrows.map((arrow, i) => {
-                    const isReversed = exercise === 6;
+                    const isReversed = exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7;
                     const fromF = (isReversed ? REVERSED_FILES : FILES).indexOf(arrow.from[0]);
                     const fromR = (isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).indexOf(arrow.from[1]);
                     const toF = (isReversed ? REVERSED_FILES : FILES).indexOf(arrow.to[0]);
@@ -568,9 +758,72 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
               );
             })()
           )}
+          {promotionPending && (
+            <div className="absolute z-50 pointer-events-auto" style={{
+              left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
+              top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
+              width: sqSize,
+              height: 4 * sqSize,
+              backgroundColor: '#2C241B',
+              borderRadius: '0px',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+            }}>
+              {PROMOTION_PIECES.map(({ code, name }) => (
+                <button
+                  key={code}
+                  onClick={() => { setPromotionPending(null); applyMove(promotionPending.from, promotionPending.to, code); }}
+                  className="w-full aspect-square flex items-center justify-center transition-all duration-150"
+                  style={{
+                    backgroundColor: 'transparent',
+                    border: '2px solid transparent',
+                    borderRadius: '0px',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
+                    e.currentTarget.style.borderColor = '#C9A84C';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.borderColor = 'transparent';
+                  }}
+                  onMouseDown={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.25)';
+                  }}
+                  onMouseUp={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
+                  }}
+                  title={name}
+                >
+                  <img
+                    src={`/pieces/cburnett/${promotionPending.from[1] === '2' ? 'b' : 'w'}${code.toUpperCase()}.svg`}
+                    alt={name}
+                    draggable={false}
+                    style={{ width: '70%', height: '70%', objectFit: 'contain' }}
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+          </div>
+          {dragPiece && (
+            <div
+              className="fixed pointer-events-none z-50"
+              style={{
+                left: dragPos.x - sqSize * 0.425,
+                top: dragPos.y - sqSize * 0.425,
+                width: Math.round(sqSize * 0.85),
+                height: Math.round(sqSize * 0.85),
+              }}
+            >
+              <PieceImg type={dragPiece.type} color={dragPiece.color} />
+            </div>
+          )}
         </div>
-
-
 
         {/* Mobile exercise pills */}
         <div className="flex lg:hidden gap-[1px] w-full">
@@ -635,28 +888,14 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
         </div>
 
         {/* Completion banner */}
-        {isComplete && (
+        {isComplete && exercise === 8 && (exerciseStars[8] || 0) >= 3 && (
           <div className="flex flex-col items-center gap-3 mt-2">
-            <div className="flex items-center gap-2 text-green-600 font-bold text-lg">
-              <Trophy className="w-6 h-6" />
-              <span>Упражнение {exercise} пройдено!</span>
-            </div>
-            {exercise < 8 && (
-              <button
-                onClick={() => switchExercise((exercise + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8)}
-                className="bg-blue-500 text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-blue-600 transition"
-              >
-                Перейти к Упражнению {exercise + 1} →
-              </button>
-            )}
-            {exercise === 8 && (exerciseStars[8] || 0) >= 3 && (
-              <button
-                onClick={onComplete}
-                className="bg-emerald-500 text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-emerald-600 transition"
-              >
-                Урок завершён ✓
-              </button>
-            )}
+            <button
+              onClick={onComplete}
+              className="bg-emerald-500 text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-emerald-600 transition"
+            >
+              Урок завершён ✓
+            </button>
           </div>
         )}
       </div>

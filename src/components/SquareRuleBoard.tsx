@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
 import { RotateCcw, Eye, Trophy } from 'lucide-react';
+import UniversalChessBoardDesigner from './board/UniversalChessBoardDesigner';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const RANKS = ['8','7','6','5','4','3','2','1'];
@@ -1553,163 +1554,30 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
           )}
 
           {/* Board */}
-          <div className="flex justify-center w-full relative">
-            <div className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none" style={{ gridTemplateColumns: `repeat(8, ${sqSize}px)`, gridTemplateRows: `repeat(8, ${sqSize}px)`, touchAction: 'none' }}>
-              {DISPLAY_RANKS.map((rank, ri) =>
-                FILES.map((file, fi) => {
-                  const sq = `${file}${rank}`;
-                  const pieceObj = getPieceAt(sq);
-                  const light = isLight(fi, ri);
-                  const sel = selectedSquare === sq;
-                  const isValidMove = validMoves.includes(sq);
-                  const isDragSource = dragPiece?.square === sq;
-                  const isAnimatingSource = (playerAnimatingMove?.from === sq) || (opponentAnimatingMove?.from === sq) || (playerAnimatingMove?.to === sq) || (opponentAnimatingMove?.to === sq);
-                  const isSquareBorder = showSquare && squareCells.includes(sq);
-                  const canInteract = ((exercise === 2 && ex2Mode !== null) || (exercise === 3 && ex3Mode !== null) || (exercise === 4 && ex4Mode !== null) || (exercise === 5 && ex5Mode !== null) || (exercise === 6 && ex6Mode !== null)) && !isComplete && !isFail && !promotionPending;
-                  return (
-                    <div key={sq} data-square={sq} className="flex items-center justify-center relative select-none"
-                      style={{ width: sqSize, height: sqSize, cursor: canInteract ? 'grab' : 'default', touchAction: 'none', backgroundColor: light ? 'var(--square-light)' : 'var(--square-dark)', opacity: isDragSource ? 0.3 : 1 }}
-                      onClick={() => handleSquareClick(sq)} onPointerDown={(e) => handlePointerDown(e, sq)} onDragStart={(e) => e.preventDefault()}
-                    >
-                      {isSquareBorder && <div className="absolute inset-0 pointer-events-none z-[5]" style={{ backgroundColor: SQUARE_FILL }} />}
-                      {sel && <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />}
-                      {fi === 0 && <span className={`absolute top-0.5 left-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>{rank}</span>}
-                      {ri === 7 && <span className={`absolute bottom-0.5 right-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>{file}</span>}
-                      {isValidMove && !pieceObj && (
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                          <div style={{ width: Math.round(sqSize * 0.3), height: Math.round(sqSize * 0.3), backgroundColor: 'var(--square-valid)', borderRadius: '50%', opacity: 0.85 }} />
-                        </div>
-                      )}
-                      {isValidMove && pieceObj && (
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 50 }}>
-                          <div style={{ width: sqSize, height: sqSize, borderRadius: '50%', border: '4px solid var(--square-valid)', boxSizing: 'border-box' }} />
-                        </div>
-                      )}
-                      {pieceObj && !isDragSource && !isAnimatingSource && (
-                        <div className="relative pointer-events-none z-[15]" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
-                          <PieceImg type={pieceObj.type} color={pieceObj.color} />
-                        </div>
-                      )}
-                    </div>
-                  );
-                })
-              )}
-            {promotionPending && (
-              <div className="absolute z-50 pointer-events-auto" style={{
-                left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
-                top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
-                width: sqSize,
-                height: 4 * sqSize,
-                backgroundColor: '#2C241B',
-                borderRadius: '0px',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                overflow: 'hidden',
-              }}>
-                {PROMOTION_PIECES.map(({ code, name }) => (
-                  <button
-                    key={code}
-                    onClick={() => handlePromotion(code)}
-                    className="w-full aspect-square flex items-center justify-center transition-all duration-150"
-                    style={{
-                      backgroundColor: 'transparent',
-                      border: '2px solid transparent',
-                      borderRadius: '0px',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
-                      e.currentTarget.style.borderColor = '#C9A84C';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                      e.currentTarget.style.borderColor = 'transparent';
-                    }}
-                    onMouseDown={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.25)';
-                    }}
-                    onMouseUp={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
-                    }}
-                    title={name}
-                  >
-                    <img
-                      src={`/pieces/cburnett/w${code.toUpperCase()}.svg`}
-                      alt={name}
-                      draggable={false}
-                      style={{ width: '70%', height: '70%', objectFit: 'contain' }}
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
-            </div>
-
-            {/* Player ghost */}
-            {playerAnimatingMove && (() => {
-              const fromF = FILES.indexOf(playerAnimatingMove.from[0]);
-              const fromR = DISPLAY_RANKS.indexOf(playerAnimatingMove.from[1]);
-              const toF   = FILES.indexOf(playerAnimatingMove.to[0]);
-              const toR   = DISPLAY_RANKS.indexOf(playerAnimatingMove.to[1]);
-              const x1 = fromF * sqSize;
-              const y1 = fromR * sqSize;
-              const x2 = toF   * sqSize;
-              const y2 = toR   * sqSize;
-              return (
-                <div
-                  className="absolute pointer-events-none animate-player-move"
-                  style={{
-                    left: x1,
-                    top: y1,
-                    width: sqSize,
-                    height: sqSize,
-                    zIndex: 60,
-                    '--ghost-dx': `${x2 - x1}px`,
-                    '--ghost-dy': `${y2 - y1}px`,
-                  } as React.CSSProperties}
-                >
-                  <PieceImg type={playerAnimatingMove.piece.type} color={playerAnimatingMove.piece.color} />
-                </div>
-              );
-            })()}
-
-            {/* Opponent ghost */}
-            {opponentAnimatingMove && (() => {
-              const fromF = FILES.indexOf(opponentAnimatingMove.from[0]);
-              const fromR = DISPLAY_RANKS.indexOf(opponentAnimatingMove.from[1]);
-              const toF   = FILES.indexOf(opponentAnimatingMove.to[0]);
-              const toR   = DISPLAY_RANKS.indexOf(opponentAnimatingMove.to[1]);
-              const x1 = fromF * sqSize;
-              const y1 = fromR * sqSize;
-              const x2 = toF   * sqSize;
-              const y2 = toR   * sqSize;
-              return (
-                <div
-                  className="absolute pointer-events-none animate-opponent-move"
-                  style={{
-                    left: x1,
-                    top: y1,
-                    width: sqSize,
-                    height: sqSize,
-                    zIndex: 60,
-                    '--ghost-dx': `${x2 - x1}px`,
-                    '--ghost-dy': `${y2 - y1}px`,
-                  } as React.CSSProperties}
-                >
-                  <PieceImg type={opponentAnimatingMove.piece.type} color={opponentAnimatingMove.piece.color} />
-                </div>
-              );
-            })()}
-
-            {dragPiece && (
-              <div className="fixed pointer-events-none z-50" style={{ left: dragPos.x - sqSize * 0.425, top: dragPos.y - sqSize * 0.425, width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
-                <PieceImg type={dragPiece.type} color={dragPiece.color} />
-              </div>
-            )}
+          <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
+            <UniversalChessBoardDesigner
+              fen={game?.fen() || ''}
+              selectedSquare={selectedSquare}
+              autoValidMoves={true}
+              onMove={(from, to) => {
+                if (exercise === 2 && ex2Mode === 'pawn') processWhiteMoveEx2(from, to);
+                else if (exercise === 2 && ex2Mode === 'king') processBlackMoveEx2(from, to);
+                else if (exercise === 3 && ex3Mode === 'pawn') processWhiteMoveEx3(from, to);
+                else if (exercise === 3 && ex3Mode === 'king') processBlackMoveEx3(from, to);
+                else if (exercise === 4 && ex4Mode === 'pawn') processWhiteMoveEx4(from, to);
+                else if (exercise === 4 && ex4Mode === 'king') processBlackMoveEx4(from, to);
+                else if (exercise === 5 && ex5Mode === 'pawn') processWhiteMoveEx5(from, to);
+                else if (exercise === 5 && ex5Mode === 'king') processBlackMoveEx5(from, to);
+                else if (exercise === 6 && ex6Mode === 'pawn') processWhiteMoveEx6(from, to);
+                else if (exercise === 6 && ex6Mode === 'king') processBlackMoveEx6(from, to);
+              }}
+              onSquareClick={handleSquareClick}
+              playerAnimatingMove={playerAnimatingMove}
+              opponentAnimatingMove={opponentAnimatingMove}
+              interactive={!isComplete && !isFail}
+              sqSize={sqSize}
+            />
           </div>
-
           {/* Mobile exercise pills */}
           <div className="flex lg:hidden w-full items-stretch gap-[1px]">
             {[1,2,3,4,5,6].map((exId) => {
