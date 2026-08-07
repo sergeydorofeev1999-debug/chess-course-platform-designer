@@ -351,26 +351,9 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           if (!isCorrectSecond) {
             const autoCap = getBlackAutoCapture(g);
             if (autoCap) {
-              // Ghost animation for black capture
-              const capPiece = g.get(autoCap.from as any);
-              if (capPiece) {
-                setOpponentAnimatingMove({
-                  from: autoCap.from,
-                  to: autoCap.to,
-                  piece: { type: capPiece.type.toUpperCase(), color: 'b' },
-                });
-                setLastMove({ from: autoCap.from, to: autoCap.to });
-              }
-              setTimeout(() => {
-                g.move({ from: autoCap.from, to: autoCap.to });
-                setOpponentAnimatingMove(null);
-                setGame(new Chess(g.fen()));
-                setSelectedSquare(null);
-                setIsFail(true);
-                setMessage('Провалено');
-              }, 200);
-              return;
-            }
+        g.move({ from: autoCap.from, to: autoCap.to });
+        setLastMove({ from: autoCap.from, to: autoCap.to });
+      }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
@@ -1174,11 +1157,11 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             autoValidMoves={true}
             lastMove={lastMove}
             onMove={(from, to) => processWhiteMove(from, to)}
+            opponentAnimatingMove={opponentAnimatingMove}
             interactive={!isComplete && !isFail}
             sqSize={sqSize}
+            disableAutoGhost={true}
             clickGhost={true}
-            userColor="w"
-            opponentDelay={600}
             onSelectionChange={(sq) => setSelectedSquare(sq)}
           />
           {/* Hint arrows SVG overlay */}
