@@ -258,16 +258,20 @@ export default function UniversalChessBoardDesigner({
             return;
           }
           
-          // Start ghost animation - show old position for 200ms
-          setAnimatingFen(previousFen);
-          setAutoAnimatingMoves(moved);
-          const timeout = setTimeout(() => {
-            setAutoAnimatingMoves([]);
-            setAnimatingFen(null);
-          }, 200);
-          // Update previousFen AFTER starting animation
+          // Opponent move: wait 600ms pause, then ghost 200ms
+          const delayTimeout = setTimeout(() => {
+            setAnimatingFen(previousFen);
+            setAutoAnimatingMoves(moved);
+            const ghostTimeout = setTimeout(() => {
+              setAutoAnimatingMoves([]);
+              setAnimatingFen(null);
+            }, 200);
+            return () => clearTimeout(ghostTimeout);
+          }, 600);
+          
+          // Update previousFen immediately to avoid re-triggering
           setPreviousFen(currentFen);
-          return () => clearTimeout(timeout);
+          return () => clearTimeout(delayTimeout);
         }
       } catch {
         // ignore FEN parse errors
