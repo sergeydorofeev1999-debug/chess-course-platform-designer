@@ -581,6 +581,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
             opponentAnimatingMove={animatingMove || null}
             interactive={!isComplete && !isFail}
             sqSize={sqSize}
+            disableAutoGhost={true}
           />
           {/* Hint arrows SVG overlay */}
           {hintVisible && !isFail && !isComplete && !selectedSquare && !dragPiece && (

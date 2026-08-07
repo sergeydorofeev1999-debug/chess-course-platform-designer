@@ -22,7 +22,9 @@ function diffFen(prevFen: string, nextFen: string): {
     for (const move of allMoves) {
       const test = new Chess(prev.fen());
       try {
-        test.move(move);
+        // chess.js 1.4.0: moves({verbose:true}) returns objects, but move() may need SAN string or explicit from/to
+        const moveInput = typeof move === 'string' ? move : { from: move.from, to: move.to, promotion: move.promotion };
+        test.move(moveInput);
         if (test.fen() === nextFen) {
           moved.push({
             from: move.from,
@@ -153,6 +155,7 @@ export interface UniversalChessBoardDesignerProps {
   sqSize?: number;
   className?: string;
   pieceTheme?: 'cburnett' | 'alpha' | 'merida';
+  disableAutoGhost?: boolean;
 }
 
 interface DragState {
@@ -190,20 +193,20 @@ export default function UniversalChessBoardDesigner({
   sqSize: propSqSize,
   className = '',
   pieceTheme = 'cburnett',
+  disableAutoGhost = false,
 }: UniversalChessBoardDesignerProps) {
 
   // Internal fen for instant drag feedback
   const [internalFen, setInternalFen] = useState<string | null>(null);
   
   // Track previous FEN for auto-detecting piece movements
-  const prevFenRef = useRef<string>(fen || 'start');
   const skipAutoAnimRef = useRef(false); // skip auto-animation after drag (internalFen already did instant move)
+  const [previousFen, setPreviousFen] = useState<string>(fen || 'start');
   const [animatingFen, setAnimatingFen] = useState<string | null>(null); // old FEN displayed during ghost animation
   const [autoAnimatingMoves, setAutoAnimatingMoves] = useState<{
     from: string;
     to: string;
     piece: { type: string; color: 'w' | 'b' };
-    startTime: number;
   }[]>([]);
 
   // Sync internalFen when external fen changes (new position from parent)
@@ -218,48 +221,42 @@ export default function UniversalChessBoardDesigner({
     }
   }, [playerAnimatingMove, opponentAnimatingMove]);
 
-  // Auto-detect piece movements when fen changes
+  // Auto-detect piece movements when fen changes (useState instead of useRef to guarantee re-render)
   useEffect(() => {
-    const currentFen = fen || 'start';
-    const prevFen = prevFenRef.current;
-    
-    alert('EFFECT RUNNING current=' + currentFen.substring(0, 20) + ' prev=' + prevFen.substring(0, 20));
-    
-    // Always update ref for next comparison
-    prevFenRef.current = currentFen;
-    
-    if (skipAutoAnimRef.current) {
-      skipAutoAnimRef.current = false;
+    if (disableAutoGhost) {
+      setPreviousFen(fen || 'start');
       return;
     }
-    if (playerAnimatingMove || opponentAnimatingMove) return;
-    if (currentFen === prevFen) return;
-    if (currentFen === 'start' || prevFen === 'start') return;
+    const currentFen = fen || 'start';
     
-    try {
-      const { moved } = diffFen(prevFen, currentFen);
-      if (moved.length > 0) {
-        alert('FOUND ' + moved.length + ' MOVES: ' + moved[0].from + '>' + moved[0].to);
-        const now = Date.now();
-        setAnimatingFen(prevFen);
-        setAutoAnimatingMoves(moved.map(m => ({
-          from: m.from,
-          to: m.to,
-          piece: m.piece,
-          startTime: now,
-        })));
-        const timeout = setTimeout(() => {
-          setAutoAnimatingMoves([]);
-          setAnimatingFen(null);
-        }, 200);
-        return () => clearTimeout(timeout);
-      } else {
-        alert('diffFen found 0 moves');
-      }
-    } catch (e) {
-      alert('diffFen ERROR: ' + e);
+    if (currentFen === previousFen) {
+      setPreviousFen(currentFen);
+      return;
     }
-  }, [fen, playerAnimatingMove, opponentAnimatingMove]);
+    
+    // We have a new FEN and previousFen holds the OLD FEN
+    if (currentFen !== 'start' && previousFen !== 'start') {
+      try {
+        const { moved } = diffFen(previousFen, currentFen);
+        if (moved.length > 0) {
+          // Start ghost animation - show old position for 200ms
+          setAnimatingFen(previousFen);
+          setAutoAnimatingMoves(moved);
+          const timeout = setTimeout(() => {
+            setAutoAnimatingMoves([]);
+            setAnimatingFen(null);
+          }, 200);
+          // Update previousFen AFTER starting animation
+          setPreviousFen(currentFen);
+          return () => clearTimeout(timeout);
+        }
+      } catch {
+        // ignore FEN parse errors
+      }
+    }
+    
+    setPreviousFen(currentFen);
+  }, [fen]);
 
   const displayFen = animatingFen || internalFen || fen;
 
@@ -473,10 +470,6 @@ export default function UniversalChessBoardDesigner({
 
   return (
     <div className={`relative select-none ${className}`}>
-      {/* DEBUG INFO - ALWAYS VISIBLE */}
-      <div className="absolute top-0 left-0 bg-yellow-400 text-black z-[9999] text-[10px] p-1 leading-none">
-        auto:{autoAnimatingMoves.length} animFen:{animatingFen ? 'Y' : 'N'}
-      </div>
       <div
         data-board
         className="grid border-[3px] border-[#2b2b2b] rounded-sm relative"
@@ -484,7 +477,7 @@ export default function UniversalChessBoardDesigner({
           gridTemplateColumns: `repeat(8, ${sqSize}px)`,
           gridTemplateRows: `repeat(8, ${sqSize}px)`,
           touchAction: 'none',
-          backgroundColor: autoAnimatingMoves.length > 0 ? 'rgba(255,0,0,0.3)' : 'transparent',
+          
         }}
       >
         {ranks.map((rank, ri) => (

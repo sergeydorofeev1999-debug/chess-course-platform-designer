@@ -257,6 +257,25 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
     });
   }, [storageKey]);
 
+  const handleClickMove = useCallback((from: string, to: string) => {
+    if (!game) return;
+    const piece = game.get(from as any);
+    if (!piece) return;
+    // Ghost animation on click — 200ms
+    setPlayerAnimatingMove({
+      from,
+      to,
+      piece: { type: piece.type.toUpperCase(), color: piece.color as 'w' | 'b' },
+    });
+    setLastMove({ from, to });
+    setSelectedSquare(null);
+
+    setTimeout(() => {
+      processWhiteMove(from, to);
+      setPlayerAnimatingMove(null);
+    }, 200);
+  }, [game]);
+
   const processWhiteMove = useCallback((from: string, to: string) => {
     if (!game) return;
     const g = game;
@@ -1012,13 +1031,13 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         setSelectedSquare(square);
         return;
       }
-      processWhiteMove(selectedSquare, square);
+      handleClickMove(selectedSquare, square);
     } else {
       if (piece && piece.color === 'w') {
         setSelectedSquare(square);
       }
     }
-  }, [game, selectedSquare, processWhiteMove]);
+  }, [game, selectedSquare, handleClickMove]);
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
@@ -1125,8 +1144,11 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             lastMove={lastMove}
             onSquareClick={handleSquareClick}
             onMove={(from, to) => processWhiteMove(from, to)}
+            playerAnimatingMove={playerAnimatingMove}
+            opponentAnimatingMove={opponentAnimatingMove}
             interactive={!isComplete && !isFail}
             sqSize={sqSize}
+            disableAutoGhost={true}
           />
           {/* Hint arrows SVG overlay */}
           {hintVisible && !isFail && !isComplete && !selectedSquare && (
