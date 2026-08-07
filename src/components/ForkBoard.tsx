@@ -1160,7 +1160,6 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             opponentAnimatingMove={opponentAnimatingMove}
             interactive={!isComplete && !isFail}
             sqSize={sqSize}
-            disableAutoGhost={true}
             clickGhost={true}
             onSelectionChange={(sq) => setSelectedSquare(sq)}
           />
