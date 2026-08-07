@@ -227,7 +227,7 @@ export default function UniversalChessBoardDesigner({
 
   // Auto-detect piece movements when fen changes (useState instead of useRef to guarantee re-render)
   useEffect(() => {
-    if (disableAutoGhost) {
+    if (disableAutoGhost || skipAutoAnimRef.current) {
       setPreviousFen(fen || 'start');
       return;
     }
@@ -415,7 +415,7 @@ export default function UniversalChessBoardDesigner({
         return;
       }
 
-      // Запуск ghost анимации
+      // Запуск ghost-анимации с локальным state
       setLocalPlayerAnimatingMove({
         from: currentSel,
         to: square,
@@ -423,11 +423,15 @@ export default function UniversalChessBoardDesigner({
       });
       setInternalSelectedSquare(null);
 
+      // Отключаем auto-detect на время анимации (чтобы не дублировалась)
+      skipAutoAnimRef.current = true;
+
       setTimeout(() => {
         if (onMove) {
           onMove(currentSel, square);
         }
         setLocalPlayerAnimatingMove(null);
+        skipAutoAnimRef.current = false;
       }, 200);
       return;
     }
