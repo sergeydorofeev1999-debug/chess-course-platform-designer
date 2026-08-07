@@ -161,16 +161,6 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
   const [hintVisible, setHintVisible] = useState(false);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
-  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{
-    from: string;
-    to: string;
-    piece: { type: string; color: 'w' | 'b' };
-  } | null>(null);
-  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{
-    from: string;
-    to: string;
-    piece: { type: string; color: 'w' | 'b' };
-  } | null>(null);
 
   const isCompleteRef = useRef(false);
   const isFailRef = useRef(false);
@@ -257,25 +247,6 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
     });
   }, [storageKey]);
 
-  const handleClickMove = useCallback((from: string, to: string) => {
-    if (!game) return;
-    const piece = game.get(from as any);
-    if (!piece) return;
-    // Ghost animation on click — 200ms
-    setPlayerAnimatingMove({
-      from,
-      to,
-      piece: { type: piece.type.toUpperCase(), color: piece.color as 'w' | 'b' },
-    });
-    setLastMove({ from, to });
-    setSelectedSquare(null);
-
-    setTimeout(() => {
-      processWhiteMove(from, to);
-      setPlayerAnimatingMove(null);
-    }, 200);
-  }, [game]);
-
   const processWhiteMove = useCallback((from: string, to: string) => {
     if (!game) return;
     const g = game;
@@ -316,32 +287,18 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             if (!mountedRef.current) return;
             const blackMove = getBlackKingMove(g);
             if (blackMove) {
-              // Ghost opponent move
-              const blackPiece = g.get(blackMove.from as any);
-              if (blackPiece) {
-                setOpponentAnimatingMove({
-                  from: blackMove.from,
-                  to: blackMove.to,
-                  piece: { type: blackPiece.type.toUpperCase(), color: 'b' },
-                });
-                setLastMove({ from: blackMove.from, to: blackMove.to });
-              }
-              // Execute opponent move after 200ms ghost
-              setTimeout(() => {
-                if (!mountedRef.current) return;
-                g.move({ from: blackMove.from, to: blackMove.to });
-                setOpponentAnimatingMove(null);
-                const autoCap = getBlackAutoCapture(g);
-                if (autoCap) {
-                  g.move({ from: autoCap.from, to: autoCap.to });
-                  setLastMove({ from: autoCap.from, to: autoCap.to });
-                  setGame(new Chess(g.fen()));
-                  setIsFail(true);
-                  setMessage('Провалено');
-                  return;
-                }
+              g.move({ from: blackMove.from, to: blackMove.to });
+              setLastMove({ from: blackMove.from, to: blackMove.to });
+              const autoCap = getBlackAutoCapture(g);
+              if (autoCap) {
+                g.move({ from: autoCap.from, to: autoCap.to });
+                setLastMove({ from: autoCap.from, to: autoCap.to });
                 setGame(new Chess(g.fen()));
-              }, 200);
+                setIsFail(true);
+                setMessage('Провалено');
+                return;
+              }
+              setGame(new Chess(g.fen()));
             }
           }, 600);
           return;
@@ -408,7 +365,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
               }
               setGame(new Chess(g.fen()));
             }
-          }, 500);
+          }, 600);
           return;
         }
 
@@ -472,7 +429,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
               }
               setGame(new Chess(g.fen()));
             }
-          }, 500);
+          }, 600);
           return;
         }
 
@@ -540,7 +497,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
     setLastMove({ from: blackMove.from, to: blackMove.to });
               setGame(new Chess(g.fen()));
             }
-          }, 500);
+          }, 600);
           return;
         }
 
@@ -597,7 +554,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         setLastMove({ from: blackMove.from, to: blackMove.to });
               setGame(new Chess(g.fen()));
             }
-          }, 500);
+          }, 600);
           return;
         }
 
@@ -652,7 +609,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           setLastMove({ from: blackMove.from, to: blackMove.to });
               setGame(new Chess(g.fen()));
             }
-          }, 500);
+          }, 600);
           return;
         }
 
@@ -709,7 +666,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
        setLastMove({ from: blackMove.from, to: blackMove.to });
               setGame(new Chess(g.fen()));
             }
-          }, 500);
+          }, 600);
           return;
         }
 
@@ -764,7 +721,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
          setLastMove({ from: blackMove.from, to: blackMove.to });
               setGame(new Chess(g.fen()));
             }
-          }, 500);
+          }, 600);
           return;
         }
 
@@ -819,7 +776,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
          setLastMove({ from: blackMove.from, to: blackMove.to });
               setGame(new Chess(g.fen()));
             }
-          }, 500);
+          }, 600);
           return;
         }
 
@@ -876,7 +833,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
      setLastMove({ from: blackMove.from, to: blackMove.to });
               setGame(new Chess(g.fen()));
             }
-          }, 500);
+          }, 600);
           return;
         }
 
@@ -933,7 +890,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
      setLastMove({ from: blackMove.from, to: blackMove.to });
               setGame(new Chess(g.fen()));
             }
-          }, 500);
+          }, 600);
           return;
         }
 
@@ -999,7 +956,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             g.move({ from: 'f7', to: 'e7' });
     setLastMove({ from: 'f7', to: 'e7' });
             setGame(new Chess(g.fen()));
-          }, 500);
+          }, 600);
           return;
         }
 
@@ -1046,13 +1003,14 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         setSelectedSquare(square);
         return;
       }
-      handleClickMove(selectedSquare, square);
+      processWhiteMove(selectedSquare, square);
+      setSelectedSquare(null);
     } else {
       if (piece && piece.color === 'w') {
         setSelectedSquare(square);
       }
     }
-  }, [game, selectedSquare, handleClickMove]);
+  }, [game, selectedSquare, processWhiteMove]);
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
@@ -1157,11 +1115,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             autoValidMoves={true}
             lastMove={lastMove}
             onMove={(from, to) => processWhiteMove(from, to)}
-            opponentAnimatingMove={opponentAnimatingMove}
             interactive={!isComplete && !isFail}
             sqSize={sqSize}
-            disableAutoGhost={true}
             clickGhost={true}
+            userColor="w"
             onSelectionChange={(sq) => setSelectedSquare(sq)}
           />
           {/* Hint arrows SVG overlay */}

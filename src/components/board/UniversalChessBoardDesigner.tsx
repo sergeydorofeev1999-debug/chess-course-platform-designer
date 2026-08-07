@@ -158,6 +158,7 @@ export interface UniversalChessBoardDesignerProps {
   pieceTheme?: 'cburnett' | 'alpha' | 'merida';
   disableAutoGhost?: boolean;
   clickGhost?: boolean;
+  userColor?: 'w' | 'b';
 }
 
 interface DragState {
@@ -198,6 +199,7 @@ export default function UniversalChessBoardDesigner({
   pieceTheme = 'cburnett',
   disableAutoGhost = false,
   clickGhost = false,
+  userColor,
 }: UniversalChessBoardDesignerProps) {
 
   // Internal fen for instant drag feedback
@@ -225,9 +227,15 @@ export default function UniversalChessBoardDesigner({
     }
   }, [playerAnimatingMove, opponentAnimatingMove]);
 
-  // Auto-detect piece movements when fen changes (useState instead of useRef to guarantee re-render)
+  // Auto-detect piece movements when fen changes
   useEffect(() => {
-    if (disableAutoGhost || skipAutoAnimRef.current) {
+    // If skipAutoAnimRef is set (after clickGhost/drag), reset it and skip THIS change only
+    if (skipAutoAnimRef.current) {
+      skipAutoAnimRef.current = false;
+      setPreviousFen(fen || 'start');
+      return;
+    }
+    if (disableAutoGhost) {
       setPreviousFen(fen || 'start');
       return;
     }
@@ -243,6 +251,13 @@ export default function UniversalChessBoardDesigner({
       try {
         const { moved } = diffFen(previousFen, currentFen);
         if (moved.length > 0) {
+          // If userColor is set, skip animation for user's own moves (already handled by clickGhost/drag)
+          // Only animate opponent moves
+          if (userColor && moved[0].piece.color === userColor) {
+            setPreviousFen(currentFen);
+            return;
+          }
+          
           // Start ghost animation - show old position for 200ms
           setAnimatingFen(previousFen);
           setAutoAnimatingMoves(moved);
@@ -260,7 +275,7 @@ export default function UniversalChessBoardDesigner({
     }
     
     setPreviousFen(currentFen);
-  }, [fen]);
+  }, [fen, userColor]);
 
   const displayFen = animatingFen || internalFen || fen;
 
