@@ -306,6 +306,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             setMessage('Провалено');
             return;
           }
+          // Correct first move: animate opponent after 600ms pause + 200ms ghost
           setGame(new Chess(g.fen()));
           setSelectedSquare(null);
           setHintVisible(false);
@@ -315,20 +316,34 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             if (!mountedRef.current) return;
             const blackMove = getBlackKingMove(g);
             if (blackMove) {
-              g.move({ from: blackMove.from, to: blackMove.to });
-            setLastMove({ from: blackMove.from, to: blackMove.to });
-              const autoCap = getBlackAutoCapture(g);
-              if (autoCap) {
-                g.move({ from: autoCap.from, to: autoCap.to });
-            setLastMove({ from: autoCap.from, to: autoCap.to });
-                setGame(new Chess(g.fen()));
-                setIsFail(true);
-                setMessage('Провалено');
-                return;
+              // Ghost opponent move
+              const blackPiece = g.get(blackMove.from as any);
+              if (blackPiece) {
+                setOpponentAnimatingMove({
+                  from: blackMove.from,
+                  to: blackMove.to,
+                  piece: { type: blackPiece.type.toUpperCase(), color: 'b' },
+                });
+                setLastMove({ from: blackMove.from, to: blackMove.to });
               }
-              setGame(new Chess(g.fen()));
+              // Execute opponent move after 200ms ghost
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: blackMove.from, to: blackMove.to });
+                setOpponentAnimatingMove(null);
+                const autoCap = getBlackAutoCapture(g);
+                if (autoCap) {
+                  g.move({ from: autoCap.from, to: autoCap.to });
+                  setLastMove({ from: autoCap.from, to: autoCap.to });
+                  setGame(new Chess(g.fen()));
+                  setIsFail(true);
+                  setMessage('Провалено');
+                  return;
+                }
+                setGame(new Chess(g.fen()));
+              }, 200);
             }
-          }, 500);
+          }, 600);
           return;
         }
 
