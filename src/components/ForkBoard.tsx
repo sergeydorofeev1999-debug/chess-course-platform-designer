@@ -351,9 +351,26 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           if (!isCorrectSecond) {
             const autoCap = getBlackAutoCapture(g);
             if (autoCap) {
-        g.move({ from: autoCap.from, to: autoCap.to });
-        setLastMove({ from: autoCap.from, to: autoCap.to });
-      }
+              // Ghost animation for black capture
+              const capPiece = g.get(autoCap.from as any);
+              if (capPiece) {
+                setOpponentAnimatingMove({
+                  from: autoCap.from,
+                  to: autoCap.to,
+                  piece: { type: capPiece.type.toUpperCase(), color: 'b' },
+                });
+                setLastMove({ from: autoCap.from, to: autoCap.to });
+              }
+              setTimeout(() => {
+                g.move({ from: autoCap.from, to: autoCap.to });
+                setOpponentAnimatingMove(null);
+                setGame(new Chess(g.fen()));
+                setSelectedSquare(null);
+                setIsFail(true);
+                setMessage('Провалено');
+              }, 200);
+              return;
+            }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setIsFail(true);
