@@ -148,6 +148,7 @@ export interface UniversalChessBoardDesignerProps {
   onSquareClick?: (square: string) => void;
   onMove?: (from: string, to: string, promotion?: string) => void;
   onDragPieceChange?: (piece: { square: string; type: string; color: 'w' | 'b' } | null) => void;
+  onSelectionChange?: (square: string | null) => void;
   playerAnimatingMove?: { from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null;
   opponentAnimatingMove?: { from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null;
   interactive?: boolean;
@@ -186,6 +187,7 @@ export default function UniversalChessBoardDesigner({
   onSquareClick,
   onMove,
   onDragPieceChange,
+  onSelectionChange,
   playerAnimatingMove,
   opponentAnimatingMove,
   turn,
@@ -381,7 +383,7 @@ export default function UniversalChessBoardDesigner({
         // Первый клик — выбор фигуры
         if (piece && piece.color === (turn || game.turn())) {
           setInternalSelectedSquare(square);
-          onSquareClick?.(square);
+          onSelectionChange?.(square);
         }
         return;
       }
@@ -389,14 +391,14 @@ export default function UniversalChessBoardDesigner({
       if (currentSel === square) {
         // Клик на ту же клетку — отмена выбора
         setInternalSelectedSquare(null);
-        onSquareClick?.(square);
+        onSelectionChange?.(null);
         return;
       }
 
       if (piece && piece.color === (turn || game.turn())) {
         // Клик на другую свою фигуру — смена выбора
         setInternalSelectedSquare(square);
-        onSquareClick?.(square);
+        onSelectionChange?.(square);
         return;
       }
 
