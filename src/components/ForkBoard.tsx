@@ -1174,11 +1174,11 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             autoValidMoves={true}
             lastMove={lastMove}
             onMove={(from, to) => processWhiteMove(from, to)}
-            opponentAnimatingMove={opponentAnimatingMove}
             interactive={!isComplete && !isFail}
             sqSize={sqSize}
-            disableAutoGhost={true}
             clickGhost={true}
+            userColor="w"
+            opponentDelay={600}
             onSelectionChange={(sq) => setSelectedSquare(sq)}
           />
           {/* Hint arrows SVG overlay */}

@@ -158,6 +158,8 @@ export interface UniversalChessBoardDesignerProps {
   pieceTheme?: 'cburnett' | 'alpha' | 'merida';
   disableAutoGhost?: boolean;
   clickGhost?: boolean;
+  opponentDelay?: number;
+  userColor?: 'w' | 'b';
 }
 
 interface DragState {
@@ -198,6 +200,8 @@ export default function UniversalChessBoardDesigner({
   pieceTheme = 'cburnett',
   disableAutoGhost = false,
   clickGhost = false,
+  opponentDelay = 0,
+  userColor,
 }: UniversalChessBoardDesignerProps) {
 
   // Internal fen for instant drag feedback
@@ -225,7 +229,7 @@ export default function UniversalChessBoardDesigner({
     }
   }, [playerAnimatingMove, opponentAnimatingMove]);
 
-  // Auto-detect piece movements when fen changes (useState instead of useRef to guarantee re-render)
+  // Auto-detect piece movements when fen changes
   useEffect(() => {
     if (disableAutoGhost || skipAutoAnimRef.current) {
       setPreviousFen(fen || 'start');
@@ -243,16 +247,32 @@ export default function UniversalChessBoardDesigner({
       try {
         const { moved } = diffFen(previousFen, currentFen);
         if (moved.length > 0) {
-          // Start ghost animation - show old position for 200ms
-          setAnimatingFen(previousFen);
-          setAutoAnimatingMoves(moved);
-          const timeout = setTimeout(() => {
-            setAutoAnimatingMoves([]);
-            setAnimatingFen(null);
-          }, 200);
-          // Update previousFen AFTER starting animation
-          setPreviousFen(currentFen);
-          return () => clearTimeout(timeout);
+          // Determine if this is opponent's move
+          const isOpponentMove = userColor ? moved[0].piece.color !== userColor : false;
+          
+          if (isOpponentMove && opponentDelay > 0) {
+            // Opponent move with delay: wait, then ghost
+            const delayTimeout = setTimeout(() => {
+              setAnimatingFen(previousFen);
+              setAutoAnimatingMoves(moved);
+              const ghostTimeout = setTimeout(() => {
+                setAutoAnimatingMoves([]);
+                setAnimatingFen(null);
+              }, 200);
+            }, opponentDelay);
+            setPreviousFen(currentFen);
+            return () => clearTimeout(delayTimeout);
+          } else {
+            // Player move or no delay: ghost immediately
+            setAnimatingFen(previousFen);
+            setAutoAnimatingMoves(moved);
+            const timeout = setTimeout(() => {
+              setAutoAnimatingMoves([]);
+              setAnimatingFen(null);
+            }, 200);
+            setPreviousFen(currentFen);
+            return () => clearTimeout(timeout);
+          }
         }
       } catch {
         // ignore FEN parse errors
@@ -260,7 +280,7 @@ export default function UniversalChessBoardDesigner({
     }
     
     setPreviousFen(currentFen);
-  }, [fen]);
+  }, [fen, userColor, opponentDelay]);
 
   const displayFen = animatingFen || internalFen || fen;
 
