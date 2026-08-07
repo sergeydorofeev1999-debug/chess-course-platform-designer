@@ -415,11 +415,24 @@ export default function UniversalChessBoardDesigner({
         return;
       }
 
-      // clickGhost: просто вызываем onMove — auto-detect сделает ghost
-      if (onMove) {
-        onMove(currentSel, square);
-      }
+      // Запуск ghost-анимации с локальным state
+      setLocalPlayerAnimatingMove({
+        from: currentSel,
+        to: square,
+        piece: { type: fromPiece.type.toUpperCase(), color: fromPiece.color as 'w' | 'b' },
+      });
       setInternalSelectedSquare(null);
+
+      // Отключаем auto-detect на время анимации (чтобы не дублировалась)
+      skipAutoAnimRef.current = true;
+
+      setTimeout(() => {
+        if (onMove) {
+          onMove(currentSel, square);
+        }
+        setLocalPlayerAnimatingMove(null);
+        skipAutoAnimRef.current = false;
+      }, 200);
       return;
     }
 
