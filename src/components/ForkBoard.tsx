@@ -1154,16 +1154,15 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         <div className="flex flex-col items-center w-full relative">
           <UniversalChessBoardDesigner
             fen={game?.fen() || ''}
-            selectedSquare={selectedSquare}
             autoValidMoves={true}
             lastMove={lastMove}
-            onSquareClick={handleSquareClick}
             onMove={(from, to) => processWhiteMove(from, to)}
             playerAnimatingMove={playerAnimatingMove}
             opponentAnimatingMove={opponentAnimatingMove}
             interactive={!isComplete && !isFail}
             sqSize={sqSize}
             disableAutoGhost={true}
+            clickGhost={true}
           />
           {/* Hint arrows SVG overlay */}
           {hintVisible && !isFail && !isComplete && !selectedSquare && (

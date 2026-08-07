@@ -156,6 +156,7 @@ export interface UniversalChessBoardDesignerProps {
   className?: string;
   pieceTheme?: 'cburnett' | 'alpha' | 'merida';
   disableAutoGhost?: boolean;
+  clickGhost?: boolean;
 }
 
 interface DragState {
@@ -194,6 +195,7 @@ export default function UniversalChessBoardDesigner({
   className = '',
   pieceTheme = 'cburnett',
   disableAutoGhost = false,
+  clickGhost = false,
 }: UniversalChessBoardDesignerProps) {
 
   // Internal fen for instant drag feedback
@@ -265,6 +267,7 @@ export default function UniversalChessBoardDesigner({
   }, [displayFen]);
 
   const [sqSize, setSqSize] = useState(propSqSize ?? 52);
+  const [internalSelectedSquare, setInternalSelectedSquare] = useState<string | null>(null);
   useEffect(() => {
     if (propSqSize !== undefined) {
       setSqSize(propSqSize);
@@ -291,14 +294,14 @@ export default function UniversalChessBoardDesigner({
   const validMoves = useMemo(() => {
     if (propValidMoves) return propValidMoves;
     if (!autoValidMoves) return [];
-    const targetSquare = selectedSquare || dragPiece?.square;
+    const targetSquare = selectedSquare || internalSelectedSquare || dragPiece?.square;
     if (!targetSquare) return [];
     try {
       return game.moves({ verbose: true, square: targetSquare as any }).map((m: any) => m.to);
     } catch {
       return [];
     }
-  }, [game, selectedSquare, dragPiece, autoValidMoves, propValidMoves]);
+  }, [game, selectedSquare, internalSelectedSquare, dragPiece, autoValidMoves, propValidMoves]);
 
   const [ghostAnim, setGhostAnim] = useState<{
     from: string;
@@ -306,8 +309,13 @@ export default function UniversalChessBoardDesigner({
     phase: 'out' | 'pause' | 'in';
     piece: { type: string; color: 'w' | 'b' };
   } | null>(null);
+  const [localPlayerAnimatingMove, setLocalPlayerAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
+  const [localOpponentAnimatingMove, setLocalOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
 
   const ghostTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const activePlayerAnimatingMove = playerAnimatingMove || localPlayerAnimatingMove;
+  const activeOpponentAnimatingMove = opponentAnimatingMove || localOpponentAnimatingMove;
 
   const files = isReversed ? REVERSED_FILES : FILES;
   const ranks = isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS;
@@ -362,9 +370,70 @@ export default function UniversalChessBoardDesigner({
   }, [ghostMove, onGhostComplete, getPieceAt]);
 
   const handleSquareClick = useCallback((square: string) => {
-    if (!interactive || !onSquareClick) return;
+    if (!interactive) return;
+
+    if (clickGhost) {
+      // clickGhost mode: доска сама управляет выбором + ghost
+      const piece = getPieceAt(square);
+      const currentSel = selectedSquare || internalSelectedSquare;
+
+      if (!currentSel) {
+        // Первый клик — выбор фигуры
+        if (piece && piece.color === (turn || game.turn())) {
+          setInternalSelectedSquare(square);
+          onSquareClick?.(square);
+        }
+        return;
+      }
+
+      if (currentSel === square) {
+        // Клик на ту же клетку — отмена выбора
+        setInternalSelectedSquare(null);
+        onSquareClick?.(square);
+        return;
+      }
+
+      if (piece && piece.color === (turn || game.turn())) {
+        // Клик на другую свою фигуру — смена выбора
+        setInternalSelectedSquare(square);
+        onSquareClick?.(square);
+        return;
+      }
+
+      // Клик на клетку назначения — ghost + onMove
+      const fromPiece = getPieceAt(currentSel);
+      if (!fromPiece) {
+        setInternalSelectedSquare(null);
+        return;
+      }
+
+      // Проверка валидности хода
+      if (!validMoves.includes(square)) {
+        setInternalSelectedSquare(null);
+        return;
+      }
+
+      // Запуск ghost анимации
+      setLocalPlayerAnimatingMove({
+        from: currentSel,
+        to: square,
+        piece: { type: fromPiece.type.toUpperCase(), color: fromPiece.color as 'w' | 'b' },
+      });
+      setInternalSelectedSquare(null);
+
+      setTimeout(() => {
+        if (onMove) {
+          onMove(currentSel, square);
+        }
+        setLocalPlayerAnimatingMove(null);
+      }, 200);
+      return;
+    }
+
+    // Обычный режим
+    if (!onSquareClick) return;
     onSquareClick(square);
-  }, [interactive, onSquareClick]);
+  }, [interactive, clickGhost, selectedSquare, internalSelectedSquare, getPieceAt, turn, game, validMoves, onSquareClick, onMove]);
 
   const handlePointerDown = useCallback((e: React.PointerEvent, square: string) => {
     if (!interactive || !onMove) return;
@@ -487,7 +556,7 @@ export default function UniversalChessBoardDesigner({
             const fileIndex = FILES.indexOf(file);
             const rankIndex = DISPLAY_RANKS.indexOf(rank);
             const light = isLight(fileIndex, rankIndex);
-            const sel = selectedSquare === sq || dragPiece?.square === sq;
+            const sel = selectedSquare === sq || internalSelectedSquare === sq || dragPiece?.square === sq;
             const isValidMove = validMoves.includes(sq);
             const isDragSource = dragPiece?.square === sq;
             const isLastMoveFrom = lastMove && lastMove.from === sq;
@@ -495,10 +564,10 @@ export default function UniversalChessBoardDesigner({
 
             const isGhostSource = ghostAnim?.from === sq && (ghostAnim.phase === 'out' || ghostAnim.phase === 'pause');
             const isGhostTarget = ghostAnim?.to === sq && (ghostAnim.phase === 'out' || ghostAnim.phase === 'pause');
-            const isPlayerAnimatingSource = playerAnimatingMove?.from === sq;
-            const isPlayerAnimatingTarget = playerAnimatingMove?.to === sq;
-            const isOpponentAnimatingSource = opponentAnimatingMove?.from === sq;
-            const isOpponentAnimatingTarget = opponentAnimatingMove?.to === sq;
+            const isPlayerAnimatingSource = activePlayerAnimatingMove?.from === sq;
+            const isPlayerAnimatingTarget = activePlayerAnimatingMove?.to === sq;
+            const isOpponentAnimatingSource = activeOpponentAnimatingMove?.from === sq;
+            const isOpponentAnimatingTarget = activeOpponentAnimatingMove?.to === sq;
             const isAutoAnimatingSource = autoAnimatingMoves.some(m => m.from === sq);
             const isAutoAnimatingTarget = autoAnimatingMoves.some(m => m.to === sq);
             const hidePiece = isDragSource || isGhostSource || isGhostTarget || isPlayerAnimatingSource || isPlayerAnimatingTarget || isOpponentAnimatingSource || isOpponentAnimatingTarget || isAutoAnimatingSource || isAutoAnimatingTarget;
@@ -628,24 +697,24 @@ export default function UniversalChessBoardDesigner({
           </div>
         )}
 
-        {playerAnimatingMove && (
+        {activePlayerAnimatingMove && (
           <GhostAnimPiece
-            key={playerAnimatingMove.from + '-' + playerAnimatingMove.to}
-            from={playerAnimatingMove.from}
-            to={playerAnimatingMove.to}
-            piece={playerAnimatingMove.piece}
+            key={activePlayerAnimatingMove.from + '-' + activePlayerAnimatingMove.to}
+            from={activePlayerAnimatingMove.from}
+            to={activePlayerAnimatingMove.to}
+            piece={activePlayerAnimatingMove.piece}
             isReversed={isReversed}
             sqSize={sqSize}
             pieceTheme={pieceTheme}
           />
         )}
 
-        {opponentAnimatingMove && (
+        {activeOpponentAnimatingMove && (
           <GhostAnimPiece
-            key={opponentAnimatingMove.from + '-' + opponentAnimatingMove.to}
-            from={opponentAnimatingMove.from}
-            to={opponentAnimatingMove.to}
-            piece={opponentAnimatingMove.piece}
+            key={activeOpponentAnimatingMove.from + '-' + activeOpponentAnimatingMove.to}
+            from={activeOpponentAnimatingMove.from}
+            to={activeOpponentAnimatingMove.to}
+            piece={activeOpponentAnimatingMove.piece}
             isReversed={isReversed}
             sqSize={sqSize}
             pieceTheme={pieceTheme}
