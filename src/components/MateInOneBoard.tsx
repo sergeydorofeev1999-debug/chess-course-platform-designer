@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
 import { RotateCcw, Trophy, Eye } from 'lucide-react';
 import UniversalChessBoardDesigner from './board/UniversalChessBoardDesigner';
+import { useAnimatedLesson } from '@/hooks/useAnimatedLesson';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const REVERSED_FILES = ['h','g','f','e','d','c','b','a'];
@@ -145,8 +146,7 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
   const [hintVisible, setHintVisible] = useState(false);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
-  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
-  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
+  const { playerAnimatingMove, opponentAnimatingMove, setPlayerAnimatingMove, setOpponentAnimatingMove, animatePlayerMove } = useAnimatedLesson();
 
   const isCompleteRef = useRef(false);
   const isFailRef = useRef(false);
@@ -248,16 +248,20 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
       if (!move) return;
 
       if (g.isCheckmate()) {
-        setGame(new Chess(g.fen()));
-        setLastMove({ from, to });
-        setSelectedSquare(null);
-        setIsComplete(true);
-        setMessage('Отлично! Мат в 1 ход!');
-        saveStars(exercise, 3);
-        if (exercise === 8) onComplete();
+        // Animate correct move then complete
+        animatePlayerMove(g, from, to, () => {
+          setGame(new Chess(g.fen()));
+          setLastMove({ from, to });
+          setSelectedSquare(null);
+          setIsComplete(true);
+          setMessage('Отлично! Мат в 1 ход!');
+          saveStars(exercise, 3);
+          if (exercise === 8) onComplete();
+        });
         return;
       }
 
+      // Wrong move — instant fail (no need for ghost on wrong moves in mate-in-1)
       setGame(new Chess(g.fen()));
       setLastMove({ from, to });
       setSelectedSquare(null);
@@ -266,7 +270,7 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
     } catch {
       // invalid move
     }
-  }, [game, exercise, saveStars, onComplete]);
+  }, [game, exercise, saveStars, onComplete, animatePlayerMove]);
 
   // ──── CLICK ────
   const handleSquareClick = useCallback((square: string) => {
