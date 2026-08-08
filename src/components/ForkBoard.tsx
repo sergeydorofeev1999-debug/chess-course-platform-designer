@@ -266,7 +266,6 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
-            // Show white move immediately, then opponent captures after 600ms
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setTimeout(() => {
@@ -312,7 +311,6 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
 
         if (whiteMoves === 1) {
           if (!isCorrectSecond) {
-            // Show white move immediately, then opponent captures after 600ms
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setTimeout(() => {
@@ -343,7 +341,6 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
-            // Show white move immediately, then opponent captures after 600ms
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setTimeout(() => {
