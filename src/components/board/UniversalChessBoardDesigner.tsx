@@ -230,7 +230,7 @@ export default function UniversalChessBoardDesigner({
 
   // Auto-detect piece movements when fen changes
   useEffect(() => {
-    if (disableAutoGhost || clickGhost) {
+    if (disableAutoGhost) {
       previousFenRef.current = fen || 'start';
       return;
     }
