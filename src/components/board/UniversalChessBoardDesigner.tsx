@@ -299,7 +299,7 @@ export default function UniversalChessBoardDesigner({
   }, [fen, userColor, seqState]);
 
   const displayFen = seqState
-    ? seqState.prevFen
+    ? (seqState.currentAnim ? seqState.prevFen : seqState.fens[seqState.currentIndex])
     : (animatingFen || internalFen || fen);
 
   // Sequential playback engine: auto-advance through fens with 200ms animate + pause + next
@@ -342,32 +342,25 @@ export default function UniversalChessBoardDesigner({
       // ignore diff errors
     }
 
-    // After 200ms animation, clear currentAnim and update prevFen to show final position
+    // After 200ms animation + sequentialDelay pause, advance to next
     seqTimeoutRef.current = setTimeout(() => {
-      setSeqState(prev => prev ? { 
-        ...prev, 
-        currentAnim: null,
-        prevFen: prev.fens[prev.currentIndex] || prev.prevFen
-      } : null);
-
-      // After sequentialDelay pause, advance to next
-      seqTimeoutRef.current = setTimeout(() => {
-        setSeqState(prev => {
-          if (!prev) return null;
-          const nextIndex = prev.currentIndex + 1;
-          return {
-            ...prev,
-            currentIndex: nextIndex,
-            currentAnim: null,
-          };
-        });
-      }, sequentialDelay);
-    }, 200);
+      setSeqState(prev => {
+        if (!prev) return null;
+        const nextIndex = prev.currentIndex + 1;
+        const nextPrevFen = prev.fens[prev.currentIndex];
+        return {
+          ...prev,
+          currentIndex: nextIndex,
+          prevFen: nextPrevFen,
+          currentAnim: null,
+        };
+      });
+    }, 200 + sequentialDelay);
 
     return () => {
       if (seqTimeoutRef.current) clearTimeout(seqTimeoutRef.current);
     };
-  }, [seqState?.currentIndex, seqState?.fens, sequentialDelay, onSequentialComplete]);
+  }, [seqState?.currentIndex, seqState?.prevFen, seqState?.fens, sequentialDelay, onSequentialComplete]);
 
   const game = useMemo(() => {
     try { return new Chess(displayFen); } catch { return new Chess(); }
@@ -422,7 +415,7 @@ export default function UniversalChessBoardDesigner({
   const ghostTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const activePlayerAnimatingMove = playerAnimatingMove || localPlayerAnimatingMove;
-  const activeOpponentAnimatingMove = opponentAnimatingMove || localOpponentAnimatingMove;
+  const activeOpponentAnimatingMove = opponentAnimatingMove || localOpponentAnimatingMove || seqState?.currentAnim;
 
   const files = isReversed ? REVERSED_FILES : FILES;
   const ranks = isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS;
@@ -681,8 +674,8 @@ export default function UniversalChessBoardDesigner({
             const isOpponentAnimatingTarget = activeOpponentAnimatingMove?.to === sq;
             const isAutoAnimatingSource = autoAnimatingMoves.some(m => m.from === sq);
             const isAutoAnimatingTarget = autoAnimatingMoves.some(m => m.to === sq);
-            const isSeqAnimatingSource = seqState?.currentAnim && seqState.currentAnim.from === sq;
-            const isSeqAnimatingTarget = seqState?.currentAnim && seqState.currentAnim.to === sq;
+            const isSeqAnimatingSource = seqState?.currentAnim?.from === sq;
+            const isSeqAnimatingTarget = seqState?.currentAnim?.to === sq;
             const hidePiece = isDragSource || isGhostSource || isGhostTarget || isPlayerAnimatingSource || isPlayerAnimatingTarget || isOpponentAnimatingSource || isOpponentAnimatingTarget || isAutoAnimatingSource || isAutoAnimatingTarget || isSeqAnimatingSource || isSeqAnimatingTarget;
             const showGhostPiece = ghostAnim?.to === sq && ghostAnim.phase === 'in';
 
