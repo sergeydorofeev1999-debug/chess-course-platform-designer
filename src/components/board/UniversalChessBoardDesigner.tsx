@@ -342,20 +342,25 @@ export default function UniversalChessBoardDesigner({
       // ignore diff errors
     }
 
-    // After 200ms animation + sequentialDelay pause, advance to next
+    // After 200ms animation, clear currentAnim to show final position
     seqTimeoutRef.current = setTimeout(() => {
-      setSeqState(prev => {
-        if (!prev) return null;
-        const nextIndex = prev.currentIndex + 1;
-        const nextPrevFen = prev.fens[prev.currentIndex];
-        return {
-          ...prev,
-          currentIndex: nextIndex,
-          prevFen: nextPrevFen,
-          currentAnim: null,
-        };
-      });
-    }, 200 + sequentialDelay);
+      setSeqState(prev => prev ? { ...prev, currentAnim: null } : null);
+
+      // After sequentialDelay pause, advance to next
+      seqTimeoutRef.current = setTimeout(() => {
+        setSeqState(prev => {
+          if (!prev) return null;
+          const nextIndex = prev.currentIndex + 1;
+          const nextPrevFen = prev.fens[prev.currentIndex];
+          return {
+            ...prev,
+            currentIndex: nextIndex,
+            prevFen: nextPrevFen,
+            currentAnim: null,
+          };
+        });
+      }, sequentialDelay);
+    }, 200);
 
     return () => {
       if (seqTimeoutRef.current) clearTimeout(seqTimeoutRef.current);
