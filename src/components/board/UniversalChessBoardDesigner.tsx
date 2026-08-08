@@ -208,6 +208,7 @@ export default function UniversalChessBoardDesigner({
   // Track previous FEN for auto-detecting piece movements
   const skipAutoAnimRef = useRef(false); // skip auto-animation after drag (internalFen already did instant move)
   const [previousFen, setPreviousFen] = useState<string>(fen || 'start');
+  const playerMoveFenRef = useRef<string | null>(null); // stores intermediate FEN after player move
   const [animatingFen, setAnimatingFen] = useState<string | null>(null); // old FEN displayed during ghost animation
   const [autoAnimatingMoves, setAutoAnimatingMoves] = useState<{
     from: string;
@@ -254,6 +255,43 @@ export default function UniversalChessBoardDesigner({
           // If userColor is set, skip animation for user's own moves (already handled by clickGhost/drag)
           // Only animate opponent moves
           if (userColor && moved[0].piece.color === userColor) {
+            setPreviousFen(currentFen);
+            return;
+          }
+          
+          // Multi-move detected (opponent moved after player) — animate with 600ms pause
+          if (moved.length === 0) {
+            // Try to detect if this is opponent's response after player's move
+            const intermediate = playerMoveFenRef.current;
+            if (intermediate && intermediate !== previousFen) {
+              // Show intermediate position (after player move), then animate opponent after 600ms
+              playerMoveFenRef.current = null;
+              
+              // Update previousFen to intermediate (position after player move)
+              setPreviousFen(intermediate);
+              
+              // Compute opponent's move from intermediate to current
+              const oppDiff = diffFen(intermediate, currentFen);
+              if (oppDiff.moved.length > 0) {
+                const delayTimeout = setTimeout(() => {
+                  setAnimatingFen(intermediate);
+                  setAutoAnimatingMoves(oppDiff.moved);
+                  const animTimeout = setTimeout(() => {
+                    setAutoAnimatingMoves([]);
+                    setAnimatingFen(null);
+                  }, 200);
+                  return () => clearTimeout(animTimeout);
+                }, 600);
+                // Update previousFen to final after scheduling
+                setPreviousFen(currentFen);
+                return () => clearTimeout(delayTimeout);
+              }
+            }
+          }
+          
+          // Single move (player move) — save as intermediate, show immediately
+          if (moved.length === 1) {
+            playerMoveFenRef.current = currentFen;
             setPreviousFen(currentFen);
             return;
           }
