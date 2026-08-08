@@ -299,7 +299,7 @@ export default function UniversalChessBoardDesigner({
   }, [fen, userColor, seqState]);
 
   const displayFen = seqState
-    ? (seqState.currentAnim ? seqState.prevFen : seqState.fens[seqState.currentIndex])
+    ? seqState.prevFen
     : (animatingFen || internalFen || fen);
 
   // Sequential playback engine: auto-advance through fens with 200ms animate + pause + next
@@ -342,20 +342,22 @@ export default function UniversalChessBoardDesigner({
       // ignore diff errors
     }
 
-    // After 200ms animation, clear currentAnim to show final position
+    // After 200ms animation, clear currentAnim and update prevFen to show final position
     seqTimeoutRef.current = setTimeout(() => {
-      setSeqState(prev => prev ? { ...prev, currentAnim: null } : null);
+      setSeqState(prev => prev ? { 
+        ...prev, 
+        currentAnim: null,
+        prevFen: prev.fens[prev.currentIndex] || prev.prevFen
+      } : null);
 
       // After sequentialDelay pause, advance to next
       seqTimeoutRef.current = setTimeout(() => {
         setSeqState(prev => {
           if (!prev) return null;
           const nextIndex = prev.currentIndex + 1;
-          const nextPrevFen = prev.fens[prev.currentIndex];
           return {
             ...prev,
             currentIndex: nextIndex,
-            prevFen: nextPrevFen,
             currentAnim: null,
           };
         });
