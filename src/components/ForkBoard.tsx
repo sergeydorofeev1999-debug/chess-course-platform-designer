@@ -266,15 +266,18 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
-            const autoCap = getBlackAutoCapture(g);
-            if (autoCap) {
-              g.move({ from: autoCap.from, to: autoCap.to });
-              setLastMove({ from: autoCap.from, to: autoCap.to });
-            }
-            setGame(new Chess(g.fen()));
-            setSelectedSquare(null);
-            setIsFail(true);
-            setMessage('Провалено');
+            setTimeout(() => {
+              if (!mountedRef.current) return;
+              const autoCap = getBlackAutoCapture(g);
+              if (autoCap) {
+                g.move({ from: autoCap.from, to: autoCap.to });
+                setLastMove({ from: autoCap.from, to: autoCap.to });
+              }
+              setGame(new Chess(g.fen()));
+              setSelectedSquare(null);
+              setIsFail(true);
+              setMessage('Провалено');
+            }, 600);
             return;
           }
           // Correct first move: animate opponent after 600ms pause + 200ms ghost
@@ -306,15 +309,18 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
 
         if (whiteMoves === 1) {
           if (!isCorrectSecond) {
-            const autoCap = getBlackAutoCapture(g);
-            if (autoCap) {
-        g.move({ from: autoCap.from, to: autoCap.to });
-        setLastMove({ from: autoCap.from, to: autoCap.to });
-      }
-            setGame(new Chess(g.fen()));
-            setSelectedSquare(null);
-            setIsFail(true);
-            setMessage('Провалено');
+            setTimeout(() => {
+              if (!mountedRef.current) return;
+              const autoCap = getBlackAutoCapture(g);
+              if (autoCap) {
+                g.move({ from: autoCap.from, to: autoCap.to });
+                setLastMove({ from: autoCap.from, to: autoCap.to });
+              }
+              setGame(new Chess(g.fen()));
+              setSelectedSquare(null);
+              setIsFail(true);
+              setMessage('Провалено');
+            }, 600);
             return;
           }
           setGame(new Chess(g.fen()));
@@ -331,15 +337,18 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
-            const safeCap = getBlackSafeCapture(g);
-            if (safeCap) {
-          g.move({ from: safeCap.from, to: safeCap.to });
-          setLastMove({ from: safeCap.from, to: safeCap.to });
-        }
-            setGame(new Chess(g.fen()));
-            setSelectedSquare(null);
-            setIsFail(true);
-            setMessage('Провалено');
+            setTimeout(() => {
+              if (!mountedRef.current) return;
+              const safeCap = getBlackSafeCapture(g);
+              if (safeCap) {
+                g.move({ from: safeCap.from, to: safeCap.to });
+                setLastMove({ from: safeCap.from, to: safeCap.to });
+              }
+              setGame(new Chess(g.fen()));
+              setSelectedSquare(null);
+              setIsFail(true);
+              setMessage('Провалено');
+            }, 600);
             return;
           }
           setGame(new Chess(g.fen()));
