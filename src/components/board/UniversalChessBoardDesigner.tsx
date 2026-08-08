@@ -601,7 +601,7 @@ export default function UniversalChessBoardDesigner({
               const move = tempGame.move({ from: start.square, to: targetSquare });
               if (move) {
                 setInternalFen(tempGame.fen());
-                skipAutoAnimRef.current = true; // skip auto-animation for instant drag move
+                playerMoveFenRef.current = tempGame.fen(); // ← track intermediate for opponent pause
               }
               onMove(start.square, targetSquare);
             }
@@ -872,7 +872,7 @@ export default function UniversalChessBoardDesigner({
                   const tempGame = new Chess(game.fen());
                   tempGame.move({ from: promotionPending.from, to: promotionPending.to, promotion: code });
                   setInternalFen(tempGame.fen());
-                  skipAutoAnimRef.current = true; // skip auto-animation for instant drag move
+                  playerMoveFenRef.current = tempGame.fen(); // ← track intermediate for opponent pause
                   setPromotionPending(null);
                   onMove?.(promotionPending.from, promotionPending.to, code);
                 }
