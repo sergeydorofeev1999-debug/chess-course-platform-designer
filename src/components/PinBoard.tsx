@@ -309,6 +309,8 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
             // Incorrect first move: bishop escapes to safe square (not capturable by rook)
+            setGame(new Chess(g.fen()));
+            setSelectedSquare(null);
             setTimeout(() => {
               if (!mountedRef.current) return;
               const safeEscape = getBlackSafeBishopEscape(g);
@@ -371,6 +373,8 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
+            setGame(new Chess(g.fen()));
+            setSelectedSquare(null);
             // Incorrect: black plays best defense — king escapes if under check
             setTimeout(() => {
               if (!mountedRef.current) return;
@@ -435,6 +439,8 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
+              setGame(new Chess(g.fen()));
+              setSelectedSquare(null);
             // Check if black has a safe capture first
             const safeCap = getBlackSafeCapture(g);
             if (safeCap) {
@@ -497,6 +503,8 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
+            setGame(new Chess(g.fen()));
+            setSelectedSquare(null);
             // Wrong move: let black capture the rook (e.g., f6xe5) after a delay
             setTimeout(() => {
               if (!mountedRef.current) return;
@@ -563,6 +571,8 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
+            setGame(new Chess(g.fen()));
+            setSelectedSquare(null);
             setTimeout(() => {
               if (!mountedRef.current) return;
               const safeCap = getBlackSafeCapture(g);
@@ -654,6 +664,8 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
+            setGame(new Chess(g.fen()));
+            setSelectedSquare(null);
             setTimeout(() => {
               if (!mountedRef.current) return;
               const safeCap = getBlackSafeCapture(g);
@@ -739,6 +751,8 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
+            setGame(new Chess(g.fen()));
+            setSelectedSquare(null);
             setTimeout(() => {
               if (!mountedRef.current) return;
               const safeCap = getBlackSafeCapture(g);
@@ -796,6 +810,8 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
+            setGame(new Chess(g.fen()));
+            setSelectedSquare(null);
             setTimeout(() => {
               if (!mountedRef.current) return;
               const safeCap = getBlackSafeCapture(g);
@@ -905,6 +921,8 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
+            setGame(new Chess(g.fen()));
+            setSelectedSquare(null);
             setTimeout(() => {
               if (!mountedRef.current) return;
               const safeCap = getBlackSafeCapture(g);
@@ -968,6 +986,8 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
+            setGame(new Chess(g.fen()));
+            setSelectedSquare(null);
             setTimeout(() => {
               if (!mountedRef.current) return;
               const safeCap = getBlackSafeCapture(g);
@@ -1010,6 +1030,8 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
+            setGame(new Chess(g.fen()));
+            setSelectedSquare(null);
             setTimeout(() => {
               if (!mountedRef.current) return;
               const safeCap = getBlackSafeCapture(g);
@@ -1084,6 +1106,8 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
           }
 
           if (!isCorrectFirst) {
+            setGame(new Chess(g.fen()));
+            setSelectedSquare(null);
             setTimeout(() => {
               if (!mountedRef.current) return;
               const safeCap = getBlackSafeCapture(g);
@@ -1378,6 +1402,8 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             opponentAnimatingMove={opponentAnimatingMove}
             interactive={!isComplete && !isFail}
             sqSize={sqSize}
+            clickGhost={true}
+            userColor="w"
           />
         </div>
         {/* Mobile exercise pills — 2 rows of 6 */}
