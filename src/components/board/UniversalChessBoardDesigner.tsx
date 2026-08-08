@@ -299,7 +299,7 @@ export default function UniversalChessBoardDesigner({
   }, [fen, userColor, seqState]);
 
   const displayFen = seqState
-    ? seqState.fens[seqState.currentIndex] || seqState.prevFen
+    ? (seqState.currentAnim ? seqState.prevFen : seqState.fens[seqState.currentIndex])
     : (animatingFen || internalFen || fen);
 
   // Sequential playback engine: auto-advance through fens with 200ms animate + pause + next
@@ -674,7 +674,9 @@ export default function UniversalChessBoardDesigner({
             const isOpponentAnimatingTarget = activeOpponentAnimatingMove?.to === sq;
             const isAutoAnimatingSource = autoAnimatingMoves.some(m => m.from === sq);
             const isAutoAnimatingTarget = autoAnimatingMoves.some(m => m.to === sq);
-            const hidePiece = isDragSource || isGhostSource || isGhostTarget || isPlayerAnimatingSource || isPlayerAnimatingTarget || isOpponentAnimatingSource || isOpponentAnimatingTarget || isAutoAnimatingSource || isAutoAnimatingTarget;
+            const isSeqAnimatingSource = seqState?.currentAnim && seqState.currentAnim.from === sq;
+            const isSeqAnimatingTarget = seqState?.currentAnim && seqState.currentAnim.to === sq;
+            const hidePiece = isDragSource || isGhostSource || isGhostTarget || isPlayerAnimatingSource || isPlayerAnimatingTarget || isOpponentAnimatingSource || isOpponentAnimatingTarget || isAutoAnimatingSource || isAutoAnimatingTarget || isSeqAnimatingSource || isSeqAnimatingTarget;
             const showGhostPiece = ghostAnim?.to === sq && ghostAnim.phase === 'in';
 
             return (
