@@ -162,6 +162,7 @@ export interface UniversalChessBoardDesignerProps {
   sequentialFens?: string[];
   sequentialDelay?: number;
   onSequentialComplete?: () => void;
+  onSequentialStep?: (index: number) => void;
 }
 
 interface DragState {
@@ -206,6 +207,7 @@ export default function UniversalChessBoardDesigner({
   sequentialFens,
   sequentialDelay = 600,
   onSequentialComplete,
+  onSequentialStep,
 }: UniversalChessBoardDesignerProps) {
 
   // Internal fen for instant drag feedback
@@ -229,6 +231,27 @@ export default function UniversalChessBoardDesigner({
     currentAnim: { from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null;
   } | null>(null);
   const seqTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sequentialDelayRef = useRef(sequentialDelay);
+  const sequentialOnCompleteRef = useRef(onSequentialComplete);
+  const sequentialOnStepRef = useRef(onSequentialStep);
+  const opponentAnimatingMoveRef = useRef(opponentAnimatingMove);
+
+  // Keep refs updated
+  useEffect(() => {
+    sequentialDelayRef.current = sequentialDelay;
+  }, [sequentialDelay]);
+
+  useEffect(() => {
+    sequentialOnCompleteRef.current = onSequentialComplete;
+  }, [onSequentialComplete]);
+
+  useEffect(() => {
+    sequentialOnStepRef.current = onSequentialStep;
+  }, [onSequentialStep]);
+
+  useEffect(() => {
+    opponentAnimatingMoveRef.current = opponentAnimatingMove;
+  }, [opponentAnimatingMove]);
 
   // Sync internalFen when external fen changes (new position from parent)
   useEffect(() => {
@@ -273,8 +296,20 @@ export default function UniversalChessBoardDesigner({
             return;
           }
 
+          // If disableAutoGhost is set, skip auto-detect
+          if (disableAutoGhost) {
+            setPreviousFen(currentFen);
+            return;
+          }
+
           // If sequential playback is active, skip auto-detect
           if (seqState) {
+            setPreviousFen(currentFen);
+            return;
+          }
+
+          // If parent provided opponentAnimatingMove, skip auto-detect (parent handles animation)
+          if (opponentAnimatingMoveRef.current) {
             setPreviousFen(currentFen);
             return;
           }
@@ -328,7 +363,7 @@ export default function UniversalChessBoardDesigner({
     if (!currentFenStr) {
       // Finished all fens
       setSeqState(null);
-      onSequentialComplete?.();
+      sequentialOnCompleteRef.current?.();
       return;
     }
 
@@ -343,6 +378,7 @@ export default function UniversalChessBoardDesigner({
     }
 
     // After 200ms animation + sequentialDelay pause, advance to next
+    const delay = sequentialDelayRef.current;
     seqTimeoutRef.current = setTimeout(() => {
       setSeqState(prev => {
         if (!prev) return null;
@@ -355,12 +391,12 @@ export default function UniversalChessBoardDesigner({
           currentAnim: null,
         };
       });
-    }, 200 + sequentialDelay);
+    }, 200 + delay);
 
     return () => {
       if (seqTimeoutRef.current) clearTimeout(seqTimeoutRef.current);
     };
-  }, [seqState?.currentIndex, seqState?.fens, sequentialDelay, onSequentialComplete]);
+  }, [seqState?.currentIndex, seqState?.fens]);
 
   const game = useMemo(() => {
     try { return new Chess(displayFen); } catch { return new Chess(); }
@@ -525,11 +561,11 @@ export default function UniversalChessBoardDesigner({
       skipAutoAnimRef.current = true;
 
       setTimeout(() => {
+        setLocalPlayerAnimatingMove(null);
+        skipAutoAnimRef.current = false;  // reset BEFORE calling onMove
         if (onMove) {
           onMove(currentSel, square);
         }
-        setLocalPlayerAnimatingMove(null);
-        skipAutoAnimRef.current = false;
       }, 200);
       return;
     }
