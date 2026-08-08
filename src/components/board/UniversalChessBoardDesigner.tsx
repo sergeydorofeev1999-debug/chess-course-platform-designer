@@ -231,6 +231,7 @@ export default function UniversalChessBoardDesigner({
     currentAnim: { from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null;
   } | null>(null);
   const seqTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autoAnimTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sequentialDelayRef = useRef(sequentialDelay);
   const sequentialOnCompleteRef = useRef(onSequentialComplete);
   const sequentialOnStepRef = useRef(onSequentialStep);
@@ -267,6 +268,11 @@ export default function UniversalChessBoardDesigner({
 
   // Auto-detect piece movements when fen changes
   useEffect(() => {
+    // Cleanup any pending auto-animation on re-run
+    if (autoAnimTimeoutRef.current) {
+      clearTimeout(autoAnimTimeoutRef.current);
+      autoAnimTimeoutRef.current = null;
+    }
     // If skipAutoAnimRef is set (after clickGhost/drag), reset it and skip THIS change only
     if (skipAutoAnimRef.current) {
       skipAutoAnimRef.current = false;
@@ -314,16 +320,23 @@ export default function UniversalChessBoardDesigner({
             return;
           }
 
-          // Start ghost animation - show old position for 200ms
-          setAnimatingFen(previousFen);
-          setAutoAnimatingMoves(moved);
-          const timeout = setTimeout(() => {
-            setAutoAnimatingMoves([]);
-            setAnimatingFen(null);
-          }, 200);
-          // Update previousFen AFTER starting animation
+          // Wait 600ms (opponent thinking pause), then animate with 200ms ghost
+          const oldFen = previousFen; // capture before we update
+          if (autoAnimTimeoutRef.current) {
+            clearTimeout(autoAnimTimeoutRef.current);
+          }
+          autoAnimTimeoutRef.current = setTimeout(() => {
+            setAnimatingFen(oldFen);
+            setAutoAnimatingMoves(moved);
+            autoAnimTimeoutRef.current = setTimeout(() => {
+              setAutoAnimatingMoves([]);
+              setAnimatingFen(null);
+              autoAnimTimeoutRef.current = null;
+            }, 200);
+          }, 600);
+          // Update previousFen immediately so we don't re-trigger
           setPreviousFen(currentFen);
-          return () => clearTimeout(timeout);
+          return;
         }
       } catch {
         // ignore FEN parse errors
