@@ -230,12 +230,6 @@ export default function UniversalChessBoardDesigner({
 
   // Auto-detect piece movements when fen changes
   useEffect(() => {
-    // If skipAutoAnimRef is set (after clickGhost/drag), reset it and skip THIS change only
-    if (skipAutoAnimRef.current) {
-      skipAutoAnimRef.current = false;
-      previousFenRef.current = fen || 'start';
-      return;
-    }
     if (disableAutoGhost) {
       previousFenRef.current = fen || 'start';
       return;
@@ -270,12 +264,15 @@ export default function UniversalChessBoardDesigner({
             
             const oppDiff = diffFen(intermediate, currentFen);
             if (oppDiff.moved.length > 0) {
+              // Show intermediate position immediately (locks displayFen during thinking pause)
+              setAnimatingFen(intermediate);
+              
               const delayTimeout = setTimeout(() => {
-                setAnimatingFen(intermediate);
                 setAutoAnimatingMoves(oppDiff.moved);
                 const animTimeout = setTimeout(() => {
                   setAutoAnimatingMoves([]);
                   setAnimatingFen(null);
+                  setInternalFen(null); // ← reveal final position from fen prop
                 }, 200);
                 return () => clearTimeout(animTimeout);
               }, 600);
@@ -310,7 +307,34 @@ export default function UniversalChessBoardDesigner({
           return () => clearTimeout(timeout);
         }
         
-        // Case 3: Multi-move (more than 1) — animate ghost
+        // Case 3: Multi-move (more than 1)
+        if (moved.length >= 2) {
+          // If we have a playerMoveFenRef, the first move is player, second is opponent
+          if (playerMoveFenRef.current) {
+            const opponentMove = moved[1];
+            
+            const intermediate = playerMoveFenRef.current;
+            playerMoveFenRef.current = null;
+            
+            // Show intermediate position (after player move) immediately
+            // This locks displayFen to intermediate during the 600ms thinking pause
+            setAnimatingFen(intermediate);
+            
+            // After 600ms, ghost animate opponent's move
+            const delayTimeout = setTimeout(() => {
+              setAutoAnimatingMoves([opponentMove]);
+              const animTimeout = setTimeout(() => {
+                setAutoAnimatingMoves([]);
+                setAnimatingFen(null);  // reveal final position
+              }, 200);
+              return () => clearTimeout(animTimeout);
+            }, 600);
+            previousFenRef.current = currentFen;
+            return () => clearTimeout(delayTimeout);
+          }
+        }
+        
+        // Fallback: multi-move ghost (all at once)
         setAnimatingFen(previousFen);
         setAutoAnimatingMoves(moved);
         const timeout = setTimeout(() => {
@@ -488,14 +512,13 @@ export default function UniversalChessBoardDesigner({
       });
       setInternalSelectedSquare(null);
 
-      // Отключаем auto-detect на время анимации (чтобы не дублировалась)
-      skipAutoAnimRef.current = true;
-
       // Predict intermediate FEN after player move (for opponent-thinking pause)
       try {
         const tempGame = new Chess(game.fen());
         tempGame.move({ from: currentSel, to: square });
-        playerMoveFenRef.current = tempGame.fen();
+        const predictedFen = tempGame.fen();
+        playerMoveFenRef.current = predictedFen;
+        setInternalFen(predictedFen); // ← показываем промежуточную позицию сразу
       } catch {
         // ignore invalid move prediction
       }
@@ -505,7 +528,6 @@ export default function UniversalChessBoardDesigner({
           onMove(currentSel, square);
         }
         setLocalPlayerAnimatingMove(null);
-        skipAutoAnimRef.current = false;
       }, 200);
       return;
     }
