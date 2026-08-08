@@ -283,17 +283,22 @@ export default function UniversalChessBoardDesigner({
         
         // Case 2: Single move detected
         if (moved.length === 1) {
-          // If userColor is set, skip animation for user's own moves (already handled by clickGhost/drag)
-          // Only animate opponent moves
           if (userColor && moved[0].piece.color === userColor) {
+            // Player's move — save as intermediate, show immediately (clickGhost already animated)
+            playerMoveFenRef.current = currentFen;
             setPreviousFen(currentFen);
             return;
           }
           
-          // Player's move — save as intermediate, show immediately
-          playerMoveFenRef.current = currentFen;
+          // Opponent's move — animate ghost immediately (pause already happened in parent)
+          setAnimatingFen(previousFen);
+          setAutoAnimatingMoves(moved);
+          const timeout = setTimeout(() => {
+            setAutoAnimatingMoves([]);
+            setAnimatingFen(null);
+          }, 200);
           setPreviousFen(currentFen);
-          return;
+          return () => clearTimeout(timeout);
         }
         
         // Case 3: Start ghost animation for opponent move (from external source like playerAnimatingMove)
