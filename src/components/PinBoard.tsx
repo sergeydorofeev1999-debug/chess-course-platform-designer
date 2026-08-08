@@ -1404,6 +1404,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             sqSize={sqSize}
             clickGhost={true}
             userColor="w"
+            disableAutoGhost={true}
           />
         </div>
         {/* Mobile exercise pills — 2 rows of 6 */}
