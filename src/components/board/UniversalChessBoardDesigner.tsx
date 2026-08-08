@@ -159,6 +159,9 @@ export interface UniversalChessBoardDesignerProps {
   disableAutoGhost?: boolean;
   clickGhost?: boolean;
   userColor?: 'w' | 'b';
+  sequentialFens?: string[];
+  sequentialDelay?: number;
+  onSequentialComplete?: () => void;
 }
 
 interface DragState {
@@ -200,6 +203,9 @@ export default function UniversalChessBoardDesigner({
   disableAutoGhost = false,
   clickGhost = false,
   userColor,
+  sequentialFens,
+  sequentialDelay = 600,
+  onSequentialComplete,
 }: UniversalChessBoardDesignerProps) {
 
   // Internal fen for instant drag feedback
@@ -214,6 +220,15 @@ export default function UniversalChessBoardDesigner({
     to: string;
     piece: { type: string; color: 'w' | 'b' };
   }[]>([]);
+
+  // Sequential playback state
+  const [seqState, setSeqState] = useState<{
+    fens: string[];
+    currentIndex: number;
+    prevFen: string;
+    currentAnim: { from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null;
+  } | null>(null);
+  const seqTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Sync internalFen when external fen changes (new position from parent)
   useEffect(() => {
@@ -257,7 +272,13 @@ export default function UniversalChessBoardDesigner({
             setPreviousFen(currentFen);
             return;
           }
-          
+
+          // If sequential playback is active, skip auto-detect
+          if (seqState) {
+            setPreviousFen(currentFen);
+            return;
+          }
+
           // Start ghost animation - show old position for 200ms
           setAnimatingFen(previousFen);
           setAutoAnimatingMoves(moved);
@@ -275,9 +296,71 @@ export default function UniversalChessBoardDesigner({
     }
     
     setPreviousFen(currentFen);
-  }, [fen, userColor]);
+  }, [fen, userColor, seqState]);
 
-  const displayFen = animatingFen || internalFen || fen;
+  const displayFen = seqState
+    ? seqState.fens[seqState.currentIndex] || seqState.prevFen
+    : (animatingFen || internalFen || fen);
+
+  // Sequential playback engine: auto-advance through fens with 200ms animate + pause + next
+  useEffect(() => {
+    if (!sequentialFens || sequentialFens.length === 0) return;
+    
+    // Initialize or reset when fens change
+    const initialFen = fen || 'start';
+    setSeqState({
+      fens: sequentialFens,
+      currentIndex: 0,
+      prevFen: initialFen,
+      currentAnim: null,
+    });
+
+    return () => {
+      if (seqTimeoutRef.current) clearTimeout(seqTimeoutRef.current);
+    };
+  }, [sequentialFens]);
+
+  // Step through sequential fens
+  useEffect(() => {
+    if (!seqState) return;
+    
+    const currentFenStr = seqState.fens[seqState.currentIndex];
+    if (!currentFenStr) {
+      // Finished all fens
+      setSeqState(null);
+      onSequentialComplete?.();
+      return;
+    }
+
+    // Detect move from prevFen to currentFen
+    try {
+      const { moved } = diffFen(seqState.prevFen, currentFenStr);
+      if (moved.length > 0) {
+        setSeqState(prev => prev ? { ...prev, currentAnim: moved[0] } : null);
+      }
+    } catch {
+      // ignore diff errors
+    }
+
+    // After 200ms animation + sequentialDelay pause, advance to next
+    seqTimeoutRef.current = setTimeout(() => {
+      setSeqState(prev => {
+        if (!prev) return null;
+        const nextIndex = prev.currentIndex + 1;
+        const nextPrevFen = prev.fens[prev.currentIndex];
+        return {
+          ...prev,
+          currentIndex: nextIndex,
+          prevFen: nextPrevFen,
+          currentAnim: null,
+        };
+      });
+    }, 200 + sequentialDelay);
+
+    return () => {
+      if (seqTimeoutRef.current) clearTimeout(seqTimeoutRef.current);
+    };
+  }, [seqState?.currentIndex, seqState?.prevFen, seqState?.fens, sequentialDelay, onSequentialComplete]);
 
   const game = useMemo(() => {
     try { return new Chess(displayFen); } catch { return new Chess(); }
@@ -736,6 +819,18 @@ export default function UniversalChessBoardDesigner({
             from={activeOpponentAnimatingMove.from}
             to={activeOpponentAnimatingMove.to}
             piece={activeOpponentAnimatingMove.piece}
+            isReversed={isReversed}
+            sqSize={sqSize}
+            pieceTheme={pieceTheme}
+          />
+        )}
+
+        {seqState?.currentAnim && (
+          <GhostAnimPiece
+            key={`seq-${seqState.currentIndex}-${seqState.currentAnim.from}-${seqState.currentAnim.to}`}
+            from={seqState.currentAnim.from}
+            to={seqState.currentAnim.to}
+            piece={seqState.currentAnim.piece}
             isReversed={isReversed}
             sqSize={sqSize}
             pieceTheme={pieceTheme}
