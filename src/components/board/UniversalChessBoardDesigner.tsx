@@ -248,6 +248,15 @@ export default function UniversalChessBoardDesigner({
       return;
     }
     
+    // Parent is confirming the predicted player move from clickGhost
+    // Consume it silently: advance previousFen but do NOT auto-animate
+    if (playerMoveFenRef.current && playerMoveFenRef.current === currentFen) {
+      previousFenRef.current = currentFen;
+      playerMoveFenRef.current = null;
+      setInternalFen(null);
+      return;
+    }
+    
     // We have a new FEN and previousFen holds the OLD FEN
     if (currentFen !== 'start' && previousFen !== 'start') {
       try {
