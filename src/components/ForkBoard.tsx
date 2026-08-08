@@ -1134,7 +1134,6 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             sqSize={sqSize}
             clickGhost={true}
             userColor="w"
-            disableAutoGhost={true}
             onSelectionChange={(sq) => setSelectedSquare(sq)}
           />
           {/* Hint arrows SVG overlay */}
