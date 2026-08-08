@@ -360,7 +360,7 @@ export default function UniversalChessBoardDesigner({
     return () => {
       if (seqTimeoutRef.current) clearTimeout(seqTimeoutRef.current);
     };
-  }, [seqState?.currentIndex, seqState?.prevFen, seqState?.fens, sequentialDelay, onSequentialComplete]);
+  }, [seqState?.currentIndex, seqState?.fens, sequentialDelay, onSequentialComplete]);
 
   const game = useMemo(() => {
     try { return new Chess(displayFen); } catch { return new Chess(); }
