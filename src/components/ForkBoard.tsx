@@ -1196,7 +1196,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
               style={{
                 backgroundColor: '#2C241B',
                 boxShadow: '0 4px 16px rgba(44, 36, 27, 0.3)',
-                padding: '18px 24px',
+                padding: '20px 24px 24px 24px',
                 borderRadius: '16px',
               }}
             >
@@ -1205,13 +1205,21 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
               </p>
               <button
                 onClick={reset}
-                className="mt-1 font-semibold px-5 py-2 rounded-xl shadow hover:brightness-110 transition"
+                className="mt-1 font-bold w-full rounded-xl hover:brightness-110 transition"
                 style={{
+                  display: 'block',
+                  width: '100%',
                   backgroundColor: '#FFFFFF',
                   color: '#2C241B',
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  borderRadius: '12px',
+                  fontSize: '16px',
+                  fontWeight: 700,
+                  borderRadius: '14px',
+                  height: '48px',
+                  lineHeight: '48px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                  textAlign: 'center',
+                  border: 'none',
+                  padding: 0,
                 }}
               >
                 Ещё раз

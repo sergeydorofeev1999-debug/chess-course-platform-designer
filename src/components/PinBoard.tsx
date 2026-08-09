@@ -198,8 +198,8 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
   const [hintVisible, setHintVisible] = useState(false);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
+  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: "w" | "b" } } | null>(null);
   const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
-  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
 
   const isCompleteRef = useRef(false);
   const isFailRef = useRef(false);
@@ -283,6 +283,11 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
     setWhiteMoves(0);
   }, []);
 
+  const getBlackPieceType = (game: Chess, square: string) => {
+    const piece = game.get(square as any);
+    return piece ? piece.type : 'p';
+  };
+
   const processWhiteMove = useCallback((from: string, to: string, promotionPiece?: string) => {
     if (!game) return;
     const g = game;
@@ -315,9 +320,12 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
               if (!mountedRef.current) return;
               const safeEscape = getBlackSafeBishopEscape(g);
               if (safeEscape) {
+                const blackPieceType = getBlackPieceType(g, safeEscape.from);
+                setOpponentAnimatingMove({ from: safeEscape.from, to: safeEscape.to, piece: { type: blackPieceType, color: 'b' } });
                 g.move({ from: safeEscape.from, to: safeEscape.to });
                 setLastMove({ from: safeEscape.from, to: safeEscape.to });
                 setGame(new Chess(g.fen()));
+                setTimeout(() => setOpponentAnimatingMove(null), 200);
               }
               setIsFail(true);
               setMessage('Провалено');
@@ -336,9 +344,12 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             const blackMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
             if (blackMoves.length > 0) {
               const kingMove = blackMoves[Math.floor(Math.random() * blackMoves.length)];
+              const blackPieceType = getBlackPieceType(g, kingMove.from);
+              setOpponentAnimatingMove({ from: kingMove.from, to: kingMove.to, piece: { type: blackPieceType, color: 'b' } });
               g.move({ from: kingMove.from, to: kingMove.to });
               setLastMove({ from: kingMove.from, to: kingMove.to });
               setGame(new Chess(g.fen()));
+              setTimeout(() => setOpponentAnimatingMove(null), 200);
             }
           }, 1000);
 
@@ -381,9 +392,12 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
               const blackKingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
               if (blackKingMoves.length > 0) {
                 const kingMove = blackKingMoves[Math.floor(Math.random() * blackKingMoves.length)];
+                const blackPieceType = getBlackPieceType(g, kingMove.from);
+                setOpponentAnimatingMove({ from: kingMove.from, to: kingMove.to, piece: { type: blackPieceType, color: 'b' } });
                 g.move({ from: kingMove.from, to: kingMove.to });
               setLastMove({ from: kingMove.from, to: kingMove.to });
                 setGame(new Chess(g.fen()));
+                setTimeout(() => setOpponentAnimatingMove(null), 200);
               }
               setIsFail(true);
               setMessage('Провалено');
@@ -402,9 +416,12 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
             if (kingMoves.length > 0) {
               const kingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+              const blackPieceType = getBlackPieceType(g, kingMove.from);
+              setOpponentAnimatingMove({ from: kingMove.from, to: kingMove.to, piece: { type: blackPieceType, color: 'b' } });
               g.move({ from: kingMove.from, to: kingMove.to });
             setLastMove({ from: kingMove.from, to: kingMove.to });
               setGame(new Chess(g.fen()));
+              setTimeout(() => setOpponentAnimatingMove(null), 200);
             }
           }, 1000);
 
@@ -446,9 +463,12 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             if (safeCap) {
               setTimeout(() => {
                 if (!mountedRef.current) return;
+                const blackPieceType = getBlackPieceType(g, safeCap.from);
+                setOpponentAnimatingMove({ from: safeCap.from, to: safeCap.to, piece: { type: blackPieceType, color: 'b' } });
                 g.move({ from: safeCap.from, to: safeCap.to });
         setLastMove({ from: safeCap.from, to: safeCap.to });
                 setGame(new Chess(g.fen()));
+                setTimeout(() => setOpponentAnimatingMove(null), 200);
                 setIsFail(true);
                 setMessage('Провалено');
               }, 1000);
@@ -471,9 +491,12 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             // After Bc4, black queen captures the bishop
             const queenCap = g.moves({ verbose: true }).find((m: any) => m.color === 'b' && m.piece === 'q' && m.to === 'c4');
             if (queenCap) {
+              const blackPieceType = getBlackPieceType(g, queenCap.from);
+              setOpponentAnimatingMove({ from: queenCap.from, to: queenCap.to, piece: { type: blackPieceType, color: 'b' } });
               g.move({ from: queenCap.from, to: queenCap.to });
      setLastMove({ from: queenCap.from, to: queenCap.to });
               setGame(new Chess(g.fen()));
+              setTimeout(() => setOpponentAnimatingMove(null), 200);
             }
           }, 1000);
 
@@ -512,14 +535,20 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
               const pawnCaptures = blackMoves.filter((m: any) => m.piece === 'p' && m.captured);
               if (pawnCaptures.length > 0) {
                 const cap = pawnCaptures[0];
+                const blackPieceType = getBlackPieceType(g, cap.from);
+                setOpponentAnimatingMove({ from: cap.from, to: cap.to, piece: { type: blackPieceType, color: 'b' } });
                 g.move({ from: cap.from, to: cap.to });
         setLastMove({ from: cap.from, to: cap.to });
                 setGame(new Chess(g.fen()));
+                setTimeout(() => setOpponentAnimatingMove(null), 200);
               } else if (blackMoves.length > 0) {
                 const randomMove = blackMoves[Math.floor(Math.random() * blackMoves.length)];
+                const blackPieceType = getBlackPieceType(g, randomMove.from);
+                setOpponentAnimatingMove({ from: randomMove.from, to: randomMove.to, piece: { type: blackPieceType, color: 'b' } });
                 g.move({ from: randomMove.from, to: randomMove.to });
               setLastMove({ from: randomMove.from, to: randomMove.to });
                 setGame(new Chess(g.fen()));
+                setTimeout(() => setOpponentAnimatingMove(null), 200);
               }
               setIsFail(true);
               setMessage('Провалено');
@@ -540,9 +569,12 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             const blackMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && !(m.from === 'f6' && m.to === 'f5') && !(m.from === 'g7' && m.to === 'g5'));
             if (blackMoves.length > 0) {
               const randomMove = blackMoves[Math.floor(Math.random() * blackMoves.length)];
+              const blackPieceType = getBlackPieceType(g, randomMove.from);
+              setOpponentAnimatingMove({ from: randomMove.from, to: randomMove.to, piece: { type: blackPieceType, color: 'b' } });
               g.move({ from: randomMove.from, to: randomMove.to });
           setLastMove({ from: randomMove.from, to: randomMove.to });
               setGame(new Chess(g.fen()));
+              setTimeout(() => setOpponentAnimatingMove(null), 200);
             }
           }, 1000);
 
@@ -577,10 +609,13 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
               if (!mountedRef.current) return;
               const safeCap = getBlackSafeCapture(g);
               if (safeCap) {
+            const blackPieceType = getBlackPieceType(g, safeCap.from);
+            setOpponentAnimatingMove({ from: safeCap.from, to: safeCap.to, piece: { type: blackPieceType, color: 'b' } });
             g.move({ from: safeCap.from, to: safeCap.to });
             setLastMove({ from: safeCap.from, to: safeCap.to });
           }
               setGame(new Chess(g.fen()));
+              setTimeout(() => setOpponentAnimatingMove(null), 200);
               setIsFail(true);
               setMessage('Провалено');
             }, 1000);
@@ -597,14 +632,19 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
             const kingToF6 = kingMoves.find((m: any) => m.to === 'f6');
             if (kingToF6) {
+              const blackPieceType = getBlackPieceType(g, kingToF6.from);
+              setOpponentAnimatingMove({ from: kingToF6.from, to: kingToF6.to, piece: { type: blackPieceType, color: 'b' } });
               g.move({ from: kingToF6.from, to: kingToF6.to });
           setLastMove({ from: kingToF6.from, to: kingToF6.to });
             } else if (kingMoves.length > 0) {
               const randomKingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+              const blackPieceType = getBlackPieceType(g, randomKingMove.from);
+              setOpponentAnimatingMove({ from: randomKingMove.from, to: randomKingMove.to, piece: { type: blackPieceType, color: 'b' } });
               g.move({ from: randomKingMove.from, to: randomKingMove.to });
             setLastMove({ from: randomKingMove.from, to: randomKingMove.to });
             }
             setGame(new Chess(g.fen()));
+            setTimeout(() => setOpponentAnimatingMove(null), 200);
             setWhiteMoves(nextWhiteMoves); // Update whiteMoves AFTER black responds
           }, 1000);
 
@@ -628,9 +668,12 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             const blackMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b');
             if (blackMoves.length > 0) {
               const randomMove = blackMoves[Math.floor(Math.random() * blackMoves.length)];
+              const blackPieceType = getBlackPieceType(g, randomMove.from);
+              setOpponentAnimatingMove({ from: randomMove.from, to: randomMove.to, piece: { type: blackPieceType, color: 'b' } });
               g.move({ from: randomMove.from, to: randomMove.to });
             setLastMove({ from: randomMove.from, to: randomMove.to });
               setGame(new Chess(g.fen()));
+              setTimeout(() => setOpponentAnimatingMove(null), 200);
             }
             setWhiteMoves(nextWhiteMoves); // Update whiteMoves AFTER black responds
           }, 1000);
@@ -670,10 +713,13 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
               if (!mountedRef.current) return;
               const safeCap = getBlackSafeCapture(g);
               if (safeCap) {
+              const blackPieceType = getBlackPieceType(g, safeCap.from);
+              setOpponentAnimatingMove({ from: safeCap.from, to: safeCap.to, piece: { type: blackPieceType, color: 'b' } });
               g.move({ from: safeCap.from, to: safeCap.to });
               setLastMove({ from: safeCap.from, to: safeCap.to });
             }
               setGame(new Chess(g.fen()));
+              setTimeout(() => setOpponentAnimatingMove(null), 200);
               setIsFail(true);
               setMessage('Провалено');
             }, 1000);
@@ -688,14 +734,19 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
             const kingToF7 = kingMoves.find((m: any) => m.to === 'f7');
             if (kingToF7) {
+              const blackPieceType = getBlackPieceType(g, kingToF7.from);
+              setOpponentAnimatingMove({ from: kingToF7.from, to: kingToF7.to, piece: { type: blackPieceType, color: 'b' } });
               g.move({ from: kingToF7.from, to: kingToF7.to });
         setLastMove({ from: kingToF7.from, to: kingToF7.to });
             } else if (kingMoves.length > 0) {
               const randomKingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+              const blackPieceType = getBlackPieceType(g, randomKingMove.from);
+              setOpponentAnimatingMove({ from: randomKingMove.from, to: randomKingMove.to, piece: { type: blackPieceType, color: 'b' } });
               g.move({ from: randomKingMove.from, to: randomKingMove.to });
   setLastMove({ from: randomKingMove.from, to: randomKingMove.to });
             }
             setGame(new Chess(g.fen()));
+            setTimeout(() => setOpponentAnimatingMove(null), 200);
             setWhiteMoves(nextWhiteMoves);
           }, 1000);
 
@@ -718,9 +769,12 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             const blackMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b');
             if (blackMoves.length > 0) {
               const randomMove = blackMoves[Math.floor(Math.random() * blackMoves.length)];
+              const blackPieceType = getBlackPieceType(g, randomMove.from);
+              setOpponentAnimatingMove({ from: randomMove.from, to: randomMove.to, piece: { type: blackPieceType, color: 'b' } });
               g.move({ from: randomMove.from, to: randomMove.to });
             setLastMove({ from: randomMove.from, to: randomMove.to });
               setGame(new Chess(g.fen()));
+              setTimeout(() => setOpponentAnimatingMove(null), 200);
             }
             setWhiteMoves(nextWhiteMoves);
           }, 1000);
@@ -757,10 +811,13 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
               if (!mountedRef.current) return;
               const safeCap = getBlackSafeCapture(g);
               if (safeCap) {
+              const blackPieceType = getBlackPieceType(g, safeCap.from);
+              setOpponentAnimatingMove({ from: safeCap.from, to: safeCap.to, piece: { type: blackPieceType, color: 'b' } });
               g.move({ from: safeCap.from, to: safeCap.to });
               setLastMove({ from: safeCap.from, to: safeCap.to });
             }
               setGame(new Chess(g.fen()));
+              setTimeout(() => setOpponentAnimatingMove(null), 200);
               setIsFail(true);
               setMessage('Провалено');
             }, 1000);
@@ -776,9 +833,12 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             const blackMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b');
             if (blackMoves.length > 0) {
               const randomMove = blackMoves[Math.floor(Math.random() * blackMoves.length)];
+              const blackPieceType = getBlackPieceType(g, randomMove.from);
+              setOpponentAnimatingMove({ from: randomMove.from, to: randomMove.to, piece: { type: blackPieceType, color: 'b' } });
               g.move({ from: randomMove.from, to: randomMove.to });
         setLastMove({ from: randomMove.from, to: randomMove.to });
               setGame(new Chess(g.fen()));
+              setTimeout(() => setOpponentAnimatingMove(null), 200);
             }
             setWhiteMoves(nextWhiteMoves);
           }, 1000);
@@ -816,10 +876,13 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
               if (!mountedRef.current) return;
               const safeCap = getBlackSafeCapture(g);
               if (safeCap) {
+                const blackPieceType = getBlackPieceType(g, safeCap.from);
+                setOpponentAnimatingMove({ from: safeCap.from, to: safeCap.to, piece: { type: blackPieceType, color: 'b' } });
                 g.move({ from: safeCap.from, to: safeCap.to });
                 setLastMove({ from: safeCap.from, to: safeCap.to });
               }
               setGame(new Chess(g.fen()));
+              setTimeout(() => setOpponentAnimatingMove(null), 200);
               setIsFail(true);
               setMessage('Провалено');
             }, 1000);
@@ -837,14 +900,19 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             const rookMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'r');
             const rookToD8 = rookMoves.find((m: any) => m.to === 'd8');
             if (rookToD8) {
+              const blackPieceType = getBlackPieceType(g, rookToD8.from);
+              setOpponentAnimatingMove({ from: rookToD8.from, to: rookToD8.to, piece: { type: blackPieceType, color: 'b' } });
               g.move({ from: rookToD8.from, to: rookToD8.to });
         setLastMove({ from: rookToD8.from, to: rookToD8.to });
             } else if (rookMoves.length > 0) {
               const rookMove = rookMoves[Math.floor(Math.random() * rookMoves.length)];
+              const blackPieceType = getBlackPieceType(g, rookMove.from);
+              setOpponentAnimatingMove({ from: rookMove.from, to: rookMove.to, piece: { type: blackPieceType, color: 'b' } });
               g.move({ from: rookMove.from, to: rookMove.to });
         setLastMove({ from: rookMove.from, to: rookMove.to });
             }
             setGame(new Chess(g.fen()));
+            setTimeout(() => setOpponentAnimatingMove(null), 200);
           }, 1000);
 
           return;
@@ -858,9 +926,12 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
               // Black rook d8 captures queen on d5
               const rookCap = g.moves({ verbose: true }).find((m: any) => m.color === 'b' && m.piece === 'r' && m.to === 'd5');
               if (rookCap) {
+                const blackPieceType = getBlackPieceType(g, rookCap.from);
+                setOpponentAnimatingMove({ from: rookCap.from, to: rookCap.to, piece: { type: blackPieceType, color: 'b' } });
                 g.move({ from: rookCap.from, to: rookCap.to });
          setLastMove({ from: rookCap.from, to: rookCap.to });
                 setGame(new Chess(g.fen()));
+                setTimeout(() => setOpponentAnimatingMove(null), 200);
               }
               setIsFail(true);
               setMessage('Провалено');
@@ -886,14 +957,19 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             const preferredKingSquares = ['a7', 'b8', 'c8', 'c7'];
             const preferred = kingMoves.find((m: any) => preferredKingSquares.includes(m.to));
             if (preferred) {
+              const blackPieceType = getBlackPieceType(g, preferred.from);
+              setOpponentAnimatingMove({ from: preferred.from, to: preferred.to, piece: { type: blackPieceType, color: 'b' } });
               g.move({ from: preferred.from, to: preferred.to });
           setLastMove({ from: preferred.from, to: preferred.to });
             } else if (kingMoves.length > 0) {
               const kingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+              const blackPieceType = getBlackPieceType(g, kingMove.from);
+              setOpponentAnimatingMove({ from: kingMove.from, to: kingMove.to, piece: { type: blackPieceType, color: 'b' } });
               g.move({ from: kingMove.from, to: kingMove.to });
           setLastMove({ from: kingMove.from, to: kingMove.to });
             }
             setGame(new Chess(g.fen()));
+            setTimeout(() => setOpponentAnimatingMove(null), 200);
           }, 1000);
 
           return;
@@ -927,10 +1003,13 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
               if (!mountedRef.current) return;
               const safeCap = getBlackSafeCapture(g);
               if (safeCap) {
+              const blackPieceType = getBlackPieceType(g, safeCap.from);
+              setOpponentAnimatingMove({ from: safeCap.from, to: safeCap.to, piece: { type: blackPieceType, color: 'b' } });
               g.move({ from: safeCap.from, to: safeCap.to });
               setLastMove({ from: safeCap.from, to: safeCap.to });
             }
               setGame(new Chess(g.fen()));
+              setTimeout(() => setOpponentAnimatingMove(null), 200);
               setIsFail(true);
               setMessage('Провалено');
             }, 1000);
@@ -948,17 +1027,22 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             const queenMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'q');
             const queenToB5 = queenMoves.find((m: any) => m.to === 'b5');
             if (queenToB5) {
+              const blackPieceType = getBlackPieceType(g, queenToB5.from);
+              setOpponentAnimatingMove({ from: queenToB5.from, to: queenToB5.to, piece: { type: blackPieceType, color: 'b' } });
               g.move({ from: queenToB5.from, to: queenToB5.to });
         setLastMove({ from: queenToB5.from, to: queenToB5.to });
             } else {
               const captures = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.captured);
               if (captures.length > 0) {
                 const cap = captures[0];
+                const blackPieceType = getBlackPieceType(g, cap.from);
+                setOpponentAnimatingMove({ from: cap.from, to: cap.to, piece: { type: blackPieceType, color: 'b' } });
                 g.move({ from: cap.from, to: cap.to });
  setLastMove({ from: cap.from, to: cap.to });
               }
             }
             setGame(new Chess(g.fen()));
+            setTimeout(() => setOpponentAnimatingMove(null), 200);
           }, 1000);
 
           setMessage('');
@@ -992,10 +1076,13 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
               if (!mountedRef.current) return;
               const safeCap = getBlackSafeCapture(g);
               if (safeCap) {
+            const blackPieceType = getBlackPieceType(g, safeCap.from);
+            setOpponentAnimatingMove({ from: safeCap.from, to: safeCap.to, piece: { type: blackPieceType, color: 'b' } });
             g.move({ from: safeCap.from, to: safeCap.to });
             setLastMove({ from: safeCap.from, to: safeCap.to });
           }
               setGame(new Chess(g.fen()));
+              setTimeout(() => setOpponentAnimatingMove(null), 200);
               setIsFail(true);
               setMessage('Провалено');
             }, 1000);
@@ -1019,6 +1106,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             if (!mountedRef.current) return;
             // After Nxf6, if not mate (e.g. some edge case), try to continue
             setGame(new Chess(g.fen()));
+            setTimeout(() => setOpponentAnimatingMove(null), 200);
           }, 1000);
 
           return;
@@ -1036,10 +1124,13 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
               if (!mountedRef.current) return;
               const safeCap = getBlackSafeCapture(g);
               if (safeCap) {
+            const blackPieceType = getBlackPieceType(g, safeCap.from);
+            setOpponentAnimatingMove({ from: safeCap.from, to: safeCap.to, piece: { type: blackPieceType, color: 'b' } });
             g.move({ from: safeCap.from, to: safeCap.to });
             setLastMove({ from: safeCap.from, to: safeCap.to });
           }
               setGame(new Chess(g.fen()));
+              setTimeout(() => setOpponentAnimatingMove(null), 200);
               setIsFail(true);
               setMessage('Провалено');
             }, 1000);
@@ -1061,6 +1152,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
           setTimeout(() => {
             if (!mountedRef.current) return;
             setGame(new Chess(g.fen()));
+            setTimeout(() => setOpponentAnimatingMove(null), 200);
           }, 1000);
 
           return;
@@ -1077,9 +1169,12 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
               if (!mountedRef.current) return;
               const rookCap = g.moves({ verbose: true }).find((m: any) => m.color === 'b' && m.piece === 'r' && m.to === 'b7');
               if (rookCap) {
+                const blackPieceType = getBlackPieceType(g, rookCap.from);
+                setOpponentAnimatingMove({ from: rookCap.from, to: rookCap.to, piece: { type: blackPieceType, color: 'b' } });
                 g.move({ from: rookCap.from, to: rookCap.to });
          setLastMove({ from: rookCap.from, to: rookCap.to });
                 setGame(new Chess(g.fen()));
+                setTimeout(() => setOpponentAnimatingMove(null), 200);
               }
               setIsFail(true);
               setMessage('Провалено');
@@ -1094,9 +1189,12 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
               if (!mountedRef.current) return;
               const rookCap = g.moves({ verbose: true }).find((m: any) => m.color === 'b' && m.piece === 'r' && m.to === 'b7');
               if (rookCap) {
+                const blackPieceType = getBlackPieceType(g, rookCap.from);
+                setOpponentAnimatingMove({ from: rookCap.from, to: rookCap.to, piece: { type: blackPieceType, color: 'b' } });
                 g.move({ from: rookCap.from, to: rookCap.to });
           setLastMove({ from: rookCap.from, to: rookCap.to });
                 setGame(new Chess(g.fen()));
+                setTimeout(() => setOpponentAnimatingMove(null), 200);
               }
               setIsFail(true);
               setMessage('Провалено');
@@ -1112,10 +1210,13 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
               if (!mountedRef.current) return;
               const safeCap = getBlackSafeCapture(g);
               if (safeCap) {
+              const blackPieceType = getBlackPieceType(g, safeCap.from);
+              setOpponentAnimatingMove({ from: safeCap.from, to: safeCap.to, piece: { type: blackPieceType, color: 'b' } });
               g.move({ from: safeCap.from, to: safeCap.to });
               setLastMove({ from: safeCap.from, to: safeCap.to });
             }
               setGame(new Chess(g.fen()));
+              setTimeout(() => setOpponentAnimatingMove(null), 200);
               setIsFail(true);
               setMessage('Провалено');
             }, 1000);
@@ -1137,6 +1238,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
           setTimeout(() => {
             if (!mountedRef.current) return;
             setGame(new Chess(g.fen()));
+            setTimeout(() => setOpponentAnimatingMove(null), 200);
           }, 1000);
 
           return;
@@ -1402,6 +1504,8 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             sqSize={sqSize}
             clickGhost={true}
             userColor="w"
+            disableAutoGhost={true}
+            opponentAnimatingMove={opponentAnimatingMove}
           />
         </div>
         {/* Mobile exercise pills — 2 rows of 6 */}
