@@ -184,11 +184,11 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
 
   useEffect(() => {
     if (isComplete && exercise < 12) {
-      const timer = 
-      switchExercise((exercise + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12);
-    }, 2000);
-    return () => clearTimeout(timer);
-  }
+      const timer = setTimeout(() => {
+        switchExercise((exercise + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
   }, [isComplete, exercise, switchExercise]);
 
   const storageKey = lessonId ? `fork_progress_${lessonId}` : 'fork_progress';
@@ -1178,13 +1178,15 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
               </p>
               <button
                 onClick={reset}
-                className="mt-1 font-semibold px-5 py-2 rounded-xl shadow hover:brightness-110 transition"
+                className="mt-1 font-bold w-full rounded-xl shadow hover:brightness-110 transition flex items-center justify-center"
                 style={{
                   backgroundColor: '#FFFFFF',
                   color: '#2C241B',
-                  fontSize: '14px',
-                  fontWeight: 600,
+                  fontSize: '16px',
+                  fontWeight: 700,
                   borderRadius: '12px',
+                  height: '48px',
+                  padding: '14px 32px',
                 }}
               >
                 Ещё раз
