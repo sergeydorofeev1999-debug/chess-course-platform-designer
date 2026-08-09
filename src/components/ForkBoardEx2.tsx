@@ -468,28 +468,31 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
 
         {/* Feedback Banner */}
         {isFail && (
-          <div className="w-full lg:max-w-sm mt-2">
+          <div className="w-full lg:max-w-sm mt-2 animate-slide-down">
             <div
               className="rounded-2xl flex flex-col items-center gap-2"
               style={{
-                backgroundColor: '#5C2A2A',
-                boxShadow: '0 4px 16px rgba(92, 42, 42, 0.3)',
+                backgroundColor: '#2C241B',
+                boxShadow: '0 4px 16px rgba(44, 36, 27, 0.3)',
                 padding: '18px 24px',
                 borderRadius: '16px',
               }}
             >
-              <p className="text-white font-semibold" style={{ fontSize: '18px' }}>Попробуйте ещё раз</p>
-              <p className="text-[#E8D5B5]" style={{ fontSize: '14px' }}>Попробуйте найти другой ход для двойного удара</p>
+              <p className="text-white font-semibold flex items-center gap-2" style={{ fontSize: '18px' }}>
+                <RotateCcw size={16} /> Попробуйте снова
+              </p>
               <button
                 onClick={reset}
-                className="mt-1 font-semibold text-sm px-5 py-2 rounded-xl shadow hover:brightness-110 transition"
+                className="mt-1 font-semibold px-5 py-2 rounded-xl shadow hover:brightness-110 transition"
                 style={{
                   backgroundColor: '#FFFFFF',
-                  color: '#5C2A2A',
+                  color: '#2C241B',
+                  fontSize: '14px',
+                  fontWeight: 600,
                   borderRadius: '12px',
                 }}
               >
-                Вернуть ход
+                Ещё раз
               </button>
             </div>
           </div>
