@@ -285,13 +285,19 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
               const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
               const preferredKingSquares = ['e8'];
               const preferred = kingMoves.find((m: any) => preferredKingSquares.includes(m.to));
+              let blackMove = null;
               if (preferred) {
-                g.move({ from: preferred.from, to: preferred.to });
-                setLastMove({ from: preferred.from, to: preferred.to });
+                blackMove = preferred;
+                g.move({ from: blackMove.from, to: blackMove.to });
+                setLastMove({ from: blackMove.from, to: blackMove.to });
               } else if (kingMoves.length > 0) {
-                const kingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
-                g.move({ from: kingMove.from, to: kingMove.to });
-                setLastMove({ from: kingMove.from, to: kingMove.to });
+                blackMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+                g.move({ from: blackMove.from, to: blackMove.to });
+                setLastMove({ from: blackMove.from, to: blackMove.to });
+              }
+              if (blackMove) {
+                setOpponentAnimatingMove({ from: blackMove.from, to: blackMove.to, piece: { type: blackMove.piece.toUpperCase(), color: 'b' } });
+                setTimeout(() => setOpponentAnimatingMove(null), 200);
               }
               setGame(new Chess(g.fen()));
               setWhiteMoves(nextWhiteMoves);
@@ -344,13 +350,19 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
               // After e6+, black king escapes to d7
               const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
               const kingToD7 = kingMoves.find((m: any) => m.to === 'd7');
+              let blackMove = null;
               if (kingToD7) {
-                g.move({ from: kingToD7.from, to: kingToD7.to });
-                setLastMove({ from: kingToD7.from, to: kingToD7.to });
+                blackMove = kingToD7;
+                g.move({ from: blackMove.from, to: blackMove.to });
+                setLastMove({ from: blackMove.from, to: blackMove.to });
               } else if (kingMoves.length > 0) {
-                const kingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
-                g.move({ from: kingMove.from, to: kingMove.to });
-                setLastMove({ from: kingMove.from, to: kingMove.to });
+                blackMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+                g.move({ from: blackMove.from, to: blackMove.to });
+                setLastMove({ from: blackMove.from, to: blackMove.to });
+              }
+              if (blackMove) {
+                setOpponentAnimatingMove({ from: blackMove.from, to: blackMove.to, piece: { type: blackMove.piece.toUpperCase(), color: 'b' } });
+                setTimeout(() => setOpponentAnimatingMove(null), 200);
               }
               setGame(new Chess(g.fen()));
               setWhiteMoves(nextWhiteMoves);
@@ -402,10 +414,15 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
               if (!mountedRef.current) return;
               // After Rxe7+, black king escapes (king moves)
               const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
+              let blackMove = null;
               if (kingMoves.length > 0) {
-                const kingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
-                g.move({ from: kingMove.from, to: kingMove.to });
-                setLastMove({ from: kingMove.from, to: kingMove.to });
+                blackMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+                g.move({ from: blackMove.from, to: blackMove.to });
+                setLastMove({ from: blackMove.from, to: blackMove.to });
+              }
+              if (blackMove) {
+                setOpponentAnimatingMove({ from: blackMove.from, to: blackMove.to, piece: { type: blackMove.piece.toUpperCase(), color: 'b' } });
+                setTimeout(() => setOpponentAnimatingMove(null), 200);
               }
               setGame(new Chess(g.fen()));
               setWhiteMoves(nextWhiteMoves);
@@ -458,13 +475,19 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
               // After Re1+, black king escapes to a8
               const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
               const kingToA8 = kingMoves.find((m: any) => m.to === 'a8');
+              let blackMove = null;
               if (kingToA8) {
-                g.move({ from: kingToA8.from, to: kingToA8.to });
-                setLastMove({ from: kingToA8.from, to: kingToA8.to });
+                blackMove = kingToA8;
+                g.move({ from: blackMove.from, to: blackMove.to });
+                setLastMove({ from: blackMove.from, to: blackMove.to });
               } else if (kingMoves.length > 0) {
-                const kingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
-                g.move({ from: kingMove.from, to: kingMove.to });
-                setLastMove({ from: kingMove.from, to: kingMove.to });
+                blackMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+                g.move({ from: blackMove.from, to: blackMove.to });
+                setLastMove({ from: blackMove.from, to: blackMove.to });
+              }
+              if (blackMove) {
+                setOpponentAnimatingMove({ from: blackMove.from, to: blackMove.to, piece: { type: blackMove.piece.toUpperCase(), color: 'b' } });
+                setTimeout(() => setOpponentAnimatingMove(null), 200);
               }
               setGame(new Chess(g.fen()));
               setWhiteMoves(nextWhiteMoves);
@@ -518,13 +541,19 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
               const rookMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'r' && m.from === 'g7');
               const preferredRookSquares = ['d7', 'f7'];
               const preferred = rookMoves.find((m: any) => preferredRookSquares.includes(m.to));
+              let blackMove = null;
               if (preferred) {
-                g.move({ from: preferred.from, to: preferred.to });
-                setLastMove({ from: preferred.from, to: preferred.to });
+                blackMove = preferred;
+                g.move({ from: blackMove.from, to: blackMove.to });
+                setLastMove({ from: blackMove.from, to: blackMove.to });
               } else if (rookMoves.length > 0) {
-                const rookMove = rookMoves[Math.floor(Math.random() * rookMoves.length)];
-                g.move({ from: rookMove.from, to: rookMove.to });
-                setLastMove({ from: rookMove.from, to: rookMove.to });
+                blackMove = rookMoves[Math.floor(Math.random() * rookMoves.length)];
+                g.move({ from: blackMove.from, to: blackMove.to });
+                setLastMove({ from: blackMove.from, to: blackMove.to });
+              }
+              if (blackMove) {
+                setOpponentAnimatingMove({ from: blackMove.from, to: blackMove.to, piece: { type: blackMove.piece.toUpperCase(), color: 'b' } });
+                setTimeout(() => setOpponentAnimatingMove(null), 200);
               }
               setGame(new Chess(g.fen()));
               setWhiteMoves(nextWhiteMoves);
@@ -645,13 +674,19 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
                 const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
                 const preferredKingSquares = ['e8'];
                 const preferred = kingMoves.find((m: any) => preferredKingSquares.includes(m.to));
+                let blackMove = null;
                 if (preferred) {
-                  g.move({ from: preferred.from, to: preferred.to });
-                  setLastMove({ from: preferred.from, to: preferred.to });
+                  blackMove = preferred;
+                  g.move({ from: blackMove.from, to: blackMove.to });
+                  setLastMove({ from: blackMove.from, to: blackMove.to });
                 } else if (kingMoves.length > 0) {
-                  const kingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
-                  g.move({ from: kingMove.from, to: kingMove.to });
-                  setLastMove({ from: kingMove.from, to: kingMove.to });
+                  blackMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+                  g.move({ from: blackMove.from, to: blackMove.to });
+                  setLastMove({ from: blackMove.from, to: blackMove.to });
+                }
+                if (blackMove) {
+                  setOpponentAnimatingMove({ from: blackMove.from, to: blackMove.to, piece: { type: blackMove.piece.toUpperCase(), color: 'b' } });
+                  setTimeout(() => setOpponentAnimatingMove(null), 200);
                 }
                 setGame(new Chess(g.fen()));
                 setWhiteMoves(nextWhiteMoves);
@@ -704,13 +739,19 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
                 // After e6+, black king escapes to d7
                 const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
                 const kingToD7 = kingMoves.find((m: any) => m.to === 'd7');
+                let blackMove = null;
                 if (kingToD7) {
-                  g.move({ from: kingToD7.from, to: kingToD7.to });
-                  setLastMove({ from: kingToD7.from, to: kingToD7.to });
+                  blackMove = kingToD7;
+                  g.move({ from: blackMove.from, to: blackMove.to });
+                  setLastMove({ from: blackMove.from, to: blackMove.to });
                 } else if (kingMoves.length > 0) {
-                  const kingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
-                  g.move({ from: kingMove.from, to: kingMove.to });
-                  setLastMove({ from: kingMove.from, to: kingMove.to });
+                  blackMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+                  g.move({ from: blackMove.from, to: blackMove.to });
+                  setLastMove({ from: blackMove.from, to: blackMove.to });
+                }
+                if (blackMove) {
+                  setOpponentAnimatingMove({ from: blackMove.from, to: blackMove.to, piece: { type: blackMove.piece.toUpperCase(), color: 'b' } });
+                  setTimeout(() => setOpponentAnimatingMove(null), 200);
                 }
                 setGame(new Chess(g.fen()));
                 setWhiteMoves(nextWhiteMoves);
@@ -762,10 +803,15 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
                 if (!mountedRef.current) return;
                 // After Rxe7+, black king escapes (king moves)
                 const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
+                let blackMove = null;
                 if (kingMoves.length > 0) {
-                  const kingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
-                  g.move({ from: kingMove.from, to: kingMove.to });
-                  setLastMove({ from: kingMove.from, to: kingMove.to });
+                  blackMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+                  g.move({ from: blackMove.from, to: blackMove.to });
+                  setLastMove({ from: blackMove.from, to: blackMove.to });
+                }
+                if (blackMove) {
+                  setOpponentAnimatingMove({ from: blackMove.from, to: blackMove.to, piece: { type: blackMove.piece.toUpperCase(), color: 'b' } });
+                  setTimeout(() => setOpponentAnimatingMove(null), 200);
                 }
                 setGame(new Chess(g.fen()));
                 setWhiteMoves(nextWhiteMoves);
@@ -818,13 +864,19 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
                 // After Re1+, black king escapes to a8
                 const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
                 const kingToA8 = kingMoves.find((m: any) => m.to === 'a8');
+                let blackMove = null;
                 if (kingToA8) {
-                  g.move({ from: kingToA8.from, to: kingToA8.to });
-                  setLastMove({ from: kingToA8.from, to: kingToA8.to });
+                  blackMove = kingToA8;
+                  g.move({ from: blackMove.from, to: blackMove.to });
+                  setLastMove({ from: blackMove.from, to: blackMove.to });
                 } else if (kingMoves.length > 0) {
-                  const kingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
-                  g.move({ from: kingMove.from, to: kingMove.to });
-                  setLastMove({ from: kingMove.from, to: kingMove.to });
+                  blackMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+                  g.move({ from: blackMove.from, to: blackMove.to });
+                  setLastMove({ from: blackMove.from, to: blackMove.to });
+                }
+                if (blackMove) {
+                  setOpponentAnimatingMove({ from: blackMove.from, to: blackMove.to, piece: { type: blackMove.piece.toUpperCase(), color: 'b' } });
+                  setTimeout(() => setOpponentAnimatingMove(null), 200);
                 }
                 setGame(new Chess(g.fen()));
                 setWhiteMoves(nextWhiteMoves);
@@ -878,13 +930,19 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
                 const rookMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'r' && m.from === 'g7');
                 const preferredRookSquares = ['d7', 'f7'];
                 const preferred = rookMoves.find((m: any) => preferredRookSquares.includes(m.to));
+                let blackMove = null;
                 if (preferred) {
-                  g.move({ from: preferred.from, to: preferred.to });
-                  setLastMove({ from: preferred.from, to: preferred.to });
+                  blackMove = preferred;
+                  g.move({ from: blackMove.from, to: blackMove.to });
+                  setLastMove({ from: blackMove.from, to: blackMove.to });
                 } else if (rookMoves.length > 0) {
-                  const rookMove = rookMoves[Math.floor(Math.random() * rookMoves.length)];
-                  g.move({ from: rookMove.from, to: rookMove.to });
-                  setLastMove({ from: rookMove.from, to: rookMove.to });
+                  blackMove = rookMoves[Math.floor(Math.random() * rookMoves.length)];
+                  g.move({ from: blackMove.from, to: blackMove.to });
+                  setLastMove({ from: blackMove.from, to: blackMove.to });
+                }
+                if (blackMove) {
+                  setOpponentAnimatingMove({ from: blackMove.from, to: blackMove.to, piece: { type: blackMove.piece.toUpperCase(), color: 'b' } });
+                  setTimeout(() => setOpponentAnimatingMove(null), 200);
                 }
                 setGame(new Chess(g.fen()));
                 setWhiteMoves(nextWhiteMoves);
