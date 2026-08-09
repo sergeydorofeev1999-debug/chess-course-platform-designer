@@ -1398,8 +1398,6 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             autoValidMoves={true}
             onMove={(from, to) => processWhiteMove(from, to)}
             onSquareClick={handleSquareClick}
-            playerAnimatingMove={playerAnimatingMove}
-            opponentAnimatingMove={opponentAnimatingMove}
             interactive={!isComplete && !isFail}
             sqSize={sqSize}
             clickGhost={true}
