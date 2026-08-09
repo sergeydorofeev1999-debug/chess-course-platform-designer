@@ -198,122 +198,133 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
   useEffect(() => { isFailRef.current = isFail; }, [isFail]);
 
   useEffect(() => {
-  try {
-    const raw = localStorage.getItem(storageKey);
-    if (raw) setExerciseStars(JSON.parse(raw));
-  } catch {}
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) setExerciseStars(JSON.parse(raw));
+    } catch {}
   }, [storageKey]);
 
   useEffect(() => {
-  if (!game) setGame(new Chess(START_FEN_1));
+    if (!game) setGame(new Chess(START_FEN_1));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-  const update = () => {
-    const isMobile = window.innerWidth < 1024;
-    if (isMobile) {
-      setSqSize(Math.min(64, Math.max(36, Math.floor((window.innerWidth - 24) / 8))));
-    } else {
-      setSqSize(Math.min(64, Math.max(48, Math.floor((window.innerWidth - 340) / 8))));
-    }
-  };
-  update();
-  window.addEventListener('resize', update);
-  return () => window.removeEventListener('resize', update);
+    const update = () => {
+      const isMobile = window.innerWidth < 1024;
+      if (isMobile) {
+        setSqSize(Math.min(64, Math.max(36, Math.floor((window.innerWidth - 24) / 8))));
+      } else {
+        setSqSize(Math.min(64, Math.max(48, Math.floor((window.innerWidth - 340) / 8))));
+      }
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
   }, []);
 
   const reset = useCallback(() => {
-  const fen = exercise === 1 ? START_FEN_1 : exercise === 2 ? START_FEN_2 : exercise === 3 ? START_FEN_3 : exercise === 4 ? START_FEN_4 : exercise === 5 ? START_FEN_5 : exercise === 6 ? START_FEN_6 : exercise === 7 ? START_FEN_7 : exercise === 8 ? START_FEN_8 : exercise === 9 ? START_FEN_9 : exercise === 10 ? START_FEN_10 : exercise === 11 ? START_FEN_11 : START_FEN_12;
-  setGame(new Chess(fen));
-  setSelectedSquare(null);
-  setMessage('');
-  setLastMove(null);
-  setHintVisible(false);
-  setIsFail(false);
-  setIsComplete(false);
-  setWhiteMoves(0);
+    const fen = exercise === 1 ? START_FEN_1 : exercise === 2 ? START_FEN_2 : exercise === 3 ? START_FEN_3 : exercise === 4 ? START_FEN_4 : exercise === 5 ? START_FEN_5 : exercise === 6 ? START_FEN_6 : exercise === 7 ? START_FEN_7 : exercise === 8 ? START_FEN_8 : exercise === 9 ? START_FEN_9 : exercise === 10 ? START_FEN_10 : exercise === 11 ? START_FEN_11 : START_FEN_12;
+    setGame(new Chess(fen));
+    setSelectedSquare(null);
+    setMessage('');
+    setLastMove(null);
+    setHintVisible(false);
+    setIsFail(false);
+    setIsComplete(false);
+    setWhiteMoves(0);
   }, [exercise]);
 
   const handleHint = useCallback(() => {
-  setHintVisible(prev => !prev);
+    setHintVisible(prev => !prev);
   }, []);
 
   const saveStars = useCallback((ex: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12, stars: number) => {
-  setExerciseStars(prev => {
-    const next = { ...prev, [ex]: Math.max(prev[ex] || 0, stars) };
-    try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch {}
-    return next;
-  });
+    setExerciseStars(prev => {
+      const next = { ...prev, [ex]: Math.max(prev[ex] || 0, stars) };
+      try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch {}
+      return next;
+    });
   }, [storageKey]);
 
   const processWhiteMove = useCallback((from: string, to: string) => {
-  if (!game) return;
-  const g = game;
-  if (g.turn() !== 'w') return;
+    if (!game) return;
+    const g = game;
+    if (g.turn() !== 'w') return;
 
-  try {
-    const move = g.move({ from, to });
-    if (!move) return;
-    setLastMove({ from, to });
+    try {
+      const move = g.move({ from, to });
+      if (!move) return;
+      setLastMove({ from, to });
 
-    const nextWhiteMoves = whiteMoves + 1;
+      const nextWhiteMoves = whiteMoves + 1;
 
-    if (exercise === 1) {
-      // EXERCISE 1: Rook fork (original)
-      const isCorrectFirst = from === 'd1' && to === 'd8';
-      const isCorrectSecond = from === 'd8' && to === 'b8';
+      if (exercise === 1) {
+        // EXERCISE 1: Rook fork (original)
+        const isCorrectFirst = from === 'd1' && to === 'd8';
+        const isCorrectSecond = from === 'd8' && to === 'b8';
 
-      if (whiteMoves === 0) {
-        if (!isCorrectFirst) {
-          const autoCap = getBlackAutoCapture(g);
-          if (autoCap) {
-            g.move({ from: autoCap.from, to: autoCap.to });
-            setLastMove({ from: autoCap.from, to: autoCap.to });
-          }
-          setGame(new Chess(g.fen()));
-          setSelectedSquare(null);
-          setIsFail(true);
-          setMessage('Провалено');
-          return;
-        }
-        // Correct first move: animate opponent after 600ms pause + 200ms ghost
-        setGame(new Chess(g.fen()));
-        setSelectedSquare(null);
-        setHintVisible(false);
-        setWhiteMoves(nextWhiteMoves);
-
-        setTimeout(() => {
-          const blackMove = getBlackKingMove(g);
-          if (blackMove) {
-            g.move({ from: blackMove.from, to: blackMove.to });
-            setLastMove({ from: blackMove.from, to: blackMove.to });
-            const autoCap = getBlackAutoCapture(g);
-            if (autoCap) {
-              g.move({ from: autoCap.from, to: autoCap.to });
-              setLastMove({ from: autoCap.from, to: autoCap.to });
+        if (whiteMoves === 0) {
+          if (!isCorrectFirst) {
+            setGame(new Chess(g.fen()));
+            setSelectedSquare(null);
+            setTimeout(() => {
+              if (!mountedRef.current) return;
+              const autoCap = getBlackAutoCapture(g);
+              if (autoCap) {
+                g.move({ from: autoCap.from, to: autoCap.to });
+                setLastMove({ from: autoCap.from, to: autoCap.to });
+              }
               setGame(new Chess(g.fen()));
+              setSelectedSquare(null);
               setIsFail(true);
               setMessage('Провалено');
-              return;
-            }
-            setGame(new Chess(g.fen()));
+            }, 600);
+            return;
           }
-          
+          // Correct first move: animate opponent after 600ms pause + 200ms ghost
+          setGame(new Chess(g.fen()));
+          setSelectedSquare(null);
+          setHintVisible(false);
+          setWhiteMoves(nextWhiteMoves);
+
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            const blackMove = getBlackKingMove(g);
+            if (blackMove) {
+              g.move({ from: blackMove.from, to: blackMove.to });
+              setLastMove({ from: blackMove.from, to: blackMove.to });
+              const autoCap = getBlackAutoCapture(g);
+              if (autoCap) {
+                g.move({ from: autoCap.from, to: autoCap.to });
+                setLastMove({ from: autoCap.from, to: autoCap.to });
+                setGame(new Chess(g.fen()));
+                setIsFail(true);
+                setMessage('Провалено');
+                return;
+              }
+              setGame(new Chess(g.fen()));
+            }
+          }, 600);
           return;
-        }, 600);
+        }
 
         if (whiteMoves === 1) {
           if (!isCorrectSecond) {
-            const autoCap = getBlackAutoCapture(g);
-            if (autoCap) {
-        g.move({ from: autoCap.from, to: autoCap.to });
-        setLastMove({ from: autoCap.from, to: autoCap.to });
-      }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
-            setIsFail(true);
-            setMessage('Провалено');
+            setTimeout(() => {
+              if (!mountedRef.current) return;
+              const autoCap = getBlackAutoCapture(g);
+              if (autoCap) {
+                g.move({ from: autoCap.from, to: autoCap.to });
+                setLastMove({ from: autoCap.from, to: autoCap.to });
+              }
+              setGame(new Chess(g.fen()));
+              setSelectedSquare(null);
+              setIsFail(true);
+              setMessage('Провалено');
+            }, 600);
             return;
           }
           setGame(new Chess(g.fen()));
@@ -330,15 +341,20 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
 
         if (whiteMoves === 0) {
           if (!isCorrectFirst) {
-            const safeCap = getBlackSafeCapture(g);
-            if (safeCap) {
-          g.move({ from: safeCap.from, to: safeCap.to });
-          setLastMove({ from: safeCap.from, to: safeCap.to });
-        }
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
-            setIsFail(true);
-            setMessage('Провалено');
+            setTimeout(() => {
+              if (!mountedRef.current) return;
+              const safeCap = getBlackSafeCapture(g);
+              if (safeCap) {
+                g.move({ from: safeCap.from, to: safeCap.to });
+                setLastMove({ from: safeCap.from, to: safeCap.to });
+              }
+              setGame(new Chess(g.fen()));
+              setSelectedSquare(null);
+              setIsFail(true);
+              setMessage('Провалено');
+            }, 600);
             return;
           }
           setGame(new Chess(g.fen()));
@@ -346,24 +362,25 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
-          
-          const blackMove = getBlackKingMove(g);
-          if (blackMove) {
-            g.move({ from: blackMove.from, to: blackMove.to });
-        setLastMove({ from: blackMove.from, to: blackMove.to });
-            // Auto-capture check: if black can capture any white piece safely
-            const autoCap = getBlackAutoCaptureAny(g);
-            if (autoCap) {
-              g.move({ from: autoCap.from, to: autoCap.to });
-        setLastMove({ from: autoCap.from, to: autoCap.to });
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            const blackMove = getBlackKingMove(g);
+            if (blackMove) {
+              g.move({ from: blackMove.from, to: blackMove.to });
+          setLastMove({ from: blackMove.from, to: blackMove.to });
+              // Auto-capture check: if black can capture any white piece safely
+              const autoCap = getBlackAutoCaptureAny(g);
+              if (autoCap) {
+                g.move({ from: autoCap.from, to: autoCap.to });
+          setLastMove({ from: autoCap.from, to: autoCap.to });
+                setGame(new Chess(g.fen()));
+                setIsFail(true);
+                setMessage('Провалено');
+                return;
+              }
               setGame(new Chess(g.fen()));
-              setIsFail(true);
-              setMessage('Провалено');
-              return;
             }
-            setGame(new Chess(g.fen()));
-          }
-          
+          }, 600);
           return;
         }
 
@@ -410,23 +427,24 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
-          
-          const blackMove = getBlackKingMove(g);
-          if (blackMove) {
-            g.move({ from: blackMove.from, to: blackMove.to });
-          setLastMove({ from: blackMove.from, to: blackMove.to });
-            const autoCap = getBlackSafeCapture(g);
-            if (autoCap) {
-              g.move({ from: autoCap.from, to: autoCap.to });
-          setLastMove({ from: autoCap.from, to: autoCap.to });
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            const blackMove = getBlackKingMove(g);
+            if (blackMove) {
+              g.move({ from: blackMove.from, to: blackMove.to });
+            setLastMove({ from: blackMove.from, to: blackMove.to });
+              const autoCap = getBlackSafeCapture(g);
+              if (autoCap) {
+                g.move({ from: autoCap.from, to: autoCap.to });
+            setLastMove({ from: autoCap.from, to: autoCap.to });
+                setGame(new Chess(g.fen()));
+                setIsFail(true);
+                setMessage('Провалено');
+                return;
+              }
               setGame(new Chess(g.fen()));
-              setIsFail(true);
-              setMessage('Провалено');
-              return;
             }
-            setGame(new Chess(g.fen()));
-          }
-          
+          }, 600);
           return;
         }
 
@@ -473,27 +491,28 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
-          
-          // Black must block check or move king
-          const blackMoves = g.moves({ verbose: true }).filter(m => m.color === 'b');
-          const kingMoves = blackMoves.filter(m => m.piece === 'k');
-          const blockMoves = blackMoves.filter(m => m.piece !== 'k');
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            // Black must block check or move king
+            const blackMoves = g.moves({ verbose: true }).filter(m => m.color === 'b');
+            const kingMoves = blackMoves.filter(m => m.piece === 'k');
+            const blockMoves = blackMoves.filter(m => m.piece !== 'k');
             
-          let blackMove = null;
-          if (blockMoves.length > 0) {
-            // Prefer blocking with queen or knight
-            const preferred = blockMoves.find(m => m.piece === 'q' || m.piece === 'n');
-            blackMove = preferred || blockMoves[0];
-          } else if (kingMoves.length > 0) {
-            blackMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
-          }
+            let blackMove = null;
+            if (blockMoves.length > 0) {
+              // Prefer blocking with queen or knight
+              const preferred = blockMoves.find(m => m.piece === 'q' || m.piece === 'n');
+              blackMove = preferred || blockMoves[0];
+            } else if (kingMoves.length > 0) {
+              blackMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+            }
             
-          if (blackMove) {
-            g.move({ from: blackMove.from, to: blackMove.to });
-  setLastMove({ from: blackMove.from, to: blackMove.to });
-            setGame(new Chess(g.fen()));
-          }
-          
+            if (blackMove) {
+              g.move({ from: blackMove.from, to: blackMove.to });
+    setLastMove({ from: blackMove.from, to: blackMove.to });
+              setGame(new Chess(g.fen()));
+            }
+          }, 600);
           return;
         }
 
@@ -540,16 +559,17 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
-          
-          const blackMoves = g.moves({ verbose: true }).filter(m => m.color === 'b');
-          const nonQueenMoves = blackMoves.filter(m => m.piece !== 'q');
-          const blackMove = nonQueenMoves.length > 0 ? nonQueenMoves[Math.floor(Math.random() * nonQueenMoves.length)] : blackMoves[Math.floor(Math.random() * blackMoves.length)];
-          if (blackMove) {
-            g.move({ from: blackMove.from, to: blackMove.to });
-      setLastMove({ from: blackMove.from, to: blackMove.to });
-            setGame(new Chess(g.fen()));
-          }
-          
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            const blackMoves = g.moves({ verbose: true }).filter(m => m.color === 'b');
+            const nonQueenMoves = blackMoves.filter(m => m.piece !== 'q');
+            const blackMove = nonQueenMoves.length > 0 ? nonQueenMoves[Math.floor(Math.random() * nonQueenMoves.length)] : blackMoves[Math.floor(Math.random() * blackMoves.length)];
+            if (blackMove) {
+              g.move({ from: blackMove.from, to: blackMove.to });
+        setLastMove({ from: blackMove.from, to: blackMove.to });
+              setGame(new Chess(g.fen()));
+            }
+          }, 600);
           return;
         }
 
@@ -596,14 +616,15 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
-          
-          const blackMove = getBlackKingMove(g);
-          if (blackMove) {
-            g.move({ from: blackMove.from, to: blackMove.to });
-        setLastMove({ from: blackMove.from, to: blackMove.to });
-            setGame(new Chess(g.fen()));
-          }
-          
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            const blackMove = getBlackKingMove(g);
+            if (blackMove) {
+              g.move({ from: blackMove.from, to: blackMove.to });
+          setLastMove({ from: blackMove.from, to: blackMove.to });
+              setGame(new Chess(g.fen()));
+            }
+          }, 600);
           return;
         }
 
@@ -650,16 +671,17 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
-          
-          const blackMoves = g.moves({ verbose: true }).filter(m => m.color === 'b' && m.to !== 'e5');
-          const nonQueenMoves = blackMoves.filter(m => m.piece !== 'q');
-          const blackMove = nonQueenMoves.length > 0 ? nonQueenMoves[Math.floor(Math.random() * nonQueenMoves.length)] : blackMoves[Math.floor(Math.random() * blackMoves.length)];
-          if (blackMove) {
-            g.move({ from: blackMove.from, to: blackMove.to });
-     setLastMove({ from: blackMove.from, to: blackMove.to });
-            setGame(new Chess(g.fen()));
-          }
-          
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            const blackMoves = g.moves({ verbose: true }).filter(m => m.color === 'b' && m.to !== 'e5');
+            const nonQueenMoves = blackMoves.filter(m => m.piece !== 'q');
+            const blackMove = nonQueenMoves.length > 0 ? nonQueenMoves[Math.floor(Math.random() * nonQueenMoves.length)] : blackMoves[Math.floor(Math.random() * blackMoves.length)];
+            if (blackMove) {
+              g.move({ from: blackMove.from, to: blackMove.to });
+       setLastMove({ from: blackMove.from, to: blackMove.to });
+              setGame(new Chess(g.fen()));
+            }
+          }, 600);
           return;
         }
 
@@ -706,14 +728,15 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
-          
-          const blackMove = getBlackKingMove(g);
-          if (blackMove) {
-            g.move({ from: blackMove.from, to: blackMove.to });
-       setLastMove({ from: blackMove.from, to: blackMove.to });
-            setGame(new Chess(g.fen()));
-          }
-          
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            const blackMove = getBlackKingMove(g);
+            if (blackMove) {
+              g.move({ from: blackMove.from, to: blackMove.to });
+         setLastMove({ from: blackMove.from, to: blackMove.to });
+              setGame(new Chess(g.fen()));
+            }
+          }, 600);
           return;
         }
 
@@ -760,14 +783,15 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
-          
-          const blackMove = getBlackKingMove(g);
-          if (blackMove) {
-            g.move({ from: blackMove.from, to: blackMove.to });
-       setLastMove({ from: blackMove.from, to: blackMove.to });
-            setGame(new Chess(g.fen()));
-          }
-          
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            const blackMove = getBlackKingMove(g);
+            if (blackMove) {
+              g.move({ from: blackMove.from, to: blackMove.to });
+         setLastMove({ from: blackMove.from, to: blackMove.to });
+              setGame(new Chess(g.fen()));
+            }
+          }, 600);
           return;
         }
 
@@ -814,16 +838,17 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
-          
-          const blackMoves = g.moves({ verbose: true }).filter(m => m.color === 'b');
-          const nonQueenMoves = blackMoves.filter(m => m.piece !== 'q');
-          const blackMove = nonQueenMoves.length > 0 ? nonQueenMoves[Math.floor(Math.random() * nonQueenMoves.length)] : blackMoves[Math.floor(Math.random() * blackMoves.length)];
-          if (blackMove) {
-            g.move({ from: blackMove.from, to: blackMove.to });
-   setLastMove({ from: blackMove.from, to: blackMove.to });
-            setGame(new Chess(g.fen()));
-          }
-          
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            const blackMoves = g.moves({ verbose: true }).filter(m => m.color === 'b');
+            const nonQueenMoves = blackMoves.filter(m => m.piece !== 'q');
+            const blackMove = nonQueenMoves.length > 0 ? nonQueenMoves[Math.floor(Math.random() * nonQueenMoves.length)] : blackMoves[Math.floor(Math.random() * blackMoves.length)];
+            if (blackMove) {
+              g.move({ from: blackMove.from, to: blackMove.to });
+     setLastMove({ from: blackMove.from, to: blackMove.to });
+              setGame(new Chess(g.fen()));
+            }
+          }, 600);
           return;
         }
 
@@ -870,16 +895,17 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
-          
-          const blackMoves = g.moves({ verbose: true }).filter(m => m.color === 'b');
-          const nonQueenMoves = blackMoves.filter(m => m.piece !== 'q');
-          const blackMove = nonQueenMoves.length > 0 ? nonQueenMoves[Math.floor(Math.random() * nonQueenMoves.length)] : blackMoves[Math.floor(Math.random() * blackMoves.length)];
-          if (blackMove) {
-            g.move({ from: blackMove.from, to: blackMove.to });
-   setLastMove({ from: blackMove.from, to: blackMove.to });
-            setGame(new Chess(g.fen()));
-          }
-          
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            const blackMoves = g.moves({ verbose: true }).filter(m => m.color === 'b');
+            const nonQueenMoves = blackMoves.filter(m => m.piece !== 'q');
+            const blackMove = nonQueenMoves.length > 0 ? nonQueenMoves[Math.floor(Math.random() * nonQueenMoves.length)] : blackMoves[Math.floor(Math.random() * blackMoves.length)];
+            if (blackMove) {
+              g.move({ from: blackMove.from, to: blackMove.to });
+     setLastMove({ from: blackMove.from, to: blackMove.to });
+              setGame(new Chess(g.fen()));
+            }
+          }, 600);
           return;
         }
 
@@ -940,11 +966,12 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           setHintVisible(false);
           setWhiteMoves(nextWhiteMoves);
 
-          
-          g.move({ from: 'f7', to: 'e7' });
-  setLastMove({ from: 'f7', to: 'e7' });
-          setGame(new Chess(g.fen()));
-          
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            g.move({ from: 'f7', to: 'e7' });
+    setLastMove({ from: 'f7', to: 'e7' });
+            setGame(new Chess(g.fen()));
+          }, 600);
           return;
         }
 
@@ -1169,7 +1196,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
               style={{
                 backgroundColor: '#2C241B',
                 boxShadow: '0 4px 16px rgba(44, 36, 27, 0.3)',
-                padding: '20px 24px 24px 24px',
+                padding: '18px 24px',
                 borderRadius: '16px',
               }}
             >
@@ -1178,21 +1205,13 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
               </p>
               <button
                 onClick={reset}
-                className="mt-1 font-bold w-full rounded-xl hover:brightness-110 transition"
+                className="mt-1 font-semibold px-5 py-2 rounded-xl shadow hover:brightness-110 transition"
                 style={{
-                  display: 'block',
-                  width: '100%',
                   backgroundColor: '#FFFFFF',
                   color: '#2C241B',
-                  fontSize: '16px',
-                  fontWeight: 700,
-                  borderRadius: '14px',
-                  height: '48px',
-                  lineHeight: '48px',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                  textAlign: 'center',
-                  border: 'none',
-                  padding: 0,
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  borderRadius: '12px',
                 }}
               >
                 Ещё раз
