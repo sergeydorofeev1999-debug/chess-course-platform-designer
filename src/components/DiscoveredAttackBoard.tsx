@@ -70,76 +70,6 @@ function StarPng({ filled, size = 14 }: { filled: boolean; size?: number }) {
   );
 }
 
-function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
-  const pieceKey = `${color}${type.toUpperCase()}`;
-  return (
-    <div
-      className="w-full h-full bg-contain bg-center bg-no-repeat"
-      style={{
-        backgroundImage: `url(/pieces/cburnett/${pieceKey}.svg)`,
-        filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))',
-      }}
-    />
-  );
-}
-
-function GhostOverlay({
-  from,
-  to,
-  piece,
-  color,
-  sqSize,
-  isOpponent,
-}: {
-  from: string;
-  to: string;
-  piece: string;
-  color: 'w' | 'b';
-  sqSize: number;
-  isOpponent: boolean;
-}) {
-  const fromF = FILES.indexOf(from[0]);
-  const fromR = RANKS.indexOf(from[1]);
-  const toF = FILES.indexOf(to[0]);
-  const toR = RANKS.indexOf(to[1]);
-  const ghostDx = (toF - fromF) * sqSize;
-  const ghostDy = (toR - fromR) * sqSize;
-  return (
-    <div
-      className={`absolute z-40 pointer-events-none ${isOpponent ? 'animate-opponent-move' : 'animate-player-move'}`}
-      style={{
-        left: fromF * sqSize,
-        top: fromR * sqSize,
-        width: sqSize,
-        height: sqSize,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        '--ghost-dx': `${ghostDx}px`,
-        '--ghost-dy': `${ghostDy}px`,
-      } as React.CSSProperties}
-    >
-      <div style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
-        <PieceImg type={piece} color={color} />
-      </div>
-    </div>
-  );
-}
-
-interface DragState {
-  square: string;
-  type: string;
-  color: 'w' | 'b';
-}
-
-interface PointerStart {
-  x: number;
-  y: number;
-  square: string;
-  moved: boolean;
-  pointerId: number;
-}
-
 export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComplete: () => void; lessonId?: string }) {
   const [exercise, setExercise] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
   const [game, setGame] = useState<Chess | null>(null);
@@ -157,9 +87,6 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
   const isFailRef = useRef(false);
   const mountedRef = useRef(true);
 
-  const [dragPiece, setDragPiece] = useState<DragState | null>(null);
-  const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
-  const pointerStartRef = useRef<PointerStart | null>(null);
   const [promotionPending, setPromotionPending] = useState<{from: string; to: string} | null>(null);
   const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' }; } | null>(null);
   const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' }; } | null>(null);
@@ -237,7 +164,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
     setOpponentAnimatingMove(null);
   }, []);
 
-  const processWhiteMove = useCallback((from: string, to: string, promotionPiece?: string) => {
+  const processWhiteMove = useCallback((from: string, to: string, promotionPiece?: string, skipAnimation?: boolean) => {
     if (!game) return;
     const g = game;
     if (g.turn() !== 'w') return;
@@ -250,27 +177,23 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
         return;
       }
 
-      // Board-copy pattern: validate move without mutating the real board
-      const ng = new Chess(g.fen());
-      const move = ng.move({ from, to, promotion: promotionPiece });
-      if (!move) return;
+      // Validate on copy
+      const testGame = new Chess(g.fen());
+      const testMove = testGame.move({ from, to, promotion: promotionPiece });
+      if (!testMove) return;
 
-      // Start player ghost animation on current board position
-      setPlayerAnimatingMove({ from, to, piece: { type: move.piece.toUpperCase(), color: 'w' } });
+      // Apply the real move IMMEDIATELY (like MateInTwoBoard)
+      const realMove = g.move({ from, to, promotion: promotionPiece });
+      if (!realMove) return;
+      setGame(new Chess(g.fen()));
+      setSelectedSquare(null);
+      setLastMove({ from, to });
 
       const fromSq = from;
       const toSq = to;
-      const promotion = promotionPiece;
 
-      setTimeout(() => {
-        // End ghost animation
-        setPlayerAnimatingMove(null);
-
-        // Apply the real move on the actual game
-        const realMove = g.move({ from: fromSq, to: toSq, promotion });
-        if (!realMove) return;
-        setLastMove({ from: fromSq, to: toSq });
-
+      if (skipAnimation) {
+        // Drag path: no ghost, immediate processing
         const nextWhiteMoves = whiteMoves + 1;
 
         if (exercise === 1) {
@@ -374,6 +297,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
               setWhiteMoves(nextWhiteMoves);
             }, 1000);
 
+            setMessage('Шах! Теперь заберите ферзя.');
             return;
           }
 
@@ -392,9 +316,9 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
             return;
           }
         } else if (exercise === 3) {
-          // EXERCISE 3: Discovered attack — e5-e6, rook f7 escapes to f8 or h7, then Bxh8
+          // EXERCISE 3: Discovered attack — e5-e6 check, black king escapes to d7, then Rxh8
           const isCorrectFirst = fromSq === 'e5' && toSq === 'e6' && realMove.piece === 'p';
-          const isCorrectSecond = fromSq === 'd4' && toSq === 'h8' && realMove.piece === 'b' && realMove.captured === 'r';
+          const isCorrectSecond = fromSq === 'd4' && toSq === 'h8' && realMove.piece === 'r' && realMove.captured === 'r';
 
           if (whiteMoves === 0) {
             if (!isCorrectFirst) {
@@ -417,22 +341,22 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
 
             setTimeout(() => {
               if (!mountedRef.current) return;
-              // After e6, black rook on f7 escapes
-              const rookMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'r' && m.from === 'f7');
-              const preferredRookSquares = ['h7'];
-              const preferred = rookMoves.find((m: any) => preferredRookSquares.includes(m.to));
-              if (preferred) {
-                g.move({ from: preferred.from, to: preferred.to });
-                setLastMove({ from: preferred.from, to: preferred.to });
-              } else if (rookMoves.length > 0) {
-                const rookMove = rookMoves[Math.floor(Math.random() * rookMoves.length)];
-                g.move({ from: rookMove.from, to: rookMove.to });
-                setLastMove({ from: rookMove.from, to: rookMove.to });
+              // After e6+, black king escapes to d7
+              const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
+              const kingToD7 = kingMoves.find((m: any) => m.to === 'd7');
+              if (kingToD7) {
+                g.move({ from: kingToD7.from, to: kingToD7.to });
+                setLastMove({ from: kingToD7.from, to: kingToD7.to });
+              } else if (kingMoves.length > 0) {
+                const kingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+                g.move({ from: kingMove.from, to: kingMove.to });
+                setLastMove({ from: kingMove.from, to: kingMove.to });
               }
               setGame(new Chess(g.fen()));
               setWhiteMoves(nextWhiteMoves);
             }, 1000);
 
+            setMessage('Шах! Теперь заберите ладью.');
             return;
           }
 
@@ -451,89 +375,9 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
             return;
           }
         } else if (exercise === 4) {
-          // EXERCISE 4: Discovered attack — Ne4-g5+ OR Ne4-f6, then Rxe7
-          const isNg5 = fromSq === 'e4' && toSq === 'g5' && realMove.piece === 'n';
-          const isNf6 = fromSq === 'e4' && toSq === 'f6' && realMove.piece === 'n';
-          const isCorrectSecond = fromSq === 'e1' && toSq === 'e7' && realMove.piece === 'r' && realMove.captured === 'r';
-
-          if (whiteMoves === 0) {
-            if (!isNg5 && !isNf6) {
-              setTimeout(() => {
-                if (!mountedRef.current) return;
-                const cap = getBestBlackCapture(g);
-                if (cap) {
-                  g.move({ from: cap.from, to: cap.to });
-                  setLastMove({ from: cap.from, to: cap.to });
-                  setGame(new Chess(g.fen()));
-                }
-                setIsFail(true);
-                setMessage('Провалено');
-              }, 1000);
-              setSelectedSquare(null);
-              return;
-            }
-            setGame(new Chess(g.fen()));
-            setSelectedSquare(null);
-
-            if (isNg5) {
-              setTimeout(() => {
-                if (!mountedRef.current) return;
-                // After Ng5+, black king escapes to h6
-                const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
-                const preferredKingSquares = ['h6'];
-                const preferred = kingMoves.find((m: any) => preferredKingSquares.includes(m.to));
-                if (preferred) {
-                  g.move({ from: preferred.from, to: preferred.to });
-                  setLastMove({ from: preferred.from, to: preferred.to });
-                } else if (kingMoves.length > 0) {
-                  const kingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
-                  g.move({ from: kingMove.from, to: kingMove.to });
-                  setLastMove({ from: kingMove.from, to: kingMove.to });
-                }
-                setGame(new Chess(g.fen()));
-                setWhiteMoves(nextWhiteMoves);
-              }, 1000);
-            } else if (isNf6) {
-              setTimeout(() => {
-                if (!mountedRef.current) return;
-                // After Nf6, black pawn g7 captures on f6
-                const pawnCaptures = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'p' && m.to === 'f6');
-                let blackMove = null;
-                if (pawnCaptures.length > 0) {
-                  blackMove = pawnCaptures[0];
-                  g.move({ from: blackMove.from, to: blackMove.to });
-                  setLastMove({ from: blackMove.from, to: blackMove.to });
-                }
-                if (blackMove) {
-                  setOpponentAnimatingMove({ from: blackMove.from, to: blackMove.to, piece: { type: blackMove.piece.toUpperCase(), color: 'b' } });
-                  setTimeout(() => setOpponentAnimatingMove(null), 200);
-                }
-                setGame(new Chess(g.fen()));
-                setWhiteMoves(nextWhiteMoves);
-              }, 1000);
-            }
-
-            return;
-          }
-
-          if (whiteMoves === 1) {
-            if (!isCorrectSecond) {
-              setSelectedSquare(null);
-              setIsFail(true);
-              setMessage('Провалено');
-              return;
-            }
-            setGame(new Chess(g.fen()));
-            setSelectedSquare(null);
-            setIsComplete(true);
-            setMessage('Отлично! Вскрытое нападение выполнено.');
-            saveStars(4, 3);
-            return;
-          }
-        } else if (exercise === 5) {
-          // EXERCISE 5: Discovered attack — Rf5-f8+ check, black rook captures on f8, then Qg4xd7
-          const isCorrectFirst = fromSq === 'f5' && toSq === 'f8' && realMove.piece === 'r';
-          const isCorrectSecond = fromSq === 'g4' && toSq === 'd7' && realMove.piece === 'q' && realMove.captured === 'q';
+          // EXERCISE 4: Discovered attack — Rxe7+ check, black king escapes, then Rxh7
+          const isCorrectFirst = fromSq === 'e1' && toSq === 'e7' && realMove.piece === 'r' && realMove.captured;
+          const isCorrectSecond = fromSq === 'e7' && toSq === 'h7' && realMove.piece === 'r' && realMove.captured;
 
           if (whiteMoves === 0) {
             if (!isCorrectFirst) {
@@ -556,30 +400,77 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
 
             setTimeout(() => {
               if (!mountedRef.current) return;
-              // After Rf8+, black rook on h8 captures on f8
-              const rookCaptures = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'r' && m.to === 'f8');
-              if (rookCaptures.length > 0) {
-                g.move({ from: rookCaptures[0].from, to: rookCaptures[0].to });
-                setLastMove({ from: rookCaptures[0].from, to: rookCaptures[0].to });
-              } else {
-                // Fallback: any black capture on f8
-                const capturesOnF8 = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.captured && m.to === 'f8');
-                if (capturesOnF8.length > 0) {
-                  g.move({ from: capturesOnF8[0].from, to: capturesOnF8[0].to });
-                  setLastMove({ from: capturesOnF8[0].from, to: capturesOnF8[0].to });
-                } else {
-                  // If no capture, just make any legal move
-                  const anyBlackMove = g.moves({ verbose: true }).filter((m: any) => m.color === 'b');
-                  if (anyBlackMove.length > 0) {
-                    g.move({ from: anyBlackMove[0].from, to: anyBlackMove[0].to });
-                    setLastMove({ from: anyBlackMove[0].from, to: anyBlackMove[0].to });
-                  }
-                }
+              // After Rxe7+, black king escapes (king moves)
+              const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
+              if (kingMoves.length > 0) {
+                const kingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+                g.move({ from: kingMove.from, to: kingMove.to });
+                setLastMove({ from: kingMove.from, to: kingMove.to });
               }
               setGame(new Chess(g.fen()));
               setWhiteMoves(nextWhiteMoves);
             }, 1000);
 
+            setMessage('Шах! Теперь заберите пешку.');
+            return;
+          }
+
+          if (whiteMoves === 1) {
+            if (!isCorrectSecond) {
+              setSelectedSquare(null);
+              setIsFail(true);
+              setMessage('Провалено');
+              return;
+            }
+            setGame(new Chess(g.fen()));
+            setSelectedSquare(null);
+            setIsComplete(true);
+            setMessage('Отлично! Вскрытое нападение выполнено.');
+            saveStars(4, 3);
+            return;
+          }
+        } else if (exercise === 5) {
+          // EXERCISE 5: Discovered attack — Re5-e1+ check, black king escapes to a8, then Qxh7
+          const isCorrectFirst = fromSq === 'e5' && toSq === 'e1' && realMove.piece === 'r';
+          const isCorrectSecond = fromSq === 'g4' && toSq === 'h7' && realMove.piece === 'q' && realMove.captured;
+
+          if (whiteMoves === 0) {
+            if (!isCorrectFirst) {
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                const cap = getBestBlackCapture(g);
+                if (cap) {
+                  g.move({ from: cap.from, to: cap.to });
+                  setLastMove({ from: cap.from, to: cap.to });
+                  setGame(new Chess(g.fen()));
+                }
+                setIsFail(true);
+                setMessage('Провалено');
+              }, 1000);
+              setSelectedSquare(null);
+              return;
+            }
+            setGame(new Chess(g.fen()));
+            setSelectedSquare(null);
+
+            setTimeout(() => {
+              if (!mountedRef.current) return;
+              // After Re1+, black king escapes to a8
+              const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
+              const kingToA8 = kingMoves.find((m: any) => m.to === 'a8');
+              if (kingToA8) {
+                g.move({ from: kingToA8.from, to: kingToA8.to });
+                setLastMove({ from: kingToA8.from, to: kingToA8.to });
+              } else if (kingMoves.length > 0) {
+                const kingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+                g.move({ from: kingMove.from, to: kingMove.to });
+                setLastMove({ from: kingMove.from, to: kingMove.to });
+              }
+              setGame(new Chess(g.fen()));
+              setWhiteMoves(nextWhiteMoves);
+            }, 1000);
+
+            setMessage('Шах! Теперь заберите пешку.');
             return;
           }
 
@@ -657,7 +548,368 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
             return;
           }
         }
-      }, 200);
+      } else {
+        // Click path: ghost animation + exercise logic after 200ms
+        setPlayerAnimatingMove({ from: fromSq, to: toSq, piece: { type: realMove.piece.toUpperCase(), color: 'w' } });
+        setTimeout(() => {
+          setPlayerAnimatingMove(null);
+          setLastMove({ from: fromSq, to: toSq });
+          const nextWhiteMoves = whiteMoves + 1;
+
+          if (exercise === 1) {
+            // EXERCISE 1: Discovered attack — Nf3-d4 check, black king escapes to c4, then Rf1xf8
+            const isCorrectFirst = fromSq === 'f3' && toSq === 'd4' && realMove.piece === 'n';
+            const isCorrectSecond = fromSq === 'f1' && toSq === 'f8' && realMove.piece === 'r';
+
+            if (whiteMoves === 0) {
+              if (!isCorrectFirst) {
+                setTimeout(() => {
+                  if (!mountedRef.current) return;
+                  setIsFail(true);
+                  setMessage('Провалено');
+                }, 1000);
+                setSelectedSquare(null);
+                return;
+              }
+              setGame(new Chess(g.fen()));
+              setSelectedSquare(null);
+
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                // After Nd4+, black king escapes to c4
+                const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
+                const kingToC4 = kingMoves.find((m: any) => m.to === 'c4');
+                let blackMove = null;
+                if (kingToC4) {
+                  blackMove = kingToC4;
+                  g.move({ from: blackMove.from, to: blackMove.to });
+                  setLastMove({ from: blackMove.from, to: blackMove.to });
+                } else if (kingMoves.length > 0) {
+                  blackMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+                  g.move({ from: blackMove.from, to: blackMove.to });
+                  setLastMove({ from: blackMove.from, to: blackMove.to });
+                }
+                if (blackMove) {
+                  setOpponentAnimatingMove({ from: blackMove.from, to: blackMove.to, piece: { type: blackMove.piece.toUpperCase(), color: 'b' } });
+                  setTimeout(() => setOpponentAnimatingMove(null), 200);
+                }
+                setGame(new Chess(g.fen()));
+                setWhiteMoves(nextWhiteMoves);
+              }, 1000);
+
+              setMessage('Шах! Теперь заберите ферзя.');
+              return;
+            }
+
+            if (whiteMoves === 1) {
+              if (!isCorrectSecond) {
+                setSelectedSquare(null);
+                setIsFail(true);
+                setMessage('Провалено');
+                return;
+              }
+              setGame(new Chess(g.fen()));
+              setSelectedSquare(null);
+              setIsComplete(true);
+              setMessage('Отлично! Вскрытое нападение выполнено.');
+              saveStars(1, 3);
+              return;
+            }
+          } else if (exercise === 2) {
+            // EXERCISE 2: Discovered attack — Nf3-e5 check, black king escapes to e8, then Nxd7
+            const isCorrectFirst = fromSq === 'f3' && toSq === 'e5' && realMove.piece === 'n';
+            const isCorrectSecond = fromSq === 'e5' && toSq === 'd7' && realMove.piece === 'n' && realMove.captured === 'q';
+
+            if (whiteMoves === 0) {
+              if (!isCorrectFirst) {
+                setTimeout(() => {
+                  if (!mountedRef.current) return;
+                  const cap = getBestBlackCapture(g);
+                  if (cap) {
+                    g.move({ from: cap.from, to: cap.to });
+                    setLastMove({ from: cap.from, to: cap.to });
+                    setGame(new Chess(g.fen()));
+                  }
+                  setIsFail(true);
+                  setMessage('Провалено');
+                }, 1000);
+                setSelectedSquare(null);
+                return;
+              }
+              setGame(new Chess(g.fen()));
+              setSelectedSquare(null);
+
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                // After Ne5+, black king escapes to e8
+                const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
+                const preferredKingSquares = ['e8'];
+                const preferred = kingMoves.find((m: any) => preferredKingSquares.includes(m.to));
+                if (preferred) {
+                  g.move({ from: preferred.from, to: preferred.to });
+                  setLastMove({ from: preferred.from, to: preferred.to });
+                } else if (kingMoves.length > 0) {
+                  const kingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+                  g.move({ from: kingMove.from, to: kingMove.to });
+                  setLastMove({ from: kingMove.from, to: kingMove.to });
+                }
+                setGame(new Chess(g.fen()));
+                setWhiteMoves(nextWhiteMoves);
+              }, 1000);
+
+              setMessage('Шах! Теперь заберите ферзя.');
+              return;
+            }
+
+            if (whiteMoves === 1) {
+              if (!isCorrectSecond) {
+                setSelectedSquare(null);
+                setIsFail(true);
+                setMessage('Провалено');
+                return;
+              }
+              setGame(new Chess(g.fen()));
+              setSelectedSquare(null);
+              setIsComplete(true);
+              setMessage('Отлично! Вскрытое нападение выполнено.');
+              saveStars(2, 3);
+              return;
+            }
+          } else if (exercise === 3) {
+            // EXERCISE 3: Discovered attack — e5-e6 check, black king escapes to d7, then Rxh8
+            const isCorrectFirst = fromSq === 'e5' && toSq === 'e6' && realMove.piece === 'p';
+            const isCorrectSecond = fromSq === 'd4' && toSq === 'h8' && realMove.piece === 'r' && realMove.captured === 'r';
+
+            if (whiteMoves === 0) {
+              if (!isCorrectFirst) {
+                setTimeout(() => {
+                  if (!mountedRef.current) return;
+                  const cap = getBestBlackCapture(g);
+                  if (cap) {
+                    g.move({ from: cap.from, to: cap.to });
+                    setLastMove({ from: cap.from, to: cap.to });
+                    setGame(new Chess(g.fen()));
+                  }
+                  setIsFail(true);
+                  setMessage('Провалено');
+                }, 1000);
+                setSelectedSquare(null);
+                return;
+              }
+              setGame(new Chess(g.fen()));
+              setSelectedSquare(null);
+
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                // After e6+, black king escapes to d7
+                const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
+                const kingToD7 = kingMoves.find((m: any) => m.to === 'd7');
+                if (kingToD7) {
+                  g.move({ from: kingToD7.from, to: kingToD7.to });
+                  setLastMove({ from: kingToD7.from, to: kingToD7.to });
+                } else if (kingMoves.length > 0) {
+                  const kingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+                  g.move({ from: kingMove.from, to: kingMove.to });
+                  setLastMove({ from: kingMove.from, to: kingMove.to });
+                }
+                setGame(new Chess(g.fen()));
+                setWhiteMoves(nextWhiteMoves);
+              }, 1000);
+
+              setMessage('Шах! Теперь заберите ладью.');
+              return;
+            }
+
+            if (whiteMoves === 1) {
+              if (!isCorrectSecond) {
+                setSelectedSquare(null);
+                setIsFail(true);
+                setMessage('Провалено');
+                return;
+              }
+              setGame(new Chess(g.fen()));
+              setSelectedSquare(null);
+              setIsComplete(true);
+              setMessage('Отлично! Вскрытое нападение выполнено.');
+              saveStars(3, 3);
+              return;
+            }
+          } else if (exercise === 4) {
+            // EXERCISE 4: Discovered attack — Rxe7+ check, black king escapes, then Rxh7
+            const isCorrectFirst = fromSq === 'e1' && toSq === 'e7' && realMove.piece === 'r' && realMove.captured;
+            const isCorrectSecond = fromSq === 'e7' && toSq === 'h7' && realMove.piece === 'r' && realMove.captured;
+
+            if (whiteMoves === 0) {
+              if (!isCorrectFirst) {
+                setTimeout(() => {
+                  if (!mountedRef.current) return;
+                  const cap = getBestBlackCapture(g);
+                  if (cap) {
+                    g.move({ from: cap.from, to: cap.to });
+                    setLastMove({ from: cap.from, to: cap.to });
+                    setGame(new Chess(g.fen()));
+                  }
+                  setIsFail(true);
+                  setMessage('Провалено');
+                }, 1000);
+                setSelectedSquare(null);
+                return;
+              }
+              setGame(new Chess(g.fen()));
+              setSelectedSquare(null);
+
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                // After Rxe7+, black king escapes (king moves)
+                const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
+                if (kingMoves.length > 0) {
+                  const kingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+                  g.move({ from: kingMove.from, to: kingMove.to });
+                  setLastMove({ from: kingMove.from, to: kingMove.to });
+                }
+                setGame(new Chess(g.fen()));
+                setWhiteMoves(nextWhiteMoves);
+              }, 1000);
+
+              setMessage('Шах! Теперь заберите пешку.');
+              return;
+            }
+
+            if (whiteMoves === 1) {
+              if (!isCorrectSecond) {
+                setSelectedSquare(null);
+                setIsFail(true);
+                setMessage('Провалено');
+                return;
+              }
+              setGame(new Chess(g.fen()));
+              setSelectedSquare(null);
+              setIsComplete(true);
+              setMessage('Отлично! Вскрытое нападение выполнено.');
+              saveStars(4, 3);
+              return;
+            }
+          } else if (exercise === 5) {
+            // EXERCISE 5: Discovered attack — Re5-e1+ check, black king escapes to a8, then Qxh7
+            const isCorrectFirst = fromSq === 'e5' && toSq === 'e1' && realMove.piece === 'r';
+            const isCorrectSecond = fromSq === 'g4' && toSq === 'h7' && realMove.piece === 'q' && realMove.captured;
+
+            if (whiteMoves === 0) {
+              if (!isCorrectFirst) {
+                setTimeout(() => {
+                  if (!mountedRef.current) return;
+                  const cap = getBestBlackCapture(g);
+                  if (cap) {
+                    g.move({ from: cap.from, to: cap.to });
+                    setLastMove({ from: cap.from, to: cap.to });
+                    setGame(new Chess(g.fen()));
+                  }
+                  setIsFail(true);
+                  setMessage('Провалено');
+                }, 1000);
+                setSelectedSquare(null);
+                return;
+              }
+              setGame(new Chess(g.fen()));
+              setSelectedSquare(null);
+
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                // After Re1+, black king escapes to a8
+                const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
+                const kingToA8 = kingMoves.find((m: any) => m.to === 'a8');
+                if (kingToA8) {
+                  g.move({ from: kingToA8.from, to: kingToA8.to });
+                  setLastMove({ from: kingToA8.from, to: kingToA8.to });
+                } else if (kingMoves.length > 0) {
+                  const kingMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+                  g.move({ from: kingMove.from, to: kingMove.to });
+                  setLastMove({ from: kingMove.from, to: kingMove.to });
+                }
+                setGame(new Chess(g.fen()));
+                setWhiteMoves(nextWhiteMoves);
+              }, 1000);
+
+              setMessage('Шах! Теперь заберите пешку.');
+              return;
+            }
+
+            if (whiteMoves === 1) {
+              if (!isCorrectSecond) {
+                setSelectedSquare(null);
+                setIsFail(true);
+                setMessage('Провалено');
+                return;
+              }
+              setGame(new Chess(g.fen()));
+              setSelectedSquare(null);
+              setIsComplete(true);
+              setMessage('Отлично! Вскрытое нападение выполнено.');
+              saveStars(5, 3);
+              return;
+            }
+          } else if (exercise === 6) {
+            // EXERCISE 6: Discovered attack — Re5-e3, bishop attacks rook, then Rxe3 captures bishop
+            const isCorrectFirst = fromSq === 'e5' && toSq === 'e3' && realMove.piece === 'r';
+            const isCorrectSecond = fromSq === 'e3' && toSq === 'b3' && realMove.piece === 'r' && realMove.captured === 'b';
+
+            if (whiteMoves === 0) {
+              if (!isCorrectFirst) {
+                setTimeout(() => {
+                  if (!mountedRef.current) return;
+                  const cap = getBestBlackCapture(g);
+                  if (cap) {
+                    g.move({ from: cap.from, to: cap.to });
+                    setLastMove({ from: cap.from, to: cap.to });
+                    setGame(new Chess(g.fen()));
+                  }
+                  setIsFail(true);
+                  setMessage('Провалено');
+                }, 1000);
+                setSelectedSquare(null);
+                return;
+              }
+              setGame(new Chess(g.fen()));
+              setSelectedSquare(null);
+
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                // After Re3, black rook escapes from g7 to d7 or f7
+                const rookMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'r' && m.from === 'g7');
+                const preferredRookSquares = ['d7', 'f7'];
+                const preferred = rookMoves.find((m: any) => preferredRookSquares.includes(m.to));
+                if (preferred) {
+                  g.move({ from: preferred.from, to: preferred.to });
+                  setLastMove({ from: preferred.from, to: preferred.to });
+                } else if (rookMoves.length > 0) {
+                  const rookMove = rookMoves[Math.floor(Math.random() * rookMoves.length)];
+                  g.move({ from: rookMove.from, to: rookMove.to });
+                  setLastMove({ from: rookMove.from, to: rookMove.to });
+                }
+                setGame(new Chess(g.fen()));
+                setWhiteMoves(nextWhiteMoves);
+              }, 1000);
+
+              return;
+            }
+
+            if (whiteMoves === 1) {
+              if (!isCorrectSecond) {
+                setSelectedSquare(null);
+                setIsFail(true);
+                setMessage('Провалено');
+                return;
+              }
+              setGame(new Chess(g.fen()));
+              setSelectedSquare(null);
+              setIsComplete(true);
+              setMessage('Отлично! Вскрытое нападение выполнено.');
+              saveStars(6, 3);
+              return;
+            }
+          }
+        }, 200);
+      }
     } catch {
       // Invalid move
     }
@@ -680,82 +932,13 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
         setSelectedSquare(square);
         return;
       }
-      processWhiteMove(selectedSquare, square);
+      processWhiteMove(selectedSquare, square, undefined, false);
     } else {
       if (piece && piece.color === 'w') {
         setSelectedSquare(square);
       }
     }
   }, [game, selectedSquare, processWhiteMove]);
-
-  const handlePointerDown = useCallback((e: React.PointerEvent, square: string) => {
-    if (promotionPending) return;
-    if (isCompleteRef.current || isFailRef.current) return;
-    if (!game) return;
-    const g = game;
-    if (g.turn() !== 'w') return;
-    const piece = g.get(square as any);
-    if (!piece || piece.color !== 'w') return;
-    if (e.pointerType === 'touch' && !(e as any).isPrimary) return;
-    pointerStartRef.current = { x: e.clientX, y: e.clientY, square, moved: false, pointerId: e.pointerId };
-  }, [game]);
-
-  useEffect(() => {
-    const handleGlobalMove = (e: PointerEvent) => {
-      const start = pointerStartRef.current;
-      if (!start) return;
-      if (e.pointerId !== start.pointerId) return;
-      const dx = e.clientX - start.x;
-      const dy = e.clientY - start.y;
-      if (!start.moved && (Math.abs(dx) > 20 || Math.abs(dy) > 20)) {
-        start.moved = true;
-        const piece = game?.get(start.square as any);
-        if (piece) {
-          setDragPiece({ square: start.square, type: piece.type.toUpperCase(), color: piece.color as 'w' | 'b' });
-          setSelectedSquare(null);
-        }
-      }
-      if (start.moved) {
-        setDragPos({ x: e.clientX, y: e.clientY });
-      }
-    };
-
-    const handleGlobalUp = (e: PointerEvent) => {
-      const start = pointerStartRef.current;
-      if (!start) return;
-      if (e.pointerId !== start.pointerId) return;
-      if (!start.moved) {
-        // click handled by onClick
-      } else {
-        const el = document.elementFromPoint(e.clientX, e.clientY);
-        const cell = el?.closest('[data-square]') as HTMLElement | null;
-        const targetSquare = cell?.dataset.square || null;
-        if (targetSquare && targetSquare !== start.square) {
-          processWhiteMove(start.square, targetSquare);
-        }
-        setDragPiece(null);
-    setPromotionPending(null);
-      }
-      pointerStartRef.current = null;
-    };
-
-    const handleGlobalCancel = (e: PointerEvent) => {
-      if (pointerStartRef.current && e.pointerId === pointerStartRef.current.pointerId) {
-        setDragPiece(null);
-    setPromotionPending(null);
-        pointerStartRef.current = null;
-      }
-    };
-
-    window.addEventListener('pointermove', handleGlobalMove);
-    window.addEventListener('pointerup', handleGlobalUp);
-    window.addEventListener('pointercancel', handleGlobalCancel);
-    return () => {
-      window.removeEventListener('pointermove', handleGlobalMove);
-      window.removeEventListener('pointerup', handleGlobalUp);
-      window.removeEventListener('pointercancel', handleGlobalCancel);
-    };
-  }, [game, processWhiteMove]);
 
   // ──── PROMOTION ────
   const handlePromotion = useCallback((pieceCode: string) => {
@@ -776,9 +959,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
 
   const validMoves = selectedSquare && game
     ? (game.moves({ square: selectedSquare as any, verbose: true }).map(m => m.to) as string[])
-    : dragPiece && game
-      ? (game.moves({ square: dragPiece.square as any, verbose: true }).map(m => m.to) as string[])
-      : [];
+    : [];
 
   const turnText = game ? (game.turn() === 'w' ? 'Ваш ход (белые)' : 'Ход чёрных...') : '';
 
@@ -871,12 +1052,14 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
             selectedSquare={selectedSquare}
             lastMove={lastMove}
             autoValidMoves={true}
-            onMove={(from, to) => processWhiteMove(from, to)}
+            onMove={(from, to, promotion) => processWhiteMove(from, to, promotion, true)}
             onSquareClick={handleSquareClick}
             playerAnimatingMove={playerAnimatingMove}
             opponentAnimatingMove={opponentAnimatingMove}
             interactive={!isComplete && !isFail}
             sqSize={sqSize}
+            disableAutoGhost={true}
+            onDragPieceChange={() => {}}
           />
           {/* Hint arrows SVG overlay */}
           {hintVisible && !isFail && !isComplete && !selectedSquare && (
