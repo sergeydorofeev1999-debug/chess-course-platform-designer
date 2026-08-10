@@ -771,44 +771,36 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
             const win = checkGameOver(result.squares, result.enPassant, 'b', result.promoted);
             if (win) {
               setWinner(win);
-              setPlayerAnimatingMove({ from: start.square, to: targetSquare, piece: movingPiece! });
-              setTimeout(() => {
-                setSquares(result.squares);
-                setEnPassant(result.enPassant);
-                setPlayerAnimatingMove(null);
-                setSelectedSquare(null);
-                setValidSquares([]);
-                selectedSquareRef.current = null;
-                if (win === 'Белые победили!' && difficultyRef.current) {
-                  const d = difficultyRef.current;
-                  setCompletedLevels(prev => {
-                    const next = { ...prev, [d]: true };
-                    localStorage.setItem(savedKey, JSON.stringify(next));
-                    return next;
-                  });
-                  onComplete();
-                }
-              }, 200);
+              setSquares(result.squares);
+              setEnPassant(result.enPassant);
+              setSelectedSquare(null);
+              setValidSquares([]);
+              selectedSquareRef.current = null;
+              if (win === 'Белые победили!' && difficultyRef.current) {
+                const d = difficultyRef.current;
+                setCompletedLevels(prev => {
+                  const next = { ...prev, [d]: true };
+                  localStorage.setItem(savedKey, JSON.stringify(next));
+                  return next;
+                });
+                onComplete();
+              }
             } else {
-              setPlayerAnimatingMove({ from: start.square, to: targetSquare, piece: movingPiece! });
-              setTimeout(() => {
-                setSquares(result.squares);
-                setEnPassant(result.enPassant);
-                setTurn('b');
-                setPlayerAnimatingMove(null);
-                setSelectedSquare(null);
-                setValidSquares([]);
-                selectedSquareRef.current = null;
-                if (hasNoMoves(result.squares, 'b', result.enPassant)) {
-                  setWinner('Ничья');
-                }
-              }, 200);
+              setSquares(result.squares);
+              setEnPassant(result.enPassant);
+              setTurn('b');
+              setSelectedSquare(null);
+              setValidSquares([]);
+              selectedSquareRef.current = null;
+              if (hasNoMoves(result.squares, 'b', result.enPassant)) {
+                setWinner('Ничья');
+              }
             }
           }
         }
         setDragPiece(null);
+        pointerStartRef.current = null;
       }
-      pointerStartRef.current = null;
     };
     const handleGlobalCancel = (e: PointerEvent) => {
       if (pointerStartRef.current && e.pointerId === pointerStartRef.current.pointerId) {
