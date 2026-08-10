@@ -599,32 +599,35 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
         setHistory(h => [...h, { squares: sqs, whiteCaptured: whiteCapturedRef.current, blackCaptured: blackCapturedRef.current, enPassant: enPassantRef.current!, turn: 'w' }]);
 
         const win = checkGameOver(result.squares, result.enPassant, 'b');
-        if (win) {
-          setWinner(win);
-          setSquares(result.squares);
-          setEnPassant(result.enPassant);
-          if (win === 'Белые победили!' && difficultyRef.current) {
-            const d = difficultyRef.current;
-            setCompletedLevels(prev => {
-              const next = { ...prev, [d]: true };
-              localStorage.setItem(savedKey, JSON.stringify(next));
-              return next;
-            });
-            onComplete();
-          }
-        } else {
-          setSquares(result.squares);
-          setEnPassant(result.enPassant);
-          setTurn('b');
-          if (hasNoMoves(result.squares, 'b', result.enPassant)) {
-            setWinner('Ничья');
-          }
-        }
         setPlayerAnimatingMove({ from: sel, to: square, piece: movingPiece! });
         setLastMove({ from: sel, to: square });
         setSelectedSquare(null);
         setValidSquares([]);
         selectedSquareRef.current = null;
+
+        setTimeout(() => {
+          if (!mountedRef.current) return;
+          setSquares(result.squares);
+          setEnPassant(result.enPassant);
+          setPlayerAnimatingMove(null);
+          if (win) {
+            setWinner(win);
+            if (win === 'Белые победили!' && difficultyRef.current) {
+              const d = difficultyRef.current;
+              setCompletedLevels(prev => {
+                const next = { ...prev, [d]: true };
+                localStorage.setItem(savedKey, JSON.stringify(next));
+                return next;
+              });
+              onComplete();
+            }
+          } else {
+            setTurn('b');
+            if (hasNoMoves(result.squares, 'b', result.enPassant)) {
+              setWinner('Ничья');
+            }
+          }
+        }, 200);
         return;
       }
 
