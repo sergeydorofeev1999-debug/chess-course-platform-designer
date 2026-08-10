@@ -1043,8 +1043,8 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
                       {file}
                     </span>
                   )}
-                  {/* Green move indicator dots */}
-                  {isValidMove && (
+                  {/* Green move indicator dots — empty squares */}
+                  {isValidMove && !pieceObj && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
                       <div
                         style={{
@@ -1053,6 +1053,20 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
                           backgroundColor: 'var(--square-valid)',
                           borderRadius: '50%',
                           opacity: 0.85,
+                        }}
+                      />
+                    </div>
+                  )}
+                  {/* Capture ring — opponent piece can be captured */}
+                  {isValidMove && pieceObj && pieceObj.color !== 'w' && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                      <div
+                        style={{
+                          width: Math.round(sqSize * 0.85),
+                          height: Math.round(sqSize * 0.85),
+                          borderRadius: '50%',
+                          border: '3px solid var(--square-valid)',
+                          opacity: 0.7,
                         }}
                       />
                     </div>
