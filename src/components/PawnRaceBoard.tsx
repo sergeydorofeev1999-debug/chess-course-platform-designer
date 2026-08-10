@@ -649,16 +649,6 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
         if (!movingPiece) return;
 
         const isDragMove = pointerStartRef.current?.isDrag || false;
-        setLastMove({ from: sel, to: square });
-        setSelectedSquare(null);
-        setValidSquares([]);
-        selectedSquareRef.current = null;
-
-        // Update board immediately (like PinBoard setGame)
-        setSquares(result.squares);
-        setEnPassant(result.enPassant);
-        setTurn('b');
-
         if (!isDragMove) {
           setPlayerAnimatingMove({
             from: sel,
@@ -666,37 +656,50 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
             piece: { type: movingPiece.type, color: movingPiece.color },
           });
         }
+        setLastMove({ from: sel, to: square });
+        setSelectedSquare(null);
+        setValidSquares([]);
+        selectedSquareRef.current = null;
 
-        const win = checkGameOver(result.squares, whiteCapturedRef.current, bCap, result.enPassant, 'b');
-        if (win) {
-          setWinner(win);
-          if (win === 'Белые победили!' && difficultyRef.current) {
-            const diff = difficultyRef.current;
-            setCompletedLevels(prev => {
-              const next = { ...prev, [diff]: true };
-              localStorage.setItem(savedKey, JSON.stringify(next));
-              return next;
-            });
-            onComplete();
-          }
+        setTimeout(() => {
+          if (!mountedRef.current) return;
           if (!isDragMove) {
-            setTimeout(() => setPlayerAnimatingMove(null), 220);
+            setPlayerAnimatingMove(null);
           }
-          return;
-        }
 
-        // Check if black has no moves after white's move
-        if (hasNoMoves(result.squares, 'b', result.enPassant)) {
-          setWinner('Ничья');
-          if (!isDragMove) {
-            setTimeout(() => setPlayerAnimatingMove(null), 220);
+          if (result.promoted) {
+            setPromotionPending({ from: sel, to: square });
+            setSquares(result.squares);
+            setEnPassant(result.enPassant);
+            return;
           }
-          return;
-        }
 
-        if (!isDragMove) {
-          setTimeout(() => setPlayerAnimatingMove(null), 220);
-        }
+          const win = checkGameOver(result.squares, whiteCapturedRef.current, bCap, result.enPassant, 'b');
+          if (win) {
+            setWinner(win);
+            setSquares(result.squares);
+            setEnPassant(result.enPassant);
+            if (win === 'Белые победили!' && difficultyRef.current) {
+              const diff = difficultyRef.current;
+              setCompletedLevels(prev => {
+                const next = { ...prev, [diff]: true };
+                localStorage.setItem(savedKey, JSON.stringify(next));
+                return next;
+              });
+              onComplete();
+            }
+            return;
+          }
+
+          setSquares(result.squares);
+          setEnPassant(result.enPassant);
+          setTurn('b');
+          // Check if black has no moves after white's move
+          if (hasNoMoves(result.squares, 'b', result.enPassant)) {
+            setWinner('Ничья');
+          }
+        }, 200);
+        return;
       }
 
       if (piece && piece.color === 'w' && piece.type === 'p') {
@@ -1006,7 +1009,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
                 <div
                   key={sq}
                   data-square={sq}
-                  className={`flex items-center justify-center relative select-none ${isSource || isPlayerAnimatingSource || isOpponentAnimatingSource ? 'opacity-50' : ''}`}
+                  className={`flex items-center justify-center relative select-none ${isSource ? 'opacity-50' : ''}`}
                   style={{
                     width: sqSize,
                     height: sqSize,
