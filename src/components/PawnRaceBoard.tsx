@@ -728,6 +728,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
 
   // Drag and drop
   const handlePointerDown = useCallback((e: React.PointerEvent, square: string) => {
+    wasDragRef.current = false;
     if (promotionPending) return;
     if (winnerRef.current) return; // BLOCK moves after game over
     // Check for draw BEFORE white's move
