@@ -524,6 +524,7 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
 
       const result = makeMove(sqs, enPassantRef.current, chosen.from, chosen.to);
       const movingPiece = sqs[chosen.from];
+      setLastMove({ from: chosen.from, to: chosen.to });
 
       const win = checkGameOver(result.squares, result.enPassant, 'w', result.promoted);
       if (win) {
@@ -643,6 +644,7 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
 
         const result = makeMove(sqs, enPassantRef.current, sel, square);
 
+        setLastMove({ from: sel, to: square });
         const win = checkGameOver(result.squares, result.enPassant, 'b', result.promoted);
         if (win) {
           setWinner(win);
@@ -769,6 +771,7 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
 
             const result = makeMove(squaresRef.current, enPassantRef.current, start.square, targetSquare);
             const win = checkGameOver(result.squares, result.enPassant, 'b', result.promoted);
+            setLastMove({ from: start.square, to: targetSquare });
             if (win) {
               setWinner(win);
               setSquares(result.squares);
