@@ -64,7 +64,6 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
   const [sequenceStep, setSequenceStep] = useState(0);
   const [hintVisible, setHintVisible] = useState(false);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
-  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
   const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
   const isCompleteRef = useRef(false);
   const isFailRef = useRef(false);
@@ -113,7 +112,6 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
     setIsComplete(false);
     setDragPiece(null);
     setSequenceStep(0);
-    setPlayerAnimatingMove(null);
     setOpponentAnimatingMove(null);
   }, [exercise]);
 
@@ -140,7 +138,6 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
     setIsComplete(false);
     setDragPiece(null);
     setSequenceStep(0);
-    setPlayerAnimatingMove(null);
     setOpponentAnimatingMove(null);
   }, []);
 
@@ -158,14 +155,12 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
           ng.move({ from, to });
           const piece = g.get(from as any);
           setLastMove({ from, to });
-          setPlayerAnimatingMove({
             from, to,
             piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' },
           });
           setTimeout(() => {
             if (!mountedRef.current) return;
             setGame(ng);
-            setPlayerAnimatingMove(null);
             setSelectedSquare(null);
             setSequenceStep(1);
             setMessage('Хорошо! Чёрный король отходит...');
@@ -214,14 +209,12 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
           ng.move({ from, to });
           const piece = g.get(from as any);
           setLastMove({ from, to });
-          setPlayerAnimatingMove({
             from, to,
             piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' },
           });
           setTimeout(() => {
             if (!mountedRef.current) return;
             setGame(ng);
-            setPlayerAnimatingMove(null);
             setSelectedSquare(null);
             setIsComplete(true);
             setMessage('Отлично! Вы защитились от мата!');
@@ -239,7 +232,6 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
 
       const piece = g.get(from as any);
       setLastMove({ from, to });
-      setPlayerAnimatingMove({
         from, to,
         piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' },
       });
@@ -247,7 +239,6 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
       setTimeout(() => {
         if (!mountedRef.current) return;
         setGame(ng);
-        setPlayerAnimatingMove(null);
         setSelectedSquare(null);
 
         if (validMoves.has(`${from},${to}`)) {
@@ -468,7 +459,6 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
             onSquareClick={handleSquareClick}
             onMove={(from, to, promotion) => processMove(from, to, promotion)}
             onDragPieceChange={(piece) => setDragPiece(piece ? { square: piece.square, type: piece.type, color: piece.color } : null)}
-            playerAnimatingMove={playerAnimatingMove || null}
             opponentAnimatingMove={opponentAnimatingMove || null}
             interactive={!isComplete && !isFail}
             sqSize={sqSize}

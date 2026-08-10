@@ -478,28 +478,29 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
                 borderRadius: '16px',
               }}
             >
-              <p className="text-white font-semibold flex items-center gap-2" style={{ fontSize: '18px' }}>
-                <RotateCcw size={16} /> Попробуйте снова
+              <p className="text-white font-semibold text-center" style={{ fontSize: '18px', marginBottom: '16px' }}>
+                Попробуйте снова
               </p>
               <button
                 onClick={reset}
-                className="mt-1 font-bold w-full rounded-xl hover:brightness-110 transition"
+                className="font-bold w-full hover:brightness-110 transition"
                 style={{
                   display: 'block',
+                  width: '100%',
                   backgroundColor: '#FFFFFF',
                   color: '#2C241B',
                   fontSize: '16px',
                   fontWeight: 700,
-                  borderRadius: '14px',
+                  borderRadius: '12px',
                   height: '48px',
                   lineHeight: '48px',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                   textAlign: 'center',
                   border: 'none',
                   padding: 0,
+                  textTransform: 'uppercase',
                 }}
               >
-                Ещё раз
+                ЕЩЁ РАЗ
               </button>
             </div>
           </div>
