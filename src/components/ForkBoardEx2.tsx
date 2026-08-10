@@ -474,11 +474,11 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
               style={{
                 backgroundColor: '#2C241B',
                 boxShadow: '0 4px 16px rgba(44, 36, 27, 0.3)',
-                padding: '20px 24px 24px 24px',
+                padding: '20px 24px',
                 borderRadius: '16px',
               }}
             >
-              <p className="text-white font-semibold text-center" style={{ fontSize: '18px', marginBottom: '16px' }}>
+              <p className="text-white font-bold text-center" style={{ fontSize: '18px' }}>
                 Попробуйте снова
               </p>
               <button
