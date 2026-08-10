@@ -697,11 +697,7 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
           if (valid.includes(targetSquare)) {
             const movingPiece = squaresRef.current[start.square];
             setLastMove({ from: start.square, to: targetSquare });
-            setPlayerAnimatingMove({
-              from: start.square,
-              to: targetSquare,
-              piece: { type: movingPiece?.type || '', color: movingPiece?.color as 'w' | 'b' || 'w' },
-            });
+            // Drag move: skip playerAnimatingMove to avoid duplicate
             setSelectedSquare(null);
             setValidSquares([]);
             selectedSquareRef.current = null;
