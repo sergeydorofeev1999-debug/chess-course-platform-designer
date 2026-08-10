@@ -1062,11 +1062,12 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
                       <div
                         style={{
-                          width: Math.round(sqSize * 0.85),
-                          height: Math.round(sqSize * 0.85),
+                          width: sqSize,
+                          height: sqSize,
                           borderRadius: '50%',
-                          border: '3px solid var(--square-valid)',
-                          opacity: 0.7,
+                          border: '4px solid var(--square-valid)',
+                          boxSizing: 'border-box',
+                          opacity: 0.85,
                         }}
                       />
                     </div>
