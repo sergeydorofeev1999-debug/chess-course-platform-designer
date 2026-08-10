@@ -701,38 +701,35 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
             setSelectedSquare(null);
             setValidSquares([]);
             selectedSquareRef.current = null;
+
+            const result = makeMove(squaresRef.current, enPassantRef.current, start.square, targetSquare);
+            const win = checkGameOver(result.squares, result.enPassant, 'b');
+            if (win) {
+              setWinner(win);
+              setSquares(result.squares);
+              setEnPassant(result.enPassant);
+              setPlayerAnimatingMove(null);
+              if (win === 'Белые победили!' && difficultyRef.current) {
+                const d = difficultyRef.current;
+                setCompletedLevels(prev => {
+                  const next = { ...prev, [d]: true };
+                  localStorage.setItem(savedKey, JSON.stringify(next));
+                  return next;
+                });
+                onComplete();
+              }
+            } else {
+              setHistory(prev => [...prev, { squares: squaresRef.current, enPassant: enPassantRef.current, turn: turnRef.current }]);
+              setSquares(result.squares);
+              setEnPassant(result.enPassant);
+              setTurn('b');
+              setPlayerAnimatingMove(null);
+              if (hasNoMoves(result.squares, 'b', result.enPassant)) {
+                setWinner('Ничья');
+              }
+            }
             setDragPiece(null);
             pointerStartRef.current = null;
-
-            setTimeout(() => {
-              if (!mountedRef.current) return;
-              const result = makeMove(squaresRef.current, enPassantRef.current, start.square, targetSquare);
-              const win = checkGameOver(result.squares, result.enPassant, 'b');
-              if (win) {
-                setWinner(win);
-                setSquares(result.squares);
-                setEnPassant(result.enPassant);
-                setPlayerAnimatingMove(null);
-                if (win === 'Белые победили!' && difficultyRef.current) {
-                  const d = difficultyRef.current;
-                  setCompletedLevels(prev => {
-                    const next = { ...prev, [d]: true };
-                    localStorage.setItem(savedKey, JSON.stringify(next));
-                    return next;
-                  });
-                  onComplete();
-                }
-              } else {
-                setHistory(prev => [...prev, { squares: squaresRef.current, enPassant: enPassantRef.current, turn: turnRef.current }]);
-                setSquares(result.squares);
-                setEnPassant(result.enPassant);
-                setTurn('b');
-                setPlayerAnimatingMove(null);
-                if (hasNoMoves(result.squares, 'b', result.enPassant)) {
-                  setWinner('Ничья');
-                }
-              }
-            }, 200);
             return;
           }
         }
