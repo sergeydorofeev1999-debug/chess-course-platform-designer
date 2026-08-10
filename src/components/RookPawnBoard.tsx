@@ -958,8 +958,15 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
                     </div>
                   )}
                   {/* Piece */}
-                  {pieceObj && !isSource && !isPlayerAnimatingSource && !isOpponentAnimatingSource && (
-                    <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
+                  {pieceObj && !isSource && (
+                    <div
+                      className="relative pointer-events-none z-30 transition-opacity duration-200 ease-in-out"
+                      style={{
+                        width: Math.round(sqSize * 0.85),
+                        height: Math.round(sqSize * 0.85),
+                        opacity: isPlayerAnimatingSource || isOpponentAnimatingSource ? 0 : 1,
+                      }}
+                    >
                       <PieceImg type={pieceObj.type} color={pieceObj.color as 'w' | 'b'} />
                     </div>
                   )}
