@@ -65,6 +65,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
   const [hintVisible, setHintVisible] = useState(false);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
+  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
   const isCompleteRef = useRef(false);
   const isFailRef = useRef(false);
   const mountedRef = useRef(true);
@@ -155,10 +156,12 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
           ng.move({ from, to });
           const piece = g.get(from as any);
           setLastMove({ from, to });
+          setPlayerAnimatingMove({ from, to, piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' } });
           setGame(ng);
           setSelectedSquare(null);
           setSequenceStep(1);
           setMessage('Хорошо! Чёрный король отходит...');
+          setTimeout(() => setPlayerAnimatingMove(null), 220);
 
           // Computer reply: Kc6-d7 (or Kc6-b7 if d7 illegal)
           setTimeout(() => {
@@ -203,11 +206,13 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
           ng.move({ from, to });
           const piece = g.get(from as any);
           setLastMove({ from, to });
+          setPlayerAnimatingMove({ from, to, piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' } });
           setGame(ng);
           setSelectedSquare(null);
           setIsComplete(true);
           setMessage('Отлично! Вы защитились от мата!');
           saveStars(exercise, 3);
+          setTimeout(() => setPlayerAnimatingMove(null), 220);
           return;
         }
         // Wrong move in sequence — fall through to fail logic
@@ -220,8 +225,10 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
 
       const piece = g.get(from as any);
       setLastMove({ from, to });
+      setPlayerAnimatingMove({ from, to, piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' } });
       setGame(ng);
       setSelectedSquare(null);
+      setTimeout(() => setPlayerAnimatingMove(null), 220);
 
       if (validMoves.has(`${from},${to}`)) {
         setIsComplete(true);
@@ -436,9 +443,8 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
             onSquareClick={handleSquareClick}
             onMove={(from, to, promotion) => processMove(from, to, promotion)}
             onDragPieceChange={(piece) => setDragPiece(piece ? { square: piece.square, type: piece.type, color: piece.color } : null)}
-            clickGhost={true}
-            userColor="w"
-            disableAutoGhost={true}
+            playerAnimatingMove={playerAnimatingMove}
+            opponentAnimatingMove={opponentAnimatingMove}
             interactive={!isComplete && !isFail}
             sqSize={sqSize}
           />
