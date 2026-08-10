@@ -486,7 +486,6 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
                 className="font-bold w-full hover:brightness-110 transition"
                 style={{
                   display: 'block',
-                  width: '100%',
                   backgroundColor: '#FFFFFF',
                   color: '#2C241B',
                   fontSize: '16px',
