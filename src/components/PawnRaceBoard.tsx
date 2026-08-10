@@ -462,8 +462,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
   const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
   const [history, setHistory] = useState<{ squares: Record<string, Piece>; whiteCaptured: number; blackCaptured: number; enPassant: string | null; turn: 'w' | 'b' }[]>([]);
   const [promotionPending, setPromotionPending] = useState<{from: string; to: string} | null>(null);
-  const pointerStartRef = useRef<{ x: number; y: number; square: string; moved: boolean; pointerId: number } | null>(null);
-  const wasDragRef = useRef(false);
+  const pointerStartRef = useRef<{ x: number; y: number; square: string; moved: boolean; pointerId: number; isDrag: boolean } | null>(null);
   const processLockRef = useRef(false);
   const squaresRef = useRef(squares);
   const clickRef = useRef<(square: string) => void>(() => {});
@@ -651,7 +650,8 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
         const movingPiece = sqs[sel];
         if (!movingPiece) return;
 
-        if (!wasDragRef.current) {
+        const isDragMove = pointerStartRef.current?.isDrag || false;
+        if (!isDragMove) {
           setPlayerAnimatingMove({
             from: sel,
             to: square,
@@ -665,10 +665,9 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
 
         setTimeout(() => {
           if (!mountedRef.current) return;
-          if (!wasDragRef.current) {
+          if (!isDragMove) {
             setPlayerAnimatingMove(null);
           }
-          wasDragRef.current = false;
 
           if (result.promoted) {
             setPromotionPending({ from: sel, to: square });
@@ -702,7 +701,6 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
             setWinner('Ничья');
           }
         }, 200);
-        wasDragRef.current = false;
         return;
       }
 
@@ -728,7 +726,6 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
 
   // Drag and drop
   const handlePointerDown = useCallback((e: React.PointerEvent, square: string) => {
-    wasDragRef.current = false;
     if (promotionPending) return;
     if (winnerRef.current) return; // BLOCK moves after game over
     // Check for draw BEFORE white's move
@@ -742,7 +739,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
     const sqs = squaresRef.current;
     const piece = sqs[square];
     if (piece && piece.color === 'w') {
-      pointerStartRef.current = { x: e.clientX, y: e.clientY, square, moved: false, pointerId: e.pointerId };
+      pointerStartRef.current = { x: e.clientX, y: e.clientY, square, moved: false, pointerId: e.pointerId, isDrag: false };
       setSelectedSquare(square);
       setValidSquares(getPawnMoves(square, sqs, 'w', enPassantRef.current));
     }
@@ -757,6 +754,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
       const dy = e.clientY - start.y;
       if (!start.moved && (Math.abs(dx) > 20 || Math.abs(dy) > 20)) {
         start.moved = true;
+        start.isDrag = true;
         const sqs = squaresRef.current;
         const piece = sqs[start.square];
         if (piece && piece.color === 'w') {
@@ -775,7 +773,6 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
       if (!start.moved) {
         clickRef.current(start.square);
       } else {
-        wasDragRef.current = true;
         const el = document.elementFromPoint(e.clientX, e.clientY);
         const cell = el?.closest('[data-square]') as HTMLElement | null;
         const targetSquare = cell?.dataset.square || null;
