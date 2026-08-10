@@ -131,7 +131,6 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
   const [hintVisible, setHintVisible] = useState(false);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
-  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' }; } | null>(null);
   const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' }; } | null>(null);
 
   const isCompleteRef = useRef(false);
@@ -185,7 +184,6 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
     setSelectedSquare(null);
     setMessage('');
     setLastMove(null);
-    setPlayerAnimatingMove(null);
     setOpponentAnimatingMove(null);
     setHintVisible(false);
     setIsFail(false);
@@ -209,7 +207,6 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
     setSelectedSquare(null);
     setMessage('');
     setLastMove(null);
-    setPlayerAnimatingMove(null);
     setOpponentAnimatingMove(null);
     setIsFail(false);
     setIsComplete(false);
@@ -234,8 +231,6 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
 
     const piece = g.get(from as any);
     if (piece) {
-      setPlayerAnimatingMove({ from, to, piece: { type: piece.type.toUpperCase(), color: 'w' as 'w' | 'b' } });
-      setTimeout(() => setPlayerAnimatingMove(null), 220);
     }
 
     try {
@@ -1147,7 +1142,6 @@ const getExerciseGoal = (ex: number) => {
             disableAutoGhost={true}
             onMove={(from, to) => processWhiteMove(from, to)}
             onSquareClick={handleSquareClick}
-            playerAnimatingMove={playerAnimatingMove}
             opponentAnimatingMove={opponentAnimatingMove}
             interactive={!isComplete && !isFail}
             sqSize={sqSize}
