@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
 import { RotateCcw, Trophy, Eye } from 'lucide-react';
 import UniversalChessBoardDesigner from './board/UniversalChessBoardDesigner';
+import { useAnimatedLesson } from '@/hooks/useAnimatedLesson';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const REVERSED_FILES = ['h','g','f','e','d','c','b','a'];
@@ -145,6 +146,7 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
   const [hintVisible, setHintVisible] = useState(false);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
+  const { playerAnimatingMove, opponentAnimatingMove, setPlayerAnimatingMove, setOpponentAnimatingMove, animatePlayerMove } = useAnimatedLesson();
 
   const isCompleteRef = useRef(false);
   const isFailRef = useRef(false);
@@ -197,6 +199,8 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
     setIsComplete(false);
     setDragPiece(null);
     setPromotionPending(null);
+    setPlayerAnimatingMove(null);
+    setOpponentAnimatingMove(null);
   }, [exercise]);
 
   const saveStars = useCallback((ex: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8, stars: number) => {
@@ -223,6 +227,8 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
     setIsComplete(false);
     setDragPiece(null);
     setPromotionPending(null);
+    setPlayerAnimatingMove(null);
+    setOpponentAnimatingMove(null);
   }, []);
 
   // ──── MATE IN 1 LOGIC ────
@@ -242,14 +248,16 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
       if (!move) return;
 
       if (g.isCheckmate()) {
-        // Correct move — complete
-        setGame(new Chess(g.fen()));
-        setLastMove({ from, to });
-        setSelectedSquare(null);
-        setIsComplete(true);
-        setMessage('Отлично! Мат в 1 ход!');
-        saveStars(exercise, 3);
-        if (exercise === 8) onComplete();
+        // Animate correct move then complete
+        animatePlayerMove(g, from, to, () => {
+          setGame(new Chess(g.fen()));
+          setLastMove({ from, to });
+          setSelectedSquare(null);
+          setIsComplete(true);
+          setMessage('Отлично! Мат в 1 ход!');
+          saveStars(exercise, 3);
+          if (exercise === 8) onComplete();
+        });
         return;
       }
 
@@ -262,7 +270,7 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
     } catch {
       // invalid move
     }
-  }, [game, exercise, saveStars, onComplete]);
+  }, [game, exercise, saveStars, onComplete, animatePlayerMove]);
 
   // ──── CLICK ────
   const handleSquareClick = useCallback((square: string) => {
@@ -512,8 +520,6 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
             autoValidMoves={true}
             onMove={(from, to, _promotion) => processMove(from, to)}
             onSquareClick={handleSquareClick}
-            clickGhost={true}
-            userColor="w"
             pieceTheme="cburnett"
           />
           {/* Hint arrows SVG overlay */}

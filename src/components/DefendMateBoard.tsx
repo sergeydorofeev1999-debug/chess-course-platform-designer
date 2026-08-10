@@ -155,9 +155,6 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
           ng.move({ from, to });
           const piece = g.get(from as any);
           setLastMove({ from, to });
-            from, to,
-            piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' },
-          });
           setTimeout(() => {
             if (!mountedRef.current) return;
             setGame(ng);
@@ -209,9 +206,6 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
           ng.move({ from, to });
           const piece = g.get(from as any);
           setLastMove({ from, to });
-            from, to,
-            piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' },
-          });
           setTimeout(() => {
             if (!mountedRef.current) return;
             setGame(ng);
@@ -232,9 +226,6 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
 
       const piece = g.get(from as any);
       setLastMove({ from, to });
-        from, to,
-        piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' },
-      });
 
       setTimeout(() => {
         if (!mountedRef.current) return;
@@ -459,7 +450,9 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
             onSquareClick={handleSquareClick}
             onMove={(from, to, promotion) => processMove(from, to, promotion)}
             onDragPieceChange={(piece) => setDragPiece(piece ? { square: piece.square, type: piece.type, color: piece.color } : null)}
-            opponentAnimatingMove={opponentAnimatingMove || null}
+            clickGhost={true}
+            userColor="w"
+            disableAutoGhost={true}
             interactive={!isComplete && !isFail}
             sqSize={sqSize}
           />

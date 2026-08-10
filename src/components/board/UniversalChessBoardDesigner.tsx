@@ -159,6 +159,7 @@ export interface UniversalChessBoardDesignerProps {
   disableAutoGhost?: boolean;
   clickGhost?: boolean;
   userColor?: 'w' | 'b';
+  opponentDelay?: number;
 }
 
 interface DragState {
@@ -200,6 +201,7 @@ export default function UniversalChessBoardDesigner({
   disableAutoGhost = false,
   clickGhost = false,
   userColor,
+  opponentDelay = 600,
 }: UniversalChessBoardDesignerProps) {
 
   // Internal fen for instant drag feedback
@@ -258,7 +260,7 @@ export default function UniversalChessBoardDesigner({
             return;
           }
           
-          // Opponent move: wait 600ms pause, then ghost 200ms
+          // Opponent move: wait {opponentDelay}ms pause, then ghost 200ms
           const delayTimeout = setTimeout(() => {
             setAnimatingFen(previousFen);
             setAutoAnimatingMoves(moved);
@@ -267,7 +269,7 @@ export default function UniversalChessBoardDesigner({
               setAnimatingFen(null);
             }, 200);
             return () => clearTimeout(ghostTimeout);
-          }, 600);
+          }, opponentDelay);
           
           // Update previousFen immediately to avoid re-triggering
           setPreviousFen(currentFen);
