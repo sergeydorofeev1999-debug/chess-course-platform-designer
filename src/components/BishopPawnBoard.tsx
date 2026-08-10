@@ -972,8 +972,8 @@ export default function BishopPawnBoard({ onComplete, lessonId, lessonTitle }: {
                       {file}
                     </span>
                   )}
-                  {/* Green move indicator dots */}
-                  {isValidMove && (
+                  {/* Green move indicator dots — empty squares */}
+                  {isValidMove && !pieceObj && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
                       <div
                         style={{
@@ -981,6 +981,21 @@ export default function BishopPawnBoard({ onComplete, lessonId, lessonTitle }: {
                           height: Math.round(sqSize * 0.3),
                           backgroundColor: 'var(--square-valid)',
                           borderRadius: '50%',
+                          opacity: 0.85,
+                        }}
+                      />
+                    </div>
+                  )}
+                  {/* Capture ring — opponent piece can be captured */}
+                  {isValidMove && pieceObj && pieceObj.color !== 'w' && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                      <div
+                        style={{
+                          width: sqSize,
+                          height: sqSize,
+                          borderRadius: '50%',
+                          border: '4px solid var(--square-valid)',
+                          boxSizing: 'border-box',
                           opacity: 0.85,
                         }}
                       />
