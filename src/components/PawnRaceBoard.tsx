@@ -463,6 +463,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
   const [history, setHistory] = useState<{ squares: Record<string, Piece>; whiteCaptured: number; blackCaptured: number; enPassant: string | null; turn: 'w' | 'b' }[]>([]);
   const [promotionPending, setPromotionPending] = useState<{from: string; to: string} | null>(null);
   const pointerStartRef = useRef<{ x: number; y: number; square: string; moved: boolean; pointerId: number } | null>(null);
+  const wasDragRef = useRef(false);
   const processLockRef = useRef(false);
   const squaresRef = useRef(squares);
   const clickRef = useRef<(square: string) => void>(() => {});
@@ -650,11 +651,13 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
         const movingPiece = sqs[sel];
         if (!movingPiece) return;
 
-        setPlayerAnimatingMove({
-          from: sel,
-          to: square,
-          piece: { type: movingPiece.type, color: movingPiece.color },
-        });
+        if (!wasDragRef.current) {
+          setPlayerAnimatingMove({
+            from: sel,
+            to: square,
+            piece: { type: movingPiece.type, color: movingPiece.color },
+          });
+        }
         setLastMove({ from: sel, to: square });
         setSelectedSquare(null);
         setValidSquares([]);
@@ -662,7 +665,10 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
 
         setTimeout(() => {
           if (!mountedRef.current) return;
-          setPlayerAnimatingMove(null);
+          if (!wasDragRef.current) {
+            setPlayerAnimatingMove(null);
+          }
+          wasDragRef.current = false;
 
           if (result.promoted) {
             setPromotionPending({ from: sel, to: square });
@@ -696,6 +702,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
             setWinner('Ничья');
           }
         }, 200);
+        wasDragRef.current = false;
         return;
       }
 
@@ -767,6 +774,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
       if (!start.moved) {
         clickRef.current(start.square);
       } else {
+        wasDragRef.current = true;
         const el = document.elementFromPoint(e.clientX, e.clientY);
         const cell = el?.closest('[data-square]') as HTMLElement | null;
         const targetSquare = cell?.dataset.square || null;
