@@ -445,6 +445,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
             onDragPieceChange={(piece) => setDragPiece(piece ? { square: piece.square, type: piece.type, color: piece.color } : null)}
             playerAnimatingMove={playerAnimatingMove}
             opponentAnimatingMove={opponentAnimatingMove}
+            disableAutoGhost={true}
             interactive={!isComplete && !isFail}
             sqSize={sqSize}
           />
