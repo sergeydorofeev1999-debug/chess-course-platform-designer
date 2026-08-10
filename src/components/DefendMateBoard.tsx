@@ -163,6 +163,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
             setPlayerAnimatingMove({ from, to, piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' } });
             setTimeout(() => setPlayerAnimatingMove(null), 220);
           }
+          wasDragRef.current = false;
           setGame(ng);
           setSelectedSquare(null);
           setSequenceStep(1);
@@ -215,6 +216,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
             setPlayerAnimatingMove({ from, to, piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' } });
             setTimeout(() => setPlayerAnimatingMove(null), 220);
           }
+          wasDragRef.current = false;
           setGame(ng);
           setSelectedSquare(null);
           setIsComplete(true);
@@ -236,6 +238,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
         setPlayerAnimatingMove({ from, to, piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' } });
         setTimeout(() => setPlayerAnimatingMove(null), 220);
       }
+      wasDragRef.current = false;
       setGame(ng);
       setSelectedSquare(null);
 
