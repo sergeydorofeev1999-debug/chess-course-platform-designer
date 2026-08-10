@@ -268,6 +268,21 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
     });
   }, [storageKey]);
 
+  const animateBlackMove = useCallback((g: Chess, move: { from: string; to: string }) => {
+    const piece = g.get(move.from as any);
+    if (piece) {
+      setOpponentAnimatingMove({
+        from: move.from,
+        to: move.to,
+        piece: { type: piece.type.toUpperCase(), color: 'b' },
+      });
+    }
+    g.move({ from: move.from, to: move.to });
+    setLastMove({ from: move.from, to: move.to });
+    setGame(new Chess(g.fen()));
+    setTimeout(() => setOpponentAnimatingMove(null), 200);
+  }, []);
+
   const switchExercise = useCallback((num: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12) => {
     setExercise(num);
     setHintVisible(false);
@@ -359,15 +374,16 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
 
         if (whiteMoves === 1) {
           if (!isCorrectSecond) {
-            const safeCap = getBlackSafeCapture(g);
-            if (safeCap) {
-  g.move({ from: safeCap.from, to: safeCap.to });
-  setLastMove({ from: safeCap.from, to: safeCap.to });
-}
-            setGame(new Chess(g.fen()));
-            setSelectedSquare(null);
-            setIsFail(true);
-            setMessage('Провалено');
+            setTimeout(() => {
+              if (!mountedRef.current) return;
+              const safeCap = getBlackSafeCapture(g);
+              if (safeCap) {
+                animateBlackMove(g, { from: safeCap.from, to: safeCap.to });
+              }
+              setSelectedSquare(null);
+              setIsFail(true);
+              setMessage('Провалено');
+            }, 600);
             return;
           }
           setGame(new Chess(g.fen()));
@@ -431,15 +447,16 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
 
         if (whiteMoves === 1) {
           if (!isCorrectSecond) {
-            const safeCap = getBlackSafeCapture(g);
-            if (safeCap) {
-            g.move({ from: safeCap.from, to: safeCap.to });
-            setLastMove({ from: safeCap.from, to: safeCap.to });
-          }
-            setGame(new Chess(g.fen()));
-            setSelectedSquare(null);
-            setIsFail(true);
-            setMessage('Провалено');
+            setTimeout(() => {
+              if (!mountedRef.current) return;
+              const safeCap = getBlackSafeCapture(g);
+              if (safeCap) {
+                animateBlackMove(g, { from: safeCap.from, to: safeCap.to });
+              }
+              setSelectedSquare(null);
+              setIsFail(true);
+              setMessage('Провалено');
+            }, 600);
             return;
           }
           setGame(new Chess(g.fen()));
@@ -583,9 +600,16 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
 
         if (whiteMoves === 1) {
           if (!isCorrectSecond) {
-            setSelectedSquare(null);
-            setIsFail(true);
-            setMessage('Провалено');
+            setTimeout(() => {
+              if (!mountedRef.current) return;
+              const safeCap = getBlackSafeCapture(g);
+              if (safeCap) {
+                animateBlackMove(g, { from: safeCap.from, to: safeCap.to });
+              }
+              setSelectedSquare(null);
+              setIsFail(true);
+              setMessage('Провалено');
+            }, 600);
             return;
           }
           setGame(new Chess(g.fen()));
@@ -654,9 +678,16 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
 
         if (whiteMoves === 1) {
           if (!isCorrectSecond) {
-            setSelectedSquare(null);
-            setIsFail(true);
-            setMessage('Провалено');
+            setTimeout(() => {
+              if (!mountedRef.current) return;
+              const safeCap = getBlackSafeCapture(g);
+              if (safeCap) {
+                animateBlackMove(g, { from: safeCap.from, to: safeCap.to });
+              }
+              setSelectedSquare(null);
+              setIsFail(true);
+              setMessage('Провалено');
+            }, 600);
             return;
           }
           setGame(new Chess(g.fen()));
@@ -756,9 +787,16 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
 
         if (whiteMoves === 1) {
           if (!isCorrectSecond) {
-            setSelectedSquare(null);
-            setIsFail(true);
-            setMessage('Провалено');
+            setTimeout(() => {
+              if (!mountedRef.current) return;
+              const safeCap = getBlackSafeCapture(g);
+              if (safeCap) {
+                animateBlackMove(g, { from: safeCap.from, to: safeCap.to });
+              }
+              setSelectedSquare(null);
+              setIsFail(true);
+              setMessage('Провалено');
+            }, 600);
             return;
           }
           setGame(new Chess(g.fen()));
@@ -849,9 +887,12 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
 
         if (whiteMoves === 1) {
           if (!isCorrectSecond) {
-            setSelectedSquare(null);
-            setIsFail(true);
-            setMessage('Провалено');
+            setTimeout(() => {
+              if (!mountedRef.current) return;
+              setSelectedSquare(null);
+              setIsFail(true);
+              setMessage('Провалено');
+            }, 600);
             return;
           }
           setGame(new Chess(g.fen()));
@@ -1051,9 +1092,12 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
 
         if (whiteMoves === 1) {
           if (!isCorrectSecond) {
-            setSelectedSquare(null);
-            setIsFail(true);
-            setMessage('Провалено');
+            setTimeout(() => {
+              if (!mountedRef.current) return;
+              setSelectedSquare(null);
+              setIsFail(true);
+              setMessage('Провалено');
+            }, 600);
             return;
           }
           setGame(new Chess(g.fen()));
