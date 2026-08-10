@@ -483,9 +483,8 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
               </p>
               <button
                 onClick={reset}
-                className="font-bold w-full hover:brightness-110 transition"
+                className="font-bold hover:brightness-110 transition mx-auto"
                 style={{
-                  display: 'block',
                   backgroundColor: '#FFFFFF',
                   color: '#2C241B',
                   fontSize: '16px',
@@ -495,7 +494,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
                   lineHeight: '48px',
                   textAlign: 'center',
                   border: 'none',
-                  padding: 0,
+                  padding: '0 32px',
                   textTransform: 'uppercase',
                 }}
               >
