@@ -141,6 +141,8 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
     setDragPiece(null);
     setSequenceStep(0);
     setOpponentAnimatingMove(null);
+    setPlayerAnimatingMove(null);
+    wasDragRef.current = false;
   }, []);
 
   // ──── DEFEND MATE LOGIC ────
