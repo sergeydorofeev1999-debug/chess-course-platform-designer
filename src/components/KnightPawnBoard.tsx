@@ -592,28 +592,18 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
 
       if (validSquaresRef.current.includes(square)) {
         const result = makeMove(sqs, enPassantRef.current, sel, square);
+        const movingPiece = sqs[sel];
         if (result.captured && result.captured.color === 'b') {
           setWhiteCaptured(prev => prev + 1);
         }
         setHistory(h => [...h, { squares: sqs, whiteCaptured: whiteCapturedRef.current, blackCaptured: blackCapturedRef.current, enPassant: enPassantRef.current!, turn: 'w' }]);
 
         const win = checkGameOver(result.squares, result.enPassant, 'b');
-        setPlayerAnimatingMove({ from: sel, to: square, piece: sqs[sel] });
-        setLastMove({ from: sel, to: square });
-        setSelectedSquare(null);
-        setValidSquares([]);
-        selectedSquareRef.current = null;
-
         if (win) {
           setWinner(win);
-        }
-
-        setTimeout(() => {
-          if (!mountedRef.current) return;
           setSquares(result.squares);
           setEnPassant(result.enPassant);
-          setPlayerAnimatingMove(null);
-          if (win && win === 'Белые победили!' && difficultyRef.current) {
+          if (win === 'Белые победили!' && difficultyRef.current) {
             const d = difficultyRef.current;
             setCompletedLevels(prev => {
               const next = { ...prev, [d]: true };
@@ -622,13 +612,19 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
             });
             onComplete();
           }
-          if (!win) {
-            setTurn('b');
-            if (hasNoMoves(result.squares, 'b', result.enPassant)) {
-              setWinner('Ничья');
-            }
+        } else {
+          setSquares(result.squares);
+          setEnPassant(result.enPassant);
+          setTurn('b');
+          if (hasNoMoves(result.squares, 'b', result.enPassant)) {
+            setWinner('Ничья');
           }
-        }, 200);
+        }
+        setPlayerAnimatingMove({ from: sel, to: square, piece: movingPiece! });
+        setLastMove({ from: sel, to: square });
+        setSelectedSquare(null);
+        setValidSquares([]);
+        selectedSquareRef.current = null;
         return;
       }
 
@@ -736,6 +732,9 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
                 setWinner('Ничья');
               }
             }
+            setDragPiece(null);
+            pointerStartRef.current = null;
+            return;
           }
         }
         setDragPiece(null);
