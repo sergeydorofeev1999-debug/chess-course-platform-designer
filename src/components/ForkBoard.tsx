@@ -1202,10 +1202,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
               }}
             >
               <p className="text-white font-bold text-center" style={{ fontSize: '18px' }}>
-                Ошибка
-              </p>
-              <p className="text-white/80 text-center" style={{ fontSize: '14px', marginBottom: '16px' }}>
-                Попробуйте ещё раз подумать над решением
+                Попробуйте снова
               </p>
               <button
                 onClick={reset}
