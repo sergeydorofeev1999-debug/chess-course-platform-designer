@@ -472,8 +472,8 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
             <div
               className="rounded-2xl flex flex-col items-center gap-2"
               style={{
-                backgroundColor: '#2C241B',
-                boxShadow: '0 4px 16px rgba(44, 36, 27, 0.3)',
+                backgroundColor: '#A63838',
+                boxShadow: '0 4px 16px rgba(166, 56, 56, 0.3)',
                 padding: '20px 24px',
                 borderRadius: '16px',
               }}
