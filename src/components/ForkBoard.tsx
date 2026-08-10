@@ -1193,7 +1193,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         {isFail && (
           <div className="w-full lg:max-w-sm mt-2 animate-slide-down">
             <div
-              className="rounded-2xl flex flex-col items-center gap-2"
+              className="rounded-2xl flex flex-col items-center"
               style={{
                 backgroundColor: '#A63838',
                 boxShadow: '0 4px 16px rgba(166, 56, 56, 0.3)',
@@ -1202,7 +1202,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
               }}
             >
               <p className="text-white font-bold text-center" style={{ fontSize: '18px' }}>
-                Попробуйте снова
+                Ошибка
+              </p>
+              <p className="text-white/80 text-center" style={{ fontSize: '14px', marginBottom: '16px' }}>
+                Попробуйте ещё раз подумать над решением
               </p>
               <button
                 onClick={reset}
@@ -1229,27 +1232,20 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         {isComplete && (
           <div className="w-full lg:max-w-sm mt-2">
             <div
-              className="rounded-2xl flex flex-col items-center gap-2"
+              className="rounded-2xl flex flex-col items-center"
               style={{
                 backgroundColor: '#4A7A3A',
                 boxShadow: '0 4px 16px rgba(74, 122, 58, 0.3)',
-                padding: '18px 24px',
+                padding: '20px 24px',
                 borderRadius: '16px',
               }}
             >
-              <p className="text-white font-semibold" style={{ fontSize: '18px' }}>Верно!</p>
-              <p className="text-[#D4E8CC]" style={{ fontSize: '14px' }}>Переходим к следующему заданию</p>
-              <button
-                onClick={exercise === 12 ? onComplete : () => switchExercise((exercise + 1) as 1|2|3|4|5|6|7|8|9|10|11|12)}
-                className="mt-1 font-semibold text-sm px-5 py-2 rounded-xl shadow hover:brightness-110 transition"
-                style={{
-                  backgroundColor: '#FFFFFF',
-                  color: '#4A7A3A',
-                  borderRadius: '12px',
-                }}
-              >
-                {exercise === 12 ? 'Завершить урок ✓' : 'Далее →'}
-              </button>
+              <p className="text-white font-bold text-center" style={{ fontSize: '18px' }}>Верно!</p>
+              <div className="flex justify-center gap-1">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+              </div>
             </div>
           </div>
         )}
