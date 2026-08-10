@@ -799,8 +799,8 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
           }
         }
         setDragPiece(null);
-        pointerStartRef.current = null;
       }
+      pointerStartRef.current = null;
     };
     const handleGlobalCancel = (e: PointerEvent) => {
       if (pointerStartRef.current && e.pointerId === pointerStartRef.current.pointerId) {
