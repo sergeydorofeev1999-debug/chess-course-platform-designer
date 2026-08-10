@@ -703,6 +703,7 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
         if (targetSquare && targetSquare !== start.square) {
           const valid = getPieceMoves(start.square, squaresRef.current, 'w', enPassantRef.current);
           if (valid.includes(targetSquare)) {
+            setPlayerAnimatingMove(null);
             const result = makeMove(squaresRef.current, enPassantRef.current, start.square, targetSquare);
             if (result.captured && result.captured.color === 'b') {
               setWhiteCaptured(prev => prev + 1);
