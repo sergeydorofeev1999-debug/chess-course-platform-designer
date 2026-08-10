@@ -710,7 +710,6 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
             }
             setHistory(h => [...h, { squares: squaresRef.current, whiteCaptured: whiteCapturedRef.current, blackCaptured: blackCapturedRef.current, enPassant: enPassantRef.current!, turn: 'w' }]);
             const win = checkGameOver(result.squares, result.enPassant, 'b');
-            setPlayerAnimatingMove({ from: start.square, to: targetSquare, piece: squaresRef.current[start.square] });
             setLastMove({ from: start.square, to: targetSquare });
             setSelectedSquare(null);
             setValidSquares([]);
@@ -718,14 +717,9 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
 
             if (win) {
               setWinner(win);
-            }
-
-            setTimeout(() => {
-              if (!mountedRef.current) return;
               setSquares(result.squares);
               setEnPassant(result.enPassant);
-              setPlayerAnimatingMove(null);
-              if (win && win === 'Белые победили!' && difficultyRef.current) {
+              if (win === 'Белые победили!' && difficultyRef.current) {
                 const d = difficultyRef.current;
                 setCompletedLevels(prev => {
                   const next = { ...prev, [d]: true };
@@ -734,13 +728,14 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
                 });
                 onComplete();
               }
-              if (!win) {
-                setTurn('b');
-                if (hasNoMoves(result.squares, 'b', result.enPassant)) {
-                  setWinner('Ничья');
-                }
+            } else {
+              setSquares(result.squares);
+              setEnPassant(result.enPassant);
+              setTurn('b');
+              if (hasNoMoves(result.squares, 'b', result.enPassant)) {
+                setWinner('Ничья');
               }
-            }, 200);
+            }
           }
         }
         setDragPiece(null);
@@ -880,6 +875,11 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
               const light = isLight(fi, ri);
               const sel = selectedSquare === sq;
               const isSource = dragPiece?.square === sq;
+              const isPlayerAnimatingSource = playerAnimatingMove && sq === playerAnimatingMove.from;
+              const isOpponentAnimatingSource = opponentAnimatingMove && sq === opponentAnimatingMove.from;
+              const isPlayerAnimatingTarget = playerAnimatingMove && sq === playerAnimatingMove.to;
+              const isOpponentAnimatingTarget = opponentAnimatingMove && sq === opponentAnimatingMove.to;
+              const isGhostTarget = isPlayerAnimatingTarget || isOpponentAnimatingTarget;
               const isValidMove = validMoves.includes(sq);
 
               return (
@@ -950,7 +950,7 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
                     </div>
                   )}
                   {/* Piece */}
-                  {pieceObj && !isSource && !(playerAnimatingMove && sq === playerAnimatingMove.from) && !(opponentAnimatingMove && sq === opponentAnimatingMove.from) && (
+                  {pieceObj && !isSource && !isPlayerAnimatingSource && !isOpponentAnimatingSource && !isGhostTarget && (
                     <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
                       <PieceImg type={pieceObj.type} color={pieceObj.color as 'w' | 'b'} />
                     </div>
