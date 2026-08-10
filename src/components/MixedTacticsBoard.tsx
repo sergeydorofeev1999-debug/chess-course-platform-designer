@@ -1140,6 +1140,8 @@ const getExerciseGoal = (ex: number) => {
             lastMove={lastMove}
             autoValidMoves={true}
             disableAutoGhost={true}
+            clickGhost={true}
+            userColor="w"
             onMove={(from, to) => processWhiteMove(from, to)}
             onSquareClick={handleSquareClick}
             opponentAnimatingMove={opponentAnimatingMove}
