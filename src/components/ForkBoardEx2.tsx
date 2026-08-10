@@ -470,7 +470,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         {isFail && (
           <div className="w-full lg:max-w-sm mt-2 animate-slide-down">
             <div
-              className="rounded-2xl flex flex-col items-center gap-2"
+              className="rounded-2xl flex flex-col items-center"
               style={{
                 backgroundColor: '#A63838',
                 boxShadow: '0 4px 16px rgba(166, 56, 56, 0.3)',
@@ -479,7 +479,10 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
               }}
             >
               <p className="text-white font-bold text-center" style={{ fontSize: '18px' }}>
-                Попробуйте снова
+                Ошибка
+              </p>
+              <p className="text-white/80 text-center" style={{ fontSize: '14px', marginBottom: '16px' }}>
+                Попробуйте ещё раз подумать над решением
               </p>
               <button
                 onClick={reset}
