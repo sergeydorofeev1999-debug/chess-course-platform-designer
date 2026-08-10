@@ -763,29 +763,18 @@ export default function BishopPawnBoard({ onComplete, lessonId, lessonTitle }: {
                 onComplete();
               }
             } else {
-              // Ghost animation for player move (drag)
-              const movedPiece = squaresRef.current[start.square];
-              setPlayerAnimatingMove({
-                from: start.square,
-                to: targetSquare,
-                piece: { type: movedPiece?.type.toUpperCase() || '', color: movedPiece?.color as 'w' | 'b' || 'w' },
-              });
+              // Drag move: skip playerAnimatingMove to avoid duplicate
               setLastMove({ from: start.square, to: targetSquare });
               setSelectedSquare(null);
               setValidSquares([]);
               selectedSquareRef.current = null;
 
-              // Update board + remove player ghost after 200ms
-              setTimeout(() => {
-                if (!mountedRef.current) return;
-                setSquares(result.squares);
-                setEnPassant(result.enPassant);
-                setTurn('b');
-                setPlayerAnimatingMove(null);
-                if (hasNoMoves(result.squares, 'b', result.enPassant)) {
-                  setWinner('Ничья');
-                }
-              }, 200);
+              setSquares(result.squares);
+              setEnPassant(result.enPassant);
+              setTurn('b');
+              if (hasNoMoves(result.squares, 'b', result.enPassant)) {
+                setWinner('Ничья');
+              }
             }
           }
         }
