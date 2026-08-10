@@ -935,6 +935,11 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
               const light = isLight(fi, ri);
               const sel = selectedSquare === sq;
               const isSource = dragPiece?.square === sq;
+              const isPlayerAnimatingSource = playerAnimatingMove && sq === playerAnimatingMove.from;
+              const isOpponentAnimatingSource = opponentAnimatingMove && sq === opponentAnimatingMove.from;
+              const isPlayerAnimatingTarget = playerAnimatingMove && sq === playerAnimatingMove.to;
+              const isOpponentAnimatingTarget = opponentAnimatingMove && sq === opponentAnimatingMove.to;
+              const isGhostTarget = isPlayerAnimatingTarget || isOpponentAnimatingTarget;
               const isValidMove = validMoves.includes(sq);
 
               return (
@@ -963,12 +968,6 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
                   {lastMove && sq === lastMove.to && (
                     <div className="absolute inset-0 bg-[rgba(201,168,76,0.70)] pointer-events-none z-[5]" />
                   )}
-                    {lastMove && sq === lastMove.from && (
-                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
-                    )}
-                    {lastMove && sq === lastMove.to && (
-                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.70)] pointer-events-none z-[5]" />
-                    )}
 
                   {/* Coordinates */}
                   {fi === 0 && (
@@ -981,8 +980,8 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
                       {file}
                     </span>
                   )}
-                  {/* Green move indicator dots */}
-                  {isValidMove && (
+                  {/* Green move indicator dots — empty squares */}
+                  {isValidMove && !pieceObj && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
                       <div
                         style={{
@@ -995,8 +994,23 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
                       />
                     </div>
                   )}
+                  {/* Capture ring — opponent piece can be captured */}
+                  {isValidMove && pieceObj && pieceObj.color !== 'w' && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                      <div
+                        style={{
+                          width: sqSize,
+                          height: sqSize,
+                          borderRadius: '50%',
+                          border: '4px solid var(--square-valid)',
+                          boxSizing: 'border-box',
+                          opacity: 0.85,
+                        }}
+                      />
+                    </div>
+                  )}
                   {/* Piece */}
-                  {pieceObj && !isSource && (
+                  {pieceObj && !isSource && !isPlayerAnimatingSource && !isOpponentAnimatingSource && !isGhostTarget && (
                     <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
                       <PieceImg type={pieceObj.type} color={pieceObj.color as 'w' | 'b'} />
                     </div>
