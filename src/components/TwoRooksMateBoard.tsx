@@ -500,41 +500,41 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
               piece: { type: blackPiece.type.toUpperCase(), color: 'b' },
             });
           }
-
-          g.move({ from: blackMove.from, to: blackMove.to });
           setLastMove({ from: blackMove.from, to: blackMove.to });
-          const fenAfterBlack = g.fen();
-          setGame(new Chess(fenAfterBlack));
 
-          // Remove opponent ghost after 200ms
+          // Execute move and remove ghost after 200ms
           setTimeout(() => {
+            if (!mountedRef.current) return;
+            g.move({ from: blackMove.from, to: blackMove.to });
+            const fenAfterBlack = g.fen();
+            setGame(new Chess(fenAfterBlack));
             setOpponentAnimatingMove(null);
-          }, 200);
 
-          // If black king captured a white rook → instant fail
-          const squaresAfterBlack = g.board();
-          let rookCount = 0;
-          for (let r = 0; r < 8; r++) {
-            for (let c = 0; c < 8; c++) {
-              const p = squaresAfterBlack[r][c];
-              if (p && p.type === 'r' && p.color === 'w') {
-                rookCount++;
+            // If black king captured a white rook → instant fail
+            const squaresAfterBlack = g.board();
+            let rookCount = 0;
+            for (let r = 0; r < 8; r++) {
+              for (let c = 0; c < 8; c++) {
+                const p = squaresAfterBlack[r][c];
+                if (p && p.type === 'r' && p.color === 'w') {
+                  rookCount++;
+                }
               }
             }
-          }
-          if (rookCount < 2) {
-            setIsStalemate(true);
-            setMessage('Провалено');
-            return;
-          }
+            if (rookCount < 2) {
+              setIsStalemate(true);
+              setMessage('Провалено');
+              return;
+            }
 
-          if (g.isCheckmate()) {
-            const earned = calcStars(ex, nextWhiteMoves);
-            setMessage(`Мат чёрному королю! ${earned} ★`);
-            setIsComplete(true);
-            saveStars(currentExercise, earned);
-            if (currentExercise === 5) onComplete();
-          }
+            if (g.isCheckmate()) {
+              const earned = calcStars(ex, nextWhiteMoves);
+              setMessage(`Мат чёрному королю! ${earned} ★`);
+              setIsComplete(true);
+              saveStars(currentExercise, earned);
+              if (currentExercise === 5) onComplete();
+            }
+          }, 200);
         } else {
           if (g.isCheckmate()) {
             const earned = calcStars(ex, nextWhiteMoves);
