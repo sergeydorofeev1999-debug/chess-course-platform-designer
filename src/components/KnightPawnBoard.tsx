@@ -759,6 +759,20 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
               setWhiteCaptured(prev => prev + 1);
             }
             setHistory(h => [...h, { squares: squaresRef.current, whiteCaptured: whiteCapturedRef.current, blackCaptured: blackCapturedRef.current, enPassant: enPassantRef.current!, turn: 'w' }]);
+
+            // Check for pawn promotion BEFORE win check
+            const movingPiece = squaresRef.current[start.square];
+            if (movingPiece?.type === 'p' && movingPiece.color === 'w' && targetSquare[1] === '8') {
+              setPromotionPending({ from: start.square, to: targetSquare });
+              setLastMove({ from: start.square, to: targetSquare });
+              setSelectedSquare(null);
+              setValidSquares([]);
+              selectedSquareRef.current = null;
+              setDragPiece(null);
+              pointerStartRef.current = null;
+              return;
+            }
+
             const win = checkGameOver(result.squares, result.enPassant, 'b');
             setLastMove({ from: start.square, to: targetSquare });
             setSelectedSquare(null);
