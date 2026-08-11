@@ -379,6 +379,7 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
     setSelectedSquare(null);
     setValidSquares([]);
     setPositionHistory([]);
+    setLastMove(null);
     winnerRef.current = null;
     drawMessageRef.current = null;
     wKingRef.current = START_W_KING;
@@ -441,6 +442,7 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
     setSelectedSquare(null);
     setValidSquares([]);
     selectedSquareRef.current = null;
+    setLastMove(null);
     if (!preserveScore) {
       setWScore(0);
       wScoreRef.current = 0;
