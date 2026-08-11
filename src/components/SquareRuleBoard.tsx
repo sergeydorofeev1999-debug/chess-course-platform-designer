@@ -1620,6 +1620,9 @@ if (!skipAnimation) {
                   else if (exercise === 6 && ex6Mode === 'pawn') processWhiteMoveEx6(from, to, true);
                   else if (exercise === 6 && ex6Mode === 'king') processBlackMoveEx6(from, to, true);
                 }}
+                onPromotionPending={(from, to) => {
+                  setPromotionPending({ mode: 'pawn', from, to, afterGameFen: gameRef.current.fen() });
+                }}
                 onSquareClick={handleSquareClick}
                 playerAnimatingMove={playerAnimatingMove}
                 opponentAnimatingMove={opponentAnimatingMove}
@@ -1629,58 +1632,23 @@ if (!skipAnimation) {
               />
               {/* Promotion picker overlay */}
               {promotionPending && (
-                <div className="absolute z-50 pointer-events-auto" style={{
-                  left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
-                  top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
-                  width: sqSize,
-                  height: 4 * sqSize,
-                  backgroundColor: '#2C241B',
-                  borderRadius: '0px',
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden',
-                }}>
-                  {PROMOTION_PIECES.map(({ code, name }) => (
-                    <button
-                      key={code}
-                      onClick={() => handlePromotion(code)}
-                      className="w-full aspect-square flex items-center justify-center transition-all duration-150"
-                      style={{
-                        backgroundColor: 'transparent',
-                        border: '2px solid transparent',
-                        borderRadius: '0px',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
-                        e.currentTarget.style.borderColor = '#C9A84C';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                        e.currentTarget.style.borderColor = 'transparent';
-                      }}
-                      onMouseDown={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.25)';
-                      }}
-                      onMouseUp={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
-                      }}
-                      title={name}
-                    >
-                      <div
-                        style={{
-                          width: '70%',
-                          height: '70%',
-                          backgroundImage: `url(/pieces/cburnett/w${code.toUpperCase()}.svg)`,
-                          backgroundSize: 'contain',
-                          backgroundRepeat: 'no-repeat',
-                          backgroundPosition: 'center',
-                        }}
-                      />
-                    </button>
-                  ))}
+                <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/30 rounded-lg pointer-events-auto">
+                  <div className="bg-white rounded-lg p-4 shadow-xl text-center space-y-3 max-w-[260px]">
+                    <p className="font-bold text-sm">Превращение пешки!</p>
+                    <p className="text-xs text-gray-500">Ваша пешка достигла края доски</p>
+                    <div className="flex gap-2 justify-center">
+                      {PROMOTION_PIECES.map(({ code, name }) => (
+                        <button
+                          key={code}
+                          onClick={() => handlePromotion(code)}
+                          className="w-12 h-12 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition border border-gray-300"
+                          title={name}
+                        >
+                          <img src={`/pieces/cburnett/w${code.toUpperCase()}.svg`} className="w-8 h-8" draggable={false} alt={name} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

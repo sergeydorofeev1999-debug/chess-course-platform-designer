@@ -149,6 +149,7 @@ export interface UniversalChessBoardDesignerProps {
   onMove?: (from: string, to: string, promotion?: string) => void;
   onDragPieceChange?: (piece: { square: string; type: string; color: 'w' | 'b' } | null) => void;
   onSelectionChange?: (square: string | null) => void;
+  onPromotionPending?: (from: string, to: string) => void;
   playerAnimatingMove?: { from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null;
   opponentAnimatingMove?: { from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null;
   interactive?: boolean;
@@ -190,6 +191,7 @@ export default function UniversalChessBoardDesigner({
   onMove,
   onDragPieceChange,
   onSelectionChange,
+  onPromotionPending,
   playerAnimatingMove,
   opponentAnimatingMove,
   turn,
@@ -515,7 +517,7 @@ export default function UniversalChessBoardDesigner({
             (piece?.color === 'w' && targetSquare[1] === '8') || (piece?.color === 'b' && targetSquare[1] === '1')
           );
           if (isPromotion) {
-            setPromotionPending({ from: start.square, to: targetSquare });
+            onPromotionPending?.(start.square, targetSquare);
           } else {
             if (propPieces) {
               // Custom engine: just notify, no internal Chess.js update
