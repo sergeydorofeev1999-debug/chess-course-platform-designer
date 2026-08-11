@@ -454,7 +454,7 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
     setMoveHistory([]);
   }, []);
 
-  const doKingMove = useCallback((to: string) => {
+  const executeKingMove = useCallback((to: string) => {
     // Save state for undo
     setMoveHistory(prev => [...prev, {
       wKing: wKingRef.current,
@@ -465,7 +465,6 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
       positionHistory: [...positionHistoryRef.current],
     }]);
 
-    const from = wKingRef.current;
     const newWKing = to;
     let newWScore = wScoreRef.current;
     let goalScored = false;
@@ -476,70 +475,71 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
       }
     }
 
-    // Start ghost animation
+    if (!mountedRef.current) return;
+
+    setWKing(newWKing);
+    wKingRef.current = newWKing;
+
+    if (newWScore !== wScoreRef.current) {
+      setWScore(newWScore);
+      wScoreRef.current = newWScore;
+    }
+
+    if (goalScored) {
+      setTimeout(() => {
+        if (!mountedRef.current) return;
+        resetKings(true);
+        setTurn('w');
+        turnRef.current = 'w';
+      }, 3000);
+      return;
+    }
+
+    const newHistory = [...positionHistoryRef.current, `${newWKing}-${bKingRef.current}`];
+    setPositionHistory(newHistory);
+    positionHistoryRef.current = newHistory;
+
+    if (newWScore >= 3) {
+      setWinner('Белые победили!');
+      if (difficultyRef.current) {
+        const d = difficultyRef.current;
+        setCompletedLevels(prev => {
+          if (prev[d]) return prev;
+          const next = { ...prev, [d]: true };
+          if (savedKey) localStorage.setItem(savedKey, JSON.stringify(next));
+          return next;
+        });
+        onCompleteRef.current();
+      }
+      return;
+    }
+
+    if (checkRepetition(newHistory)) {
+      setDrawMessage('Ничья через трехкратное повторение ходов');
+      return;
+    }
+
+    setTurn('b');
+    turnRef.current = 'b';
+  }, [savedKey, checkRepetition, resetKings]);
+
+  const doKingMove = useCallback((to: string) => {
     setPlayerAnimatingMove({
-      from,
+      from: wKingRef.current,
       to,
       piece: { type: 'k', color: 'w' },
     });
-    setLastMove({ from, to });
+    setLastMove({ from: wKingRef.current, to });
     setSelectedSquare(null);
     setValidSquares([]);
     selectedSquareRef.current = null;
 
     setTimeout(() => {
       if (!mountedRef.current) return;
-
-      setWKing(newWKing);
-      wKingRef.current = newWKing;
-
-      if (newWScore !== wScoreRef.current) {
-        setWScore(newWScore);
-        wScoreRef.current = newWScore;
-      }
-
-      if (goalScored) {
-        setTimeout(() => {
-          if (!mountedRef.current) return;
-          resetKings(true);
-          setTurn('w');
-          turnRef.current = 'w';
-        }, 3000);
-        setPlayerAnimatingMove(null);
-        return;
-      }
-
-      const newHistory = [...positionHistoryRef.current, `${newWKing}-${bKingRef.current}`];
-      setPositionHistory(newHistory);
-      positionHistoryRef.current = newHistory;
-
-      if (newWScore >= 3) {
-        setWinner('Белые победили!');
-        if (difficultyRef.current) {
-          const d = difficultyRef.current;
-          setCompletedLevels(prev => {
-            if (prev[d]) return prev;
-            const next = { ...prev, [d]: true };
-            if (savedKey) localStorage.setItem(savedKey, JSON.stringify(next));
-            return next;
-          });
-          onCompleteRef.current();
-        }
-        setPlayerAnimatingMove(null);
-        return;
-      }
-
-      if (checkRepetition(newHistory)) {
-        setDrawMessage('Ничья через трехкратное повторение ходов');
-        setPlayerAnimatingMove(null);
-        return;
-      }
-
-      setTurn('b');
-      turnRef.current = 'b';
+      executeKingMove(to);
       setPlayerAnimatingMove(null);
     }, 200);
-  }, [savedKey, checkRepetition, resetKings]);
+  }, [executeKingMove]);
 
   useEffect(() => {
     if (winnerRef.current || drawMessageRef.current || turnRef.current !== 'b' || !difficultyRef.current) return;
@@ -706,6 +706,7 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
       if (!start.moved && (Math.abs(dx) > 20 || Math.abs(dy) > 20)) {
         start.moved = true;
         if (start.square === wKingRef.current) {
+          setPlayerAnimatingMove(null);
           setDragPiece({ square: start.square, type: 'k', color: 'w' });
           setSelectedSquare(null);
         }
@@ -732,15 +733,20 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
         const cell = el?.closest('[data-square]') as HTMLElement | null;
         const targetSquare = cell?.dataset.square || null;
         if (targetSquare && targetSquare !== start.square) {
-          setPlayerAnimatingMove(null);
           const valid = getKingMoves(start.square, 'w', wKingRef.current, bKingRef.current, wPawns, bPawns);
           if (valid.includes(targetSquare)) {
-            doKingMove(targetSquare);
-          } else {
+            setLastMove({ from: start.square, to: targetSquare });
             setSelectedSquare(null);
             setValidSquares([]);
             selectedSquareRef.current = null;
+            setDragPiece(null);
+            executeKingMove(targetSquare);
+            pointerStartRef.current = null;
+            return;
           }
+          setSelectedSquare(null);
+          setValidSquares([]);
+          selectedSquareRef.current = null;
         }
         setDragPiece(null);
       }
@@ -762,7 +768,7 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
       window.removeEventListener('pointerup', handleGlobalUp);
       window.removeEventListener('pointercancel', handleGlobalCancel);
     };
-  }, [wPawns, bPawns, doKingMove]);
+  }, [wPawns, bPawns, executeKingMove]);
 
   const getPieceAt = (sq: string) => {
     if (wKing === sq) return { type: 'k', color: 'w' as Color };
