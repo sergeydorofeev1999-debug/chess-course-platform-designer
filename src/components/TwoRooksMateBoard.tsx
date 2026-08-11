@@ -428,12 +428,24 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
       if (!move) return;
       setLastMove({ from, to });
 
+      // Start player ghost animation
+      setPlayerAnimatingMove({
+        from,
+        to,
+        piece: { type: move.piece.toUpperCase(), color: 'w' },
+      });
+
       const fenAfter = g.fen();
       const nextWhiteMoves = whiteMoves + 1;
       setGame(new Chess(fenAfter));
       setSelectedSquare(null);
       setMessage('');
       setWhiteMoves(nextWhiteMoves);
+
+      // Remove player ghost after 200ms
+      setTimeout(() => {
+        setPlayerAnimatingMove(null);
+      }, 200);
 
       // Start timer on first white move in exercise 5
       const ex = EXERCISES.find(e => e.id === currentExercise)!;
@@ -474,15 +486,30 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
         return;
       }
 
-      // Black's turn — AI move
+      // Black's turn — AI move with ghost
       setTimeout(() => {
         if (!mountedRef.current) return;
         const blackMove = getBlackKingMove(g);
         if (blackMove) {
+          // Start opponent ghost animation
+          const blackPiece = g.get(blackMove.from as any);
+          if (blackPiece) {
+            setOpponentAnimatingMove({
+              from: blackMove.from,
+              to: blackMove.to,
+              piece: { type: blackPiece.type.toUpperCase(), color: 'b' },
+            });
+          }
+
           g.move({ from: blackMove.from, to: blackMove.to });
-        setLastMove({ from: blackMove.from, to: blackMove.to });
+          setLastMove({ from: blackMove.from, to: blackMove.to });
           const fenAfterBlack = g.fen();
           setGame(new Chess(fenAfterBlack));
+
+          // Remove opponent ghost after 200ms
+          setTimeout(() => {
+            setOpponentAnimatingMove(null);
+          }, 200);
 
           // If black king captured a white rook → instant fail
           const squaresAfterBlack = g.board();
@@ -522,7 +549,7 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
             setMessage('Ничья! Начните заново.');
           }
         }
-      }, 500);
+      }, 600);
     } catch {
       // Invalid move
     }
@@ -831,6 +858,7 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
             onSquareClick={handleSquareClick}
             playerAnimatingMove={playerAnimatingMove}
             opponentAnimatingMove={opponentAnimatingMove}
+            disableAutoGhost={true}
             interactive={!isComplete && !isStalemate && !demoMode}
             sqSize={sqSize}
           />
