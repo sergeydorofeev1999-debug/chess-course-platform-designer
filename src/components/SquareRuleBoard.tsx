@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
 import { RotateCcw, Eye, Trophy } from 'lucide-react';
 import UniversalChessBoardDesigner from './board/UniversalChessBoardDesigner';
@@ -125,6 +125,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
   const [demoPhase, setDemoPhase] = useState(0);
   const [sqSize, setSqSize] = useState(52);
   const [showSquare, setShowSquare] = useState(false);
+  const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const [isComplete, setIsComplete] = useState(false);
   const [isFail, setIsFail] = useState(false);
   const [dragPiece, setDragPiece] = useState<{square:string;type:string;color:'w'|'b'}|null>(null);
@@ -257,19 +258,21 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
     schedule(() => {
       setMessage(''); setShowSquare(false);
       g1.move({ from: 'a4', to: 'a5' });
+      setLastMove({ from: 'a4', to: 'a5' });
       setGame(new Chess(g1.fen())); setDemoPhase(1);
       schedule(() => {
         const bk = getBlackKingMoveTowards(g1, 'a5');
-        if (bk) g1.move({ from: bk.from, to: bk.to });
+        if (bk) { g1.move({ from: bk.from, to: bk.to }); setLastMove({ from: bk.from, to: bk.to }); }
         setGame(new Chess(g1.fen())); setDemoPhase(2);
         schedule(() => { setShowSquare(true); setMessage('Квадрат сузился. Король внутри, но пешка убегает…'); }, 500);
         schedule(() => {
           setMessage(''); setShowSquare(false);
           g1.move({ from: 'a5', to: 'a6' });
+          setLastMove({ from: 'a5', to: 'a6' });
           setGame(new Chess(g1.fen())); setDemoPhase(3);
           schedule(() => {
             const bk2 = getBlackKingMoveTowards(g1, 'a6');
-            if (bk2) g1.move({ from: bk2.from, to: bk2.to });
+            if (bk2) { g1.move({ from: bk2.from, to: bk2.to }); setLastMove({ from: bk2.from, to: bk2.to }); }
             setGame(new Chess(g1.fen())); setDemoPhase(4);
             schedule(() => { setShowSquare(true); setMessage('Король на c6. Пешка всё ближе к ферзю…'); }, 500);
             schedule(() => {
@@ -278,7 +281,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
               setGame(new Chess(g1.fen())); setDemoPhase(5);
               schedule(() => {
                 const bk3 = getBlackKingMoveTowards(g1, 'a7');
-                if (bk3) g1.move({ from: bk3.from, to: bk3.to });
+                if (bk3) { g1.move({ from: bk3.from, to: bk3.to }); setLastMove({ from: bk3.from, to: bk3.to }); }
                 setGame(new Chess(g1.fen())); setDemoPhase(6);
                 schedule(() => { setShowSquare(true); setMessage('Король на b7. Пешка на a7 — один шаг до ферзя!'); }, 500);
                 schedule(() => {
@@ -287,7 +290,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
                   setGame(new Chess(g1.fen())); setDemoPhase(7);
                   schedule(() => {
                     const bk4 = getBlackKingMoveTowards(g1, 'a8');
-                    if (bk4) g1.move({ from: bk4.from, to: bk4.to });
+                    if (bk4) { g1.move({ from: bk4.from, to: bk4.to }); setLastMove({ from: bk4.from, to: bk4.to }); }
                     setGame(new Chess(g1.fen())); setDemoPhase(8);
                     setIsComplete(true);
                     saveStars(1, 3);
@@ -354,6 +357,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
     if (nr > 8) return;
     try {
       g.move({ from: ps, to: `${ps[0]}${nr}` });
+      setLastMove({ from: ps, to: `${ps[0]}${nr}` });
       setGame(new Chess(g.fen()));
 
       // After auto pawn move, check if black king can capture the pawn
@@ -395,6 +399,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
     const g = new Chess(afterGameFen);
     try {
       g.move({ from, to, promotion: pieceCode });
+      setLastMove({ from, to });
       setGame(new Chess(g.fen()));
       setPromotionPending(null);
 
@@ -413,6 +418,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
           if (bk && bk.to === targetSq) {
             // King actually captures the promoted piece
             g2.move({ from: bk.from, to: bk.to });
+            setLastMove({ from: bk.from, to: bk.to });
             setGame(new Chess(g2.fen()));
             setIsFail(true);
             setMessage('Провалено. Король съел фигуру.');
@@ -453,6 +459,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
     try {
       const move = g1.move({ from, to });
       if (!move) return;
+      setLastMove({ from, to });
 
       // In king chase mode: after pawn promotes to queen (no pawn on board),
       // user MUST capture the queen. While pawn still exists, king can move freely.
@@ -519,6 +526,7 @@ if (!skipAnimation) {
 
       const m = gameRef.current.move({ from, to });
       if (!m) return;
+      setLastMove({ from, to });
       const piece = gameRef.current.get(from as any);
 if (!skipAnimation) {
       setPlayerAnimatingMove({
@@ -656,6 +664,7 @@ if (!skipAnimation) {
 
       const m = gameRef.current.move({ from, to });
       if (!m) return;
+      setLastMove({ from, to });
       const piece = gameRef.current.get(from as any);
 if (!skipAnimation) {
       setPlayerAnimatingMove({
@@ -788,6 +797,7 @@ if (!skipAnimation) {
       }
       const m = gameRef.current.move({ from, to });
       if (!m) return;
+      setLastMove({ from, to });
       const piece = gameRef.current.get(from as any);
 if (!skipAnimation) {
       setPlayerAnimatingMove({
@@ -918,6 +928,7 @@ if (!skipAnimation) {
       }
       const m = gameRef.current.move({ from, to });
       if (!m) return;
+      setLastMove({ from, to });
       const piece = gameRef.current.get(from as any);
 if (!skipAnimation) {
       setPlayerAnimatingMove({
@@ -1048,6 +1059,7 @@ if (!skipAnimation) {
       }
       const m = gameRef.current.move({ from, to });
       if (!m) return;
+      setLastMove({ from, to });
       const piece = gameRef.current.get(from as any);
 if (!skipAnimation) {
       setPlayerAnimatingMove({
@@ -1578,7 +1590,21 @@ if (!skipAnimation) {
             <UniversalChessBoardDesigner
               fen={game?.fen() || ''}
               selectedSquare={selectedSquare}
+              lastMove={lastMove}
               autoValidMoves={true}
+              customOverlays={(() => {
+                if (!showSquare || exercise !== 1) return [];
+                const pawnSq = getPawnSquare(game);
+                if (!pawnSq) return [];
+                const cells = getSquareBorder(pawnSq);
+                return cells.map(sq => ({
+                  square: sq,
+                  element: React.createElement('div', {
+                    className: 'absolute inset-0 pointer-events-none',
+                    style: { backgroundColor: SQUARE_FILL }
+                  })
+                }));
+              })()}
               onMove={(from, to) => {
                 if (exercise === 2 && ex2Mode === 'pawn') processWhiteMoveEx2(from, to, true);
                 else if (exercise === 2 && ex2Mode === 'king') processBlackMoveEx2(from, to, true);
