@@ -951,6 +951,11 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
                 const sel = selectedSquare === sq;
                 const isSource = dragPiece?.square === sq;
                 const isValidMove = validMoves.includes(sq);
+                const isPlayerAnimatingSource = playerAnimatingMove?.from === sq;
+                const isOpponentAnimatingSource = opponentAnimatingMove?.from === sq;
+                const isPlayerAnimatingTarget = playerAnimatingMove?.to === sq;
+                const isOpponentAnimatingTarget = opponentAnimatingMove?.to === sq;
+                const isGhostTarget = isPlayerAnimatingTarget || isOpponentAnimatingTarget;
 
                 return (
                   <div
@@ -999,7 +1004,7 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
                         />
                       </div>
                     )}
-                    {pieceObj && !isSource && !(playerAnimatingMove?.from === sq) && !(opponentAnimatingMove?.from === sq) && (
+                    {pieceObj && !isSource && !isPlayerAnimatingSource && !isOpponentAnimatingSource && !isGhostTarget && (
                       <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
                         <PieceImg type={pieceObj.type} color={pieceObj.color} />
                       </div>
@@ -1008,8 +1013,6 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
                 );
               })
             )}
-          </div>
-
             {/* Player ghost piece overlay */}
             {playerAnimatingMove && (() => {
               const fromF = FILES.indexOf(playerAnimatingMove.from[0]);
@@ -1063,6 +1066,8 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
                 </div>
               );
             })()}
+          </div>
+
         </div>
 
         {/* Drag overlay */}
