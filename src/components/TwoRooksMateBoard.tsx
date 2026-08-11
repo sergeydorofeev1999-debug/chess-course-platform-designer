@@ -412,7 +412,113 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
   // ═══════════════════════════════════════════════════════════════
   // GAME LOGIC (handle white move + black AI response)
   // ═══════════════════════════════════════════════════════════════
-  const processWhiteMove = useCallback((from: string, to: string, promotionPiece?: string) => {
+  const handleMoveComplete = useCallback((g: Chess, nextWhiteMoves: number) => {
+    // Start timer on first white move in exercise 5
+    const ex = EXERCISES.find(e => e.id === currentExercise)!;
+    if (ex.timeLimit && !timerStarted && nextWhiteMoves === 1) {
+      setTimeLeft(ex.timeLimit);
+      setTimerStarted(true);
+      timerIntervalRef.current = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev === null || prev <= 1) {
+            if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+            timerIntervalRef.current = null;
+            setIsStalemate(true);
+            setMessage('Провалено');
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    if (g.isCheckmate()) {
+      const earned = calcStars(ex, nextWhiteMoves);
+      setMessage(`Мат чёрному королю! ${earned} ★`);
+      setIsComplete(true);
+      saveStars(currentExercise, earned);
+      if (currentExercise === 5) onComplete();
+      return;
+    }
+
+    if (g.isStalemate()) {
+      setIsStalemate(true);
+      setMessage('Пат. Провалено.');
+      return;
+    }
+
+    if (g.isDraw()) {
+      setMessage('Ничья! Начните заново.');
+      return;
+    }
+
+    // Black's turn — AI move with ghost
+    setTimeout(() => {
+      if (!mountedRef.current) return;
+      const blackMove = getBlackKingMove(g);
+      if (blackMove) {
+        // Start opponent ghost animation
+        const blackPiece = g.get(blackMove.from as any);
+        if (blackPiece) {
+          setOpponentAnimatingMove({
+            from: blackMove.from,
+            to: blackMove.to,
+            piece: { type: blackPiece.type.toUpperCase(), color: 'b' },
+          });
+        }
+        setLastMove({ from: blackMove.from, to: blackMove.to });
+
+        // Execute move and remove ghost after 200ms
+        setTimeout(() => {
+          if (!mountedRef.current) return;
+          g.move({ from: blackMove.from, to: blackMove.to });
+          const fenAfterBlack = g.fen();
+          setGame(new Chess(fenAfterBlack));
+          setOpponentAnimatingMove(null);
+
+          // If black king captured a white rook → instant fail
+          const squaresAfterBlack = g.board();
+          let rookCount = 0;
+          for (let r = 0; r < 8; r++) {
+            for (let c = 0; c < 8; c++) {
+              const p = squaresAfterBlack[r][c];
+              if (p && p.type === 'r' && p.color === 'w') {
+                rookCount++;
+              }
+            }
+          }
+          if (rookCount < 2) {
+            setIsStalemate(true);
+            setMessage('Провалено');
+            return;
+          }
+
+          if (g.isCheckmate()) {
+            const earned = calcStars(ex, nextWhiteMoves);
+            setMessage(`Мат чёрному королю! ${earned} ★`);
+            setIsComplete(true);
+            saveStars(currentExercise, earned);
+            if (currentExercise === 5) onComplete();
+          }
+        }, 200);
+      } else {
+        if (g.isCheckmate()) {
+          const earned = calcStars(ex, nextWhiteMoves);
+          setMessage(`Мат чёрному королю! ${earned} ★`);
+          setIsComplete(true);
+          saveStars(currentExercise, earned);
+          if (currentExercise === 5) onComplete();
+        } else if (g.isStalemate()) {
+          setIsStalemate(true);
+          setMessage('Пат. Провалено.');
+        } else {
+          setMessage('Ничья! Начните заново.');
+        }
+      }
+    }, 600);
+  }, [currentExercise, timerStarted, saveStars, onComplete]);
+
+  const processWhiteMove = useCallback((from: string, to: string, promotionPiece?: string, skipAnimation = false) => {
     if (!game) return;
     const g = game;
     if (g.turn() !== 'w') return;
@@ -424,136 +530,51 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
         setPromotionPending({ from, to });
         return;
       }
-      const move = g.move({ from, to, promotion: promotionPiece });
+      // Validate move on copy first
+      const ng = new Chess(g.fen());
+      const move = ng.move({ from, to, promotion: promotionPiece });
       if (!move) return;
-      setLastMove({ from, to });
 
-      // Start player ghost animation
-      setPlayerAnimatingMove({
-        from,
-        to,
-        piece: { type: move.piece.toUpperCase(), color: 'w' },
-      });
-
-      const fenAfter = g.fen();
       const nextWhiteMoves = whiteMoves + 1;
-      setGame(new Chess(fenAfter));
-      setSelectedSquare(null);
-      setMessage('');
-      setWhiteMoves(nextWhiteMoves);
 
-      // Remove player ghost after 200ms
-      setTimeout(() => {
-        setPlayerAnimatingMove(null);
-      }, 200);
+      if (skipAnimation) {
+        // Drag path: instant
+        const realMove = g.move({ from, to, promotion: promotionPiece });
+        if (!realMove) return;
+        setLastMove({ from, to });
+        setGame(new Chess(g.fen()));
+        setSelectedSquare(null);
+        setMessage('');
+        setWhiteMoves(nextWhiteMoves);
+        handleMoveComplete(g, nextWhiteMoves);
+      } else {
+        // Click path: ghost first, then commit
+        setPlayerAnimatingMove({
+          from,
+          to,
+          piece: { type: move.piece.toUpperCase(), color: 'w' },
+        });
+        setLastMove({ from, to });
 
-      // Start timer on first white move in exercise 5
-      const ex = EXERCISES.find(e => e.id === currentExercise)!;
-      if (ex.timeLimit && !timerStarted && nextWhiteMoves === 1) {
-        setTimeLeft(ex.timeLimit);
-        setTimerStarted(true);
-        timerIntervalRef.current = setInterval(() => {
-          setTimeLeft(prev => {
-            if (prev === null || prev <= 1) {
-              if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
-              timerIntervalRef.current = null;
-              setIsStalemate(true);
-              setMessage('Провалено');
-              return 0;
-            }
-            return prev - 1;
-          });
-        }, 1000);
-      }
-
-      if (g.isCheckmate()) {
-        const earned = calcStars(ex, nextWhiteMoves);
-        setMessage(`Мат чёрному королю! ${earned} ★`);
-        setIsComplete(true);
-        saveStars(currentExercise, earned);
-        if (currentExercise === 5) onComplete();
-        return;
-      }
-
-      if (g.isStalemate()) {
-        setIsStalemate(true);
-        setMessage('Пат. Провалено.');
-        return;
-      }
-
-      if (g.isDraw()) {
-        setMessage('Ничья! Начните заново.');
-        return;
-      }
-
-      // Black's turn — AI move with ghost
-      setTimeout(() => {
-        if (!mountedRef.current) return;
-        const blackMove = getBlackKingMove(g);
-        if (blackMove) {
-          // Start opponent ghost animation
-          const blackPiece = g.get(blackMove.from as any);
-          if (blackPiece) {
-            setOpponentAnimatingMove({
-              from: blackMove.from,
-              to: blackMove.to,
-              piece: { type: blackPiece.type.toUpperCase(), color: 'b' },
-            });
+        setTimeout(() => {
+          if (!mountedRef.current) return;
+          const realMove = g.move({ from, to, promotion: promotionPiece });
+          if (!realMove) {
+            setPlayerAnimatingMove(null);
+            return;
           }
-          setLastMove({ from: blackMove.from, to: blackMove.to });
-
-          // Execute move and remove ghost after 200ms
-          setTimeout(() => {
-            if (!mountedRef.current) return;
-            g.move({ from: blackMove.from, to: blackMove.to });
-            const fenAfterBlack = g.fen();
-            setGame(new Chess(fenAfterBlack));
-            setOpponentAnimatingMove(null);
-
-            // If black king captured a white rook → instant fail
-            const squaresAfterBlack = g.board();
-            let rookCount = 0;
-            for (let r = 0; r < 8; r++) {
-              for (let c = 0; c < 8; c++) {
-                const p = squaresAfterBlack[r][c];
-                if (p && p.type === 'r' && p.color === 'w') {
-                  rookCount++;
-                }
-              }
-            }
-            if (rookCount < 2) {
-              setIsStalemate(true);
-              setMessage('Провалено');
-              return;
-            }
-
-            if (g.isCheckmate()) {
-              const earned = calcStars(ex, nextWhiteMoves);
-              setMessage(`Мат чёрному королю! ${earned} ★`);
-              setIsComplete(true);
-              saveStars(currentExercise, earned);
-              if (currentExercise === 5) onComplete();
-            }
-          }, 200);
-        } else {
-          if (g.isCheckmate()) {
-            const earned = calcStars(ex, nextWhiteMoves);
-            setMessage(`Мат чёрному королю! ${earned} ★`);
-            setIsComplete(true);
-            saveStars(currentExercise, earned);
-            if (currentExercise === 5) onComplete();
-          } else if (g.isStalemate()) {
-            setIsStalemate(true);
-            setMessage('Пат. Провалено.');
-          } else {
-            setMessage('Ничья! Начните заново.');
-          }
-        }
-      }, 600);
+          setGame(new Chess(g.fen()));
+          setPlayerAnimatingMove(null);
+          setSelectedSquare(null);
+          setMessage('');
+          setWhiteMoves(nextWhiteMoves);
+          handleMoveComplete(g, nextWhiteMoves);
+        }, 200);
+      }
     } catch {
       // Invalid move
     }
-  }, [game, whiteMoves, currentExercise, saveStars, onComplete]);
+  }, [game, whiteMoves, handleMoveComplete]);
 
   // ═══════════════════════════════════════════════════════════════
   // CLICK HANDLER
@@ -854,7 +875,7 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
             selectedSquare={selectedSquare}
             lastMove={lastMove}
             autoValidMoves={true}
-            onMove={(from, to) => processWhiteMove(from, to)}
+            onMove={(from, to) => processWhiteMove(from, to, undefined, true)}
             onSquareClick={handleSquareClick}
             playerAnimatingMove={playerAnimatingMove}
             opponentAnimatingMove={opponentAnimatingMove}
