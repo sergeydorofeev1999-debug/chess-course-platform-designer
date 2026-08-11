@@ -1588,100 +1588,102 @@ if (!skipAnimation) {
           )}
 
           {/* Board */}
-          <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
-            <UniversalChessBoardDesigner
-              fen={game?.fen() || ''}
-              selectedSquare={selectedSquare}
-              lastMove={lastMove}
-              autoValidMoves={true}
-              customOverlays={(() => {
-                if (!showSquare || exercise !== 1) return [];
-                const pawnSq = getPawnSquare(game);
-                if (!pawnSq) return [];
-                const cells = getSquareBorder(pawnSq);
-                return cells.map(sq => ({
-                  square: sq,
-                  element: React.createElement('div', {
-                    className: 'absolute inset-0 pointer-events-none',
-                    style: { backgroundColor: SQUARE_FILL }
-                  })
-                }));
-              })()}
-              onMove={(from, to) => {
-                if (exercise === 2 && ex2Mode === 'pawn') processWhiteMoveEx2(from, to, true);
-                else if (exercise === 2 && ex2Mode === 'king') processBlackMoveEx2(from, to, true);
-                else if (exercise === 3 && ex3Mode === 'pawn') processWhiteMoveEx3(from, to, true);
-                else if (exercise === 3 && ex3Mode === 'king') processBlackMoveEx3(from, to, true);
-                else if (exercise === 4 && ex4Mode === 'pawn') processWhiteMoveEx4(from, to, true);
-                else if (exercise === 4 && ex4Mode === 'king') processBlackMoveEx4(from, to, true);
-                else if (exercise === 5 && ex5Mode === 'pawn') processWhiteMoveEx5(from, to, true);
-                else if (exercise === 5 && ex5Mode === 'king') processBlackMoveEx5(from, to, true);
-                else if (exercise === 6 && ex6Mode === 'pawn') processWhiteMoveEx6(from, to, true);
-                else if (exercise === 6 && ex6Mode === 'king') processBlackMoveEx6(from, to, true);
-              }}
-              onSquareClick={handleSquareClick}
-              playerAnimatingMove={playerAnimatingMove}
-              opponentAnimatingMove={opponentAnimatingMove}
-              interactive={!isComplete && !isFail}
-              disableAutoGhost={true}
-              sqSize={sqSize}
-            />
-            {/* Promotion picker overlay */}
-            {promotionPending && (
-              <div className="absolute z-50 pointer-events-auto" style={{
-                left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
-                top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
-                width: sqSize,
-                height: 4 * sqSize,
-                backgroundColor: '#2C241B',
-                borderRadius: '0px',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                overflow: 'hidden',
-              }}>
-                {PROMOTION_PIECES.map(({ code, name }) => (
-                  <button
-                    key={code}
-                    onClick={() => handlePromotion(code)}
-                    className="w-full aspect-square flex items-center justify-center transition-all duration-150"
-                    style={{
-                      backgroundColor: 'transparent',
-                      border: '2px solid transparent',
-                      borderRadius: '0px',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
-                      e.currentTarget.style.borderColor = '#C9A84C';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                      e.currentTarget.style.borderColor = 'transparent';
-                    }}
-                    onMouseDown={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.25)';
-                    }}
-                    onMouseUp={(e) => {
-                      e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
-                    }}
-                    title={name}
-                  >
-                    <div
+          <div className="flex justify-center w-full" style={{ minHeight: 8 * sqSize }}>
+            <div className="relative inline-block">
+              <UniversalChessBoardDesigner
+                fen={game?.fen() || ''}
+                selectedSquare={selectedSquare}
+                lastMove={lastMove}
+                autoValidMoves={true}
+                customOverlays={(() => {
+                  if (!showSquare || exercise !== 1) return [];
+                  const pawnSq = getPawnSquare(game);
+                  if (!pawnSq) return [];
+                  const cells = getSquareBorder(pawnSq);
+                  return cells.map(sq => ({
+                    square: sq,
+                    element: React.createElement('div', {
+                      className: 'absolute inset-0 pointer-events-none',
+                      style: { backgroundColor: SQUARE_FILL }
+                    })
+                  }));
+                })()}
+                onMove={(from, to) => {
+                  if (exercise === 2 && ex2Mode === 'pawn') processWhiteMoveEx2(from, to, true);
+                  else if (exercise === 2 && ex2Mode === 'king') processBlackMoveEx2(from, to, true);
+                  else if (exercise === 3 && ex3Mode === 'pawn') processWhiteMoveEx3(from, to, true);
+                  else if (exercise === 3 && ex3Mode === 'king') processBlackMoveEx3(from, to, true);
+                  else if (exercise === 4 && ex4Mode === 'pawn') processWhiteMoveEx4(from, to, true);
+                  else if (exercise === 4 && ex4Mode === 'king') processBlackMoveEx4(from, to, true);
+                  else if (exercise === 5 && ex5Mode === 'pawn') processWhiteMoveEx5(from, to, true);
+                  else if (exercise === 5 && ex5Mode === 'king') processBlackMoveEx5(from, to, true);
+                  else if (exercise === 6 && ex6Mode === 'pawn') processWhiteMoveEx6(from, to, true);
+                  else if (exercise === 6 && ex6Mode === 'king') processBlackMoveEx6(from, to, true);
+                }}
+                onSquareClick={handleSquareClick}
+                playerAnimatingMove={playerAnimatingMove}
+                opponentAnimatingMove={opponentAnimatingMove}
+                interactive={!isComplete && !isFail}
+                disableAutoGhost={true}
+                sqSize={sqSize}
+              />
+              {/* Promotion picker overlay */}
+              {promotionPending && (
+                <div className="absolute z-50 pointer-events-auto" style={{
+                  left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
+                  top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
+                  width: sqSize,
+                  height: 4 * sqSize,
+                  backgroundColor: '#2C241B',
+                  borderRadius: '0px',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                }}>
+                  {PROMOTION_PIECES.map(({ code, name }) => (
+                    <button
+                      key={code}
+                      onClick={() => handlePromotion(code)}
+                      className="w-full aspect-square flex items-center justify-center transition-all duration-150"
                       style={{
-                        width: '70%',
-                        height: '70%',
-                        backgroundImage: `url(/pieces/cburnett/w${code.toUpperCase()}.svg)`,
-                        backgroundSize: 'contain',
-                        backgroundRepeat: 'no-repeat',
-                        backgroundPosition: 'center',
+                        backgroundColor: 'transparent',
+                        border: '2px solid transparent',
+                        borderRadius: '0px',
                       }}
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
+                        e.currentTarget.style.borderColor = '#C9A84C';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.borderColor = 'transparent';
+                      }}
+                      onMouseDown={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.25)';
+                      }}
+                      onMouseUp={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
+                      }}
+                      title={name}
+                    >
+                      <div
+                        style={{
+                          width: '70%',
+                          height: '70%',
+                          backgroundImage: `url(/pieces/cburnett/w${code.toUpperCase()}.svg)`,
+                          backgroundSize: 'contain',
+                          backgroundRepeat: 'no-repeat',
+                          backgroundPosition: 'center',
+                        }}
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           {/* Mobile exercise pills */}
           <div className="flex lg:hidden w-full items-stretch gap-[1px]">
