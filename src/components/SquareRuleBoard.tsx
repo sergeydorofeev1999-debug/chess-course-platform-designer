@@ -447,7 +447,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
     timersRef.current.push(t);
   }, [doAutoWhitePawnMove]);
 
-  const processBlackMoveEx2 = useCallback((from: string, to: string) => {
+  const processBlackMoveEx2 = useCallback((from: string, to: string, skipAnimation = false) => {
     if (isCompleteRef.current || isFail || promotionPending) return;
     const g1 = new Chess(gameRef.current.fen());
     try {
@@ -466,11 +466,13 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
       }
 
       const piece = gameRef.current.get(from as any);
+if (!skipAnimation) {
       setPlayerAnimatingMove({
         from,
         to,
         piece: { type: piece?.type?.toUpperCase() || 'K', color: piece?.color as 'w' | 'b' || 'b' },
       });
+      }
 
       setTimeout(() => {
         if (!mountedRef.current) return;
@@ -493,7 +495,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
           doAutoWhitePawnMove('king', g1);
         }, 1000);
         timersRef.current.push(t);
-      }, 200);
+      }, skipAnimation ? 0 : 200);
     } catch {}
   }, [isFail, promotionPending, doAutoWhitePawnMove, onComplete, ex2Mode, saveStars]);
 
@@ -506,7 +508,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
     setMessage('Ведите белую пешку h4 к последней горизонтали. Король преследует…');
   }, []);
 
-  const processWhiteMoveEx2 = useCallback((from: string, to: string) => {
+  const processWhiteMoveEx2 = useCallback((from: string, to: string, skipAnimation = false) => {
     if (isCompleteRef.current || isFail || promotionPending) return;
     try {
       const toRank = parseInt(to[1]);
@@ -518,11 +520,13 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
       const m = gameRef.current.move({ from, to });
       if (!m) return;
       const piece = gameRef.current.get(from as any);
+if (!skipAnimation) {
       setPlayerAnimatingMove({
         from,
         to,
         piece: { type: piece?.type?.toUpperCase() || 'P', color: piece?.color as 'w' | 'b' || 'w' },
       });
+      }
 
       setTimeout(() => {
         if (!mountedRef.current) return;
@@ -560,7 +564,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
                   setIsFail(true);
                   setMessage('Провалено. Король съел пешку.');
                 }
-              }, 200);
+              }, skipAnimation ? 0 : 200);
             }
           }
         }, 500);
@@ -584,7 +588,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
     timersRef.current.push(t);
   }, [doAutoWhitePawnMove]);
 
-  const processBlackMoveEx3 = useCallback((from: string, to: string) => {
+  const processBlackMoveEx3 = useCallback((from: string, to: string, skipAnimation = false) => {
     if (isCompleteRef.current || isFail || promotionPending) return;
     const g1 = new Chess(gameRef.current.fen());
     try {
@@ -601,11 +605,13 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
       }
 
       const piece = gameRef.current.get(from as any);
+if (!skipAnimation) {
       setPlayerAnimatingMove({
         from,
         to,
         piece: { type: piece?.type?.toUpperCase() || 'K', color: piece?.color as 'w' | 'b' || 'b' },
       });
+      }
 
       setTimeout(() => {
         if (!mountedRef.current) return;
@@ -626,7 +632,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
           doAutoWhitePawnMove('king', g1);
         }, 1000);
         timersRef.current.push(t);
-      }, 200);
+      }, skipAnimation ? 0 : 200);
     } catch {}
   }, [isFail, promotionPending, doAutoWhitePawnMove, onComplete, ex3Mode, saveStars]);
 
@@ -639,7 +645,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
     setMessage('Ведите белую пешку a5 к последней горизонтали. Король преследует…');
   }, []);
 
-  const processWhiteMoveEx3 = useCallback((from: string, to: string) => {
+  const processWhiteMoveEx3 = useCallback((from: string, to: string, skipAnimation = false) => {
     if (isCompleteRef.current || isFail || promotionPending) return;
     try {
       const toRank = parseInt(to[1]);
@@ -651,11 +657,13 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
       const m = gameRef.current.move({ from, to });
       if (!m) return;
       const piece = gameRef.current.get(from as any);
+if (!skipAnimation) {
       setPlayerAnimatingMove({
         from,
         to,
         piece: { type: piece?.type?.toUpperCase() || 'P', color: piece?.color as 'w' | 'b' || 'w' },
       });
+      }
 
       setTimeout(() => {
         if (!mountedRef.current) return;
@@ -693,7 +701,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
                   setIsFail(true);
                   setMessage('Провалено. Король съел пешку.');
                 }
-              }, 200);
+              }, skipAnimation ? 0 : 200);
             }
           }
         }, 500);
@@ -716,7 +724,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
     timersRef.current.push(t);
   }, [doAutoWhitePawnMove]);
 
-  const processBlackMoveEx4 = useCallback((from: string, to: string) => {
+  const processBlackMoveEx4 = useCallback((from: string, to: string, skipAnimation = false) => {
     if (isCompleteRef.current || isFail || promotionPending) return;
     const g1 = new Chess(gameRef.current.fen());
     try {
@@ -732,11 +740,13 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
       }
 
       const piece = gameRef.current.get(from as any);
+if (!skipAnimation) {
       setPlayerAnimatingMove({
         from,
         to,
         piece: { type: piece?.type?.toUpperCase() || 'K', color: piece?.color as 'w' | 'b' || 'b' },
       });
+      }
 
       setTimeout(() => {
         if (!mountedRef.current) return;
@@ -755,7 +765,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
           doAutoWhitePawnMove('king', g1);
         }, 1000);
         timersRef.current.push(t);
-      }, 200);
+      }, skipAnimation ? 0 : 200);
     } catch {}
   }, [isFail, promotionPending, doAutoWhitePawnMove, onComplete, ex4Mode, saveStars]);
 
@@ -768,7 +778,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
     setMessage('Ведите белую пешку g3 к последней горизонтали. Король преследует…');
   }, []);
 
-  const processWhiteMoveEx4 = useCallback((from: string, to: string) => {
+  const processWhiteMoveEx4 = useCallback((from: string, to: string, skipAnimation = false) => {
     if (isCompleteRef.current || isFail || promotionPending) return;
     try {
       const toRank = parseInt(to[1]);
@@ -779,11 +789,13 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
       const m = gameRef.current.move({ from, to });
       if (!m) return;
       const piece = gameRef.current.get(from as any);
+if (!skipAnimation) {
       setPlayerAnimatingMove({
         from,
         to,
         piece: { type: piece?.type?.toUpperCase() || 'P', color: piece?.color as 'w' | 'b' || 'w' },
       });
+      }
 
       setTimeout(() => {
         if (!mountedRef.current) return;
@@ -819,7 +831,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
                   setIsFail(true);
                   setMessage('Провалено. Король съел пешку.');
                 }
-              }, 200);
+              }, skipAnimation ? 0 : 200);
             }
           }
         }, 500);
@@ -842,7 +854,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
     timersRef.current.push(t);
   }, [doAutoWhitePawnMove]);
 
-  const processBlackMoveEx5 = useCallback((from: string, to: string) => {
+  const processBlackMoveEx5 = useCallback((from: string, to: string, skipAnimation = false) => {
     if (isCompleteRef.current || isFail || promotionPending) return;
     const g1 = new Chess(gameRef.current.fen());
     try {
@@ -858,11 +870,13 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
       }
 
       const piece = gameRef.current.get(from as any);
+if (!skipAnimation) {
       setPlayerAnimatingMove({
         from,
         to,
         piece: { type: piece?.type?.toUpperCase() || 'K', color: piece?.color as 'w' | 'b' || 'b' },
       });
+      }
 
       setTimeout(() => {
         if (!mountedRef.current) return;
@@ -881,7 +895,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
           doAutoWhitePawnMove('king', g1);
         }, 1000);
         timersRef.current.push(t);
-      }, 200);
+      }, skipAnimation ? 0 : 200);
     } catch {}
   }, [isFail, promotionPending, doAutoWhitePawnMove, onComplete, ex5Mode, saveStars]);
 
@@ -894,7 +908,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
     setMessage('Ведите белую пешку a4 к последней горизонтали. Король преследует…');
   }, []);
 
-  const processWhiteMoveEx5 = useCallback((from: string, to: string) => {
+  const processWhiteMoveEx5 = useCallback((from: string, to: string, skipAnimation = false) => {
     if (isCompleteRef.current || isFail || promotionPending) return;
     try {
       const toRank = parseInt(to[1]);
@@ -905,11 +919,13 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
       const m = gameRef.current.move({ from, to });
       if (!m) return;
       const piece = gameRef.current.get(from as any);
+if (!skipAnimation) {
       setPlayerAnimatingMove({
         from,
         to,
         piece: { type: piece?.type?.toUpperCase() || 'P', color: piece?.color as 'w' | 'b' || 'w' },
       });
+      }
 
       setTimeout(() => {
         if (!mountedRef.current) return;
@@ -945,7 +961,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
                   setIsFail(true);
                   setMessage('Провалено. Король съел пешку.');
                 }
-              }, 200);
+              }, skipAnimation ? 0 : 200);
             }
           }
         }, 500);
@@ -968,7 +984,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
     timersRef.current.push(t);
   }, [doAutoWhitePawnMove]);
 
-  const processBlackMoveEx6 = useCallback((from: string, to: string) => {
+  const processBlackMoveEx6 = useCallback((from: string, to: string, skipAnimation = false) => {
     if (isCompleteRef.current || isFail || promotionPending) return;
     const g1 = new Chess(gameRef.current.fen());
     try {
@@ -984,11 +1000,13 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
       }
 
       const piece = gameRef.current.get(from as any);
+if (!skipAnimation) {
       setPlayerAnimatingMove({
         from,
         to,
         piece: { type: piece?.type?.toUpperCase() || 'K', color: piece?.color as 'w' | 'b' || 'b' },
       });
+      }
 
       setTimeout(() => {
         if (!mountedRef.current) return;
@@ -1007,7 +1025,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
           doAutoWhitePawnMove('king', g1);
         }, 1000);
         timersRef.current.push(t);
-      }, 200);
+      }, skipAnimation ? 0 : 200);
     } catch {}
   }, [isFail, promotionPending, doAutoWhitePawnMove, onComplete, ex6Mode, saveStars]);
 
@@ -1020,7 +1038,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
     setMessage('Ведите белую пешку h3 к последней горизонтали. Король преследует…');
   }, []);
 
-  const processWhiteMoveEx6 = useCallback((from: string, to: string) => {
+  const processWhiteMoveEx6 = useCallback((from: string, to: string, skipAnimation = false) => {
     if (isCompleteRef.current || isFail || promotionPending) return;
     try {
       const toRank = parseInt(to[1]);
@@ -1031,11 +1049,13 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
       const m = gameRef.current.move({ from, to });
       if (!m) return;
       const piece = gameRef.current.get(from as any);
+if (!skipAnimation) {
       setPlayerAnimatingMove({
         from,
         to,
         piece: { type: piece?.type?.toUpperCase() || 'P', color: piece?.color as 'w' | 'b' || 'w' },
       });
+      }
 
       setTimeout(() => {
         if (!mountedRef.current) return;
@@ -1071,7 +1091,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
                   setIsFail(true);
                   setMessage('Провалено. Король съел пешку.');
                 }
-              }, 200);
+              }, skipAnimation ? 0 : 200);
             }
           }
         }, 500);
@@ -1560,21 +1580,22 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
               selectedSquare={selectedSquare}
               autoValidMoves={true}
               onMove={(from, to) => {
-                if (exercise === 2 && ex2Mode === 'pawn') processWhiteMoveEx2(from, to);
-                else if (exercise === 2 && ex2Mode === 'king') processBlackMoveEx2(from, to);
-                else if (exercise === 3 && ex3Mode === 'pawn') processWhiteMoveEx3(from, to);
-                else if (exercise === 3 && ex3Mode === 'king') processBlackMoveEx3(from, to);
-                else if (exercise === 4 && ex4Mode === 'pawn') processWhiteMoveEx4(from, to);
-                else if (exercise === 4 && ex4Mode === 'king') processBlackMoveEx4(from, to);
-                else if (exercise === 5 && ex5Mode === 'pawn') processWhiteMoveEx5(from, to);
-                else if (exercise === 5 && ex5Mode === 'king') processBlackMoveEx5(from, to);
-                else if (exercise === 6 && ex6Mode === 'pawn') processWhiteMoveEx6(from, to);
-                else if (exercise === 6 && ex6Mode === 'king') processBlackMoveEx6(from, to);
+                if (exercise === 2 && ex2Mode === 'pawn') processWhiteMoveEx2(from, to, true);
+                else if (exercise === 2 && ex2Mode === 'king') processBlackMoveEx2(from, to, true);
+                else if (exercise === 3 && ex3Mode === 'pawn') processWhiteMoveEx3(from, to, true);
+                else if (exercise === 3 && ex3Mode === 'king') processBlackMoveEx3(from, to, true);
+                else if (exercise === 4 && ex4Mode === 'pawn') processWhiteMoveEx4(from, to, true);
+                else if (exercise === 4 && ex4Mode === 'king') processBlackMoveEx4(from, to, true);
+                else if (exercise === 5 && ex5Mode === 'pawn') processWhiteMoveEx5(from, to, true);
+                else if (exercise === 5 && ex5Mode === 'king') processBlackMoveEx5(from, to, true);
+                else if (exercise === 6 && ex6Mode === 'pawn') processWhiteMoveEx6(from, to, true);
+                else if (exercise === 6 && ex6Mode === 'king') processBlackMoveEx6(from, to, true);
               }}
               onSquareClick={handleSquareClick}
               playerAnimatingMove={playerAnimatingMove}
               opponentAnimatingMove={opponentAnimatingMove}
               interactive={!isComplete && !isFail}
+              disableAutoGhost={true}
               sqSize={sqSize}
             />
           </div>
