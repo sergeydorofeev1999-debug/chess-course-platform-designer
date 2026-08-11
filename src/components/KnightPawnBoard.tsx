@@ -1031,66 +1031,65 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
               opponent={true}
             />
           )}
+          {/* Promotion picker */}
+          {promotionPending && (
+            <div className="absolute z-50 pointer-events-auto" style={{
+              left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
+              top: 0,
+              width: sqSize,
+              height: 4 * sqSize,
+              backgroundColor: '#2C241B',
+              borderRadius: '0px',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+            }}>
+              {PROMOTION_PIECES.map(({ code, name }) => (
+                <button
+                  key={code}
+                  onClick={() => handlePromotion(code)}
+                  className="w-full aspect-square flex items-center justify-center transition-all duration-150"
+                  style={{
+                    backgroundColor: 'transparent',
+                    border: '2px solid transparent',
+                    borderRadius: '0px',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
+                    e.currentTarget.style.borderColor = '#C9A84C';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.borderColor = 'transparent';
+                  }}
+                  onMouseDown={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.25)';
+                  }}
+                  onMouseUp={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
+                  }}
+                  title={name}
+                >
+                  <div
+                    style={{
+                      width: Math.round(sqSize * 0.78),
+                      height: Math.round(sqSize * 0.78),
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <PieceImg type={code} color="w" />
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Promotion picker */}
-      {promotionPending && (
-        <div className="absolute z-50 pointer-events-auto" style={{
-          left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
-          top: 0,
-          width: sqSize,
-          height: 4 * sqSize,
-          backgroundColor: '#2C241B',
-          borderRadius: '0px',
-          boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
-        }}>
-          {PROMOTION_PIECES.map(({ code, name }) => (
-            <button
-              key={code}
-              onClick={() => handlePromotion(code)}
-              className="w-full aspect-square flex items-center justify-center transition-all duration-150"
-              style={{
-                backgroundColor: 'transparent',
-                border: '2px solid transparent',
-                borderRadius: '0px',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
-                e.currentTarget.style.borderColor = '#C9A84C';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
-                e.currentTarget.style.borderColor = 'transparent';
-              }}
-              onMouseDown={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.25)';
-              }}
-              onMouseUp={(e) => {
-                e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
-              }}
-              title={name}
-            >
-              <div
-                style={{
-                  width: Math.round(sqSize * 0.78),
-                  height: Math.round(sqSize * 0.78),
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <PieceImg type={code} color="w" />
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
 
       {/* Drag overlay */}
       {dragPiece && (
