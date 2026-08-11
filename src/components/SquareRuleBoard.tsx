@@ -211,6 +211,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
     setPromotionPending(null);
     setPlayerAnimatingMove(null);
     setOpponentAnimatingMove(null);
+    setLastMove(null);
     if (exercise === 2) setEx2Mode(null);
     if (exercise === 3) setEx3Mode(null);
     if (exercise === 4) setEx4Mode(null);
@@ -239,6 +240,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
     setEx6Mode(null);
     setPlayerAnimatingMove(null);
     setOpponentAnimatingMove(null);
+    setLastMove(null);
   }, [clearTimers]);
 
   // ═══════════════════════════════════════════════════════════════
