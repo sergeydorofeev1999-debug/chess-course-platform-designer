@@ -732,6 +732,7 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
         const cell = el?.closest('[data-square]') as HTMLElement | null;
         const targetSquare = cell?.dataset.square || null;
         if (targetSquare && targetSquare !== start.square) {
+          setPlayerAnimatingMove(null);
           const valid = getKingMoves(start.square, 'w', wKingRef.current, bKingRef.current, wPawns, bPawns);
           if (valid.includes(targetSquare)) {
             doKingMove(targetSquare);
@@ -886,9 +887,6 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
       <div className="flex-1 flex flex-col items-center gap-3">
         {/* Difficulty + Turn */}
         <div className="flex items-center gap-2">
-          {computerThinking && (
-            <span className="text-xs text-[#8B7355]">Думает...</span>
-          )}
         </div>
 
         {/* Mobile avatar + speech bubble */}
