@@ -439,6 +439,7 @@ interface InlineChessBoardProps {
   moves?: number;
   promotionPending?: { from: string; to: string } | null;
   onPromotion?: (piece: string) => void;
+  lastMove?: { from: string; to: string } | null;
 }
 
 function InlineChessBoard({
@@ -455,6 +456,7 @@ function InlineChessBoard({
   moves = 0,
   promotionPending,
   onPromotion,
+  lastMove,
 }: InlineChessBoardProps) {
   const pieceErrHint =
     pieceType === 'b' ? 'Слон ходит по диагонали!' :
@@ -494,6 +496,8 @@ function InlineChessBoard({
       }
     }
   }, [fen, externalMovedPieces]);
+
+
 
   const squaresRef = useRef<Record<string, any>>({});
   const clickRef = useRef<(square: string) => void>(() => {});
@@ -719,6 +723,8 @@ function InlineChessBoard({
             const hasStar = stars.includes(sq);
             const isValidMove = validMoves.includes(sq);
             const hover = hoveredSquare === sq;
+            const isLastMoveSource = lastMove?.from === sq;
+            const isLastMoveTarget = lastMove?.to === sq;
             return (
               <div
                 key={sq}
@@ -759,6 +765,12 @@ function InlineChessBoard({
                       }}
                     />
                   </div>
+                )}
+                {isLastMoveSource && (
+                  <div className="absolute inset-0 pointer-events-none" style={{ backgroundColor: 'rgba(201,168,76,0.55)', zIndex: 15 }} />
+                )}
+                {isLastMoveTarget && (
+                  <div className="absolute inset-0 pointer-events-none" style={{ backgroundColor: 'rgba(201,168,76,0.70)', zIndex: 15 }} />
                 )}
                 <div
                   className="absolute inset-0 flex items-center justify-center pointer-events-none"
@@ -1003,6 +1015,7 @@ function MultiLevelStarBoard({
   const [showHint, setShowHint] = useState(false);
   const [hintArrows, setHintArrows] = useState<{from: string; to: string}[]>([]);
   const [showIntro, setShowIntro] = useState(true);
+  const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   useEffect(() => {
     const checkStarted = () => {
       if (typeof window !== 'undefined' && currentLessonId) {
@@ -1569,12 +1582,14 @@ function MultiLevelStarBoard({
     setHintArrows([]);
     setShowHint(false);
     setHintLevel(0);
+    setLastMove(null);
   }, [currentLevel, levels]);
 
   const handleMove = useCallback(
     (from: string, to: string) => {
       setHintArrows([]);
       setShowHint(false);
+      setLastMove({ from, to });
       if (phase !== 'playing') return false;
       const parsed = parseFen(positionRef.current);
       if (parsed.squares[from]?.color !== 'w') return false;
@@ -2228,6 +2243,7 @@ function MultiLevelStarBoard({
               moves={moves}
               promotionPending={promotionPending}
               onPromotion={handlePromotion}
+              lastMove={lastMove}
             />
             {phase === 'intro' && <IntroOverlay />}
             {phase === 'success' && <SuccessOverlay />}
