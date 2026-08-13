@@ -121,20 +121,6 @@ function GhostOverlay({ from, to, piece, sqSize, className }: {
   );
 }
 
-interface DragState {
-  square: string;
-  type: string;
-  color: 'w' | 'b';
-}
-
-interface PointerStart {
-  x: number;
-  y: number;
-  square: string;
-  moved: boolean;
-  pointerId: number;
-}
-
 export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: () => void; lessonId?: string }) {
   const [exercise, setExercise] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7 | 8>(1);
   const [game, setGame] = useState<Chess | null>(null);
@@ -146,15 +132,12 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
   const [hintVisible, setHintVisible] = useState(false);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
-  const { playerAnimatingMove, opponentAnimatingMove, setPlayerAnimatingMove, setOpponentAnimatingMove, animatePlayerMove } = useAnimatedLesson();
+  const { playerAnimatingMove, opponentAnimatingMove, setPlayerAnimatingMove, setOpponentAnimatingMove } = useAnimatedLesson();
 
   const isCompleteRef = useRef(false);
   const isFailRef = useRef(false);
   const mountedRef = useRef(true);
 
-  const [dragPiece, setDragPiece] = useState<DragState | null>(null);
-  const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
-  const pointerStartRef = useRef<PointerStart | null>(null);
   const [promotionPending, setPromotionPending] = useState<{from: string; to: string} | null>(null);
 
   const storageKey = lessonId ? `mateinone_progress_${lessonId}` : 'mateinone_progress';
@@ -197,7 +180,6 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
     setHintVisible(false);
     setIsFail(false);
     setIsComplete(false);
-    setDragPiece(null);
     setPromotionPending(null);
     setPlayerAnimatingMove(null);
     setOpponentAnimatingMove(null);
@@ -225,16 +207,15 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
     setHintVisible(false);
     setIsFail(false);
     setIsComplete(false);
-    setDragPiece(null);
     setPromotionPending(null);
     setPlayerAnimatingMove(null);
     setOpponentAnimatingMove(null);
   }, []);
 
   // ──── MATE IN 1 LOGIC ────
-  const processMove = useCallback((from: string, to: string, promotionPiece?: string) => {
+  const processMove = useCallback((from: string, to: string, promotionPiece?: string, skipAnimation = false) => {
     if (!game) return;
-    const g = game;
+    const g = new Chess(game.fen());
 
     const piece = g.get(from as any);
     const isPromotion = piece?.type === 'p' && (to[1] === '8' || to[1] === '1');
@@ -248,8 +229,8 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
       if (!move) return;
 
       if (g.isCheckmate()) {
-        // Animate correct move then complete
-        animatePlayerMove(g, from, to, () => {
+        if (skipAnimation) {
+          // Instant for drag
           setGame(new Chess(g.fen()));
           setLastMove({ from, to });
           setSelectedSquare(null);
@@ -257,11 +238,29 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
           setMessage('Отлично! Мат в 1 ход!');
           saveStars(exercise, 3);
           if (exercise === 8) onComplete();
-        });
+        } else {
+          // Ghost animation for click (like MateInTwoBoard)
+          setPlayerAnimatingMove({
+            from,
+            to,
+            piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' },
+          });
+          setLastMove({ from, to });
+          setSelectedSquare(null);
+          setIsComplete(true);
+          setMessage('Отлично! Мат в 1 ход!');
+          saveStars(exercise, 3);
+          if (exercise === 8) onComplete();
+
+          setTimeout(() => {
+            setGame(new Chess(g.fen()));
+            setPlayerAnimatingMove(null);
+          }, 200);
+        }
         return;
       }
 
-      // Wrong move — instant fail (no need for ghost on wrong moves in mate-in-1)
+      // Wrong move — instant fail for both click and drag
       setGame(new Chess(g.fen()));
       setLastMove({ from, to });
       setSelectedSquare(null);
@@ -270,7 +269,7 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
     } catch {
       // invalid move
     }
-  }, [game, exercise, saveStars, onComplete, animatePlayerMove]);
+  }, [game, exercise, saveStars, onComplete, setPlayerAnimatingMove]);
 
   // ──── CLICK ────
   const handleSquareClick = useCallback((square: string) => {
@@ -293,73 +292,6 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
     }
   }, [game, selectedSquare, processMove, promotionPending]);
 
-  // ──── DRAG & DROP ────
-  const handlePointerDown = useCallback((e: React.PointerEvent, square: string) => {
-    if (promotionPending) return;
-    if (isCompleteRef.current || isFailRef.current) return;
-    if (!game) return;
-    const piece = game.get(square as any);
-    if (!piece || piece.color !== game.turn()) return;
-    if (e.pointerType === 'touch' && !(e as any).isPrimary) return;
-
-    pointerStartRef.current = { x: e.clientX, y: e.clientY, square, moved: false, pointerId: e.pointerId };
-  }, [game, promotionPending]);
-
-  useEffect(() => {
-    const handleGlobalMove = (e: PointerEvent) => {
-      const start = pointerStartRef.current;
-      if (!start) return;
-      if (e.pointerId !== start.pointerId) return;
-      const dx = e.clientX - start.x;
-      const dy = e.clientY - start.y;
-      if (!start.moved && (Math.abs(dx) > 20 || Math.abs(dy) > 20)) {
-        start.moved = true;
-        const piece = game?.get(start.square as any);
-        if (piece) {
-          setDragPiece({ square: start.square, type: piece.type.toUpperCase(), color: piece.color as 'w' | 'b' });
-          setSelectedSquare(null);
-        }
-      }
-      if (start.moved) {
-        setDragPos({ x: e.clientX, y: e.clientY });
-      }
-    };
-
-    const handleGlobalUp = (e: PointerEvent) => {
-      const start = pointerStartRef.current;
-      if (!start) return;
-      if (e.pointerId !== start.pointerId) return;
-      if (!start.moved) {
-        // click handled by onClick
-      } else {
-        const el = document.elementFromPoint(e.clientX, e.clientY);
-        const cell = el?.closest('[data-square]') as HTMLElement | null;
-        const targetSquare = cell?.dataset.square || null;
-        if (targetSquare && targetSquare !== start.square) {
-          processMove(start.square, targetSquare);
-        }
-        setDragPiece(null);
-      }
-      pointerStartRef.current = null;
-    };
-
-    const handleGlobalCancel = (e: PointerEvent) => {
-      if (pointerStartRef.current && e.pointerId === pointerStartRef.current.pointerId) {
-        setDragPiece(null);
-        pointerStartRef.current = null;
-      }
-    };
-
-    window.addEventListener('pointermove', handleGlobalMove);
-    window.addEventListener('pointerup', handleGlobalUp);
-    window.addEventListener('pointercancel', handleGlobalCancel);
-    return () => {
-      window.removeEventListener('pointermove', handleGlobalMove);
-      window.removeEventListener('pointerup', handleGlobalUp);
-      window.removeEventListener('pointercancel', handleGlobalCancel);
-    };
-  }, [game, processMove]);
-
   // ──── PROMOTION ────
   const handlePromotion = useCallback((pieceCode: string) => {
     if (!promotionPending) return;
@@ -380,9 +312,7 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
 
   const validMoves = selectedSquare && game
     ? (game.moves({ square: selectedSquare as any, verbose: true }).map(m => m.to) as string[])
-    : dragPiece && game
-      ? (game.moves({ square: dragPiece.square as any, verbose: true }).map(m => m.to) as string[])
-      : [];
+    : [];
 
   const turnText = game ? (game.turn() === 'w' ? 'Ход белых' : 'Ход чёрных') : '';
 
@@ -518,12 +448,17 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
             selectedSquare={selectedSquare}
             lastMove={lastMove}
             autoValidMoves={true}
-            onMove={(from, to, _promotion) => processMove(from, to)}
             onSquareClick={handleSquareClick}
+            onMove={(from, to, _promotion) => processMove(from, to, undefined, true)}
+            onDragPieceChange={(piece) => {}}
+            interactive={!isComplete && !isFail}
+            playerAnimatingMove={playerAnimatingMove || null}
+            opponentAnimatingMove={opponentAnimatingMove || null}
+            disableAutoGhost={true}
             pieceTheme="cburnett"
           />
           {/* Hint arrows SVG overlay */}
-          {hintVisible && !isFail && !isComplete && !selectedSquare && !dragPiece && (
+          {hintVisible && !isFail && !isComplete && !selectedSquare && (
             (() => {
               const arrows = HINTS[exercise] || [];
               if (arrows.length === 0) return null;

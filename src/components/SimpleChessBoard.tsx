@@ -7,9 +7,10 @@ import UniversalChessBoardDesigner from './board/UniversalChessBoardDesigner';
 interface Props {
   fen: string;
   stars?: string[];
-  onMove?: (from: string, to: string) => boolean;
+  onMove?: (from: string, to: string, pieceType: string) => void;
   onStarCollect?: (square: string) => void;
   highlightSquares?: string[];
+  allowedPieces?: string[];
 }
 
 export default function SimpleChessBoard({
@@ -18,6 +19,7 @@ export default function SimpleChessBoard({
   onMove,
   onStarCollect,
   highlightSquares = [],
+  allowedPieces = [],
 }: Props) {
   const [game] = useState(() => new Chess(fen));
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
@@ -55,6 +57,13 @@ export default function SimpleChessBoard({
         if (moveResult) {
           const movingPiece = game.get(selectedSquare as any);
           if (movingPiece) {
+            // Check allowed pieces
+            if (allowedPieces.length > 0 && !allowedPieces.includes(movingPiece.type)) {
+              setSelectedSquare(null);
+              setMessage(`Используйте ${getPieceName(allowedPieces[0])}!`);
+              return;
+            }
+
             setPlayerAnimatingMove({
               from: selectedSquare,
               to: square,
@@ -77,7 +86,7 @@ export default function SimpleChessBoard({
                 onStarCollect?.(square);
               }
 
-              onMove?.(selectedSquare, square);
+              onMove?.(selectedSquare, square, movingPiece.type);
             }, 200);
             return;
           }
@@ -91,7 +100,7 @@ export default function SimpleChessBoard({
         }
       }
     },
-    [selectedSquare, game, stars, collectedStars, onMove, onStarCollect, playerAnimatingMove]
+    [selectedSquare, game, stars, collectedStars, onMove, onStarCollect, playerAnimatingMove, allowedPieces]
   );
 
   const starOverlays = stars
@@ -130,8 +139,21 @@ export default function SimpleChessBoard({
         playerAnimatingMove={playerAnimatingMove}
         customOverlays={starOverlays}
         interactive={!playerAnimatingMove}
+        autoValidMoves={true}
       />
       {message && <p className="text-red-500 text-sm">{message}</p>}
     </div>
   );
+}
+
+function getPieceName(piece: string): string {
+  const names: Record<string, string> = {
+    r: 'ладью',
+    n: 'коня',
+    b: 'слона',
+    q: 'ферзя',
+    k: 'короля',
+    p: 'пешку',
+  };
+  return names[piece] || piece;
 }

@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
 import { RotateCcw, Trophy, Eye } from 'lucide-react';
+import UniversalChessBoardDesigner from './board/UniversalChessBoardDesigner';
 
 const FILES = ['h','g','f','e','d','c','b','a'];
 const RANKS = ['8','7','6','5','4','3','2','1'];
@@ -40,18 +41,30 @@ function handleFailWithWhiteCapture(
   setMessageFn: (msg: string) => void,
   setSelectedSquareFn: (sq: string | null) => void,
   setLastMoveFn: (m: { from: string; to: string } | null) => void,
+  setOpponentAnimatingMoveFn: (m: { from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null) => void,
   mountedRef: React.RefObject<boolean>
 ) {
   const cap = findSafeWhiteCapture(g);
   if (cap) {
     setTimeout(() => {
       if (!mountedRef.current) return;
-      g.move({ from: cap.from, to: cap.to });
+      
+      const wp = g.get(cap.from as any);
       setLastMoveFn({ from: cap.from, to: cap.to });
-      setGameFn(new Chess(g.fen()));
+      setOpponentAnimatingMoveFn({
+        from: cap.from,
+        to: cap.to,
+        piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+      });
+      setTimeout(() => {
+        if (!mountedRef.current) return;
+        g.move({ from: cap.from, to: cap.to });
+        setGameFn(new Chess(g.fen()));
+        setOpponentAnimatingMoveFn(null);
+      }, 200);
       setTimeout(() => {
         if (mountedRef.current) { setIsFailFn(true); setMessageFn('Провалено'); }
-      }, 1000);
+      }, 1200);
     }, 1000);
   } else {
     setTimeout(() => {
@@ -92,6 +105,7 @@ function PieceImg({ type, color }: { type: string; color: 'w' | 'b' }) {
   );
 }
 
+
 interface DragState {
   square: string;
   type: string;
@@ -118,9 +132,14 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
   const [postMoveHint, setPostMoveHint] = useState('');
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
+  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
+  const [opponentAnimatingMoves, setOpponentAnimatingMoves] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } }[] | null>(null);
+  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
+  const [playerAnimatingMoves, setPlayerAnimatingMoves] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } }[] | null>(null);
 
   const isCompleteRef = useRef(false);
   const isFailRef = useRef(false);
+  const isProcessingRef = useRef(false);
   const mountedRef = useRef(true);
   const autoStartedRef = useRef(false);
   const justDraggedRef = useRef(false);
@@ -156,10 +175,20 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
       autoStartedRef.current = true;
       setTimeout(() => {
         if (!mountedRef.current) return;
-        const g = game;
+        const g = game!;
+        const wp = g.get('e2' as any);
+setLastMove({ from: 'e2', to: 'e4' });
+        setOpponentAnimatingMove({
+          from: 'e2',
+          to: 'e4',
+          piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+        });
+        setTimeout(() => {
+        if (!mountedRef.current) return;
         g.move({ from: 'e2', to: 'e4' });
-        setLastMove({ from: 'e2', to: 'e4' });
         setGame(new Chess(g.fen()));
+        setOpponentAnimatingMove(null);
+        }, 200);
       }, 1000);
     }
   }, [game, blackMoves]);
@@ -192,10 +221,20 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
     // Auto-play white e4 again
     setTimeout(() => {
       if (!mountedRef.current) return;
+      const g = game!;
+      const wp = g.get('e2' as any);
+setLastMove({ from: 'e2', to: 'e4' });
+      setOpponentAnimatingMove({
+        from: 'e2',
+        to: 'e4',
+        piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+      });
+      setTimeout(() => {
+      if (!mountedRef.current) return;
       g.move({ from: 'e2', to: 'e4' });
-  setLastMove({ from: 'e2', to: 'e4' });
       setGame(new Chess(g.fen()));
-      autoStartedRef.current = true;
+      setOpponentAnimatingMove(null);
+      }, 200);
     }, 1000);
   }, []);
 
@@ -212,16 +251,19 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
     });
   }, [storageKey]);
 
-  const processBlackMove = useCallback((from: string, to: string, promotionPiece?: string) => {
+  const processBlackMove = useCallback(async (from: string, to: string, promotionPiece?: string, skipAnimation = false) => {
     if (!game) return;
-    const g = game;
+    if (isProcessingRef.current) return;
+    const g = game!;
     if (g.turn() !== 'b') return;
     const fromPiece = g.get(from as any);
     if (!fromPiece || fromPiece.color !== 'b') return;
+    isProcessingRef.current = true;
 
     const isPromotion = fromPiece?.type === 'p' && (to[1] === '8' || to[1] === '1');
     if (isPromotion && !promotionPiece) {
       setPromotionPending({ from, to });
+      isProcessingRef.current = false;
       return;
     }
 
@@ -229,6 +271,30 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
       const move = g.move({ from, to, promotion: promotionPiece });
       if (!move) return;
       setLastMove({ from, to });
+      setSelectedSquare(null);
+
+      if (!skipAnimation) {
+        const isCastle = move.piece === 'k' && Math.abs(from.charCodeAt(0) - to.charCodeAt(0)) === 2;
+        if (isCastle) {
+          const isShort = to === 'g8';
+          const rookFrom = isShort ? 'h8' : 'a8';
+          const rookTo = isShort ? 'f8' : 'd8';
+          setPlayerAnimatingMoves([
+            { from, to, piece: { type: 'K', color: 'b' } },
+            { from: rookFrom, to: rookTo, piece: { type: 'R', color: 'b' } },
+          ]);
+          await new Promise(resolve => setTimeout(resolve, 200));
+          setPlayerAnimatingMoves(null);
+        } else {
+          setPlayerAnimatingMove({
+            from,
+            to,
+            piece: { type: move.piece.toUpperCase(), color: 'b' },
+          });
+          await new Promise(resolve => setTimeout(resolve, 200));
+          setPlayerAnimatingMove(null);
+        }
+      }
 
       const nextBlackMoves = blackMoves + 1;
 
@@ -241,13 +307,26 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('g1' as any);
+setLastMove({ from: 'g1', to: 'f3' });
+              setOpponentAnimatingMove({
+                from: 'g1',
+                to: 'f3',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'g1', to: 'f3' });
-            setLastMove({ from: 'g1', to: 'f3' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -258,13 +337,26 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('f1' as any);
+setLastMove({ from: 'f1', to: 'c4' });
+              setOpponentAnimatingMove({
+                from: 'f1',
+                to: 'c4',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'f1', to: 'c4' });
-            setLastMove({ from: 'f1', to: 'c4' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -275,13 +367,26 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('d2' as any);
+setLastMove({ from: 'd2', to: 'd3' });
+              setOpponentAnimatingMove({
+                from: 'd2',
+                to: 'd3',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'd2', to: 'd3' });
-          setLastMove({ from: 'd2', to: 'd3' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -292,13 +397,26 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('b1' as any);
+setLastMove({ from: 'b1', to: 'c3' });
+              setOpponentAnimatingMove({
+                from: 'b1',
+                to: 'c3',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'b1', to: 'c3' });
-        setLastMove({ from: 'b1', to: 'c3' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -309,13 +427,24 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
               g.move({ from: 'e1', to: 'g1' });
-            setLastMove({ from: 'e1', to: 'g1' });
               setGame(new Chess(g.fen()));
+              setLastMove({ from: 'e1', to: 'g1' });
+              setOpponentAnimatingMoves([
+                { from: 'e1', to: 'g1', piece: { type: 'K', color: 'w' } },
+                { from: 'h1', to: 'f1', piece: { type: 'R', color: 'w' } },
+              ]);
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                setOpponentAnimatingMoves(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -326,13 +455,26 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('c1' as any);
+setLastMove({ from: 'c1', to: 'g5' });
+              setOpponentAnimatingMove({
+                from: 'c1',
+                to: 'g5',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'c1', to: 'g5' });
-            setLastMove({ from: 'c1', to: 'g5' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -344,9 +486,11 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setIsComplete(true);
             setMessage('Отлично! Итальянская партия за чёрных завершена. Вы ответили на ходы белых правильно!');
             saveStars(1, 3);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -355,6 +499,7 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
         function isPieceOnSquare(pos: Chess, sq: string, piece: string, color: 'w'|'b'): boolean {
           const p = pos.get(sq as any);
           if (!p) return false;
+          isProcessingRef.current = false;
           return p.type === piece && p.color === color;
         }
         function countFreeMoves(pos: Chess): number {
@@ -362,6 +507,7 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
           if (isPieceOnSquare(pos, 'd6', 'p', 'b')) count++;   // d6
           if (isPieceOnSquare(pos, 'f6', 'n', 'b')) count++;   // Nf6
           if (isPieceOnSquare(pos, 'g4', 'b', 'b')) count++;  // Bg4
+          isProcessingRef.current = false;
           return count;
         }
         // Move 0: e5
@@ -373,13 +519,26 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setPostMoveHint('Отлично, пешка захватила центр');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('g1' as any);
+setLastMove({ from: 'g1', to: 'f3' });
+              setOpponentAnimatingMove({
+                from: 'g1',
+                to: 'f3',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'g1', to: 'f3' });
-          setLastMove({ from: 'g1', to: 'f3' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -392,13 +551,26 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setPostMoveHint('Отлично, конь вышел ближе к центру и защитил пешку e5');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('f1' as any);
+setLastMove({ from: 'f1', to: 'c4' });
+              setOpponentAnimatingMove({
+                from: 'f1',
+                to: 'c4',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'f1', to: 'c4' });
-            setLastMove({ from: 'f1', to: 'c4' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -411,13 +583,26 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             setPostMoveHint('Отлично, слон вышел ближе к центру');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('d2' as any);
+setLastMove({ from: 'd2', to: 'd3' });
+              setOpponentAnimatingMove({
+                from: 'd2',
+                to: 'd3',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'd2', to: 'd3' });
-            setLastMove({ from: 'd2', to: 'd3' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -429,13 +614,15 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
             (from === 'c8' && to === 'g4' && move.piece === 'b')
           );
           if (!isAllowed) {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
           const expectedCount = blackMoves - 2;
           const actualCount = countFreeMoves(g);
           if (actualCount !== expectedCount) {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
           setGame(new Chess(g.fen()));
@@ -445,17 +632,48 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
           setTimeout(() => {
             if (!mountedRef.current) return;
             if (blackMoves === 3) {
-              g.move({ from: 'b1', to: 'c3' });
-      setLastMove({ from: 'b1', to: 'c3' });
+              const wp1 = g.get('b1' as any);
+              setLastMove({ from: 'b1', to: 'c3' });
+              setOpponentAnimatingMove({
+                from: 'b1',
+                to: 'c3',
+                piece: { type: wp1?.type?.toUpperCase() || 'N', color: 'w' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'b1', to: 'c3' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
             } else if (blackMoves === 4) {
               g.move({ from: 'e1', to: 'g1' });
-setLastMove({ from: 'e1', to: 'g1' });
+              setGame(new Chess(g.fen()));
+              setLastMove({ from: 'e1', to: 'g1' });
+              setOpponentAnimatingMoves([
+                { from: 'e1', to: 'g1', piece: { type: 'K', color: 'w' } },
+                { from: 'h1', to: 'f1', piece: { type: 'R', color: 'w' } },
+              ]);
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                setOpponentAnimatingMoves(null);
+              }, 200);
             } else {
-              g.move({ from: 'c1', to: 'g5' });
-            setLastMove({ from: 'c1', to: 'g5' });
+              const wb = g.get('c1' as any);
+              setLastMove({ from: 'c1', to: 'g5' });
+              setOpponentAnimatingMove({
+                from: 'c1',
+                to: 'g5',
+                piece: { type: wb?.type?.toUpperCase() || 'B', color: 'w' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'c1', to: 'g5' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
             }
-            setGame(new Chess(g.fen()));
           }, 1000);
+          isProcessingRef.current = false;
           return;
         }
         // Move 6: O-O
@@ -467,9 +685,11 @@ setLastMove({ from: 'e1', to: 'g1' });
             setIsComplete(true);
             setMessage('Отлично! Итальянская партия за чёрных завершена. Вы ответили на ходы белых правильно!');
             saveStars(2, 3);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -485,13 +705,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Конь выходит на f3 — защищает пешку e4 и готовит развитие. Сделайте Nf3!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('g1' as any);
+setLastMove({ from: 'g1', to: 'f3' });
+              setOpponentAnimatingMove({
+                from: 'g1',
+                to: 'f3',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'g1', to: 'f3' });
-    setLastMove({ from: 'g1', to: 'f3' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -503,13 +736,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Разведите слона на c4 — классическая итальянская партия. Сделайте Bc4!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('f1' as any);
+setLastMove({ from: 'f1', to: 'c4' });
+              setOpponentAnimatingMove({
+                from: 'f1',
+                to: 'c4',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'f1', to: 'c4' });
-              setLastMove({ from: 'f1', to: 'c4' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -521,13 +767,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('d3 — тихая итальянская, готовим позицию для дырокола. Сделайте d3!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('d2' as any);
+setLastMove({ from: 'd2', to: 'd3' });
+              setOpponentAnimatingMove({
+                from: 'd2',
+                to: 'd3',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'd2', to: 'd3' });
-            setLastMove({ from: 'd2', to: 'd3' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -539,13 +798,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Конь c3 развивает фигуры и готовится к центру. Сделайте Nc3!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('b1' as any);
+setLastMove({ from: 'b1', to: 'c3' });
+              setOpponentAnimatingMove({
+                from: 'b1',
+                to: 'c3',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'b1', to: 'c3' });
-            setLastMove({ from: 'b1', to: 'c3' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -557,13 +829,24 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Белые рокировались — король в безопасности. Сыграйте Bg4 — нападение на коня f3!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
               g.move({ from: 'e1', to: 'g1' });
-            setLastMove({ from: 'e1', to: 'g1' });
               setGame(new Chess(g.fen()));
+              setLastMove({ from: 'e1', to: 'g1' });
+              setOpponentAnimatingMoves([
+                { from: 'e1', to: 'g1', piece: { type: 'K', color: 'w' } },
+                { from: 'h1', to: 'f1', piece: { type: 'R', color: 'w' } },
+              ]);
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                setOpponentAnimatingMoves(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -575,13 +858,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Чёрные рокировались! Это ключевой момент — мы НЕ рокировали и можем атаковать. Конь d5!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('c1' as any);
+setLastMove({ from: 'c1', to: 'g5' });
+              setOpponentAnimatingMove({
+                from: 'c1',
+                to: 'g5',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'c1', to: 'g5' });
- setLastMove({ from: 'c1', to: 'g5' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -593,13 +889,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Конь забирает коня на f6 — размен! Делайте Nxf6!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('c3' as any);
+setLastMove({ from: 'c3', to: 'd5' });
+              setOpponentAnimatingMove({
+                from: 'c3',
+                to: 'd5',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'c3', to: 'd5' });
-            setLastMove({ from: 'c3', to: 'd5' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -611,13 +920,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Пешка g берёт коня — линия f открыта! Делайте gxf3!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('g2' as any);
+setLastMove({ from: 'g2', to: 'f3' });
+              setOpponentAnimatingMove({
+                from: 'g2',
+                to: 'f3',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'g2', to: 'f3' });
-          setLastMove({ from: 'g2', to: 'f3' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -629,13 +951,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Конь забирает коня на f6 — шах! Делайте Nxf6+!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('d5' as any);
+setLastMove({ from: 'd5', to: 'f6' });
+              setOpponentAnimatingMove({
+                from: 'd5',
+                to: 'f6',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'd5', to: 'f6' });
-        setLastMove({ from: 'd5', to: 'f6' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -647,13 +982,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Пешка f открыта — это дырокол! Слон h6 атакует ладью. Делайте Bh6!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('g5' as any);
+setLastMove({ from: 'g5', to: 'h4' });
+              setOpponentAnimatingMove({
+                from: 'g5',
+                to: 'h4',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'g5', to: 'h4' });
-            setLastMove({ from: 'g5', to: 'h4' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -665,13 +1013,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Слон забирает ферзя на d8! Дырокол! Делайте Bxd8!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('h4' as any);
+setLastMove({ from: 'h4', to: 'd8' });
+              setOpponentAnimatingMove({
+                from: 'h4',
+                to: 'd8',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'h4', to: 'd8' });
-            setLastMove({ from: 'h4', to: 'd8' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -683,13 +1044,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Король отходит на h1. Делайте Kh1!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('g1' as any);
+setLastMove({ from: 'g1', to: 'h1' });
+              setOpponentAnimatingMove({
+                from: 'g1',
+                to: 'h1',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'g1', to: 'h1' });
-          setLastMove({ from: 'g1', to: 'h1' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -701,13 +1075,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Король на g1. Делайте Kg1!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('h1' as any);
+setLastMove({ from: 'h1', to: 'g1' });
+              setOpponentAnimatingMove({
+                from: 'h1',
+                to: 'g1',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'h1', to: 'g1' });
-              setLastMove({ from: 'h1', to: 'g1' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -719,13 +1106,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Слон g5 — финальный удар! Делайте Bg5!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('d8' as any);
+setLastMove({ from: 'd8', to: 'g5' });
+              setOpponentAnimatingMove({
+                from: 'd8',
+                to: 'g5',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'd8', to: 'g5' });
-          setLastMove({ from: 'd8', to: 'g5' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -736,9 +1136,11 @@ setLastMove({ from: 'e1', to: 'g1' });
             setIsComplete(true);
             setMessage('Отлично! Дырокол выполнен! Чёрные сначала разменяли коня на f6, потом разрушили рокировку, и в конце поставили мат ладьёй на g5. Когда рокировка разрушена, белого короля легче атаковать!');
             saveStars(3, 3);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -750,6 +1152,7 @@ setLastMove({ from: 'e1', to: 'g1' });
         function isPieceOnSquareEx4(pos: Chess, sq: string, piece: string, color: 'w'|'b'): boolean {
           const p = pos.get(sq as any);
           if (!p) return false;
+          isProcessingRef.current = false;
           return p.type === piece && p.color === color;
         }
         function countFreeMovesEx4(pos: Chess): number {
@@ -757,6 +1160,7 @@ setLastMove({ from: 'e1', to: 'g1' });
           if (isPieceOnSquareEx4(pos, 'd6', 'p', 'b')) count++;
           if (isPieceOnSquareEx4(pos, 'f6', 'n', 'b')) count++;
           if (isPieceOnSquareEx4(pos, 'g4', 'b', 'b')) count++;
+          isProcessingRef.current = false;
           return count;
         }
         if (blackMoves === 0) {
@@ -767,13 +1171,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Отлично, пешка захватила центр');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('g1' as any);
+setLastMove({ from: 'g1', to: 'f3' });
+              setOpponentAnimatingMove({
+                from: 'g1',
+                to: 'f3',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'g1', to: 'f3' });
-            setLastMove({ from: 'g1', to: 'f3' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -785,13 +1202,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Отлично, конь вышел ближе к центру и защитил пешку e5');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('f1' as any);
+setLastMove({ from: 'f1', to: 'c4' });
+              setOpponentAnimatingMove({
+                from: 'f1',
+                to: 'c4',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'f1', to: 'c4' });
-          setLastMove({ from: 'f1', to: 'c4' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -803,13 +1233,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Отлично, слон вышел ближе к центру');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('d2' as any);
+setLastMove({ from: 'd2', to: 'd3' });
+              setOpponentAnimatingMove({
+                from: 'd2',
+                to: 'd3',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'd2', to: 'd3' });
-            setLastMove({ from: 'd2', to: 'd3' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -820,13 +1263,15 @@ setLastMove({ from: 'e1', to: 'g1' });
             (from === 'c8' && to === 'g4' && move.piece === 'b')
           );
           if (!isAllowed) {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
           const expectedCount = blackMoves - 2;
           const actualCount = countFreeMovesEx4(g);
           if (actualCount !== expectedCount) {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
           setGame(new Chess(g.fen()));
@@ -836,17 +1281,48 @@ setLastMove({ from: 'e1', to: 'g1' });
           setTimeout(() => {
             if (!mountedRef.current) return;
             if (blackMoves === 3) {
-              g.move({ from: 'b1', to: 'c3' });
-            setLastMove({ from: 'b1', to: 'c3' });
+              const wp1 = g.get('b1' as any);
+              setLastMove({ from: 'b1', to: 'c3' });
+              setOpponentAnimatingMove({
+                from: 'b1',
+                to: 'c3',
+                piece: { type: wp1?.type?.toUpperCase() || 'N', color: 'w' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'b1', to: 'c3' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
             } else if (blackMoves === 4) {
               g.move({ from: 'e1', to: 'g1' });
-            setLastMove({ from: 'e1', to: 'g1' });
+              setGame(new Chess(g.fen()));
+              setLastMove({ from: 'e1', to: 'g1' });
+              setOpponentAnimatingMoves([
+                { from: 'e1', to: 'g1', piece: { type: 'K', color: 'w' } },
+                { from: 'h1', to: 'f1', piece: { type: 'R', color: 'w' } },
+              ]);
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                setOpponentAnimatingMoves(null);
+              }, 200);
             } else {
-              g.move({ from: 'c1', to: 'g5' });
-     setLastMove({ from: 'c1', to: 'g5' });
+              const wb = g.get('c1' as any);
+              setLastMove({ from: 'c1', to: 'g5' });
+              setOpponentAnimatingMove({
+                from: 'c1',
+                to: 'g5',
+                piece: { type: wb?.type?.toUpperCase() || 'B', color: 'w' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'c1', to: 'g5' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
             }
-            setGame(new Chess(g.fen()));
           }, 1000);
+          isProcessingRef.current = false;
           return;
         }
         if (blackMoves === 6) {
@@ -857,13 +1333,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Конь забирает коня на f3 — размен! Делайте Nxf3!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('c3' as any);
+setLastMove({ from: 'c3', to: 'd5' });
+              setOpponentAnimatingMove({
+                from: 'c3',
+                to: 'd5',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'c3', to: 'd5' });
-            setLastMove({ from: 'c3', to: 'd5' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -875,13 +1364,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Пешка g берёт коня — линия f открыта! Делайте gxf3!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('g2' as any);
+setLastMove({ from: 'g2', to: 'f3' });
+              setOpponentAnimatingMove({
+                from: 'g2',
+                to: 'f3',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'g2', to: 'f3' });
-        setLastMove({ from: 'g2', to: 'f3' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -893,13 +1395,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Конь забирает коня на f6 — шах! Делайте Nxf6+!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('d5' as any);
+setLastMove({ from: 'd5', to: 'f6' });
+              setOpponentAnimatingMove({
+                from: 'd5',
+                to: 'f6',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'd5', to: 'f6' });
-          setLastMove({ from: 'd5', to: 'f6' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -911,13 +1426,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Пешка f открыта — это дырокол! Слон h6 атакует ладью. Делайте Bh6!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('g5' as any);
+setLastMove({ from: 'g5', to: 'h4' });
+              setOpponentAnimatingMove({
+                from: 'g5',
+                to: 'h4',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'g5', to: 'h4' });
-        setLastMove({ from: 'g5', to: 'h4' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -929,13 +1457,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Слон забирает ферзя на d8! Дырокол! Делайте Bxd8!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('h4' as any);
+setLastMove({ from: 'h4', to: 'd8' });
+              setOpponentAnimatingMove({
+                from: 'h4',
+                to: 'd8',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'h4', to: 'd8' });
-     setLastMove({ from: 'h4', to: 'd8' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -947,13 +1488,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Король отходит на h1. Делайте Kh1!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('g1' as any);
+setLastMove({ from: 'g1', to: 'h1' });
+              setOpponentAnimatingMove({
+                from: 'g1',
+                to: 'h1',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'g1', to: 'h1' });
-            setLastMove({ from: 'g1', to: 'h1' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -965,13 +1519,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Король на g1. Делайте Kg1!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('h1' as any);
+setLastMove({ from: 'h1', to: 'g1' });
+              setOpponentAnimatingMove({
+                from: 'h1',
+                to: 'g1',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'h1', to: 'g1' });
-    setLastMove({ from: 'h1', to: 'g1' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -983,13 +1550,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Слон g5 — финальный удар! Делайте Bg5!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('d8' as any);
+setLastMove({ from: 'd8', to: 'g5' });
+              setOpponentAnimatingMove({
+                from: 'd8',
+                to: 'g5',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'd8', to: 'g5' });
-              setLastMove({ from: 'd8', to: 'g5' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1000,9 +1580,11 @@ setLastMove({ from: 'e1', to: 'g1' });
             setIsComplete(true);
             setMessage('Отлично! Дырокол выполнен! Чёрные сначала разменяли коня на f6, потом разрушили рокировку, и в конце поставили мат ладьёй на g5. Когда рокировка разрушена, белого короля легче атаковать!');
             saveStars(4, 3);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1016,13 +1598,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('g1' as any);
+setLastMove({ from: 'g1', to: 'f3' });
+              setOpponentAnimatingMove({
+                from: 'g1',
+                to: 'f3',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'g1', to: 'f3' });
-            setLastMove({ from: 'g1', to: 'f3' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1033,13 +1628,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('f1' as any);
+setLastMove({ from: 'f1', to: 'c4' });
+              setOpponentAnimatingMove({
+                from: 'f1',
+                to: 'c4',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'f1', to: 'c4' });
-           setLastMove({ from: 'f1', to: 'c4' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1050,13 +1658,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('d2' as any);
+setLastMove({ from: 'd2', to: 'd3' });
+              setOpponentAnimatingMove({
+                from: 'd2',
+                to: 'd3',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'd2', to: 'd3' });
-            setLastMove({ from: 'd2', to: 'd3' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1067,13 +1688,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('b1' as any);
+setLastMove({ from: 'b1', to: 'c3' });
+              setOpponentAnimatingMove({
+                from: 'b1',
+                to: 'c3',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'b1', to: 'c3' });
-        setLastMove({ from: 'b1', to: 'c3' }); // Nc3
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1084,13 +1718,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('h2' as any);
+setLastMove({ from: 'h2', to: 'h3' });
+              setOpponentAnimatingMove({
+                from: 'h2',
+                to: 'h3',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'h2', to: 'h3' });
-            setLastMove({ from: 'h2', to: 'h3' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1101,13 +1748,24 @@ setLastMove({ from: 'e1', to: 'g1' });
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
               g.move({ from: 'e1', to: 'g1' });
-            setLastMove({ from: 'e1', to: 'g1' }); // O-O
               setGame(new Chess(g.fen()));
+              setLastMove({ from: 'e1', to: 'g1' });
+              setOpponentAnimatingMoves([
+                { from: 'e1', to: 'g1', piece: { type: 'K', color: 'w' } },
+                { from: 'h1', to: 'f1', piece: { type: 'R', color: 'w' } },
+              ]);
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                setOpponentAnimatingMoves(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1118,13 +1776,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('f3' as any);
+setLastMove({ from: 'f3', to: 'd2' });
+              setOpponentAnimatingMove({
+                from: 'f3',
+                to: 'd2',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'f3', to: 'd2' });
-            setLastMove({ from: 'f3', to: 'd2' }); // Nfd2
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1135,13 +1806,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('h3' as any);
+setLastMove({ from: 'h3', to: 'h4' });
+              setOpponentAnimatingMove({
+                from: 'h3',
+                to: 'h4',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'h3', to: 'h4' });
-            setLastMove({ from: 'h3', to: 'h4' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1152,13 +1836,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('g1' as any);
+setLastMove({ from: 'g1', to: 'h1' });
+              setOpponentAnimatingMove({
+                from: 'g1',
+                to: 'h1',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'g1', to: 'h1' });
-              setLastMove({ from: 'g1', to: 'h1' }); // Kh1
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1169,13 +1866,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('d2' as any);
+setLastMove({ from: 'd2', to: 'f3' });
+              setOpponentAnimatingMove({
+                from: 'd2',
+                to: 'f3',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'd2', to: 'f3' });
-            setLastMove({ from: 'd2', to: 'f3' }); // Ndf3
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1186,13 +1896,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('c3' as any);
+setLastMove({ from: 'c3', to: 'e2' });
+              setOpponentAnimatingMove({
+                from: 'c3',
+                to: 'e2',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'c3', to: 'e2' });
-              setLastMove({ from: 'c3', to: 'e2' }); // Ne2
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1203,13 +1926,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('f3' as any);
+setLastMove({ from: 'f3', to: 'h2' });
+              setOpponentAnimatingMove({
+                from: 'f3',
+                to: 'h2',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'f3', to: 'h2' });
-              setLastMove({ from: 'f3', to: 'h2' }); // Nxh2
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1220,13 +1956,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('e2' as any);
+setLastMove({ from: 'e2', to: 'g3' });
+              setOpponentAnimatingMove({
+                from: 'e2',
+                to: 'g3',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'e2', to: 'g3' });
-            setLastMove({ from: 'e2', to: 'g3' }); // Nxg3
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1237,13 +1986,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setBlackMoves(nextBlackMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('d1' as any);
+setLastMove({ from: 'd1', to: 'f3' });
+              setOpponentAnimatingMove({
+                from: 'd1',
+                to: 'f3',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'd1', to: 'f3' });
-            setLastMove({ from: 'd1', to: 'f3' }); // Qf3
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1254,9 +2016,11 @@ setLastMove({ from: 'e1', to: 'g1' });
             setIsComplete(true);
             setMessage('Мат! Пешечный штурм успешен! Чёрные прорвались через королевский фланг и поставили мат ферзём на h2!');
             saveStars(5, 3);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1268,12 +2032,14 @@ setLastMove({ from: 'e1', to: 'g1' });
         function isPieceOnSquareEx6(pos: Chess, sq: string, piece: string, color: 'w'|'b'): boolean {
           const p = pos.get(sq as any);
           if (!p) return false;
+          isProcessingRef.current = false;
           return p.type === piece && p.color === color;
         }
         function countFreeMovesEx6(pos: Chess): number {
           let count = 0;
           if (isPieceOnSquareEx6(pos, 'd6', 'p', 'b')) count++;
           if (isPieceOnSquareEx6(pos, 'f6', 'n', 'b')) count++;
+          isProcessingRef.current = false;
           return count;
         }
         if (blackMoves === 0) {
@@ -1284,13 +2050,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Отлично, пешка захватила центр');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('g1' as any);
+setLastMove({ from: 'g1', to: 'f3' });
+              setOpponentAnimatingMove({
+                from: 'g1',
+                to: 'f3',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'g1', to: 'f3' });
-              setLastMove({ from: 'g1', to: 'f3' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1302,13 +2081,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Отлично, конь вышел ближе к центру и защитил пешку e5');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('f1' as any);
+setLastMove({ from: 'f1', to: 'c4' });
+              setOpponentAnimatingMove({
+                from: 'f1',
+                to: 'c4',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'f1', to: 'c4' });
-              setLastMove({ from: 'f1', to: 'c4' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1320,13 +2112,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Отлично, слон вышел ближе к центру');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('d2' as any);
+setLastMove({ from: 'd2', to: 'd3' });
+              setOpponentAnimatingMove({
+                from: 'd2',
+                to: 'd3',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'd2', to: 'd3' });
-            setLastMove({ from: 'd2', to: 'd3' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1336,13 +2141,15 @@ setLastMove({ from: 'e1', to: 'g1' });
             (from === 'g8' && to === 'f6' && move.piece === 'n')
           );
           if (!isAllowed) {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
           const expectedCount = blackMoves - 2;
           const actualCount = countFreeMovesEx6(g);
           if (actualCount !== expectedCount) {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
           setGame(new Chess(g.fen()));
@@ -1352,14 +2159,38 @@ setLastMove({ from: 'e1', to: 'g1' });
           setTimeout(() => {
             if (!mountedRef.current) return;
             if (blackMoves === 3) {
-              g.move({ from: 'b1', to: 'c3' });
-            setLastMove({ from: 'b1', to: 'c3' });
+              const wp1 = g.get('b1' as any);
+              setLastMove({ from: 'b1', to: 'c3' });
+              setOpponentAnimatingMove({
+                from: 'b1',
+                to: 'c3',
+                piece: { type: wp1?.type?.toUpperCase() || 'N', color: 'w' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'b1', to: 'c3' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
             } else {
-              g.move({ from: 'h2', to: 'h3' });
-            setLastMove({ from: 'h2', to: 'h3' });
+              const g = game!;
+              const wp = g.get('h2' as any);
+setLastMove({ from: 'h2', to: 'h3' });
+              setLastMove({ from: 'h2', to: 'h3' });
+              setOpponentAnimatingMove({
+                from: 'h2',
+                to: 'h3',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'h2', to: 'h3' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
             }
-            setGame(new Chess(g.fen()));
           }, 1000);
+          isProcessingRef.current = false;
           return;
         }
         if (blackMoves === 5) {
@@ -1370,13 +2201,24 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Отлично! Готовим пешечный штурм.');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
               g.move({ from: 'e1', to: 'g1' });
-          setLastMove({ from: 'e1', to: 'g1' }); // O-O
               setGame(new Chess(g.fen()));
+              setLastMove({ from: 'e1', to: 'g1' });
+              setOpponentAnimatingMoves([
+                { from: 'e1', to: 'g1', piece: { type: 'K', color: 'w' } },
+                { from: 'h1', to: 'f1', piece: { type: 'R', color: 'w' } },
+              ]);
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                setOpponentAnimatingMoves(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1388,13 +2230,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Отлично! Начинаем пешечный штурм!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('f3' as any);
+setLastMove({ from: 'f3', to: 'd2' });
+              setOpponentAnimatingMove({
+                from: 'f3',
+                to: 'd2',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'f3', to: 'd2' });
-      setLastMove({ from: 'f3', to: 'd2' }); // Nfd2
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1406,13 +2261,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Отлично! Пешки наступают!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('h3' as any);
+setLastMove({ from: 'h3', to: 'h4' });
+              setOpponentAnimatingMove({
+                from: 'h3',
+                to: 'h4',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'h3', to: 'h4' });
-            setLastMove({ from: 'h3', to: 'h4' });
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1424,13 +2292,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Отлично! Прорыв пешками!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('g1' as any);
+setLastMove({ from: 'g1', to: 'h1' });
+              setOpponentAnimatingMove({
+                from: 'g1',
+                to: 'h1',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'g1', to: 'h1' });
-            setLastMove({ from: 'g1', to: 'h1' }); // Kh1
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1442,13 +2323,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Отлично! Слон врывается в позицию!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('d2' as any);
+setLastMove({ from: 'd2', to: 'f3' });
+              setOpponentAnimatingMove({
+                from: 'd2',
+                to: 'f3',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'd2', to: 'f3' });
-  setLastMove({ from: 'd2', to: 'f3' }); // Ndf3
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1460,13 +2354,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Отлично! Конь прорывается!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('c3' as any);
+setLastMove({ from: 'c3', to: 'e2' });
+              setOpponentAnimatingMove({
+                from: 'c3',
+                to: 'e2',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'c3', to: 'e2' });
-            setLastMove({ from: 'c3', to: 'e2' }); // Ne2
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1478,13 +2385,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Отлично! Конь врывается на h2!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('f3' as any);
+setLastMove({ from: 'f3', to: 'h2' });
+              setOpponentAnimatingMove({
+                from: 'f3',
+                to: 'h2',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'f3', to: 'h2' });
-            setLastMove({ from: 'f3', to: 'h2' }); // Nxh2
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1496,13 +2416,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Отлично! Ферзь выходит на атаку!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('e2' as any);
+setLastMove({ from: 'e2', to: 'g3' });
+              setOpponentAnimatingMove({
+                from: 'e2',
+                to: 'g3',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'e2', to: 'g3' });
-     setLastMove({ from: 'e2', to: 'g3' }); // Nxg3
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1514,13 +2447,26 @@ setLastMove({ from: 'e1', to: 'g1' });
             setPostMoveHint('Отлично! Слон забирает на g3!');
             setTimeout(() => {
               if (!mountedRef.current) return;
+              const g = game!;
+              const wp = g.get('d1' as any);
+setLastMove({ from: 'd1', to: 'f3' });
+              setOpponentAnimatingMove({
+                from: 'd1',
+                to: 'f3',
+                piece: { type: wp?.type?.toUpperCase() || 'P', color: 'w' },
+              });
+              setTimeout(() => {
+              if (!mountedRef.current) return;
               g.move({ from: 'd1', to: 'f3' });
-   setLastMove({ from: 'd1', to: 'f3' }); // Qf3
               setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove(null);
+              }, 200);
             }, 1000);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1531,9 +2477,11 @@ setLastMove({ from: 'e1', to: 'g1' });
             setIsComplete(true);
             setMessage('Мат! Пешечный штурм выполнен! Вы самостоятельно прошли всю партию!');
             saveStars(6, 3);
+            isProcessingRef.current = false;
             return;
           } else {
-            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
+            handleFailWithWhiteCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, setOpponentAnimatingMove, mountedRef);
+            isProcessingRef.current = false;
             return;
           }
         }
@@ -1544,14 +2492,9 @@ setLastMove({ from: 'e1', to: 'g1' });
   }, [game, blackMoves, saveStars, exercise]);
 
   const handleSquareClick = useCallback((square: string) => {
+    if (promotionPending) return;
     if (isCompleteRef.current || isFailRef.current) return;
     if (!game) return;
-
-    // Ignore click that immediately follows a drag gesture
-    if (justDraggedRef.current) {
-      return;
-    }
-
     const g = game;
     if (g.turn() !== 'b') return;
 
@@ -1566,91 +2509,16 @@ setLastMove({ from: 'e1', to: 'g1' });
         setSelectedSquare(square);
         return;
       }
-      const fromPiece = game.get(selectedSquare as any);
-      if (!fromPiece || fromPiece.color !== 'b') {
-        setSelectedSquare(null);
-        return;
-      }
       processBlackMove(selectedSquare, square);
-      setSelectedSquare(null);
     } else {
       if (piece && piece.color === 'b') {
         setSelectedSquare(square);
       }
     }
-  }, [game, selectedSquare, processBlackMove]);
+  }, [game, selectedSquare, processBlackMove, promotionPending]);
 
-  const handlePointerDown = useCallback((e: React.PointerEvent, square: string) => {
-    if (promotionPending) return;
-    if (isCompleteRef.current || isFailRef.current) return;
-    if (!game) return;
-    const g = game;
-    if (g.turn() !== 'b') return;
-    const piece = g.get(square as any);
-    if (!piece || piece.color !== 'b') return;
-    if (e.pointerType === 'touch' && !(e as any).isPrimary) return;
-    pointerStartRef.current = { x: e.clientX, y: e.clientY, square, moved: false, pointerId: e.pointerId };
-    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-  }, [game]);
 
-  useEffect(() => {
-    const handleGlobalMove = (e: PointerEvent) => {
-      const start = pointerStartRef.current;
-      if (!start) return;
-      if (e.pointerId !== start.pointerId) return;
-      const dx = e.clientX - start.x;
-      const dy = e.clientY - start.y;
-      if (!start.moved && (Math.abs(dx) > 20 || Math.abs(dy) > 20)) {
-        start.moved = true;
-        const piece = game?.get(start.square as any);
-        if (piece) {
-          setDragPiece({ square: start.square, type: piece.type.toUpperCase(), color: piece.color as 'w' | 'b' });
-          setSelectedSquare(null);
-        }
-      }
-      if (start.moved) {
-        setDragPos({ x: e.clientX, y: e.clientY });
-      }
-    };
-
-    const handleGlobalUp = (e: PointerEvent) => {
-      const start = pointerStartRef.current;
-      if (!start) return;
-      if (e.pointerId !== start.pointerId) return;
-      if (!start.moved) {
-        // click handled by onClick
-      } else {
-        const el = document.elementFromPoint(e.clientX, e.clientY);
-        const cell = el?.closest('[data-square]') as HTMLElement | null;
-        const targetSquare = cell?.dataset.square || null;
-        if (targetSquare && targetSquare !== start.square) {
-          processBlackMove(start.square, targetSquare);
-        }
-        setDragPiece(null);
-    setPromotionPending(null);
-        justDraggedRef.current = true;
-        setTimeout(() => { justDraggedRef.current = false; }, 50);
-      }
-      pointerStartRef.current = null;
-    };
-
-    const handleGlobalCancel = (e: PointerEvent) => {
-      if (pointerStartRef.current && e.pointerId === pointerStartRef.current.pointerId) {
-        setDragPiece(null);
-    setPromotionPending(null);
-        pointerStartRef.current = null;
-      }
-    };
-
-    window.addEventListener('pointermove', handleGlobalMove);
-    window.addEventListener('pointerup', handleGlobalUp);
-    window.addEventListener('pointercancel', handleGlobalCancel);
-    return () => {
-      window.removeEventListener('pointermove', handleGlobalMove);
-      window.removeEventListener('pointerup', handleGlobalUp);
-      window.removeEventListener('pointercancel', handleGlobalCancel);
-    };
-  }, [game, processBlackMove]);
+  // Drag is handled by UniversalChessBoardDesigner
 
   // ──── PROMOTION ────
   const handlePromotion = useCallback((pieceCode: string) => {
@@ -1817,169 +2685,76 @@ setLastMove({ from: 'e1', to: 'g1' });
 
         {/* Board */}
         <div className="flex justify-center w-full relative">
-          <div
-            className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none"
-            style={{
-              gridTemplateColumns: `repeat(8, ${sqSize}px)`,
-              gridTemplateRows: `repeat(8, ${sqSize}px)`,
-              touchAction: 'none',
-            }}
-          >
-            {DISPLAY_RANKS.map((rank, ri) => (
-              FILES.map((file, fi) => {
-                const sq = `${file}${rank}`;
-                const pieceObj = getPieceAt(sq);
-                const light = isLight(fi, ri);
-                const sel = selectedSquare === sq;
-                const isValidMove = validMoves.includes(sq);
-                const isDragSource = dragPiece?.square === sq;
-
-                return (
-                  <div
-                    key={sq}
-                    data-square={sq}
-                    className="flex items-center justify-center relative select-none"
-                    style={{
-                      width: sqSize,
-                      height: sqSize,
-                      cursor: pieceObj && pieceObj.color === 'b' && !isFail && !isComplete ? 'grab' : 'default',
-                      touchAction: 'none',
-                      backgroundColor: light ? 'var(--square-light)' : 'var(--square-dark)',
-                      opacity: isDragSource ? 0.3 : 1,
-                    }}
-                    onClick={() => handleSquareClick(sq)}
-                    onPointerDown={(e) => handlePointerDown(e, sq)}
-                    onDragStart={(e) => e.preventDefault()}
-                  >
-                    {sel && (
-                      <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
-                    )}
-                    {lastMove && sq === lastMove.from && (
-                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
-                    )}
-                    {lastMove && sq === lastMove.to && (
-                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.70)] pointer-events-none z-[5]" />
-                    )}
-
-                    {/* Rank numbers on the right side (a-file) */}
-                    {fi === 7 && (
-                      <span className={`absolute top-0.5 right-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>
-                        {rank}
-                      </span>
-                    )}
-                    {/* File letters on the bottom (rank 8) */}
-                    {ri === 7 && (
-                      <span className={`absolute bottom-0.5 right-1 text-[10px] font-bold ${light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'}`}>
-                        {file}
-                      </span>
-                    )}
-                    {isValidMove && !pieceObj && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
-                        <div
-                          style={{ 
-                            width: Math.round(sqSize * 0.3), 
-                            height: Math.round(sqSize * 0.3), 
-                            backgroundColor: 'var(--square-valid)', 
-                            borderRadius: '50%', 
-                            opacity: 0.85, 
-                          }}
-                        />
-                      </div>
-                    )}
-                    {isValidMove && pieceObj && (
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none" style={{ zIndex: 50 }}>
-                        <div
-                          style={{ 
-                            width: sqSize, 
-                            height: sqSize, 
-                            borderRadius: '50%', 
-                            border: '4px solid var(--square-valid)', 
-                            boxSizing: 'border-box', 
-                          }}
-                        />
-                      </div>
-                    )}
-                    {pieceObj && !isDragSource && (
-                      <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
-                        <PieceImg type={pieceObj.type} color={pieceObj.color} />
-                      </div>
-                    )}
-                  </div>
-                );
-              })
-            ))}
-          {promotionPending && (
-            <div className="absolute z-50 pointer-events-auto" style={{
-              left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
-              top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
-              width: sqSize,
-              height: 4 * sqSize,
-              backgroundColor: '#2C241B',
-              borderRadius: '0px',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
-            }}>
-              {PROMOTION_PIECES.map(({ code, name }) => (
-                <button
-                  key={code}
-                  onClick={() => handlePromotion(code)}
-                  className="w-full aspect-square flex items-center justify-center transition-all duration-150"
-                  style={{
-                    backgroundColor: 'transparent',
-                    border: '2px solid transparent',
-                    borderRadius: '0px',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
-                    e.currentTarget.style.borderColor = '#C9A84C';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'transparent';
-                    e.currentTarget.style.borderColor = 'transparent';
-                  }}
-                  onMouseDown={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.25)';
-                  }}
-                  onMouseUp={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
-                  }}
-                  title={name}
-                >
-                  <img
-                    src={`/pieces/cburnett/${promotionPending.from[1] === '2' ? 'b' : 'w'}${code.toUpperCase()}.svg`}
-                    alt={name}
-                    draggable={false}
-                    style={{ width: '70%', height: '70%', objectFit: 'contain' }}
-                  />
-                </button>
-              ))}
-            </div>
-          )}
-          </div>
-
-{/* Promotion panel */}
-
-
-          {/* Dragged piece overlay */}
-          {dragPiece && (
-            <div
-              className="fixed pointer-events-none z-50"
-              style={{
-                left: dragPos.x - sqSize * 0.425,
-                top: dragPos.y - sqSize * 0.425,
-                width: Math.round(sqSize * 0.85),
-                height: Math.round(sqSize * 0.85),
-              }}
-            >
-              <PieceImg type={dragPiece.type} color={dragPiece.color} />
-            </div>
-          )}
+          <UniversalChessBoardDesigner
+            fen={game?.fen() || ''}
+            selectedSquare={selectedSquare}
+            lastMove={lastMove}
+            autoValidMoves={true}
+            onMove={async (from, to, _promotion) => { await processBlackMove(from, to, undefined, true); }}
+            onSquareClick={handleSquareClick}
+            playerAnimatingMove={playerAnimatingMove}
+            playerAnimatingMoves={playerAnimatingMoves}
+            opponentAnimatingMove={opponentAnimatingMove}
+            opponentAnimatingMoves={opponentAnimatingMoves}
+            interactive={!isComplete && !isFail}
+            disableAutoGhost={true}
+            isReversed={true}
+            sqSize={sqSize}
+            absoluteOverlay={
+              promotionPending ? (
+                <div className="absolute z-50 pointer-events-auto" style={{
+                  left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
+                  top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
+                  width: sqSize,
+                  height: 4 * sqSize,
+                  backgroundColor: '#2C241B',
+                  borderRadius: '0px',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                }}>
+                  {PROMOTION_PIECES.map(({ code, name }) => (
+                    <button
+                      key={code}
+                      onClick={() => handlePromotion(code)}
+                      className="w-full aspect-square flex items-center justify-center transition-all duration-150"
+                      style={{
+                        backgroundColor: 'transparent',
+                        border: '2px solid transparent',
+                        borderRadius: '0px',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
+                        e.currentTarget.style.borderColor = '#C9A84C';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                        e.currentTarget.style.borderColor = 'transparent';
+                      }}
+                      onMouseDown={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.25)';
+                      }}
+                      onMouseUp={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
+                      }}
+                      title={name}
+                    >
+                      <img
+                        src={`/pieces/cburnett/${promotionPending.from[1] === '2' ? 'b' : 'w'}${code.toUpperCase()}.svg`}
+                        alt={name}
+                        draggable={false}
+                        style={{ width: '70%', height: '70%', objectFit: 'contain' }}
+                      />
+                    </button>
+                  ))}
+                </div>
+              ) : null
+            }
+          />
         </div>
-
         {/* Mobile exercise pills */}
         <div className="flex lg:hidden gap-[1px] w-full">
           {[1,2,3,4,5,6].map((num) => {

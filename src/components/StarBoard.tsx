@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Chess } from 'chess.js';
 import SimpleChessBoard from './SimpleChessBoard';
 import { Star, CheckCircle, RotateCcw } from 'lucide-react';
 
@@ -13,73 +12,56 @@ interface Props {
 }
 
 export default function StarBoard({ fen, stars, allowedPieces = [], onComplete }: Props) {
-  const [game] = useState(() => new Chess(fen));
-  const [position, setPosition] = useState(fen);
   const [collectedStars, setCollectedStars] = useState<Set<string>>(new Set());
   const [message, setMessage] = useState('');
   const [isComplete, setIsComplete] = useState(false);
   const [moveCount, setMoveCount] = useState(0);
+  const [boardKey, setBoardKey] = useState(0);
 
   const remainingStars = stars.filter(s => !collectedStars.has(s)).length;
 
   const handleMove = useCallback(
-    (from: string, to: string) => {
-      if (isComplete) return false;
-
-      const piece = game.get(from as any);
-      if (!piece) return false;
+    (from: string, to: string, pieceType: string) => {
+      if (isComplete) return;
 
       // Validate allowed pieces
-      if (allowedPieces.length > 0 && !allowedPieces.includes(piece.type)) {
+      if (allowedPieces.length > 0 && !allowedPieces.includes(pieceType)) {
         setMessage(`Используйте ${getPieceName(allowedPieces[0])}!`);
-        return false;
+        return;
       }
 
-      try {
-        const move = game.move({ from, to });
-        if (move) {
-          setPosition(game.fen());
-          setMoveCount(c => c + 1);
-          setMessage('');
+      setMoveCount(c => c + 1);
+      setMessage('');
 
-          // Check star collection
-          if (stars.includes(to) && !collectedStars.has(to)) {
-            setCollectedStars(prev => {
-              const next = new Set(prev);
-              next.add(to);
-              return next;
-            });
+      // Check star collection
+      if (stars.includes(to) && !collectedStars.has(to)) {
+        setCollectedStars(prev => {
+          const next = new Set(prev);
+          next.add(to);
+          return next;
+        });
 
-            const newCollected = collectedStars.size + 1;
-            const stillRemaining = stars.length - newCollected;
+        const newCount = collectedStars.size + 1;
+        const stillRemaining = stars.length - newCount;
 
-            if (stillRemaining === 0) {
-              setIsComplete(true);
-              setMessage('🎉 Отлично! Все звёзды собраны!');
-              onComplete?.();
-            } else {
-              setMessage(`⭐ Собрано! Осталось ${stillRemaining} звёзд`);
-            }
-          }
-
-          return true;
+        if (stillRemaining === 0) {
+          setIsComplete(true);
+          setMessage('🎉 Отлично! Все звёзды собраны!');
+          onComplete?.();
+        } else {
+          setMessage(`⭐ Собрано! Осталось ${stillRemaining} звёзд`);
         }
-      } catch {
-        setMessage('Недопустимый ход');
       }
-      return false;
     },
-    [game, stars, collectedStars, allowedPieces, isComplete, onComplete]
+    [stars, collectedStars, allowedPieces, isComplete, onComplete]
   );
 
   const reset = () => {
-    const newGame = new Chess(fen);
-    game.load(fen);
-    setPosition(fen);
     setCollectedStars(new Set());
     setMessage('');
     setIsComplete(false);
     setMoveCount(0);
+    setBoardKey(k => k + 1); // Force board remount
   };
 
   return (
@@ -119,9 +101,11 @@ export default function StarBoard({ fen, stars, allowedPieces = [], onComplete }
 
       {/* Board */}
       <SimpleChessBoard
-        fen={position}
+        key={boardKey}
+        fen={fen}
         stars={stars.filter(s => !collectedStars.has(s))}
         onMove={handleMove}
+        allowedPieces={allowedPieces}
       />
 
       {/* Controls */}

@@ -117,7 +117,9 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
   const [game, setGame] = useState<Chess | null>(null);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
+  const [playerAnimatingMoves, setPlayerAnimatingMoves] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } }[] | null>(null);
   const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
+  const [opponentAnimatingMoves, setOpponentAnimatingMoves] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } }[] | null>(null);
   const [message, setMessage] = useState('');
   const [isFail, setIsFail] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
@@ -225,7 +227,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
     }
   }, [exercise, whiteMoves, isComplete, isFail, hintVisible]);
 
-  const processWhiteMove = useCallback((from: string, to: string, promotionPiece?: string) => {
+  const processWhiteMove = useCallback(async (from: string, to: string, promotionPiece?: string, skipAnimation = false) => {
     if (!game) return;
     setHintVisible(false);
     const g = game;
@@ -240,6 +242,30 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
       }
       const move = g.move({ from, to, promotion: promotionPiece });
       if (!move) return;
+      setLastMove({ from, to });
+
+      if (!skipAnimation) {
+        const isCastle = move.piece === 'k' && Math.abs(from.charCodeAt(0) - to.charCodeAt(0)) === 2;
+        if (isCastle) {
+          const isShort = to === 'g1';
+          const rookFrom = isShort ? 'h1' : 'a1';
+          const rookTo = isShort ? 'f1' : 'd1';
+          setPlayerAnimatingMoves([
+            { from, to, piece: { type: 'K', color: 'w' } },
+            { from: rookFrom, to: rookTo, piece: { type: 'R', color: 'w' } },
+          ]);
+          await new Promise(resolve => setTimeout(resolve, 200));
+          setPlayerAnimatingMoves(null);
+        } else {
+          setPlayerAnimatingMove({
+            from,
+            to,
+            piece: { type: move.piece.toUpperCase(), color: 'w' },
+          });
+          await new Promise(resolve => setTimeout(resolve, 200));
+          setPlayerAnimatingMove(null);
+        }
+      }
 
       const nextWhiteMoves = whiteMoves + 1;
 
@@ -252,10 +278,20 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'e7', to: 'e5' });
-          setLastMove({ from: 'e7', to: 'e5' });
-              setGame(new Chess(g.fen()));
-            }, 1000);
+              const blackPiece = g.get('e7' as any);
+              setLastMove({ from: 'e7', to: 'e5' });
+              setOpponentAnimatingMove({
+                from: 'e7',
+                to: 'e5',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'e7', to: 'e5' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -269,10 +305,20 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'b8', to: 'c6' });
-            setLastMove({ from: 'b8', to: 'c6' });
-              setGame(new Chess(g.fen()));
-            }, 1000);
+              const blackPiece = g.get('b8' as any);
+              setLastMove({ from: 'b8', to: 'c6' });
+              setOpponentAnimatingMove({
+                from: 'b8',
+                to: 'c6',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'b8', to: 'c6' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -286,10 +332,20 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'f8', to: 'c5' });
-            setLastMove({ from: 'f8', to: 'c5' });
-              setGame(new Chess(g.fen()));
-            }, 1000);
+              const blackPiece = g.get('f8' as any);
+              setLastMove({ from: 'f8', to: 'c5' });
+              setOpponentAnimatingMove({
+                from: 'f8',
+                to: 'c5',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'f8', to: 'c5' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -303,10 +359,20 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'g8', to: 'f6' });
-           setLastMove({ from: 'g8', to: 'f6' });
-              setGame(new Chess(g.fen()));
-            }, 1000);
+              const blackPiece = g.get('g8' as any);
+              setLastMove({ from: 'g8', to: 'f6' });
+              setOpponentAnimatingMove({
+                from: 'g8',
+                to: 'f6',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'g8', to: 'f6' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -320,10 +386,20 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'e8', to: 'g8' });
-          setLastMove({ from: 'e8', to: 'g8' });
-              setGame(new Chess(g.fen()));
-            }, 1000);
+              const blackPiece = g.get('e8' as any);
+              const rookPiece = g.get('h8' as any);
+              setLastMove({ from: 'e8', to: 'g8' });
+              setOpponentAnimatingMoves([
+                { from: 'e8', to: 'g8', piece: { type: blackPiece?.type?.toUpperCase() || 'K', color: 'b' } },
+                { from: 'h8', to: 'f8', piece: { type: rookPiece?.type?.toUpperCase() || 'R', color: 'b' } },
+              ]);
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'e8', to: 'g8' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMoves(null);
+              }, 200);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -337,10 +413,20 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'd7', to: 'd6' });
-        setLastMove({ from: 'd7', to: 'd6' });
-              setGame(new Chess(g.fen()));
-            }, 1000);
+              const blackPiece = g.get('d7' as any);
+              setLastMove({ from: 'd7', to: 'd6' });
+              setOpponentAnimatingMove({
+                from: 'd7',
+                to: 'd6',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'd7', to: 'd6' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -391,10 +477,20 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'e7', to: 'e5' });
-setLastMove({ from: 'e7', to: 'e5' });
-              setGame(new Chess(g.fen()));
-            }, 1000);
+              const blackPiece = g.get('e7' as any);
+              setLastMove({ from: 'e7', to: 'e5' });
+              setOpponentAnimatingMove({
+                from: 'e7',
+                to: 'e5',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'e7', to: 'e5' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
+            }, 800);
             setMessage('Отлично! Пешка захватила центр.');
             return;
           } else {
@@ -409,10 +505,20 @@ setLastMove({ from: 'e7', to: 'e5' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'b8', to: 'c6' });
-            setLastMove({ from: 'b8', to: 'c6' });
-              setGame(new Chess(g.fen()));
-            }, 1000);
+              const blackPiece = g.get('b8' as any);
+              setLastMove({ from: 'b8', to: 'c6' });
+              setOpponentAnimatingMove({
+                from: 'b8',
+                to: 'c6',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'b8', to: 'c6' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
+            }, 800);
             setMessage('Отлично! Конь вышел ближе к центру и напал на пешку e5.');
             return;
           } else {
@@ -427,10 +533,20 @@ setLastMove({ from: 'e7', to: 'e5' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'f8', to: 'c5' });
-            setLastMove({ from: 'f8', to: 'c5' });
-              setGame(new Chess(g.fen()));
-            }, 1000);
+              const blackPiece = g.get('f8' as any);
+              setLastMove({ from: 'f8', to: 'c5' });
+              setOpponentAnimatingMove({
+                from: 'f8',
+                to: 'c5',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'f8', to: 'c5' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
+            }, 800);
             setMessage('Отлично! Слон вышел ближе к центру.');
             return;
           } else {
@@ -458,24 +574,59 @@ setLastMove({ from: 'e7', to: 'e5' });
             if (whiteMoves === 3) {
               const nf6 = g.moves({ verbose: true }).find((m: any) => m.color === 'b' && m.piece === 'n' && m.to === 'f6');
               if (nf6) {
-              g.move({ from: nf6.from, to: nf6.to });
-              setLastMove({ from: nf6.from, to: nf6.to });
-            }
+                const bp = g.get(nf6.from as any);
+                setLastMove({ from: nf6.from, to: nf6.to });
+                setOpponentAnimatingMove({
+                  from: nf6.from,
+                  to: nf6.to,
+                  piece: { type: bp?.type?.toUpperCase() || 'N', color: 'b' },
+                });
+                setTimeout(() => {
+                  if (!mountedRef.current) return;
+                  g.move({ from: nf6.from, to: nf6.to });
+                  setGame(new Chess(g.fen()));
+                  setOpponentAnimatingMove(null);
+                }, 200);
+              }
             } else if (whiteMoves === 4) {
               const castle = g.moves({ verbose: true }).find((m: any) => m.color === 'b' && m.piece === 'k' && (m.to === 'g8' || m.to === 'c8'));
               if (castle) {
-            g.move({ from: castle.from, to: castle.to });
-            setLastMove({ from: castle.from, to: castle.to });
-          }
+                const bp = g.get(castle.from as any);
+                const isShort = castle.to === 'g8';
+                const rookFrom = isShort ? 'h8' : 'a8';
+                const rookTo = isShort ? 'f8' : 'd8';
+                const rp = g.get(rookFrom as any);
+                setLastMove({ from: castle.from, to: castle.to });
+                setOpponentAnimatingMoves([
+                  { from: castle.from, to: castle.to, piece: { type: bp?.type?.toUpperCase() || 'K', color: 'b' } },
+                  { from: rookFrom, to: rookTo, piece: { type: rp?.type?.toUpperCase() || 'R', color: 'b' } },
+                ]);
+                setTimeout(() => {
+                  if (!mountedRef.current) return;
+                  g.move({ from: castle.from, to: castle.to });
+                  setGame(new Chess(g.fen()));
+                  setOpponentAnimatingMoves(null);
+                }, 200);
+              }
             } else if (whiteMoves === 5) {
               const d6 = g.moves({ verbose: true }).find((m: any) => m.color === 'b' && m.piece === 'p' && m.to === 'd6');
               if (d6) {
-                g.move({ from: d6.from, to: d6.to });
+                const bp = g.get(d6.from as any);
                 setLastMove({ from: d6.from, to: d6.to });
+                setOpponentAnimatingMove({
+                  from: d6.from,
+                  to: d6.to,
+                  piece: { type: bp?.type?.toUpperCase() || 'P', color: 'b' },
+                });
+                setTimeout(() => {
+                  if (!mountedRef.current) return;
+                  g.move({ from: d6.from, to: d6.to });
+                  setGame(new Chess(g.fen()));
+                  setOpponentAnimatingMove(null);
+                }, 200);
               }
             }
-            setGame(new Chess(g.fen()));
-          }, 1000);
+          }, 800);
           if (whiteMoves === 6) {
             setIsComplete(true);
             setMessage('Отлично! Все фигуры развиты и король в безопасности.');
@@ -494,11 +645,21 @@ setLastMove({ from: 'e7', to: 'e5' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'e7', to: 'e5' });
-    setLastMove({ from: 'e7', to: 'e5' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('e7' as any);
+              setLastMove({ from: 'e7', to: 'e5' });
+              setOpponentAnimatingMove({
+                from: 'e7',
+                to: 'e5',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'e7', to: 'e5' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Конь выходит на f3 — защищает пешку e4 и готовит развитие. Сделайте Nf3!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -512,11 +673,21 @@ setLastMove({ from: 'e7', to: 'e5' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'b8', to: 'c6' });
-   setLastMove({ from: 'b8', to: 'c6' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('b8' as any);
+              setLastMove({ from: 'b8', to: 'c6' });
+              setOpponentAnimatingMove({
+                from: 'b8',
+                to: 'c6',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'b8', to: 'c6' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Отлично! Конь на f3 развит. Теперь разведите слона на c4 — классическая итальянская партия. Сделайте Bc4!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -530,11 +701,21 @@ setLastMove({ from: 'e7', to: 'e5' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'f8', to: 'c5' });
+              const blackPiece = g.get('f8' as any);
               setLastMove({ from: 'f8', to: 'c5' });
-              setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove({
+                from: 'f8',
+                to: 'c5',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'f8', to: 'c5' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Слон на c4 разведён. d3 — тихая итальянская, готовим позицию для дырокола. Сделайте d3!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -548,11 +729,21 @@ setLastMove({ from: 'e7', to: 'e5' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'g8', to: 'f6' });
+              const blackPiece = g.get('g8' as any);
               setLastMove({ from: 'g8', to: 'f6' });
-              setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove({
+                from: 'g8',
+                to: 'f6',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'g8', to: 'f6' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Пешка d3 защищена. Конь c3 развивает фигуры и готовится к центру. Сделайте Nc3!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -566,11 +757,21 @@ setLastMove({ from: 'e7', to: 'e5' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'd7', to: 'd6' });
-            setLastMove({ from: 'd7', to: 'd6' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('d7' as any);
+              setLastMove({ from: 'd7', to: 'd6' });
+              setOpponentAnimatingMove({
+                from: 'd7',
+                to: 'd6',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'd7', to: 'd6' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Конь на c3 развит. Слон g5 связывает коня f6 — начало дырокола! Сделайте Bg5!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -584,11 +785,21 @@ setLastMove({ from: 'e7', to: 'e5' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'e8', to: 'g8' });
-            setLastMove({ from: 'e8', to: 'g8' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('e8' as any);
+              const rookPiece = g.get('h8' as any);
+              setLastMove({ from: 'e8', to: 'g8' });
+              setOpponentAnimatingMoves([
+                { from: 'e8', to: 'g8', piece: { type: blackPiece?.type?.toUpperCase() || 'K', color: 'b' } },
+                { from: 'h8', to: 'f8', piece: { type: rookPiece?.type?.toUpperCase() || 'R', color: 'b' } },
+              ]);
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'e8', to: 'g8' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMoves(null);
+              }, 200);
               setMessage('Чёрные рокировались! Это ключевой момент — мы НЕ рокировали и можем атаковать. Конь d5!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -602,11 +813,21 @@ setLastMove({ from: 'e7', to: 'e5' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'c8', to: 'g4' });
-            setLastMove({ from: 'c8', to: 'g4' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('c8' as any);
+              setLastMove({ from: 'c8', to: 'g4' });
+              setOpponentAnimatingMove({
+                from: 'c8',
+                to: 'g4',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'c8', to: 'g4' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Конь забирает коня на f6 — размен! Делайте Nxf6!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -620,11 +841,21 @@ setLastMove({ from: 'e7', to: 'e5' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'g7', to: 'f6' });
- setLastMove({ from: 'g7', to: 'f6' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('g7' as any);
+              setLastMove({ from: 'g7', to: 'f6' });
+              setOpponentAnimatingMove({
+                from: 'g7',
+                to: 'f6',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'g7', to: 'f6' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Пешка f открыта — это дырокол! Слон h6 атакует ладью. Делайте Bh6!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -638,11 +869,21 @@ setLastMove({ from: 'e7', to: 'e5' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'f8', to: 'e8' });
-setLastMove({ from: 'f8', to: 'e8' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('f8' as any);
+              setLastMove({ from: 'f8', to: 'e8' });
+              setOpponentAnimatingMove({
+                from: 'f8',
+                to: 'e8',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'f8', to: 'e8' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('h3 гоним слона g4. Делайте h3!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -656,11 +897,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'g4', to: 'f3' });
-            setLastMove({ from: 'g4', to: 'f3' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('g4' as any);
+              setLastMove({ from: 'g4', to: 'f3' });
+              setOpponentAnimatingMove({
+                from: 'g4',
+                to: 'f3',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'g4', to: 'f3' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Пешка g берёт слона — линия f открыта! Делайте gxf3!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -674,11 +925,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'c6', to: 'd4' });
-            setLastMove({ from: 'c6', to: 'd4' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('c6' as any);
+              setLastMove({ from: 'c6', to: 'd4' });
+              setOpponentAnimatingMove({
+                from: 'c6',
+                to: 'd4',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'c6', to: 'd4' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Ладья g1 защищает пешку f3. Делайте Rg1!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -692,11 +953,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'g8', to: 'h8' });
-          setLastMove({ from: 'g8', to: 'h8' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('g8' as any);
+              setLastMove({ from: 'g8', to: 'h8' });
+              setOpponentAnimatingMove({
+                from: 'g8',
+                to: 'h8',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'g8', to: 'h8' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Слон g7 — шах! Делайте Bg7+!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -710,11 +981,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'h8', to: 'g8' });
+              const blackPiece = g.get('h8' as any);
               setLastMove({ from: 'h8', to: 'g8' });
-              setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove({
+                from: 'h8',
+                to: 'g8',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'h8', to: 'g8' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Слон забирает пешку f6 с шахом! Делайте Bxf6+!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -728,11 +1009,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'g8', to: 'f8' });
+              const blackPiece = g.get('g8' as any);
               setLastMove({ from: 'g8', to: 'f8' });
-              setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove({
+                from: 'g8',
+                to: 'f8',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'g8', to: 'f8' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Слон забирает ферзя на d8! Дырокол выполнен! Делайте Bxd8!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -776,11 +1067,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'e7', to: 'e5' });
-            setLastMove({ from: 'e7', to: 'e5' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('e7' as any);
+              setLastMove({ from: 'e7', to: 'e5' });
+              setOpponentAnimatingMove({
+                from: 'e7',
+                to: 'e5',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'e7', to: 'e5' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Отлично! Пешка захватила центр.');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -794,11 +1095,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'b8', to: 'c6' });
-    setLastMove({ from: 'b8', to: 'c6' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('b8' as any);
+              setLastMove({ from: 'b8', to: 'c6' });
+              setOpponentAnimatingMove({
+                from: 'b8',
+                to: 'c6',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'b8', to: 'c6' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Отлично! Конь вышел ближе к центру и напал на пешку e5.');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -812,11 +1123,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'f8', to: 'c5' });
+              const blackPiece = g.get('f8' as any);
               setLastMove({ from: 'f8', to: 'c5' });
-              setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove({
+                from: 'f8',
+                to: 'c5',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'f8', to: 'c5' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Отлично! Слон вышел ближе к центру.');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -846,17 +1167,49 @@ setLastMove({ from: 'f8', to: 'e8' });
           setTimeout(() => {
             if (!mountedRef.current) return;
             if (whiteMoves === 3) {
-              g.move({ from: 'g8', to: 'f6' });
+              const blackPieceNf6 = g.get('g8' as any);
               setLastMove({ from: 'g8', to: 'f6' });
+              setOpponentAnimatingMove({
+                from: 'g8',
+                to: 'f6',
+                piece: { type: blackPieceNf6?.type?.toUpperCase() || 'N', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'g8', to: 'f6' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
             } else if (whiteMoves === 4) {
-              g.move({ from: 'd7', to: 'd6' });
+              const blackPieceD6 = g.get('d7' as any);
               setLastMove({ from: 'd7', to: 'd6' });
+              setOpponentAnimatingMove({
+                from: 'd7',
+                to: 'd6',
+                piece: { type: blackPieceD6?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'd7', to: 'd6' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
             } else if (whiteMoves === 5) {
-              g.move({ from: 'e8', to: 'g8' });
+              const blackPiece = g.get('e8' as any);
+              const rookPiece = g.get('h8' as any);
               setLastMove({ from: 'e8', to: 'g8' });
+              setOpponentAnimatingMoves([
+                { from: 'e8', to: 'g8', piece: { type: blackPiece?.type?.toUpperCase() || 'K', color: 'b' } },
+                { from: 'h8', to: 'f8', piece: { type: rookPiece?.type?.toUpperCase() || 'R', color: 'b' } },
+              ]);
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'e8', to: 'g8' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMoves(null);
+              }, 200);
             }
-            setGame(new Chess(g.fen()));
-          }, 1000);
+          }, 800);
           if (whiteMoves === 5) {
             setMessage('Отлично! Чёрные рокировались — дырокол начинается! Конь d5!');
           } else {
@@ -872,11 +1225,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'c8', to: 'g4' });
-            setLastMove({ from: 'c8', to: 'g4' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('c8' as any);
+              setLastMove({ from: 'c8', to: 'g4' });
+              setOpponentAnimatingMove({
+                from: 'c8',
+                to: 'g4',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'c8', to: 'g4' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Отлично! Конь идёт на d5 — атака! Nxf6!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -891,11 +1254,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'g7', to: 'f6' });
+              const blackPiece = g.get('g7' as any);
               setLastMove({ from: 'g7', to: 'f6' });
-              setGame(new Chess(g.fen()));
+              setOpponentAnimatingMove({
+                from: 'g7',
+                to: 'f6',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'g7', to: 'f6' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Отлично! Разменяли коня на f6, открыли пешку. Слон h6!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -910,11 +1283,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'f8', to: 'e8' });
-          setLastMove({ from: 'f8', to: 'e8' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('f8' as any);
+              setLastMove({ from: 'f8', to: 'e8' });
+              setOpponentAnimatingMove({
+                from: 'f8',
+                to: 'e8',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'f8', to: 'e8' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Отлично! Слон h6 атакует ладью, готовим дырокол. h3!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -929,11 +1312,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'g4', to: 'f3' });
-        setLastMove({ from: 'g4', to: 'f3' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('g4' as any);
+              setLastMove({ from: 'g4', to: 'f3' });
+              setOpponentAnimatingMove({
+                from: 'g4',
+                to: 'f3',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'g4', to: 'f3' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Отлично! h3 гоним слона g4. gxf3!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -948,11 +1341,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'c6', to: 'd4' });
-            setLastMove({ from: 'c6', to: 'd4' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('c6' as any);
+              setLastMove({ from: 'c6', to: 'd4' });
+              setOpponentAnimatingMove({
+                from: 'c6',
+                to: 'd4',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'c6', to: 'd4' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Отлично! Пешка g берёт слона, открывая линию f. Ладья g1!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -967,11 +1370,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'g8', to: 'h8' });
-            setLastMove({ from: 'g8', to: 'h8' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('g8' as any);
+              setLastMove({ from: 'g8', to: 'h8' });
+              setOpponentAnimatingMove({
+                from: 'g8',
+                to: 'h8',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'g8', to: 'h8' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Отлично! Ладья защищает пешку f3. Bg7+!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -986,11 +1399,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'h8', to: 'g8' });
-            setLastMove({ from: 'h8', to: 'g8' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('h8' as any);
+              setLastMove({ from: 'h8', to: 'g8' });
+              setOpponentAnimatingMove({
+                from: 'h8',
+                to: 'g8',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'h8', to: 'g8' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Отлично! Шах слоном g7! Bxf6+!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1005,11 +1428,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'g8', to: 'f8' });
-    setLastMove({ from: 'g8', to: 'f8' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('g8' as any);
+              setLastMove({ from: 'g8', to: 'f8' });
+              setOpponentAnimatingMove({
+                from: 'g8',
+                to: 'f8',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'g8', to: 'f8' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Отлично! Шах слоном f6, король уходит на f8. Bxd8!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1054,11 +1487,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'e7', to: 'e5' });
-        setLastMove({ from: 'e7', to: 'e5' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('e7' as any);
+              setLastMove({ from: 'e7', to: 'e5' });
+              setOpponentAnimatingMove({
+                from: 'e7',
+                to: 'e5',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'e7', to: 'e5' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Конь выходит на f3 — защищает пешку e4 и готовит развитие. Сделайте Nf3!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1073,11 +1516,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'b8', to: 'c6' });
-    setLastMove({ from: 'b8', to: 'c6' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('b8' as any);
+              setLastMove({ from: 'b8', to: 'c6' });
+              setOpponentAnimatingMove({
+                from: 'b8',
+                to: 'c6',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'b8', to: 'c6' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Отлично! Вы развели слона на c4 — классическая итальянская партия. Сделайте Bc4!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1092,11 +1545,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'f8', to: 'c5' });
-          setLastMove({ from: 'f8', to: 'c5' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('f8' as any);
+              setLastMove({ from: 'f8', to: 'c5' });
+              setOpponentAnimatingMove({
+                from: 'f8',
+                to: 'c5',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'f8', to: 'c5' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('d3 — тихая итальянская, готовим позицию. Сделайте d3!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1125,15 +1588,36 @@ setLastMove({ from: 'f8', to: 'e8' });
           setTimeout(() => {
             if (!mountedRef.current) return;
             if (whiteMoves === 3) {
-              g.move({ from: 'h7', to: 'h6' });
+              const bpH6 = g.get('h7' as any);
               setLastMove({ from: 'h7', to: 'h6' });
+              setOpponentAnimatingMove({
+                from: 'h7',
+                to: 'h6',
+                piece: { type: bpH6?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'h7', to: 'h6' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
             } else {
-              g.move({ from: 'g8', to: 'f6' });
-    setLastMove({ from: 'g8', to: 'f6' });
+              const blackPiece = g.get('g8' as any);
+              setLastMove({ from: 'g8', to: 'f6' });
+              setOpponentAnimatingMove({
+                from: 'g8',
+                to: 'f6',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'g8', to: 'f6' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
             }
-            setGame(new Chess(g.fen()));
             setMessage('h3 — не даём слону чёрных выйти на g4. Сделайте h3!');
-          }, 1000);
+          }, 800);
           return;
         }
         // Move 5: h3
@@ -1144,11 +1628,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'e8', to: 'g8' });
-            setLastMove({ from: 'e8', to: 'g8' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('e8' as any);
+              const rookPiece = g.get('h8' as any);
+              setLastMove({ from: 'e8', to: 'g8' });
+              setOpponentAnimatingMoves([
+                { from: 'e8', to: 'g8', piece: { type: blackPiece?.type?.toUpperCase() || 'K', color: 'b' } },
+                { from: 'h8', to: 'f8', piece: { type: rookPiece?.type?.toUpperCase() || 'R', color: 'b' } },
+              ]);
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'e8', to: 'g8' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMoves(null);
+              }, 200);
               setMessage('g4 — начинаем пешечный штурм на королевском фланге! Сделайте g4!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1163,11 +1657,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'd7', to: 'd6' });
-          setLastMove({ from: 'd7', to: 'd6' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('d7' as any);
+              setLastMove({ from: 'd7', to: 'd6' });
+              setOpponentAnimatingMove({
+                from: 'd7',
+                to: 'd6',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'd7', to: 'd6' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('g5 — давим пешками! Сделайте g5!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1182,11 +1686,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'h6', to: 'g5' });
-          setLastMove({ from: 'h6', to: 'g5' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('h6' as any);
+              setLastMove({ from: 'h6', to: 'g5' });
+              setOpponentAnimatingMove({
+                from: 'h6',
+                to: 'g5',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'h6', to: 'g5' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Белый слон забирает пешку на g5. Сделайте Bxg5!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1201,11 +1715,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'c8', to: 'e6' });
-            setLastMove({ from: 'c8', to: 'e6' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('c8' as any);
+              setLastMove({ from: 'c8', to: 'e6' });
+              setOpponentAnimatingMove({
+                from: 'c8',
+                to: 'e6',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'c8', to: 'e6' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Ферзь d2 — готовим атаку. Сделайте Qd2!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1220,11 +1744,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'f8', to: 'e8' });
-          setLastMove({ from: 'f8', to: 'e8' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('f8' as any);
+              setLastMove({ from: 'f8', to: 'e8' });
+              setOpponentAnimatingMove({
+                from: 'f8',
+                to: 'e8',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'f8', to: 'e8' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('O-O-O — длинная рокировка, уводим короля и подключаем ладью. Сделайте O-O-O!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1239,11 +1773,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'd8', to: 'd7' });
-          setLastMove({ from: 'd8', to: 'd7' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('d8' as any);
+              setLastMove({ from: 'd8', to: 'd7' });
+              setOpponentAnimatingMove({
+                from: 'd8',
+                to: 'd7',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'd8', to: 'd7' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Слон забирает коня на f6. Сделайте Bxf6!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1258,11 +1802,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'g7', to: 'f6' });
-          setLastMove({ from: 'g7', to: 'f6' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('g7' as any);
+              setLastMove({ from: 'g7', to: 'f6' });
+              setOpponentAnimatingMove({
+                from: 'g7',
+                to: 'f6',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'g7', to: 'f6' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Ферзь h6 — атакуем! Сделайте Qh6!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1277,11 +1831,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'c5', to: 'f2' });
-    setLastMove({ from: 'c5', to: 'f2' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('c5' as any);
+              setLastMove({ from: 'c5', to: 'f2' });
+              setOpponentAnimatingMove({
+                from: 'c5',
+                to: 'f2',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'c5', to: 'f2' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Ладья d1 защищает первую линию. Сделайте Rdg1!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1296,11 +1860,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'f2', to: 'g1' });
-            setLastMove({ from: 'f2', to: 'g1' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('f2' as any);
+              setLastMove({ from: 'f2', to: 'g1' });
+              setOpponentAnimatingMove({
+                from: 'f2',
+                to: 'g1',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'f2', to: 'g1' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Ладья забирает слона. Сделайте Rxg1!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1315,11 +1889,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'e6', to: 'g4' });
-            setLastMove({ from: 'e6', to: 'g4' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('e6' as any);
+              setLastMove({ from: 'e6', to: 'g4' });
+              setOpponentAnimatingMove({
+                from: 'e6',
+                to: 'g4',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'e6', to: 'g4' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('Ладья бьёт слона. Сделайте Rxg4!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1334,11 +1918,21 @@ setLastMove({ from: 'f8', to: 'e8' });
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'd7', to: 'g4' });
-          setLastMove({ from: 'd7', to: 'g4' });
-              setGame(new Chess(g.fen()));
+              const blackPiece = g.get('d7' as any);
+              setLastMove({ from: 'd7', to: 'g4' });
+              setOpponentAnimatingMove({
+                from: 'd7',
+                to: 'g4',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'd7', to: 'g4' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
               setMessage('h x g4 — забираем ферзя! Сделайте hxg4!');
-            }, 1000);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1384,10 +1978,20 @@ setLastMove({ from: 'f8', to: 'e8' });
             setMessage('Отлично! Пешка захватила центр, открыла дорогу слону и ферзю.');
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'e7', to: 'e5' });
+              const blackPiece = g.get('e7' as any);
               setLastMove({ from: 'e7', to: 'e5' });
-              setGame(new Chess(g.fen()));
-            }, 1000);
+              setOpponentAnimatingMove({
+                from: 'e7',
+                to: 'e5',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'e7', to: 'e5' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1403,10 +2007,20 @@ setLastMove({ from: 'f8', to: 'e8' });
             setMessage('Отлично! Конь вышел ближе к центру и напал на пешку e5.');
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'b8', to: 'c6' });
-  setLastMove({ from: 'b8', to: 'c6' });
-              setGame(new Chess(g.fen()));
-            }, 1000);
+              const blackPiece = g.get('b8' as any);
+              setLastMove({ from: 'b8', to: 'c6' });
+              setOpponentAnimatingMove({
+                from: 'b8',
+                to: 'c6',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'b8', to: 'c6' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1422,10 +2036,20 @@ setLastMove({ from: 'f8', to: 'e8' });
             setMessage('Отлично! Слон вышел ближе к центру и готов атаковать f7.');
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'f8', to: 'c5' });
-       setLastMove({ from: 'f8', to: 'c5' });
-              setGame(new Chess(g.fen()));
-            }, 1000);
+              const blackPiece = g.get('f8' as any);
+              setLastMove({ from: 'f8', to: 'c5' });
+              setOpponentAnimatingMove({
+                from: 'f8',
+                to: 'c5',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'f8', to: 'c5' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1455,14 +2079,35 @@ setLastMove({ from: 'f8', to: 'e8' });
           setTimeout(() => {
             if (!mountedRef.current) return;
             if (whiteMoves === 3) {
-              g.move({ from: 'h7', to: 'h6' });
-           setLastMove({ from: 'h7', to: 'h6' });
+              const bpH6 = g.get('h7' as any);
+              setLastMove({ from: 'h7', to: 'h6' });
+              setOpponentAnimatingMove({
+                from: 'h7',
+                to: 'h6',
+                piece: { type: bpH6?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'h7', to: 'h6' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
             } else {
-              g.move({ from: 'g8', to: 'f6' });
-  setLastMove({ from: 'g8', to: 'f6' });
+              const blackPiece = g.get('g8' as any);
+              setLastMove({ from: 'g8', to: 'f6' });
+              setOpponentAnimatingMove({
+                from: 'g8',
+                to: 'f6',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'g8', to: 'f6' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
             }
-            setGame(new Chess(g.fen()));
-          }, 1000);
+          }, 800);
           return;
         }
         // Move 5: h3
@@ -1474,10 +2119,20 @@ setLastMove({ from: 'f8', to: 'e8' });
             setMessage('Отлично! Пешка h3 не даёт слону чёрных выйти на g4.');
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'e8', to: 'g8' });
-            setLastMove({ from: 'e8', to: 'g8' });
-              setGame(new Chess(g.fen()));
-            }, 1000);
+              const blackPiece = g.get('e8' as any);
+              const rookPiece = g.get('h8' as any);
+              setLastMove({ from: 'e8', to: 'g8' });
+              setOpponentAnimatingMoves([
+                { from: 'e8', to: 'g8', piece: { type: blackPiece?.type?.toUpperCase() || 'K', color: 'b' } },
+                { from: 'h8', to: 'f8', piece: { type: rookPiece?.type?.toUpperCase() || 'R', color: 'b' } },
+              ]);
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'e8', to: 'g8' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMoves(null);
+              }, 200);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1493,10 +2148,20 @@ setLastMove({ from: 'f8', to: 'e8' });
             setMessage('Отлично! Пешка g4 начинает штурм на королевском фланге.');
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'd7', to: 'd6' });
-            setLastMove({ from: 'd7', to: 'd6' });
-              setGame(new Chess(g.fen()));
-            }, 1000);
+              const blackPiece = g.get('d7' as any);
+              setLastMove({ from: 'd7', to: 'd6' });
+              setOpponentAnimatingMove({
+                from: 'd7',
+                to: 'd6',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'd7', to: 'd6' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1512,10 +2177,20 @@ setLastMove({ from: 'f8', to: 'e8' });
             setMessage('Отлично! Пешка g5 давит на позицию чёрных.');
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'h6', to: 'g5' });
-        setLastMove({ from: 'h6', to: 'g5' });
-              setGame(new Chess(g.fen()));
-            }, 1000);
+              const blackPiece = g.get('h6' as any);
+              setLastMove({ from: 'h6', to: 'g5' });
+              setOpponentAnimatingMove({
+                from: 'h6',
+                to: 'g5',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'h6', to: 'g5' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1531,10 +2206,20 @@ setLastMove({ from: 'f8', to: 'e8' });
             setMessage('Отлично! Слон забрал пешку, открывая линию для атаки.');
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'c8', to: 'e6' });
-          setLastMove({ from: 'c8', to: 'e6' });
-              setGame(new Chess(g.fen()));
-            }, 1000);
+              const blackPiece = g.get('c8' as any);
+              setLastMove({ from: 'c8', to: 'e6' });
+              setOpponentAnimatingMove({
+                from: 'c8',
+                to: 'e6',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'c8', to: 'e6' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1550,10 +2235,20 @@ setLastMove({ from: 'f8', to: 'e8' });
             setMessage('Отлично! Ферзь d2 готовит атаку на королевском фланге.');
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'f8', to: 'e8' });
-            setLastMove({ from: 'f8', to: 'e8' });
-              setGame(new Chess(g.fen()));
-            }, 1000);
+              const blackPiece = g.get('f8' as any);
+              setLastMove({ from: 'f8', to: 'e8' });
+              setOpponentAnimatingMove({
+                from: 'f8',
+                to: 'e8',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'f8', to: 'e8' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1569,10 +2264,20 @@ setLastMove({ from: 'f8', to: 'e8' });
             setMessage('Отлично! Длинная рокировка уводит короля в безопасность и подключает ладью.');
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'd8', to: 'd7' });
-    setLastMove({ from: 'd8', to: 'd7' });
-              setGame(new Chess(g.fen()));
-            }, 1000);
+              const blackPiece = g.get('d8' as any);
+              setLastMove({ from: 'd8', to: 'd7' });
+              setOpponentAnimatingMove({
+                from: 'd8',
+                to: 'd7',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'd8', to: 'd7' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1588,10 +2293,20 @@ setLastMove({ from: 'f8', to: 'e8' });
             setMessage('Отлично! Слон уничтожил коня, ослабляя защиту короля.');
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'g7', to: 'f6' });
-            setLastMove({ from: 'g7', to: 'f6' });
-              setGame(new Chess(g.fen()));
-            }, 1000);
+              const blackPiece = g.get('g7' as any);
+              setLastMove({ from: 'g7', to: 'f6' });
+              setOpponentAnimatingMove({
+                from: 'g7',
+                to: 'f6',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'g7', to: 'f6' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1607,10 +2322,20 @@ setLastMove({ from: 'f8', to: 'e8' });
             setMessage('Отлично! Ферзь h6 — смертельная угроза матом!');
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'c5', to: 'f2' });
-          setLastMove({ from: 'c5', to: 'f2' });
-              setGame(new Chess(g.fen()));
-            }, 1000);
+              const blackPiece = g.get('c5' as any);
+              setLastMove({ from: 'c5', to: 'f2' });
+              setOpponentAnimatingMove({
+                from: 'c5',
+                to: 'f2',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'c5', to: 'f2' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1626,10 +2351,20 @@ setLastMove({ from: 'f8', to: 'e8' });
             setMessage('Отлично! Ладья d1 перешла на g1 для решающего удара.');
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'f2', to: 'g1' });
-      setLastMove({ from: 'f2', to: 'g1' });
-              setGame(new Chess(g.fen()));
-            }, 1000);
+              const blackPiece = g.get('f2' as any);
+              setLastMove({ from: 'f2', to: 'g1' });
+              setOpponentAnimatingMove({
+                from: 'f2',
+                to: 'g1',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'f2', to: 'g1' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1645,10 +2380,20 @@ setLastMove({ from: 'f8', to: 'e8' });
             setMessage('Отлично! Ладья забирает слона, продолжая штурм.');
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'e6', to: 'g4' });
-        setLastMove({ from: 'e6', to: 'g4' });
-              setGame(new Chess(g.fen()));
-            }, 1000);
+              const blackPiece = g.get('e6' as any);
+              setLastMove({ from: 'e6', to: 'g4' });
+              setOpponentAnimatingMove({
+                from: 'e6',
+                to: 'g4',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'e6', to: 'g4' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1664,10 +2409,20 @@ setLastMove({ from: 'f8', to: 'e8' });
             setMessage('Отлично! Ладья уничтожила слона, открывая путь пешке.');
             setTimeout(() => {
               if (!mountedRef.current) return;
-              g.move({ from: 'd7', to: 'g4' });
-setLastMove({ from: 'd7', to: 'g4' });
-              setGame(new Chess(g.fen()));
-            }, 1000);
+              const blackPiece = g.get('d7' as any);
+              setLastMove({ from: 'd7', to: 'g4' });
+              setOpponentAnimatingMove({
+                from: 'd7',
+                to: 'g4',
+                piece: { type: blackPiece?.type?.toUpperCase() || 'P', color: 'b' },
+              });
+              setTimeout(() => {
+                if (!mountedRef.current) return;
+                g.move({ from: 'd7', to: 'g4' });
+                setGame(new Chess(g.fen()));
+                setOpponentAnimatingMove(null);
+              }, 200);
+            }, 800);
             return;
           } else {
             handleFailWithBlackCapture(g, setGame, setIsFail, setMessage, setSelectedSquare, setLastMove, mountedRef);
@@ -1720,74 +2475,7 @@ const handleSquareClick = useCallback((square: string) => {
     }
   }, [game, selectedSquare, processWhiteMove]);
 
-  const handlePointerDown = useCallback((e: React.PointerEvent, square: string) => {
-    if (promotionPending) return;
-    if (isCompleteRef.current || isFailRef.current) return;
-    if (!game) return;
-    const g = game;
-    if (g.turn() !== 'w') return;
-    const piece = g.get(square as any);
-    if (!piece || piece.color !== 'w') return;
-    if (e.pointerType === 'touch' && !(e as any).isPrimary) return;
-    pointerStartRef.current = { x: e.clientX, y: e.clientY, square, moved: false, pointerId: e.pointerId };
-  }, [game]);
 
-  useEffect(() => {
-    const handleGlobalMove = (e: PointerEvent) => {
-      const start = pointerStartRef.current;
-      if (!start) return;
-      if (e.pointerId !== start.pointerId) return;
-      const dx = e.clientX - start.x;
-      const dy = e.clientY - start.y;
-      if (!start.moved && (Math.abs(dx) > 20 || Math.abs(dy) > 20)) {
-        start.moved = true;
-        const piece = game?.get(start.square as any);
-        if (piece) {
-          setDragPiece({ square: start.square, type: piece.type.toUpperCase(), color: piece.color as 'w' | 'b' });
-          setSelectedSquare(null);
-        }
-      }
-      if (start.moved) {
-        setDragPos({ x: e.clientX, y: e.clientY });
-      }
-    };
-
-    const handleGlobalUp = (e: PointerEvent) => {
-      const start = pointerStartRef.current;
-      if (!start) return;
-      if (e.pointerId !== start.pointerId) return;
-      if (!start.moved) {
-        // click handled by onClick
-      } else {
-        const el = document.elementFromPoint(e.clientX, e.clientY);
-        const cell = el?.closest('[data-square]') as HTMLElement | null;
-        const targetSquare = cell?.dataset.square || null;
-        if (targetSquare && targetSquare !== start.square) {
-          processWhiteMove(start.square, targetSquare);
-        }
-        setDragPiece(null);
-    setPromotionPending(null);
-      }
-      pointerStartRef.current = null;
-    };
-
-    const handleGlobalCancel = (e: PointerEvent) => {
-      if (pointerStartRef.current && e.pointerId === pointerStartRef.current.pointerId) {
-        setDragPiece(null);
-    setPromotionPending(null);
-        pointerStartRef.current = null;
-      }
-    };
-
-    window.addEventListener('pointermove', handleGlobalMove);
-    window.addEventListener('pointerup', handleGlobalUp);
-    window.addEventListener('pointercancel', handleGlobalCancel);
-    return () => {
-      window.removeEventListener('pointermove', handleGlobalMove);
-      window.removeEventListener('pointerup', handleGlobalUp);
-      window.removeEventListener('pointercancel', handleGlobalCancel);
-    };
-  }, [game, processWhiteMove]);
 
   // ──── PROMOTION ────
   const handlePromotion = useCallback((pieceCode: string) => {
@@ -1942,11 +2630,14 @@ const handleSquareClick = useCallback((square: string) => {
             selectedSquare={selectedSquare}
             lastMove={lastMove}
             autoValidMoves={true}
-            onMove={(from, to, _promotion) => processWhiteMove(from, to)}
+            onMove={async (from, to, _promotion) => { await processWhiteMove(from, to, undefined, true); }}
             onSquareClick={handleSquareClick}
             playerAnimatingMove={playerAnimatingMove}
+            playerAnimatingMoves={playerAnimatingMoves}
             opponentAnimatingMove={opponentAnimatingMove}
+            opponentAnimatingMoves={opponentAnimatingMoves}
             interactive={!isComplete && !isFail}
+                disableAutoGhost={true}
             sqSize={sqSize}
           />
         </div>

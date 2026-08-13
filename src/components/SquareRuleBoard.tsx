@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { Chess } from 'chess.js';
 import { RotateCcw, Eye, Trophy } from 'lucide-react';
 import UniversalChessBoardDesigner from './board/UniversalChessBoardDesigner';
@@ -153,6 +153,16 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
     to: string;
     piece: { type: string; color: 'w' | 'b' };
   } | null>(null);
+
+  // Valid moves computed from actual gameRef state
+  const validMoves = useMemo(() => {
+    if (!selectedSquare || !gameRef.current) return [];
+    try {
+      return gameRef.current.moves({ verbose: true, square: selectedSquare as any }).map((m: any) => m.to);
+    } catch {
+      return [];
+    }
+  }, [selectedSquare, game?.fen()]);
 
   // Synchronous wrapper so gameRef always matches the latest game state
   const setGame = useCallback((newGame: Chess) => {
@@ -338,6 +348,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
         // King chase: auto-promote to queen, then USER must move black king to capture
         try {
           g.move({ from: ps, to: `${ps[0]}8` });
+          setLastMove({ from: ps, to: `${ps[0]}8` });
           setGame(new Chess(g.fen()));
 
           // Check if black king CAN capture the new queen
@@ -461,6 +472,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
     try {
       const move = g1.move({ from, to });
       if (!move) return;
+      setSelectedSquare(null); // clear selection immediately so board re-renders with updated FEN
       setLastMove({ from, to });
 
       // In king chase mode: after pawn promotes to queen (no pawn on board),
@@ -560,6 +572,7 @@ if (!skipAnimation) {
             const bk = getBlackKingMoveTowards(g2, ps);
             if (bk) {
               const bkPiece = g2.get(bk.from as any);
+              setLastMove({ from: bk.from, to: bk.to });
               setOpponentAnimatingMove({
                 from: bk.from,
                 to: bk.to,
@@ -574,7 +587,7 @@ if (!skipAnimation) {
                   setIsFail(true);
                   setMessage('Провалено. Король съел пешку.');
                 }
-              }, skipAnimation ? 0 : 200);
+              }, 200);
             }
           }
         }, 500);
@@ -698,6 +711,7 @@ if (!skipAnimation) {
             const bk = getBlackKingMoveTowards(g2, ps);
             if (bk) {
               const bkPiece = g2.get(bk.from as any);
+              setLastMove({ from: bk.from, to: bk.to });
               setOpponentAnimatingMove({
                 from: bk.from,
                 to: bk.to,
@@ -712,7 +726,7 @@ if (!skipAnimation) {
                   setIsFail(true);
                   setMessage('Провалено. Король съел пешку.');
                 }
-              }, skipAnimation ? 0 : 200);
+              }, 200);
             }
           }
         }, 500);
@@ -829,6 +843,7 @@ if (!skipAnimation) {
             const bk = getBlackKingMoveTowards(g2, ps);
             if (bk) {
               const bkPiece = g2.get(bk.from as any);
+              setLastMove({ from: bk.from, to: bk.to });
               setOpponentAnimatingMove({
                 from: bk.from,
                 to: bk.to,
@@ -843,7 +858,7 @@ if (!skipAnimation) {
                   setIsFail(true);
                   setMessage('Провалено. Король съел пешку.');
                 }
-              }, skipAnimation ? 0 : 200);
+              }, 200);
             }
           }
         }, 500);
@@ -960,6 +975,7 @@ if (!skipAnimation) {
             const bk = getBlackKingMoveTowards(g2, ps);
             if (bk) {
               const bkPiece = g2.get(bk.from as any);
+              setLastMove({ from: bk.from, to: bk.to });
               setOpponentAnimatingMove({
                 from: bk.from,
                 to: bk.to,
@@ -974,7 +990,7 @@ if (!skipAnimation) {
                   setIsFail(true);
                   setMessage('Провалено. Король съел пешку.');
                 }
-              }, skipAnimation ? 0 : 200);
+              }, 200);
             }
           }
         }, 500);
@@ -1091,6 +1107,7 @@ if (!skipAnimation) {
             const bk = getBlackKingMoveTowards(g2, ps);
             if (bk) {
               const bkPiece = g2.get(bk.from as any);
+              setLastMove({ from: bk.from, to: bk.to });
               setOpponentAnimatingMove({
                 from: bk.from,
                 to: bk.to,
@@ -1105,7 +1122,7 @@ if (!skipAnimation) {
                   setIsFail(true);
                   setMessage('Провалено. Король съел пешку.');
                 }
-              }, skipAnimation ? 0 : 200);
+              }, 200);
             }
           }
         }, 500);
@@ -1248,70 +1265,6 @@ if (!skipAnimation) {
     }
   }, [exercise, ex2Mode, ex3Mode, ex4Mode, ex5Mode, ex6Mode, selectedSquare, processWhiteMoveEx2, processBlackMoveEx2, processWhiteMoveEx3, processBlackMoveEx3, processWhiteMoveEx4, processBlackMoveEx4, processWhiteMoveEx5, processBlackMoveEx5, processWhiteMoveEx6, processBlackMoveEx6, isFail]);
 
-  const handlePointerDown = useCallback((e: React.PointerEvent, sq: string) => {
-    if (isCompleteRef.current || isFail) return;
-    if (exercise === 1) return;
-    let targetColor: 'w'|'b' = 'w';
-    let targetType = 'p';
-    if (exercise === 2 && ex2Mode === 'king') { targetColor = 'b'; targetType = 'k'; }
-    if (exercise === 3 && ex3Mode === 'king') { targetColor = 'b'; targetType = 'k'; }
-    if (exercise === 4 && ex4Mode === 'king') { targetColor = 'b'; targetType = 'k'; }
-    if (exercise === 5 && ex5Mode === 'king') { targetColor = 'b'; targetType = 'k'; }
-    if (exercise === 6 && ex6Mode === 'king') { targetColor = 'b'; targetType = 'k'; }
-    if (gameRef.current.turn() !== targetColor) return;
-    const piece = gameRef.current.get(sq as any);
-    if (!piece || piece.color !== targetColor || piece.type !== targetType) return;
-    ptrStart.current = { square: sq, moved: false, pointerId: e.pointerId, x: e.clientX, y: e.clientY };
-  }, [exercise, ex2Mode, ex3Mode, ex4Mode, ex5Mode, ex6Mode, isFail]);
-
-  useEffect(() => {
-    if (exercise === 1) return;
-    const handleMove = (e: PointerEvent) => {
-      const s = ptrStart.current; if (!s || e.pointerId !== s.pointerId) return;
-      const dx = e.clientX - s.x, dy = e.clientY - s.y;
-      if (!s.moved && (Math.abs(dx) > 20 || Math.abs(dy) > 20)) {
-        s.moved = true;
-        const p = gameRef.current.get(s.square as any);
-        if (p) { setDragPiece({ square: s.square, type: p.type.toUpperCase(), color: p.color as 'w'|'b' }); }
-      }
-      if (s.moved) setDragPos({ x: e.clientX, y: e.clientY });
-    };
-    const handleUp = (e: PointerEvent) => {
-      const s = ptrStart.current; if (!s || e.pointerId !== s.pointerId) return;
-      if (s.moved) {
-        const el = document.elementFromPoint(e.clientX, e.clientY);
-        const cell = el?.closest('[data-square]') as HTMLElement|null;
-        const ts = cell?.dataset.square;
-        if (ts && ts !== s.square) {
-          if (exercise === 2 && ex2Mode === 'king') processBlackMoveEx2(s.square, ts);
-          else if (exercise === 2 && ex2Mode === 'pawn') processWhiteMoveEx2(s.square, ts);
-          else if (exercise === 3 && ex3Mode === 'king') processBlackMoveEx3(s.square, ts);
-          else if (exercise === 3 && ex3Mode === 'pawn') processWhiteMoveEx3(s.square, ts);
-          else if (exercise === 4 && ex4Mode === 'king') processBlackMoveEx4(s.square, ts);
-          else if (exercise === 4 && ex4Mode === 'pawn') processWhiteMoveEx4(s.square, ts);
-          else if (exercise === 5 && ex5Mode === 'king') processBlackMoveEx5(s.square, ts);
-          else if (exercise === 5 && ex5Mode === 'pawn') processWhiteMoveEx5(s.square, ts);
-          else if (exercise === 6 && ex6Mode === 'king') processBlackMoveEx6(s.square, ts);
-          else if (exercise === 6 && ex6Mode === 'pawn') processWhiteMoveEx6(s.square, ts);
-        }
-        setDragPiece(null);
-        setSelectedSquare(null);
-      }
-      ptrStart.current = null;
-    };
-    const handleCancel = (e: PointerEvent) => {
-      if (ptrStart.current && e.pointerId === ptrStart.current.pointerId) { setDragPiece(null); ptrStart.current = null;  }
-    };
-    window.addEventListener('pointermove', handleMove);
-    window.addEventListener('pointerup', handleUp);
-    window.addEventListener('pointercancel', handleCancel);
-    return () => {
-      window.removeEventListener('pointermove', handleMove);
-      window.removeEventListener('pointerup', handleUp);
-      window.removeEventListener('pointercancel', handleCancel);
-    };
-  }, [exercise, ex2Mode, ex3Mode, ex4Mode, ex5Mode, ex6Mode, processBlackMoveEx2, processWhiteMoveEx2, processBlackMoveEx3, processWhiteMoveEx3, processBlackMoveEx4, processWhiteMoveEx4, processBlackMoveEx5, processWhiteMoveEx5, processBlackMoveEx6, processWhiteMoveEx6]);
-
   // ═══════════════════════════════════════════════════════════════
   // RENDER
   // ═══════════════════════════════════════════════════════════════
@@ -1322,12 +1275,6 @@ if (!skipAnimation) {
   };
 
   const isLight = (f: number, r: number) => (f + r) % 2 === 0;
-
-  const validMoves = selectedSquare
-    ? (game.moves({ square: selectedSquare as any, verbose: true }).map(m => m.to) as string[])
-    : dragPiece
-      ? (game.moves({ square: dragPiece.square as any, verbose: true }).map(m => m.to) as string[])
-      : [];
 
   const pawnSq = getPawnSquare(game);
   const squareCells = pawnSq ? getSquareBorder(pawnSq) : [];
@@ -1591,10 +1538,11 @@ if (!skipAnimation) {
           <div className="flex justify-center w-full" style={{ minHeight: 8 * sqSize }}>
             <div className="relative inline-block">
               <UniversalChessBoardDesigner
-                fen={game?.fen() || ''}
+                fen={gameRef.current?.fen() || game?.fen() || ''}
                 selectedSquare={selectedSquare}
                 lastMove={lastMove}
                 autoValidMoves={true}
+                validMoves={validMoves}
                 customOverlays={(() => {
                   if (!showSquare || exercise !== 1) return [];
                   const pawnSq = getPawnSquare(game);
@@ -1628,64 +1576,63 @@ if (!skipAnimation) {
                 opponentAnimatingMove={opponentAnimatingMove}
                 interactive={!isComplete && !isFail}
                 disableAutoGhost={true}
+                absoluteOverlay={promotionPending ? (
+                  <div className="absolute z-[60] pointer-events-auto" style={{
+                    left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
+                    top: 0,
+                    width: sqSize,
+                    height: 4 * sqSize,
+                    backgroundColor: '#2C241B',
+                    borderRadius: '0px',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                  }}>
+                    {PROMOTION_PIECES.map(({ code, name }) => (
+                      <button
+                        key={code}
+                        onClick={() => handlePromotion(code)}
+                        className="w-full aspect-square flex items-center justify-center transition-all duration-150"
+                        style={{
+                          backgroundColor: 'transparent',
+                          border: '2px solid transparent',
+                          borderRadius: '0px',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
+                          e.currentTarget.style.borderColor = '#C9A84C';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.borderColor = 'transparent';
+                        }}
+                        onMouseDown={(e) => {
+                          e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.25)';
+                        }}
+                        onMouseUp={(e) => {
+                          e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
+                        }}
+                        title={name}
+                      >
+                        <div
+                          style={{
+                            width: '70%',
+                            height: '70%',
+                            backgroundImage: `url(/pieces/cburnett/w${code.toUpperCase()}.svg)`,
+                            backgroundSize: 'contain',
+                            backgroundRepeat: 'no-repeat',
+                            backgroundPosition: 'center',
+                          }}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
                 sqSize={sqSize}
               />
-              {/* Promotion picker overlay — PawnRaceBoard style */}
-              {promotionPending && (
-                <div className="absolute z-50 pointer-events-auto" style={{
-                  left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
-                  top: 0,
-                  width: sqSize,
-                  height: 4 * sqSize,
-                  backgroundColor: '#2C241B',
-                  borderRadius: '0px',
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden',
-                }}>
-                  {PROMOTION_PIECES.map(({ code, name }) => (
-                    <button
-                      key={code}
-                      onClick={() => handlePromotion(code)}
-                      className="w-full aspect-square flex items-center justify-center transition-all duration-150"
-                      style={{
-                        backgroundColor: 'transparent',
-                        border: '2px solid transparent',
-                        borderRadius: '0px',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
-                        e.currentTarget.style.borderColor = '#C9A84C';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                        e.currentTarget.style.borderColor = 'transparent';
-                      }}
-                      onMouseDown={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.25)';
-                      }}
-                      onMouseUp={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
-                      }}
-                      title={name}
-                    >
-                      <div
-                        style={{
-                          width: '70%',
-                          height: '70%',
-                          backgroundImage: `url(/pieces/cburnett/w${code.toUpperCase()}.svg)`,
-                          backgroundSize: 'contain',
-                          backgroundRepeat: 'no-repeat',
-                          backgroundPosition: 'center',
-                        }}
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
           </div>
           {/* Mobile exercise pills */}

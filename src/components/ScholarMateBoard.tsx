@@ -179,7 +179,11 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const [playerAnimatingMove, setPlayerAnimatingMove] = useState<GhostMove | null>(null);
+  const [playerAnimatingMoves, setPlayerAnimatingMoves] = useState<GhostMove[] | null>(null);
   const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<GhostMove | null>(null);
+  const [opponentAnimatingMoves, setOpponentAnimatingMoves] = useState<GhostMove[] | null>(null);
+
+  const isReversed = exercise === 5 || exercise === 6 || exercise === 7 || exercise === 8;
 
   const isCompleteRef = useRef(false);
   const isFailRef = useRef(false);
@@ -286,7 +290,6 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
   const getSquarePixelPos = useCallback((sq: string) => {
     const file = sq[0];
     const rank = sq[1];
-    const isReversed = exercise === 5 || exercise === 6 || exercise === 7 || exercise === 8;
     if (isReversed) {
       const fi = REVERSED_FILES.indexOf(file);
       const ri = REVERSED_DISPLAY_RANKS.indexOf(rank);
@@ -298,7 +301,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
     }
   }, [exercise, sqSize]);
 
-  const processWhiteMove = useCallback((from: string, to: string, promotionPiece?: string) => {
+  const processWhiteMove = useCallback(async (from: string, to: string, promotionPiece?: string, skipAnimation = false) => {
     if (!game) return;
     const g = game;
     if (g.turn() !== 'w' && exercise !== 5 && exercise !== 6 && exercise !== 7 && exercise !== 8) return;
@@ -316,16 +319,33 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
       const move = ng.move({ from, to, promotion: promotionPiece });
       if (!move) return;
 
-      if (piece) {
-        setPlayerAnimatingMove({ from, to, piece: { type: piece.type.toUpperCase(), color: piece.color as 'w' | 'b' } });
+      const realMove = g.move({ from, to, promotion: promotionPiece });
+      if (!realMove) return;
+      setLastMove({ from, to });
+      setGame(new Chess(g.fen()));
+      setSelectedSquare(null);
+
+      if (piece && !skipAnimation) {
+        const isCastle = move.piece === 'k' && Math.abs(from.charCodeAt(0) - to.charCodeAt(0)) === 2;
+        if (isCastle) {
+          const isShort = to === 'g1';
+          const rookFrom = isShort ? 'h1' : 'a1';
+          const rookTo = isShort ? 'f1' : 'd1';
+          setPlayerAnimatingMoves([
+            { from, to, piece: { type: 'K', color: 'w' } },
+            { from: rookFrom, to: rookTo, piece: { type: 'R', color: 'w' } },
+          ]);
+        } else {
+          setPlayerAnimatingMove({ from, to, piece: { type: piece!.type.toUpperCase(), color: piece!.color as 'w' | 'b' } });
+        }
         setTimeout(() => {
           setPlayerAnimatingMove(null);
+          setPlayerAnimatingMoves(null);
+        }, 200);
+      }
 
-          const realMove = g.move({ from, to, promotion: promotionPiece });
-          if (!realMove) return;
-          setLastMove({ from, to });
+      const nextWhiteMoves = whiteMoves + 1;
 
-          const nextWhiteMoves = whiteMoves + 1;
 
           if (exercise === 5) {
         // Exercise 5: Защита от детского мата — ученик играет за чёрных
@@ -991,9 +1011,6 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         }
       }
 
-      }, 200);
-    } // closes if (piece)
-
     } catch {
       // Invalid move
     }
@@ -1231,15 +1248,19 @@ const handleSquareClick = useCallback((square: string) => {
         {/* Board */}
         <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
           <UniversalChessBoardDesigner
+            isReversed={isReversed}
             fen={game?.fen() || ''}
             selectedSquare={selectedSquare}
             lastMove={lastMove}
             autoValidMoves={true}
-            onMove={(from, to) => processWhiteMove(from, to)}
+            onMove={async (from, to, _promotion) => { await processWhiteMove(from, to, undefined, true); }}
             onSquareClick={handleSquareClick}
             playerAnimatingMove={playerAnimatingMove}
+            playerAnimatingMoves={playerAnimatingMoves}
             opponentAnimatingMove={opponentAnimatingMove}
+            opponentAnimatingMoves={opponentAnimatingMoves}
             interactive={!isComplete && !isFail}
+            disableAutoGhost={true}
             sqSize={sqSize}
           />
         </div>

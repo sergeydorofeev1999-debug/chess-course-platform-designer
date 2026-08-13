@@ -151,9 +151,12 @@ export interface UniversalChessBoardDesignerProps {
   onSelectionChange?: (square: string | null) => void;
   onPromotionPending?: (from: string, to: string) => void;
   playerAnimatingMove?: { from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null;
+  playerAnimatingMoves?: { from: string; to: string; piece: { type: string; color: 'w' | 'b' } }[] | null;
   opponentAnimatingMove?: { from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null;
+  opponentAnimatingMoves?: { from: string; to: string; piece: { type: string; color: 'w' | 'b' } }[] | null;
   interactive?: boolean;
   customOverlays?: SquareOverlay[];
+  absoluteOverlay?: React.ReactNode;
   sqSize?: number;
   className?: string;
   pieceTheme?: 'cburnett' | 'alpha' | 'merida';
@@ -175,6 +178,8 @@ interface PointerStart {
   square: string;
   moved: boolean;
   pointerId: number;
+  pieceType?: string;
+  pieceColor?: 'w' | 'b';
 }
 
 export default function UniversalChessBoardDesigner({
@@ -193,10 +198,13 @@ export default function UniversalChessBoardDesigner({
   onSelectionChange,
   onPromotionPending,
   playerAnimatingMove,
+  playerAnimatingMoves,
   opponentAnimatingMove,
+  opponentAnimatingMoves,
   turn,
   interactive = true,
   customOverlays = [],
+  absoluteOverlay,
   sqSize: propSqSize,
   className = '',
   pieceTheme = 'cburnett',
@@ -478,6 +486,8 @@ export default function UniversalChessBoardDesigner({
       square,
       moved: false,
       pointerId: e.pointerId,
+      pieceType: piece.type,
+      pieceColor: piece.color,
     };
   }, [interactive, onMove, getPieceAt, game]);
 
@@ -512,9 +522,8 @@ export default function UniversalChessBoardDesigner({
         const cell = el?.closest('[data-square]') as HTMLElement | null;
         const targetSquare = cell?.dataset.square || null;
         if (targetSquare && targetSquare !== start.square) {
-          const piece = getPieceAt(start.square);
-          const isPromotion = piece?.type === 'p' && (
-            (piece?.color === 'w' && targetSquare[1] === '8') || (piece?.color === 'b' && targetSquare[1] === '1')
+          const isPromotion = start.pieceType === 'P' && (
+            (start.pieceColor === 'w' && targetSquare[1] === '8') || (start.pieceColor === 'b' && targetSquare[1] === '1')
           );
           if (isPromotion) {
             onPromotionPending?.(start.square, targetSquare);
@@ -593,10 +602,10 @@ export default function UniversalChessBoardDesigner({
 
             const isGhostSource = ghostAnim?.from === sq && (ghostAnim.phase === 'out' || ghostAnim.phase === 'pause');
             const isGhostTarget = ghostAnim?.to === sq && (ghostAnim.phase === 'out' || ghostAnim.phase === 'pause');
-            const isPlayerAnimatingSource = activePlayerAnimatingMove?.from === sq;
-            const isPlayerAnimatingTarget = activePlayerAnimatingMove?.to === sq;
-            const isOpponentAnimatingSource = activeOpponentAnimatingMove?.from === sq;
-            const isOpponentAnimatingTarget = activeOpponentAnimatingMove?.to === sq;
+            const isPlayerAnimatingSource = activePlayerAnimatingMove?.from === sq || playerAnimatingMoves?.some(m => m.from === sq);
+            const isPlayerAnimatingTarget = activePlayerAnimatingMove?.to === sq || playerAnimatingMoves?.some(m => m.to === sq);
+            const isOpponentAnimatingSource = activeOpponentAnimatingMove?.from === sq || opponentAnimatingMoves?.some(m => m.from === sq);
+            const isOpponentAnimatingTarget = activeOpponentAnimatingMove?.to === sq || opponentAnimatingMoves?.some(m => m.to === sq);
             const isAutoAnimatingSource = autoAnimatingMoves.some(m => m.from === sq);
             const isAutoAnimatingTarget = autoAnimatingMoves.some(m => m.to === sq);
             const hidePiece = isDragSource || isGhostSource || isGhostTarget || isPlayerAnimatingSource || isPlayerAnimatingTarget || isOpponentAnimatingSource || isOpponentAnimatingTarget || isAutoAnimatingSource || isAutoAnimatingTarget;
@@ -738,6 +747,18 @@ export default function UniversalChessBoardDesigner({
           />
         )}
 
+        {playerAnimatingMoves?.map((m, i) => (
+          <GhostAnimPiece
+            key={m.from + '-' + m.to + '-multi-' + i}
+            from={m.from}
+            to={m.to}
+            piece={m.piece}
+            isReversed={isReversed}
+            sqSize={sqSize}
+            pieceTheme={pieceTheme}
+          />
+        ))}
+
         {activeOpponentAnimatingMove && (
           <GhostAnimPiece
             key={activeOpponentAnimatingMove.from + '-' + activeOpponentAnimatingMove.to}
@@ -750,6 +771,18 @@ export default function UniversalChessBoardDesigner({
           />
         )}
 
+        {opponentAnimatingMoves?.map((m, i) => (
+          <GhostAnimPiece
+            key={m.from + '-' + m.to + '-multi-' + i}
+            from={m.from}
+            to={m.to}
+            piece={m.piece}
+            isReversed={isReversed}
+            sqSize={sqSize}
+            pieceTheme={pieceTheme}
+          />
+        ))}
+
         {autoAnimatingMoves.map((m, i) => (
           <GhostAnimPiece
             key={m.from + '-' + m.to + '-auto-' + i}
@@ -761,6 +794,7 @@ export default function UniversalChessBoardDesigner({
             pieceTheme={pieceTheme}
           />
         ))}
+        {absoluteOverlay}
       </div>
 
       {dragPiece && (
