@@ -767,10 +767,10 @@ function InlineChessBoard({
                   </div>
                 )}
                 {isLastMoveSource && (
-                  <div className="absolute inset-0 pointer-events-none" style={{ backgroundColor: 'rgba(201,168,76,0.55)', zIndex: 15 }} />
+                  <div className="absolute inset-0 pointer-events-none" style={{ backgroundColor: 'rgba(201,168,76,0.55)', zIndex: 5 }} />
                 )}
                 {isLastMoveTarget && (
-                  <div className="absolute inset-0 pointer-events-none" style={{ backgroundColor: 'rgba(201,168,76,0.70)', zIndex: 15 }} />
+                  <div className="absolute inset-0 pointer-events-none" style={{ backgroundColor: 'rgba(201,168,76,0.70)', zIndex: 5 }} />
                 )}
                 <div
                   className="absolute inset-0 flex items-center justify-center pointer-events-none"
@@ -1589,7 +1589,6 @@ function MultiLevelStarBoard({
     (from: string, to: string) => {
       setHintArrows([]);
       setShowHint(false);
-      setLastMove({ from, to });
       if (phase !== 'playing') return false;
       const parsed = parseFen(positionRef.current);
       if (parsed.squares[from]?.color !== 'w') return false;
@@ -1623,6 +1622,7 @@ function MultiLevelStarBoard({
             delete castlingSquares['h1'];
             castlingSquares['f1'] = { type: 'r', color: 'w' };
             const castlingFen = squaresToFen(castlingSquares, 'w');
+            setLastMove({ from, to });
             positionRef.current = castlingFen;
             setPosition(castlingFen);
             setMoves((c) => c + 1);
@@ -1657,6 +1657,7 @@ function MultiLevelStarBoard({
             delete castlingSquares['a1'];
             castlingSquares['d1'] = { type: 'r', color: 'w' };
             const castlingFen = squaresToFen(castlingSquares, 'w');
+            setLastMove({ from, to });
             positionRef.current = castlingFen;
             setPosition(castlingFen);
             setMoves((c) => c + 1);
@@ -1723,6 +1724,7 @@ function MultiLevelStarBoard({
         newFen = fenParts.join(' ');
       }
       positionRef.current = newFen;
+      setLastMove({ from, to });
       setPosition(newFen);
       setMoves((c) => c + 1);
       setMsg('');
@@ -1865,6 +1867,7 @@ function MultiLevelStarBoard({
       newSquares[to] = { type: piece, color: 'w' };
       const newFen = squaresToFen(newSquares, 'w');
       positionRef.current = newFen;
+      setLastMove({ from, to });
       setPosition(newFen);
       setMoves((c) => c + 1);
       setMsg('');
