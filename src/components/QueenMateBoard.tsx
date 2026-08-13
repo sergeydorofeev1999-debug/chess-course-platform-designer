@@ -727,7 +727,7 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
         const cell = el?.closest('[data-square]') as HTMLElement | null;
         const targetSquare = cell?.dataset.square || null;
         if (targetSquare && targetSquare !== start.square) {
-          processWhiteMove(start.square, targetSquare, undefined, true);
+          processWhiteMove(start.square, targetSquare);
         }
         setDragPiece(null);
     setPromotionPending(null);
