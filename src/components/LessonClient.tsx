@@ -470,6 +470,12 @@ function InlineChessBoard({
   const [hoveredSquare, setHoveredSquare] = useState<string | null>(null);
   const [dragPiece, setDragPiece] = useState<{ square: string; type: string; color: string } | null>(null);
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
+  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{
+    from: string;
+    to: string;
+    piece: { type: string; color: string };
+  } | null>(null);
+
   const pointerStartRef = useRef<{ x: number; y: number; square: string; moved: boolean; pointerId: number } | null>(null);
   const processLockRef = useRef(false);
   const [sqSize, setSqSize] = useState(44);
@@ -490,6 +496,8 @@ function InlineChessBoard({
       setDragPos({ x: 0, y: 0 });
       setHoveredSquare(null);
       setMsg('');
+      // playerAnimatingMove сбрасывается через setTimeout в handleClick/handleDrag,
+      // НЕ здесь — иначе ghost overlay мгновенно исчезает до завершения анимации
       pointerStartRef.current = null;
       if (!externalMovedPieces) {
         setInternalMovedPieces(new Set());
@@ -544,6 +552,17 @@ function InlineChessBoard({
           setSelectedSquare(null);
           return;
         }
+        const movedPiece = sqs[sel];
+        if (movedPiece) {
+          setPlayerAnimatingMove({
+            from: sel,
+            to: square,
+            piece: { type: movedPiece.type, color: movedPiece.color },
+          });
+        }
+        setTimeout(() => {
+          setPlayerAnimatingMove(null);
+        }, 400);
         const accepted = onMoveRef.current?.(sel, square);
         if (accepted !== false) {
           selectedSquareRef.current = null;
@@ -637,9 +656,19 @@ function InlineChessBoard({
       } else {
         const targetSquare = getSquareFromPoint(e.clientX, e.clientY);
         if (targetSquare && targetSquare !== start.square) {
+          const movedPiece = squaresRef.current[start.square];
+          if (movedPiece) {
+            setPlayerAnimatingMove({
+              from: start.square,
+              to: targetSquare,
+              piece: { type: movedPiece.type, color: movedPiece.color },
+            });
+          }
+          setTimeout(() => {
+            setPlayerAnimatingMove(null);
+          }, 400);
           const accepted = onMoveRef.current?.(start.square, targetSquare);
           if (accepted !== false) {
-            const movedPiece = squaresRef.current[start.square];
             if (movedPiece && setMovedPieces) {
               setMovedPieces((prev) => {
                 const next = new Set(prev);
@@ -725,6 +754,8 @@ function InlineChessBoard({
             const hover = hoveredSquare === sq;
             const isLastMoveSource = lastMove?.from === sq;
             const isLastMoveTarget = lastMove?.to === sq;
+            const isAnimatingSource = playerAnimatingMove?.from === sq;
+            const isAnimatingTarget = playerAnimatingMove?.to === sq;
             return (
               <div
                 key={sq}
@@ -793,7 +824,7 @@ function InlineChessBoard({
                     />
                   </div>
                 )}
-                {pieceObj && !isSource && (
+                {pieceObj && !isSource && !isAnimatingSource && !isAnimatingTarget && (
                   <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize*0.85), height: Math.round(sqSize*0.85) }}>
                     <PieceImg type={pieceObj.type} color={pieceObj.color as 'w' | 'b'} />
                   </div>
@@ -802,6 +833,36 @@ function InlineChessBoard({
             );
           })
         )}
+        {/* Player move ghost piece */}
+        {playerAnimatingMove && (() => {
+          const fromF = FILES.indexOf(playerAnimatingMove.from[0]);
+          const fromR = RANKS.indexOf(playerAnimatingMove.from[1]);
+          const toF = FILES.indexOf(playerAnimatingMove.to[0]);
+          const toR = RANKS.indexOf(playerAnimatingMove.to[1]);
+          const x1 = fromF * sqSize;
+          const y1 = fromR * sqSize;
+          const x2 = toF * sqSize;
+          const y2 = toR * sqSize;
+          return (
+            <div
+              key={playerAnimatingMove.from + '-' + playerAnimatingMove.to}
+              className="absolute pointer-events-none animate-player-move"
+              style={{
+                left: x1,
+                top: y1,
+                width: sqSize,
+                height: sqSize,
+                zIndex: 60,
+                ['--ghost-dx' as string]: `${x2 - x1}px`,
+                ['--ghost-dy' as string]: `${y2 - y1}px`,
+              } as React.CSSProperties}
+            >
+              <div className="w-full h-full flex items-center justify-center" style={{ padding: Math.round(sqSize * 0.075) }}>
+                <PieceImg type={playerAnimatingMove.piece.type} color={playerAnimatingMove.piece.color as 'w' | 'b'} />
+              </div>
+            </div>
+          );
+        })()}
         {hintArrows.length > 0 && !selectedSquare && !dragPiece && (
           <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
             {hintArrows.map((arrow, i) => {
