@@ -40,7 +40,7 @@
 }
 
 .animate-player-move {
-  animation: playerMoveGhost 400ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
+  animation: playerMoveGhost 200ms cubic-bezier(0.25, 0.1, 0.25, 1) forwards;
   will-change: transform;
 }
 

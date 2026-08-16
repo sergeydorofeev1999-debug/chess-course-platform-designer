@@ -562,7 +562,7 @@ function InlineChessBoard({
         }
         setTimeout(() => {
           setPlayerAnimatingMove(null);
-        }, 400);
+        }, 200);
         const accepted = onMoveRef.current?.(sel, square);
         if (accepted !== false) {
           selectedSquareRef.current = null;
@@ -656,19 +656,9 @@ function InlineChessBoard({
       } else {
         const targetSquare = getSquareFromPoint(e.clientX, e.clientY);
         if (targetSquare && targetSquare !== start.square) {
-          const movedPiece = squaresRef.current[start.square];
-          if (movedPiece) {
-            setPlayerAnimatingMove({
-              from: start.square,
-              to: targetSquare,
-              piece: { type: movedPiece.type, color: movedPiece.color },
-            });
-          }
-          setTimeout(() => {
-            setPlayerAnimatingMove(null);
-          }, 400);
           const accepted = onMoveRef.current?.(start.square, targetSquare);
           if (accepted !== false) {
+            const movedPiece = squaresRef.current[start.square];
             if (movedPiece && setMovedPieces) {
               setMovedPieces((prev) => {
                 const next = new Set(prev);
