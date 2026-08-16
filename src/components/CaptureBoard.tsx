@@ -622,6 +622,7 @@ function InlineChessBoard({
     squaresRef.current = p.squares;
     selectedSquareRef.current = null;
     setSelectedSquare(null);
+    setPlayerAnimatingMove(null);
   }, [fen]);
 
   useEffect(() => {
@@ -681,14 +682,16 @@ function InlineChessBoard({
         setSelectedSquare(null);
         const movingPiece = sqs[sel];
         if (movingPiece) {
-          // Убираем фигуру с исходной клетки сразу
+          // Move piece immediately to target square — prevents flicker
           setSquares(prev => {
             const next = { ...prev };
             delete next[sel];
+            next[square] = movingPiece;
             return next;
           });
           setPlayerAnimatingMove({ from: sel, to: square, piece: movingPiece });
         }
+        setLastMove({ from: sel, to: square });
         setTimeout(() => {
           setPlayerAnimatingMove(null);
           const accepted = onMoveRef.current?.(sel, square);
@@ -790,20 +793,8 @@ function InlineChessBoard({
         if (start && targetSquare !== start) {
           selectedSquareRef.current = null;
           setSelectedSquare(null);
-          const movingPiece = squaresRef.current[start];
-          if (movingPiece) {
-            // Убираем фигуру с исходной клетки сразу
-            setSquares(prev => {
-              const next = { ...prev };
-              delete next[start];
-              return next;
-            });
-            setPlayerAnimatingMove({ from: start, to: targetSquare, piece: movingPiece });
-          }
-          setTimeout(() => {
-            setPlayerAnimatingMove(null);
-            onMoveRef.current?.(start, targetSquare);
-          }, 200);
+          onMoveRef.current?.(start, targetSquare);
+          setLastMove({ from: start, to: targetSquare });
         }
       }
     }
@@ -934,7 +925,7 @@ function InlineChessBoard({
                     />
                   </div>
                 )}
-                {pieceObj && !isSource && !(playerAnimatingMove && (sq === playerAnimatingMove.from || sq === playerAnimatingMove.to)) && (
+                {pieceObj && !isSource && !(playerAnimatingMove && sq === playerAnimatingMove.to) && (
                   <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize*0.85), height: Math.round(sqSize*0.85) }}>
                     <PieceImg type={pieceObj.type} color={pieceObj.color} />
                   </div>
@@ -1801,7 +1792,7 @@ export default function CaptureBoard({
       {embedded ? (
         /* Minimal mode: only the board + fail callback */
         <div className="flex flex-col items-center gap-3">
-          <InlineChessBoard fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} promotionPending={promotionPending} onPromotion={handlePromotion} />
+          <InlineChessBoard key={currentLevel} fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} promotionPending={promotionPending} onPromotion={handlePromotion} />
           {failed && onFail && (
             <div className="w-full">
               <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
@@ -1877,7 +1868,7 @@ export default function CaptureBoard({
 
       {/* CENTER COLUMN: Chess board + stats */}
       <div className="flex-1 flex flex-col items-center gap-3">
-        <InlineChessBoard fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} />
+        <InlineChessBoard key={currentLevel} fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} />
 
         {/* Red fail banner */}
         {failed && (
