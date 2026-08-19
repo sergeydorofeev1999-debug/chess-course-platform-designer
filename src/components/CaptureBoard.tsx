@@ -620,9 +620,12 @@ function InlineChessBoard({
     const p = parseFen(fen);
     setSquares(p.squares);
     squaresRef.current = p.squares;
-    selectedSquareRef.current = null;
-    setSelectedSquare(null);
-  }, [fen]);
+    // Keep selection during animation so validMove dots stay visible
+    if (!playerAnimatingMove) {
+      selectedSquareRef.current = null;
+      setSelectedSquare(null);
+    }
+  }, [fen, playerAnimatingMove]);
 
   useEffect(() => {
     selectedSquareRef.current = selectedSquare;
@@ -677,8 +680,6 @@ function InlineChessBoard({
           setSelectedSquare(null);
           return;
         }
-        selectedSquareRef.current = null;
-        setSelectedSquare(null);
         const movingPiece = sqs[sel];
         if (movingPiece) {
           setPlayerAnimatingMove({ from: sel, to: square, piece: movingPiece });
@@ -692,6 +693,9 @@ function InlineChessBoard({
               setPlayerAnimatingMove(null);
             });
           });
+          // 3. Clear selection AFTER animation
+          selectedSquareRef.current = null;
+          setSelectedSquare(null);
           if (accepted !== false) {
             setMsg('');
           }
@@ -788,8 +792,9 @@ function InlineChessBoard({
         const targetSquare = `${FILES[fi]}${RANKS[ri]}`;
         const start = dragStateRef.current.square;
         if (start && targetSquare !== start) {
-          selectedSquareRef.current = null;
-          setSelectedSquare(null);
+          // Clear drag state BEFORE ghost to prevent floating+ghost duplicate
+          setDragState(null);
+          dragStateRef.current = null;
           const movingPiece = squaresRef.current[start];
           if (movingPiece) {
             setPlayerAnimatingMove({ from: start, to: targetSquare, piece: movingPiece });
@@ -801,13 +806,14 @@ function InlineChessBoard({
                 setPlayerAnimatingMove(null);
               });
             });
+            // Clear selection AFTER animation
+            selectedSquareRef.current = null;
+            setSelectedSquare(null);
           }, 200);
         }
       }
     }
     pointerStartRef.current = null;
-    setDragState(null);
-    dragStateRef.current = null;
     justDraggedRef.current = false;
   };
 
