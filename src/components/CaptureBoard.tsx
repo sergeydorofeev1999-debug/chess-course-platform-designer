@@ -696,6 +696,8 @@ function InlineChessBoard({
           // 3. Clear selection AFTER animation so validMove dots stay visible
           selectedSquareRef.current = null;
           setSelectedSquare(null);
+          // 4. Highlight last move
+          setLastMove({ from: sel, to: square });
           if (accepted !== false) {
             setMsg('');
           }
@@ -806,6 +808,8 @@ function InlineChessBoard({
             // Clear selection AFTER animation
             selectedSquareRef.current = null;
             setSelectedSquare(null);
+            // Highlight last move
+            setLastMove({ from: start, to: targetSquare });
           }, 200);
         }
       }
