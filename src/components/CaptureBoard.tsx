@@ -624,6 +624,7 @@ function InlineChessBoard({
     if (!playerAnimatingMove) {
       selectedSquareRef.current = null;
       setSelectedSquare(null);
+      // NOTE: lastMove is NOT cleared here — it stays visible until next move
     }
   }, [fen, playerAnimatingMove]);
 
@@ -683,6 +684,7 @@ function InlineChessBoard({
         const movingPiece = sqs[sel];
         if (movingPiece) {
           setPlayerAnimatingMove({ from: sel, to: square, piece: movingPiece });
+          setLastMove({ from: sel, to: square });
         }
         setTimeout(() => {
           // 1. First update parent position (triggers useEffect[fen] → setSquares)
@@ -798,6 +800,7 @@ function InlineChessBoard({
           const movingPiece = squaresRef.current[start];
           if (movingPiece) {
             setPlayerAnimatingMove({ from: start, to: targetSquare, piece: movingPiece });
+            setLastMove({ from: start, to: targetSquare });
           }
           setTimeout(() => {
             onMoveRef.current?.(start, targetSquare);
