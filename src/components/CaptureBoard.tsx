@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { RotateCcw } from 'lucide-react';
+import UniversalChessBoardDesigner from './board/UniversalChessBoardDesigner';
 
 /* ====== Shared chess utils (copied from LessonClient) ====== */
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
@@ -620,13 +621,9 @@ function InlineChessBoard({
     const p = parseFen(fen);
     setSquares(p.squares);
     squaresRef.current = p.squares;
-    // Keep selection during animation so validMove dots stay visible
-    if (!playerAnimatingMove) {
-      selectedSquareRef.current = null;
-      setSelectedSquare(null);
-      // NOTE: lastMove is NOT cleared here — it stays visible until next move
-    }
-  }, [fen, playerAnimatingMove]);
+    selectedSquareRef.current = null;
+    setSelectedSquare(null);
+  }, [fen]);
 
   useEffect(() => {
     selectedSquareRef.current = selectedSquare;
@@ -681,10 +678,11 @@ function InlineChessBoard({
           setSelectedSquare(null);
           return;
         }
+        selectedSquareRef.current = null;
+        setSelectedSquare(null);
         const movingPiece = sqs[sel];
         if (movingPiece) {
           setPlayerAnimatingMove({ from: sel, to: square, piece: movingPiece });
-          setLastMove({ from: sel, to: square });
         }
         setTimeout(() => {
           // 1. First update parent position (triggers useEffect[fen] → setSquares)
@@ -695,9 +693,6 @@ function InlineChessBoard({
               setPlayerAnimatingMove(null);
             });
           });
-          // 3. Clear selection AFTER animation
-          selectedSquareRef.current = null;
-          setSelectedSquare(null);
           if (accepted !== false) {
             setMsg('');
           }
@@ -794,13 +789,11 @@ function InlineChessBoard({
         const targetSquare = `${FILES[fi]}${RANKS[ri]}`;
         const start = dragStateRef.current.square;
         if (start && targetSquare !== start) {
-          // Clear drag state BEFORE ghost to prevent floating+ghost duplicate
-          setDragState(null);
-          dragStateRef.current = null;
+          selectedSquareRef.current = null;
+          setSelectedSquare(null);
           const movingPiece = squaresRef.current[start];
           if (movingPiece) {
             setPlayerAnimatingMove({ from: start, to: targetSquare, piece: movingPiece });
-            setLastMove({ from: start, to: targetSquare });
           }
           setTimeout(() => {
             onMoveRef.current?.(start, targetSquare);
@@ -809,14 +802,13 @@ function InlineChessBoard({
                 setPlayerAnimatingMove(null);
               });
             });
-            // Clear selection AFTER animation
-            selectedSquareRef.current = null;
-            setSelectedSquare(null);
           }, 200);
         }
       }
     }
     pointerStartRef.current = null;
+    setDragState(null);
+    dragStateRef.current = null;
     justDraggedRef.current = false;
   };
 
@@ -941,7 +933,7 @@ function InlineChessBoard({
                     />
                   </div>
                 )}
-                {pieceObj && !isSource && !(playerAnimatingMove && (sq === playerAnimatingMove.from || sq === playerAnimatingMove.to)) && (
+                {pieceObj && !isSource && !(playerAnimatingMove && sq === playerAnimatingMove.from) && (
                   <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize*0.85), height: Math.round(sqSize*0.85) }}>
                     <PieceImg type={pieceObj.type} color={pieceObj.color} />
                   </div>
@@ -1123,6 +1115,8 @@ export default function CaptureBoard({
   const [moves, setMoves] = useState(0);
   const [allDone, setAllDone] = useState(false);
   const [promotionPending, setPromotionPending] = useState<{from: string, to: string} | null>(null);
+  const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
+  const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
 
   // Use external state when embedded, internal otherwise
   const currentLevel = embedded && externalCurrentLevel !== undefined ? externalCurrentLevel : currentLevelInternal;
@@ -1286,6 +1280,7 @@ export default function CaptureBoard({
       }
 
       const movedPiece = parsed.squares[from];
+      setLastMove({ from, to });
 
       // Apply move immediately (visual first, like Lichess)
       const newSquares = { ...parsed.squares };
@@ -1313,6 +1308,7 @@ export default function CaptureBoard({
       setPosition(newFen);
       setMoves((c) => c + 1);
       setMsg('');
+      setSelectedSquare(null);
       onAnyMove?.();
       onPositionChange?.(newFen);
 
@@ -1712,6 +1708,83 @@ export default function CaptureBoard({
     [stars, collected, currentLevel, totalLevels, onAllComplete, gameOver, level.maxMoves, successMessage, setFailed, setGameOver]
   );
 
+  // ─── UniversalChessBoardDesigner integration ───
+
+  const handleSquareClick = useCallback(
+    (square: string) => {
+      if (gameOver) return;
+      if (promotionPending) return;
+
+      const parsed = parseFen(positionRef.current);
+      const piece = parsed.squares[square];
+
+      if (selectedSquare === square) {
+        setSelectedSquare(null);
+        return;
+      }
+
+      if (selectedSquare && piece && piece.color === 'w') {
+        setSelectedSquare(square);
+        return;
+      }
+
+      if (selectedSquare) {
+        const from = selectedSquare;
+        const to = square;
+        const fromType = parsed.squares[from]?.type || 'p';
+
+        if (level.allowedPieces && level.allowedPieces.length > 0) {
+          if (!level.allowedPieces.includes(fromType)) {
+            setMsg(`Используйте только ${getAllowedPieceName(level.allowedPieces[0])}!`);
+            setSelectedSquare(null);
+            return;
+          }
+        }
+
+        if (!isValidMove(fromType, from, to, parsed.squares, 'w', [], false, parsed.enPassant)) {
+          setMsg('Недопустимый ход');
+          setSelectedSquare(null);
+          return;
+        }
+
+        if (fromType === 'p' && to[1] === '8') {
+          setPromotionPending({ from, to });
+          setSelectedSquare(null);
+          return;
+        }
+
+        handleMove(from, to);
+        setSelectedSquare(null);
+      } else {
+        if (piece && piece.color === 'w') {
+          setSelectedSquare(square);
+        }
+      }
+    },
+    [gameOver, promotionPending, selectedSquare, handleMove, level]
+  );
+
+  const handleDragMove = useCallback(
+    (from: string, to: string) => {
+      if (gameOver) return;
+      handleMove(from, to);
+    },
+    [gameOver, handleMove]
+  );
+
+  const validMoves = useMemo(() => {
+    if (!selectedSquare) return [];
+    const parsed = parseFen(positionRef.current);
+    return getValidSquares(
+      parsed.squares[selectedSquare]?.type || 'p',
+      selectedSquare,
+      parsed.squares,
+      'w',
+      [],
+      parsed.enPassant
+    ).filter(sq => !level.forbiddenSquares?.includes(sq));
+  }, [selectedSquare, position, level.forbiddenSquares]);
+
   const collectedCount = stars.filter((s: string) => collected.includes(s)).length;
   const remainingBlack = Object.values(parseFen(position).squares).filter((p) => p.color === 'b').length;
 
@@ -1808,7 +1881,36 @@ export default function CaptureBoard({
       {embedded ? (
         /* Minimal mode: only the board + fail callback */
         <div className="flex flex-col items-center gap-3">
-          <InlineChessBoard fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} promotionPending={promotionPending} onPromotion={handlePromotion} />
+          <div className="flex flex-col items-center gap-4">
+            <UniversalChessBoardDesigner
+              fen={position}
+              validMoves={validMoves}
+              selectedSquare={selectedSquare}
+              onSquareClick={handleSquareClick}
+              onMove={handleDragMove}
+              lastMove={lastMove}
+              interactive={!gameOver}
+            />
+            {msg && <p className="text-red-500 text-sm">{msg}</p>}
+            {promotionPending && (
+              <div className="flex gap-2">
+                {[
+                  { code: 'q', name: 'Ферзь' },
+                  { code: 'n', name: 'Конь' },
+                  { code: 'r', name: 'Ладья' },
+                  { code: 'b', name: 'Слон' },
+                ].map((p) => (
+                  <button
+                    key={p.code}
+                    onClick={() => handlePromotion(p.code)}
+                    className="px-3 py-2 bg-[#2C241B] rounded hover:bg-[#3d3226] transition"
+                  >
+                    <img src={`/pieces/cburnett/w${p.code.toUpperCase()}.svg`} alt={p.name} className="w-8 h-8" draggable={false} />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           {failed && onFail && (
             <div className="w-full">
               <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
@@ -1884,7 +1986,36 @@ export default function CaptureBoard({
 
       {/* CENTER COLUMN: Chess board + stats */}
       <div className="flex-1 flex flex-col items-center gap-3">
-        <InlineChessBoard fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} />
+        <div className="flex flex-col items-center gap-4">
+          <UniversalChessBoardDesigner
+            fen={position}
+            validMoves={validMoves}
+            selectedSquare={selectedSquare}
+            onSquareClick={handleSquareClick}
+            onMove={handleDragMove}
+            lastMove={lastMove}
+            interactive={!gameOver}
+          />
+          {msg && <p className="text-red-500 text-sm">{msg}</p>}
+          {promotionPending && (
+            <div className="flex gap-2">
+              {[
+                { code: 'q', name: 'Ферзь' },
+                { code: 'n', name: 'Конь' },
+                { code: 'r', name: 'Ладья' },
+                { code: 'b', name: 'Слон' },
+              ].map((p) => (
+                <button
+                  key={p.code}
+                  onClick={() => handlePromotion(p.code)}
+                  className="px-3 py-2 bg-[#2C241B] rounded hover:bg-[#3d3226] transition"
+                >
+                  <img src={`/pieces/cburnett/w${p.code.toUpperCase()}.svg`} alt={p.name} className="w-8 h-8" draggable={false} />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         {/* Red fail banner */}
         {failed && (
