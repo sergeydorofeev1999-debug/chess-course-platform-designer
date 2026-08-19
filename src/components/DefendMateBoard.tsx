@@ -255,7 +255,8 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
       const mateMove = afterWhite.moves({ verbose: true }).find((m: any) => m.san.includes('#'));
       const captureMoves = afterWhite.moves({ verbose: true }).filter((m: any) => m.captured);
 
-      setIsFail(true);
+      // Block moves immediately via ref (before async animation)
+      isFailRef.current = true;
 
       if (mateMove) {
         setMessage('Не защитились! Соперник ставит мат.');
@@ -273,6 +274,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
           setTimeout(() => {
             if (!mountedRef.current) return;
             setOpponentAnimatingMove(null);
+            setIsFail(true); // Show fail UI after animation completes
           }, 220);
         }, 800);
       } else if (captureMoves.length > 0) {
@@ -291,10 +293,12 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
           setTimeout(() => {
             if (!mountedRef.current) return;
             setOpponentAnimatingMove(null);
+            setIsFail(true); // Show fail UI after animation completes
           }, 220);
         }, 800);
       } else {
         setMessage('Не защитились! Соперник ставит мат.');
+        setIsFail(true);
       }
     } catch {
       // invalid move
