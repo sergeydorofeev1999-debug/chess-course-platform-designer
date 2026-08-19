@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { flushSync } from 'react-dom';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { RotateCcw } from 'lucide-react';
@@ -621,12 +620,9 @@ function InlineChessBoard({
     const p = parseFen(fen);
     setSquares(p.squares);
     squaresRef.current = p.squares;
-    // Don't clear selection during animation so dots stay visible
-    if (!playerAnimatingMove) {
-      selectedSquareRef.current = null;
-      setSelectedSquare(null);
-    }
-  }, [fen, playerAnimatingMove]);
+    selectedSquareRef.current = null;
+    setSelectedSquare(null);
+  }, [fen]);
 
   useEffect(() => {
     selectedSquareRef.current = selectedSquare;
@@ -681,6 +677,8 @@ function InlineChessBoard({
           setSelectedSquare(null);
           return;
         }
+        selectedSquareRef.current = null;
+        setSelectedSquare(null);
         const movingPiece = sqs[sel];
         if (movingPiece) {
           setPlayerAnimatingMove({ from: sel, to: square, piece: movingPiece });
@@ -694,11 +692,6 @@ function InlineChessBoard({
               setPlayerAnimatingMove(null);
             });
           });
-          // 3. Clear selection AFTER animation so validMove dots stay visible
-          selectedSquareRef.current = null;
-          setSelectedSquare(null);
-          // 4. Highlight last move
-          setLastMove({ from: sel, to: square });
           if (accepted !== false) {
             setMsg('');
           }
@@ -795,13 +788,10 @@ function InlineChessBoard({
         const targetSquare = `${FILES[fi]}${RANKS[ri]}`;
         const start = dragStateRef.current.square;
         if (start && targetSquare !== start) {
+          selectedSquareRef.current = null;
+          setSelectedSquare(null);
           const movingPiece = squaresRef.current[start];
           if (movingPiece) {
-            // Flush sync so dragState clears BEFORE ghost appears — prevents double-piece frame
-            flushSync(() => {
-              setDragState(null);
-              dragStateRef.current = null;
-            });
             setPlayerAnimatingMove({ from: start, to: targetSquare, piece: movingPiece });
           }
           setTimeout(() => {
@@ -811,11 +801,6 @@ function InlineChessBoard({
                 setPlayerAnimatingMove(null);
               });
             });
-            // Clear selection AFTER animation
-            selectedSquareRef.current = null;
-            setSelectedSquare(null);
-            // Highlight last move
-            setLastMove({ from: start, to: targetSquare });
           }, 200);
         }
       }
@@ -947,7 +932,7 @@ function InlineChessBoard({
                     />
                   </div>
                 )}
-                {pieceObj && !isSource && !(playerAnimatingMove && (sq === playerAnimatingMove.from || sq === playerAnimatingMove.to)) && (
+                {pieceObj && !isSource && !(playerAnimatingMove && sq === playerAnimatingMove.from) && (
                   <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize*0.85), height: Math.round(sqSize*0.85) }}>
                     <PieceImg type={pieceObj.type} color={pieceObj.color} />
                   </div>
@@ -957,7 +942,7 @@ function InlineChessBoard({
           })
         )}
         {/* Floating dragged piece */}
-        {dragState && !playerAnimatingMove && (
+        {dragState && (
           <div
             className="absolute pointer-events-none z-50"
             style={{
