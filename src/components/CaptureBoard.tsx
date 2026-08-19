@@ -793,19 +793,8 @@ function InlineChessBoard({
           setSelectedSquare(null);
           setDragState(null);
           dragStateRef.current = null;
-          const movingPiece = squaresRef.current[start];
           setLastMove({ from: start, to: targetSquare });
-          if (movingPiece) {
-            setPlayerAnimatingMove({ from: start, to: targetSquare, piece: movingPiece });
-          }
-          setTimeout(() => {
-            onMoveRef.current?.(start, targetSquare);
-            requestAnimationFrame(() => {
-              requestAnimationFrame(() => {
-                setPlayerAnimatingMove(null);
-              });
-            });
-          }, 200);
+          onMoveRef.current?.(start, targetSquare);
         }
       }
     }
