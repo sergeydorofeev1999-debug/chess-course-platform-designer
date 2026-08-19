@@ -4,7 +4,6 @@ import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { RotateCcw } from 'lucide-react';
-import UniversalChessBoardDesigner from './board/UniversalChessBoardDesigner';
 
 /* ====== Shared chess utils (copied from LessonClient) ====== */
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
@@ -548,10 +547,527 @@ function GhostOverlay({ move, sqSize, isOpponent = false }: { move: { from: stri
   );
 }
 
+/* ====== Inline Chess Board (white + black pieces, click & drag) ====== */
+function InlineChessBoard({
+  fen,
+  onMove,
+  whitePieceTypes,
+  msg,
+  setMsg,
+  forbiddenSquares = [],
+  hintArrows = [],
+  promotionPending,
+  onPromotion,
+}: {
+  fen: string;
+  onMove: (from: string, to: string) => boolean;
+  whitePieceTypes?: string[];
+  msg: string;
+  setMsg: (s: string) => void;
+  forbiddenSquares?: string[];
+  hintArrows?: { from: string; to: string }[];
+  promotionPending?: { from: string; to: string } | null;
+  onPromotion?: (piece: string) => void;
+}) {
+  const parsed = parseFen(fen);
+  const [squares, setSquares] = useState(parsed.squares);
+  const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
+  const squaresRef = useRef(squares);
+  const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
+  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
+  const selectedSquareRef = useRef(selectedSquare);
+  const [hoveredSquare, setHoveredSquare] = useState<string | null>(null);
+  const [dragState, setDragState] = useState<{
+    square: string;
+    type: string;
+    color: string;
+    x: number;
+    y: number;
+    offsetX: number;
+    offsetY: number;
+    startX: number;
+    startY: number;
+  } | null>(null);
+  const dragStateRef = useRef(dragState);
+  const pointerStartRef = useRef<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const justDraggedRef = useRef(false);
+  const onMoveRef = useRef(onMove);
+  const [sqSize, setSqSize] = useState(44);
+  const sqSizeRef = useRef(sqSize);
+  const pointerIdRef = useRef(0);
+
+  useEffect(() => {
+    const update = () => {
+      const isMobile = window.innerWidth < 1024;
+      if (isMobile) {
+        setSqSize(Math.min(80, Math.max(42, Math.floor((window.innerWidth - 16) / 8))));
+      } else {
+        const available = Math.max(0, window.innerWidth - 520);
+        setSqSize(Math.min(84, Math.max(56, Math.floor(available / 8))));
+      }
+    };
+    update();
+    window.addEventListener('resize', update);
+    return () => window.removeEventListener('resize', update);
+  }, []);
+
+  useEffect(() => {
+    sqSizeRef.current = sqSize;
+  }, [sqSize]);
+
+  useEffect(() => {
+    const p = parseFen(fen);
+    setSquares(p.squares);
+    squaresRef.current = p.squares;
+    selectedSquareRef.current = null;
+    setSelectedSquare(null);
+  }, [fen]);
+
+  useEffect(() => {
+    selectedSquareRef.current = selectedSquare;
+  }, [selectedSquare]);
+  useEffect(() => {
+    dragStateRef.current = dragState;
+  }, [dragState]);
+  useEffect(() => {
+    onMoveRef.current = onMove;
+  }, [onMove]);
+
+  const validMoves = selectedSquare
+    ? getValidSquares(
+        squares[selectedSquare]?.type || 'p',
+        selectedSquare,
+        squares,
+        'w',
+        [],
+        parsed.enPassant
+      ).filter(sq => !forbiddenSquares.includes(sq))
+    : dragState
+    ? getValidSquares(
+        squares[dragState.square]?.type || 'p',
+        dragState.square,
+        squares,
+        'w',
+        [],
+        parsed.enPassant
+      ).filter(sq => !forbiddenSquares.includes(sq))
+    : [];
+
+  const click = useCallback(
+    (square: string) => {
+      if (promotionPending) return;
+      if (justDraggedRef.current) { justDraggedRef.current = false; return; }
+      const sqs = squaresRef.current;
+      const sel = selectedSquareRef.current;
+      const piece = sqs[square];
+      if (sel) {
+        if (sel === square) {
+          selectedSquareRef.current = null;
+          setSelectedSquare(null);
+          return;
+        }
+        if (piece && piece.color === 'w') {
+          selectedSquareRef.current = square;
+          setSelectedSquare(square);
+          return;
+        }
+        if (forbiddenSquares.includes(square)) {
+          selectedSquareRef.current = null;
+          setSelectedSquare(null);
+          return;
+        }
+        selectedSquareRef.current = null;
+        setSelectedSquare(null);
+        const movingPiece = sqs[sel];
+        if (movingPiece) {
+          setPlayerAnimatingMove({ from: sel, to: square, piece: movingPiece });
+        }
+        setTimeout(() => {
+          // 1. First update parent position (triggers useEffect[fen] → setSquares)
+          const accepted = onMoveRef.current?.(sel, square);
+          // 2. Wait for React to flush setSquares from useEffect[fen]
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              setPlayerAnimatingMove(null);
+            });
+          });
+          if (accepted !== false) {
+            setMsg('');
+          }
+        }, 200);
+      } else {
+        if (piece && piece.color === 'w') {
+          selectedSquareRef.current = square;
+          setSelectedSquare(square);
+        }
+      }
+    },
+    [setMsg, forbiddenSquares, promotionPending],
+  );
+
+  const handlePointerDown = (e: React.PointerEvent, sq: string) => {
+    if (!containerRef.current) return;
+    const piece = squares[sq];
+    if (!piece || piece.color !== 'w') return;
+    pointerStartRef.current = sq;
+    justDraggedRef.current = false;
+    pointerIdRef.current = e.pointerId;
+    // Select piece immediately like LessonClient
+    selectedSquareRef.current = sq;
+    setSelectedSquare(sq);
+    const rect = containerRef.current.getBoundingClientRect();
+    const fi = FILES.indexOf(sq[0]);
+    const ri = RANKS.indexOf(sq[1]);
+    const size = sqSizeRef.current;
+    const centerX = fi * size + size / 2;
+    const centerY = ri * size + size / 2;
+    const offsetX = e.clientX - rect.left - centerX;
+    const offsetY = e.clientY - rect.top - centerY;
+    const initState = {
+      square: sq,
+      type: piece.type,
+      color: piece.color,
+      x: centerX,
+      y: centerY,
+      offsetX,
+      offsetY,
+      startX: e.clientX,
+      startY: e.clientY,
+    };
+    // Don't set dragState yet — wait for threshold
+    dragStateRef.current = initState;
+    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+  };
+
+  const handleGlobalMove = (e: PointerEvent) => {
+    if (!dragStateRef.current) return;
+    if (e.pointerId !== pointerIdRef.current) return;
+    const dx = e.clientX - dragStateRef.current.startX;
+    const dy = e.clientY - dragStateRef.current.startY;
+    if (!justDraggedRef.current && Math.abs(dx) <= 20 && Math.abs(dy) <= 20) {
+      return; // still within click threshold
+    }
+    if (!justDraggedRef.current) {
+      // Threshold crossed — start drag
+      justDraggedRef.current = true;
+      setDragState(dragStateRef.current);
+    }
+    selectedSquareRef.current = dragStateRef.current.square;
+    setSelectedSquare(dragStateRef.current.square);
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    // Use the fixed grab offset recorded at pointerDown
+    const x = e.clientX - rect.left - dragStateRef.current.offsetX;
+    const y = e.clientY - rect.top - dragStateRef.current.offsetY;
+    const newState = { ...dragStateRef.current, x, y };
+    setDragState(newState);
+    dragStateRef.current = newState;
+  };
+
+  const handleGlobalUp = (e: PointerEvent) => {
+    if (!dragStateRef.current || !containerRef.current) {
+      pointerStartRef.current = null;
+      setDragState(null);
+      dragStateRef.current = null;
+      justDraggedRef.current = false;
+      return;
+    }
+    if (e.pointerId !== pointerIdRef.current) return;
+    if (!justDraggedRef.current) {
+      // It was a click, not a drag — process it through the click handler
+      click(dragStateRef.current.square);
+    } else {
+      const rect = containerRef.current.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const size = sqSizeRef.current;
+      const fi = Math.floor(x / size);
+      const ri = Math.floor(y / size);
+      if (fi >= 0 && fi < 8 && ri >= 0 && ri < 8) {
+        const targetSquare = `${FILES[fi]}${RANKS[ri]}`;
+        const start = dragStateRef.current.square;
+        if (start && targetSquare !== start) {
+          selectedSquareRef.current = null;
+          setSelectedSquare(null);
+          const movingPiece = squaresRef.current[start];
+          if (movingPiece) {
+            setPlayerAnimatingMove({ from: start, to: targetSquare, piece: movingPiece });
+          }
+          setTimeout(() => {
+            onMoveRef.current?.(start, targetSquare);
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                setPlayerAnimatingMove(null);
+              });
+            });
+          }, 200);
+        }
+      }
+    }
+    pointerStartRef.current = null;
+    setDragState(null);
+    dragStateRef.current = null;
+    justDraggedRef.current = false;
+  };
+
+  const handleGlobalCancel = () => {
+    pointerStartRef.current = null;
+    setDragState(null);
+    dragStateRef.current = null;
+  };
+
+  useEffect(() => {
+    window.addEventListener('pointermove', handleGlobalMove);
+    window.addEventListener('pointerup', handleGlobalUp);
+    window.addEventListener('pointercancel', handleGlobalCancel);
+    return () => {
+      window.removeEventListener('pointermove', handleGlobalMove);
+      window.removeEventListener('pointerup', handleGlobalUp);
+      window.removeEventListener('pointercancel', handleGlobalCancel);
+    };
+  }, []);
+
+  const preventDrag = (e: React.DragEvent) => e.preventDefault();
+
+  return (
+    <div className="flex flex-col items-center gap-2 select-none">
+      <div
+        className="grid border-[5px] border-[#1a1612] rounded relative select-none board-fade-in"
+        style={{
+          gridTemplateColumns: `repeat(8, ${sqSize}px)`,
+          gridTemplateRows: `repeat(8, ${sqSize}px)`,
+          touchAction: 'none',
+          boxShadow: '0 12px 40px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06)',
+        }}
+        ref={containerRef}
+      >
+        {RANKS.map((rank, ri) =>
+          FILES.map((file, fi) => {
+            const sq = `${file}${rank}`;
+            const pieceObj = squares[sq];
+            const light = isLight(fi, ri);
+            const sel = selectedSquare === sq;
+            const isSource = dragState?.square === sq;
+            const isValid = validMoves.includes(sq);
+            const hover = hoveredSquare === sq;
+            return (
+              <div
+                key={sq}
+                data-square={sq}
+                className={`flex items-center justify-center relative select-none ${isSource ? 'opacity-50' : ''}`}
+                style={{
+                  width: sqSize,
+                  height: sqSize,
+                  cursor: pieceObj && pieceObj.color === 'w' ? 'grab' : 'default',
+                  touchAction: 'none',
+                  backgroundColor: light ? 'var(--square-light)' : 'var(--square-dark)',
+                }}
+                onPointerDown={(e) => handlePointerDown(e, sq)}
+                onClick={() => click(sq)}
+                onDragStart={preventDrag}
+                onMouseEnter={() => setHoveredSquare(sq)}
+                onMouseLeave={() => setHoveredSquare(null)}
+              >
+                {sel && (
+                  <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
+                )}
+                    {lastMove && sq === lastMove.from && (
+                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
+                    )}
+                    {lastMove && sq === lastMove.to && (
+                      <div className="absolute inset-0 bg-[rgba(201,168,76,0.70)] pointer-events-none z-[5]" />
+                    )}
+
+                {hover && !sel && (
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      backgroundColor: light ? 'rgba(0,0,0,0.10)' : 'rgba(0,0,0,0.15)',
+                      zIndex: 5,
+                    }}
+                  />
+                )}
+                {fi === 0 && (
+                  <span
+                    className={`absolute top-0.5 left-1 text-[10px] font-bold ${
+                      light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'
+                    }`}
+                  >
+                    {rank}
+                  </span>
+                )}
+                {ri === 7 && (
+                  <span
+                    className={`absolute bottom-0.5 right-1 text-[10px] font-bold ${
+                      light ? 'text-[var(--square-dark)]' : 'text-[var(--square-light)]'
+                    }`}
+                  >
+                    {file}
+                  </span>
+                )}
+                {isValid && !squares[sq] && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+                    <div
+                      style={{
+                        width: Math.round(sqSize * 0.3),
+                        height: Math.round(sqSize * 0.3),
+                        backgroundColor: 'var(--square-valid)',
+                        borderRadius: '50%',
+                        opacity: 0.85,
+                      }}
+                    />
+                  </div>
+                )}
+                {isValid && squares[sq] && squares[sq].color === 'b' && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-50">
+                    <div
+                      style={{
+                        width: sqSize,
+                        height: sqSize,
+                        borderRadius: '50%',
+                        border: '4px solid var(--square-valid)',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                  </div>
+                )}
+                {pieceObj && !isSource && !(playerAnimatingMove && sq === playerAnimatingMove.from) && (
+                  <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize*0.85), height: Math.round(sqSize*0.85) }}>
+                    <PieceImg type={pieceObj.type} color={pieceObj.color} />
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+        {/* Floating dragged piece */}
+        {dragState && (
+          <div
+            className="absolute pointer-events-none z-50"
+            style={{
+              width: sqSize,
+              height: sqSize,
+              left: dragState.x - sqSize / 2,
+              top: dragState.y - sqSize / 2,
+            }}
+          >
+            <PieceImg type={dragState.type} color={dragState.color as 'w' | 'b'} />
+          </div>
+        )}
+        {playerAnimatingMove && (
+          <GhostOverlay move={playerAnimatingMove} sqSize={sqSize} />
+        )}
+        {/* Hint arrows SVG - always rendered, high visibility */}
+        <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize, display: hintArrows.length > 0 ? 'block' : 'none' }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
+          {hintArrows.map((arrow, i) => {
+              const fromF = FILES.indexOf(arrow.from[0]);
+              const fromR = RANKS.indexOf(arrow.from[1]);
+              const toF = FILES.indexOf(arrow.to[0]);
+              const toR = RANKS.indexOf(arrow.to[1]);
+              const x1 = (fromF + 0.5) * sqSize;
+              const y1 = (fromR + 0.5) * sqSize;
+              const x2 = (toF + 0.5) * sqSize;
+              const y2 = (toR + 0.5) * sqSize;
+              const strokeW = sqSize < 60 ? 14 : 18;
+              const halfW = strokeW / 2;
+              const dx = x2 - x1;
+              const dy = y2 - y1;
+              const len = Math.sqrt(dx * dx + dy * dy) || 1;
+              const headHeight = sqSize * 0.6;
+              const headBase   = strokeW * 3;
+              const nx = -dy / len;
+              const ny = dx / len;
+              const blx = x1 + nx * halfW;   const bly = y1 + ny * halfW;
+              const brx = x1 - nx * halfW;   const bry = y1 - ny * halfW;
+              const tailX = x2 - (dx / len) * headHeight;
+              const tailY = y2 - (dy / len) * headHeight;
+              const tlx = tailX + nx * halfW; const tly = tailY + ny * halfW;
+              const trx = tailX - nx * halfW; const try_ = tailY - ny * halfW;
+              const hlx = tailX + nx * headBase / 2; const hly = tailY + ny * headBase / 2;
+              const hrx = tailX - nx * headBase / 2; const hry = tailY - ny * headBase / 2;
+              const cross = (brx - blx) * (-dy / len) - (bry - bly) * (-dx / len);
+              const sweep = cross > 0 ? 1 : 0;
+              const pathD = `M ${blx} ${bly} L ${tlx} ${tly} L ${hlx} ${hly} L ${x2} ${y2} L ${hrx} ${hry} L ${trx} ${try_} L ${brx} ${bry} A ${halfW} ${halfW} 0 1 ${sweep} ${blx} ${bly} Z`;
+              return (
+                <path
+                  key={i}
+                  d={pathD}
+                  fill="rgba(44, 36, 27, 0.35)"
+                  className="arrow-hint-line"
+                />
+              );
+            })}
+          </svg>
+        {promotionPending && onPromotion && (
+          <div className="absolute z-50 pointer-events-auto" style={{
+            left: `${(FILES.indexOf(promotionPending.to[0])) * sqSize}px`,
+            top: 0,
+            width: sqSize,
+            height: 4 * sqSize,
+            backgroundColor: '#2C241B',
+            borderRadius: '0px',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.35)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '2px',
+            padding: '2px 0',
+          }}>
+            {[
+              { code: 'q', name: 'Ферзь' },
+              { code: 'n', name: 'Конь' },
+              { code: 'r', name: 'Ладья' },
+              { code: 'b', name: 'Слон' },
+            ].map((p) => (
+              <button
+                key={p.code}
+                onClick={() => onPromotion(p.code)}
+                className="w-full flex items-center justify-center hover:bg-[rgba(255,255,255,0.1)] transition-colors"
+                style={{ height: sqSize }}
+              >
+                <img
+                  src={`/pieces/cburnett/w${p.code.toUpperCase()}.svg`}
+                  alt={p.name}
+                  draggable={false}
+                  style={{ width: '78%', height: '78%', objectFit: 'contain' }}
+                />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      {msg && <div className="text-red-500 text-sm mt-1">{msg}</div>}
+    </div>
+  );
+}
+
+/* ====== CaptureBoard main component ====== */
+interface CaptureLevel {
+  initialFen: string;
+  stars?: string[];
+  targets?: string[];
+  instructions: string;
+  hint: string;
+  maxMoves: number;
+  requireAll?: boolean;
+  requireCheck?: boolean;
+  requireMate?: boolean;
+  requireStalemate?: boolean;
+  requireSafeKing?: boolean;
+  autoCaptures?: { blackFrom: string; captureSquare: string }[];
+  forbiddenSquares?: string[];
+  blackAutoCapture?: boolean; // default true; set false to disable universal black auto-capture
+  autoMove?: { from: string; to: string; delayMs: number } | { from: string; to: string; delayMs: number }[];
+  triggerAutoMove?: { from: string; to: string; delayMs?: number }[];
+  allowedPieces?: string[];
+  checkOnMove?: number;
+}
 
 interface Props {
   lessonId: string;
-  levels: any[];
+  levels: CaptureLevel[];
   successMessage: string;
   onAllComplete?: () => void;
   onLevelComplete?: (level: number, earned: number) => void;
@@ -598,9 +1114,6 @@ export default function CaptureBoard({
   const [moves, setMoves] = useState(0);
   const [allDone, setAllDone] = useState(false);
   const [promotionPending, setPromotionPending] = useState<{from: string, to: string} | null>(null);
-  const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
-  const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
-  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
 
   // Use external state when embedded, internal otherwise
   const currentLevel = embedded && externalCurrentLevel !== undefined ? externalCurrentLevel : currentLevelInternal;
@@ -764,7 +1277,6 @@ export default function CaptureBoard({
       }
 
       const movedPiece = parsed.squares[from];
-      setLastMove({ from, to });
 
       // Apply move immediately (visual first, like Lichess)
       const newSquares = { ...parsed.squares };
@@ -792,7 +1304,6 @@ export default function CaptureBoard({
       setPosition(newFen);
       setMoves((c) => c + 1);
       setMsg('');
-      setSelectedSquare(null);
       onAnyMove?.();
       onPositionChange?.(newFen);
 
@@ -1192,96 +1703,6 @@ export default function CaptureBoard({
     [stars, collected, currentLevel, totalLevels, onAllComplete, gameOver, level.maxMoves, successMessage, setFailed, setGameOver]
   );
 
-  // ─── UniversalChessBoardDesigner integration ───
-
-  const handleSquareClick = useCallback(
-    (square: string) => {
-      if (gameOver) return;
-      if (promotionPending) return;
-
-      const parsed = parseFen(positionRef.current);
-      const piece = parsed.squares[square];
-
-      if (selectedSquare === square) {
-        setSelectedSquare(null);
-        return;
-      }
-
-      if (selectedSquare && piece && piece.color === 'w') {
-        setSelectedSquare(square);
-        return;
-      }
-
-      if (selectedSquare) {
-        const from = selectedSquare;
-        const to = square;
-        const fromType = parsed.squares[from]?.type || 'p';
-
-        if (level.allowedPieces && level.allowedPieces.length > 0) {
-          if (!level.allowedPieces.includes(fromType)) {
-            setMsg(`Используйте только ${getAllowedPieceName(level.allowedPieces[0])}!`);
-            setSelectedSquare(null);
-            return;
-          }
-        }
-
-        if (!isValidMove(fromType, from, to, parsed.squares, 'w', [], false, parsed.enPassant)) {
-          setMsg('Недопустимый ход');
-          setSelectedSquare(null);
-          return;
-        }
-
-        if (fromType === 'p' && to[1] === '8') {
-          setPromotionPending({ from, to });
-          setSelectedSquare(null);
-          return;
-        }
-
-        const fromPiece = parsed.squares[from];
-        if (fromPiece) {
-          setPlayerAnimatingMove({
-            from,
-            to,
-            piece: { type: fromPiece.type, color: fromPiece.color },
-          });
-          setTimeout(() => {
-            setPlayerAnimatingMove(null);
-            handleMove(from, to);
-          }, 200);
-        } else {
-          handleMove(from, to);
-        }
-        setSelectedSquare(null);
-      } else {
-        if (piece && piece.color === 'w') {
-          setSelectedSquare(square);
-        }
-      }
-    },
-    [gameOver, promotionPending, selectedSquare, handleMove, level]
-  );
-
-  const handleDragMove = useCallback(
-    (from: string, to: string) => {
-      if (gameOver) return;
-      handleMove(from, to);
-    },
-    [gameOver, handleMove]
-  );
-
-  const validMoves = useMemo(() => {
-    if (!selectedSquare) return [];
-    const parsed = parseFen(positionRef.current);
-    return getValidSquares(
-      parsed.squares[selectedSquare]?.type || 'p',
-      selectedSquare,
-      parsed.squares,
-      'w',
-      [],
-      parsed.enPassant
-    ).filter(sq => !level.forbiddenSquares?.includes(sq));
-  }, [selectedSquare, position, level.forbiddenSquares]);
-
   const collectedCount = stars.filter((s: string) => collected.includes(s)).length;
   const remainingBlack = Object.values(parseFen(position).squares).filter((p) => p.color === 'b').length;
 
@@ -1378,38 +1799,7 @@ export default function CaptureBoard({
       {embedded ? (
         /* Minimal mode: only the board + fail callback */
         <div className="flex flex-col items-center gap-3">
-          <div className="flex flex-col items-center gap-4">
-            <UniversalChessBoardDesigner
-              fen={position}
-              validMoves={validMoves}
-              selectedSquare={selectedSquare}
-              onSquareClick={handleSquareClick}
-              onMove={handleDragMove}
-              lastMove={lastMove}
-              playerAnimatingMove={playerAnimatingMove}
-              disableAutoGhost
-              interactive={!gameOver}
-            />
-            {msg && <p className="text-red-500 text-sm">{msg}</p>}
-            {promotionPending && (
-              <div className="flex gap-2">
-                {[
-                  { code: 'q', name: 'Ферзь' },
-                  { code: 'n', name: 'Конь' },
-                  { code: 'r', name: 'Ладья' },
-                  { code: 'b', name: 'Слон' },
-                ].map((p) => (
-                  <button
-                    key={p.code}
-                    onClick={() => handlePromotion(p.code)}
-                    className="px-3 py-2 bg-[#2C241B] rounded hover:bg-[#3d3226] transition"
-                  >
-                    <img src={`/pieces/cburnett/w${p.code.toUpperCase()}.svg`} alt={p.name} className="w-8 h-8" draggable={false} />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <InlineChessBoard fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} promotionPending={promotionPending} onPromotion={handlePromotion} />
           {failed && onFail && (
             <div className="w-full">
               <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
@@ -1485,38 +1875,7 @@ export default function CaptureBoard({
 
       {/* CENTER COLUMN: Chess board + stats */}
       <div className="flex-1 flex flex-col items-center gap-3">
-        <div className="flex flex-col items-center gap-4">
-          <UniversalChessBoardDesigner
-            fen={position}
-            validMoves={validMoves}
-            selectedSquare={selectedSquare}
-            onSquareClick={handleSquareClick}
-            onMove={handleDragMove}
-            lastMove={lastMove}
-            playerAnimatingMove={playerAnimatingMove}
-            disableAutoGhost
-            interactive={!gameOver}
-          />
-          {msg && <p className="text-red-500 text-sm">{msg}</p>}
-          {promotionPending && (
-            <div className="flex gap-2">
-              {[
-                { code: 'q', name: 'Ферзь' },
-                { code: 'n', name: 'Конь' },
-                { code: 'r', name: 'Ладья' },
-                { code: 'b', name: 'Слон' },
-              ].map((p) => (
-                <button
-                  key={p.code}
-                  onClick={() => handlePromotion(p.code)}
-                  className="px-3 py-2 bg-[#2C241B] rounded hover:bg-[#3d3226] transition"
-                >
-                  <img src={`/pieces/cburnett/w${p.code.toUpperCase()}.svg`} alt={p.name} className="w-8 h-8" draggable={false} />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <InlineChessBoard fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} />
 
         {/* Red fail banner */}
         {failed && (
