@@ -622,6 +622,7 @@ function InlineChessBoard({
     squaresRef.current = p.squares;
     selectedSquareRef.current = null;
     setSelectedSquare(null);
+    setLastMove(null);
   }, [fen]);
 
   useEffect(() => {
@@ -680,6 +681,7 @@ function InlineChessBoard({
         selectedSquareRef.current = null;
         setSelectedSquare(null);
         const movingPiece = sqs[sel];
+        setLastMove({ from: sel, to: square });
         if (movingPiece) {
           setPlayerAnimatingMove({ from: sel, to: square, piece: movingPiece });
         }
@@ -791,6 +793,7 @@ function InlineChessBoard({
           selectedSquareRef.current = null;
           setSelectedSquare(null);
           const movingPiece = squaresRef.current[start];
+          setLastMove({ from: start, to: targetSquare });
           if (movingPiece) {
             setPlayerAnimatingMove({ from: start, to: targetSquare, piece: movingPiece });
           }
