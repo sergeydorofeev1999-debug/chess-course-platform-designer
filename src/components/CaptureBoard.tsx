@@ -681,17 +681,13 @@ function InlineChessBoard({
         setSelectedSquare(null);
         const movingPiece = sqs[sel];
         if (movingPiece) {
-          // Убираем фигуру с исходной клетки сразу
-          setSquares(prev => {
-            const next = { ...prev };
-            delete next[sel];
-            return next;
-          });
           setPlayerAnimatingMove({ from: sel, to: square, piece: movingPiece });
         }
         setTimeout(() => {
-          setPlayerAnimatingMove(null);
+          // 1. First update parent position (triggers useEffect[fen] → setSquares)
           const accepted = onMoveRef.current?.(sel, square);
+          // 2. Then clear ghost — squares already has piece on target
+          setPlayerAnimatingMove(null);
           if (accepted !== false) {
             setMsg('');
           }
@@ -792,17 +788,11 @@ function InlineChessBoard({
           setSelectedSquare(null);
           const movingPiece = squaresRef.current[start];
           if (movingPiece) {
-            // Убираем фигуру с исходной клетки сразу
-            setSquares(prev => {
-              const next = { ...prev };
-              delete next[start];
-              return next;
-            });
             setPlayerAnimatingMove({ from: start, to: targetSquare, piece: movingPiece });
           }
           setTimeout(() => {
-            setPlayerAnimatingMove(null);
             onMoveRef.current?.(start, targetSquare);
+            setPlayerAnimatingMove(null);
           }, 200);
         }
       }
@@ -934,7 +924,7 @@ function InlineChessBoard({
                     />
                   </div>
                 )}
-                {pieceObj && !isSource && !(playerAnimatingMove && (sq === playerAnimatingMove.from || sq === playerAnimatingMove.to)) && (
+                {pieceObj && !isSource && !(playerAnimatingMove && sq === playerAnimatingMove.from) && (
                   <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize*0.85), height: Math.round(sqSize*0.85) }}>
                     <PieceImg type={pieceObj.type} color={pieceObj.color} />
                   </div>
