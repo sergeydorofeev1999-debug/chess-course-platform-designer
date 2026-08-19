@@ -943,7 +943,7 @@ function InlineChessBoard({
           })
         )}
         {/* Floating dragged piece */}
-        {dragState && (
+        {dragState && !playerAnimatingMove && (
           <div
             className="absolute pointer-events-none z-50"
             style={{
