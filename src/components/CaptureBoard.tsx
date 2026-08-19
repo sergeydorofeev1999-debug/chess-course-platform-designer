@@ -686,8 +686,12 @@ function InlineChessBoard({
         setTimeout(() => {
           // 1. First update parent position (triggers useEffect[fen] → setSquares)
           const accepted = onMoveRef.current?.(sel, square);
-          // 2. Then clear ghost — squares already has piece on target
-          setPlayerAnimatingMove(null);
+          // 2. Wait for React to flush setSquares from useEffect[fen]
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              setPlayerAnimatingMove(null);
+            });
+          });
           if (accepted !== false) {
             setMsg('');
           }
@@ -792,7 +796,11 @@ function InlineChessBoard({
           }
           setTimeout(() => {
             onMoveRef.current?.(start, targetSquare);
-            setPlayerAnimatingMove(null);
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                setPlayerAnimatingMove(null);
+              });
+            });
           }, 200);
         }
       }
