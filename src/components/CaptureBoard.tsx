@@ -1889,6 +1889,7 @@ export default function CaptureBoard({
               onSquareClick={handleSquareClick}
               onMove={handleDragMove}
               lastMove={lastMove}
+              disableAutoGhost
               interactive={!gameOver}
             />
             {msg && <p className="text-red-500 text-sm">{msg}</p>}
@@ -1994,6 +1995,7 @@ export default function CaptureBoard({
             onSquareClick={handleSquareClick}
             onMove={handleDragMove}
             lastMove={lastMove}
+            disableAutoGhost
             interactive={!gameOver}
           />
           {msg && <p className="text-red-500 text-sm">{msg}</p>}
