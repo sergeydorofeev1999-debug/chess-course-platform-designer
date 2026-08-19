@@ -4,7 +4,6 @@ import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { RotateCcw } from 'lucide-react';
-import UniversalChessBoardDesigner from './board/UniversalChessBoardDesigner';
 
 /* ====== Shared chess utils (copied from LessonClient) ====== */
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
@@ -1115,12 +1114,6 @@ export default function CaptureBoard({
   const [moves, setMoves] = useState(0);
   const [allDone, setAllDone] = useState(false);
   const [promotionPending, setPromotionPending] = useState<{from: string, to: string} | null>(null);
-  const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
-  const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{
-    from: string;
-    to: string;
-    piece: { type: string; color: 'w' | 'b' };
-  } | null>(null);
 
   // Use external state when embedded, internal otherwise
   const currentLevel = embedded && externalCurrentLevel !== undefined ? externalCurrentLevel : currentLevelInternal;
@@ -1258,82 +1251,6 @@ export default function CaptureBoard({
 
     return () => timers.forEach(clearTimeout);
   }, [currentLevel, levels, gameOver]);
-
-  // UniversalChessBoardDesigner click handler
-  const handleMoveRef = useRef<((from: string, to: string) => boolean | void) | null>(null);
-  
-  const handleSquareClick = useCallback(
-    (square: string) => {
-      if (gameOver) return;
-      if (playerAnimatingMove) return;
-      
-      const parsed = parseFen(positionRef.current);
-      const piece = parsed.squares[square];
-
-      if (selectedSquare) {
-        if (selectedSquare === square) {
-          setSelectedSquare(null);
-          setMsg('');
-          return;
-        }
-        if (piece && piece.color === 'w') {
-          setSelectedSquare(square);
-          setMsg('');
-          return;
-        }
-        // Try move
-        const from = selectedSquare;
-        const to = square;
-        
-        // Check allowedPieces
-        const fromType = parsed.squares[from]?.type || 'p';
-        if (level.allowedPieces && level.allowedPieces.length > 0) {
-          if (!level.allowedPieces.includes(fromType)) {
-            setMsg(`Используйте только ${getAllowedPieceName(level.allowedPieces[0])}!`);
-            return;
-          }
-        }
-        
-        // Check forbidden squares
-        if (level.forbiddenSquares?.includes(to)) {
-          setMsg('Нельзя ходить на эту клетку');
-          return;
-        }
-        
-        // Validate move
-        if (!isValidMove(fromType, from, to, parsed.squares, 'w', [], false, parsed.enPassant)) {
-          setMsg('Недопустимый ход');
-          return;
-        }
-        
-        // Pawn promotion
-        if (fromType === 'p' && to[1] === '8') {
-          setPromotionPending({ from, to });
-          setSelectedSquare(null);
-          return;
-        }
-        
-        // Animate and move
-        setPlayerAnimatingMove({
-          from,
-          to,
-          piece: { type: fromType.toUpperCase(), color: 'w' },
-        });
-        
-        setTimeout(() => {
-          handleMoveRef.current?.(from, to);
-          setPlayerAnimatingMove(null);
-          setSelectedSquare(null);
-        }, 200);
-      } else {
-        if (piece && piece.color === 'w') {
-          setSelectedSquare(square);
-          setMsg('');
-        }
-      }
-    },
-    [selectedSquare, gameOver, playerAnimatingMove, level]
-  );
 
   const handleMove = useCallback(
     (from: string, to: string) => {
@@ -1785,8 +1702,6 @@ export default function CaptureBoard({
     },
     [stars, collected, currentLevel, totalLevels, onAllComplete, gameOver, level.maxMoves, successMessage, setFailed, setGameOver]
   );
-  
-  handleMoveRef.current = handleMove;
 
   const collectedCount = stars.filter((s: string) => collected.includes(s)).length;
   const remainingBlack = Object.values(parseFen(position).squares).filter((p) => p.color === 'b').length;
@@ -1884,36 +1799,7 @@ export default function CaptureBoard({
       {embedded ? (
         /* Minimal mode: only the board + fail callback */
         <div className="flex flex-col items-center gap-3">
-          <div className="flex flex-col items-center gap-4">
-            <UniversalChessBoardDesigner
-              fen={position}
-              selectedSquare={selectedSquare}
-              onSquareClick={handleSquareClick}
-              playerAnimatingMove={playerAnimatingMove}
-              autoValidMoves={true}
-              interactive={!playerAnimatingMove && !gameOver}
-              disableAutoGhost={true}
-            />
-            {msg && <p className="text-red-500 text-sm">{msg}</p>}
-            {promotionPending && (
-              <div className="flex gap-2">
-                {[
-                  { code: 'q', name: 'Ферзь' },
-                  { code: 'n', name: 'Конь' },
-                  { code: 'r', name: 'Ладья' },
-                  { code: 'b', name: 'Слон' },
-                ].map((p) => (
-                  <button
-                    key={p.code}
-                    onClick={() => handlePromotion(p.code)}
-                    className="px-3 py-2 bg-[#2C241B] rounded hover:bg-[#3d3226] transition"
-                  >
-                    <img src={`/pieces/cburnett/w${p.code.toUpperCase()}.svg`} alt={p.name} className="w-8 h-8" draggable={false} />
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <InlineChessBoard fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} promotionPending={promotionPending} onPromotion={handlePromotion} />
           {failed && onFail && (
             <div className="w-full">
               <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
@@ -1989,36 +1875,7 @@ export default function CaptureBoard({
 
       {/* CENTER COLUMN: Chess board + stats */}
       <div className="flex-1 flex flex-col items-center gap-3">
-        <div className="flex flex-col items-center gap-4">
-          <UniversalChessBoardDesigner
-            fen={position}
-            selectedSquare={selectedSquare}
-            onSquareClick={handleSquareClick}
-            playerAnimatingMove={playerAnimatingMove}
-            autoValidMoves={true}
-            interactive={!playerAnimatingMove && !gameOver}
-            disableAutoGhost={true}
-          />
-          {msg && <p className="text-red-500 text-sm">{msg}</p>}
-          {promotionPending && (
-            <div className="flex gap-2">
-              {[
-                { code: 'q', name: 'Ферзь' },
-                { code: 'n', name: 'Конь' },
-                { code: 'r', name: 'Ладья' },
-                { code: 'b', name: 'Слон' },
-              ].map((p) => (
-                <button
-                  key={p.code}
-                  onClick={() => handlePromotion(p.code)}
-                  className="px-3 py-2 bg-[#2C241B] rounded hover:bg-[#3d3226] transition"
-                >
-                  <img src={`/pieces/cburnett/w${p.code.toUpperCase()}.svg`} alt={p.name} className="w-8 h-8" draggable={false} />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <InlineChessBoard fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} />
 
         {/* Red fail banner */}
         {failed && (
