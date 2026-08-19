@@ -794,6 +794,14 @@ function InlineChessBoard({
           setDragState(null);
           dragStateRef.current = null;
           setLastMove({ from: start, to: targetSquare });
+          // Instant local update to prevent flash
+          const newSquares = { ...squaresRef.current };
+          if (newSquares[start]) {
+            newSquares[targetSquare] = newSquares[start];
+            delete newSquares[start];
+          }
+          setSquares(newSquares);
+          squaresRef.current = newSquares;
           onMoveRef.current?.(start, targetSquare);
         }
       }
