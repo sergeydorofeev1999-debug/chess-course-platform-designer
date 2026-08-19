@@ -791,6 +791,8 @@ function InlineChessBoard({
         if (start && targetSquare !== start) {
           selectedSquareRef.current = null;
           setSelectedSquare(null);
+          setDragState(null);
+          dragStateRef.current = null;
           const movingPiece = squaresRef.current[start];
           setLastMove({ from: start, to: targetSquare });
           if (movingPiece) {
