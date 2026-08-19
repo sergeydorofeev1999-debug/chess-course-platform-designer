@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { flushSync } from 'react-dom';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { RotateCcw } from 'lucide-react';
@@ -796,6 +797,11 @@ function InlineChessBoard({
         if (start && targetSquare !== start) {
           const movingPiece = squaresRef.current[start];
           if (movingPiece) {
+            // Flush sync so dragState clears BEFORE ghost appears — prevents double-piece frame
+            flushSync(() => {
+              setDragState(null);
+              dragStateRef.current = null;
+            });
             setPlayerAnimatingMove({ from: start, to: targetSquare, piece: movingPiece });
           }
           setTimeout(() => {
@@ -951,7 +957,7 @@ function InlineChessBoard({
           })
         )}
         {/* Floating dragged piece */}
-        {dragState && (
+        {dragState && !playerAnimatingMove && (
           <div
             className="absolute pointer-events-none z-50"
             style={{
