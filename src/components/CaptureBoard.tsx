@@ -788,6 +788,9 @@ function InlineChessBoard({
         const targetSquare = `${FILES[fi]}${RANKS[ri]}`;
         const start = dragStateRef.current.square;
         if (start && targetSquare !== start) {
+          // Kill floating piece FIRST, then start ghost — atomic state transition
+          setDragState(null);
+          dragStateRef.current = null;
           selectedSquareRef.current = null;
           setSelectedSquare(null);
           const movingPiece = squaresRef.current[start];
@@ -806,8 +809,6 @@ function InlineChessBoard({
       }
     }
     pointerStartRef.current = null;
-    setDragState(null);
-    dragStateRef.current = null;
     justDraggedRef.current = false;
   };
 
@@ -932,7 +933,7 @@ function InlineChessBoard({
                     />
                   </div>
                 )}
-                {pieceObj && !isSource && !(playerAnimatingMove && sq === playerAnimatingMove.from) && (
+                {pieceObj && !isSource && !(playerAnimatingMove && (sq === playerAnimatingMove.from || sq === playerAnimatingMove.to)) && (
                   <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize*0.85), height: Math.round(sqSize*0.85) }}>
                     <PieceImg type={pieceObj.type} color={pieceObj.color} />
                   </div>
