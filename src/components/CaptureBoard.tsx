@@ -558,6 +558,8 @@ function InlineChessBoard({
   hintArrows = [],
   promotionPending,
   onPromotion,
+  opponentAnimatingMove,
+  lastMove: externalLastMove,
 }: {
   fen: string;
   onMove: (from: string, to: string) => boolean;
@@ -569,14 +571,14 @@ function InlineChessBoard({
   promotionPending?: { from: string; to: string } | null;
   onPromotion?: (piece: string) => void;
   opponentAnimatingMove?: { from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null;
+  lastMove?: { from: string; to: string } | null;
 }) {
   const parsed = parseFen(fen);
   const [squares, setSquares] = useState(parsed.squares);
-  const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
+  // lastMove comes from external prop (parent CaptureBoard)
   const squaresRef = useRef(squares);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
-  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
   const selectedSquareRef = useRef(selectedSquare);
   const [hoveredSquare, setHoveredSquare] = useState<string | null>(null);
   const [dragState, setDragState] = useState<{
@@ -682,7 +684,6 @@ function InlineChessBoard({
         selectedSquareRef.current = null;
         setSelectedSquare(null);
         const movingPiece = sqs[sel];
-        setLastMove({ from: sel, to: square });
         if (movingPiece) {
           setPlayerAnimatingMove({ from: sel, to: square, piece: movingPiece });
         }
@@ -795,7 +796,6 @@ function InlineChessBoard({
           setSelectedSquare(null);
           setDragState(null);
           dragStateRef.current = null;
-          setLastMove({ from: start, to: targetSquare });
           // Instant local update to prevent flash
           const newSquares = { ...squaresRef.current };
           if (newSquares[start]) {
@@ -875,10 +875,10 @@ function InlineChessBoard({
                 {sel && (
                   <div className="absolute inset-0 bg-[rgba(184,149,106,0.35)] pointer-events-none z-10" />
                 )}
-                    {lastMove && sq === lastMove.from && (
+                    {externalLastMove && sq === externalLastMove.from && (
                       <div className="absolute inset-0 bg-[rgba(201,168,76,0.55)] pointer-events-none z-[5]" />
                     )}
-                    {lastMove && sq === lastMove.to && (
+                    {externalLastMove && sq === externalLastMove.to && (
                       <div className="absolute inset-0 bg-[rgba(201,168,76,0.70)] pointer-events-none z-[5]" />
                     )}
 
@@ -1121,6 +1121,7 @@ export default function CaptureBoard({
   const [allDone, setAllDone] = useState(false);
   const [promotionPending, setPromotionPending] = useState<{from: string, to: string} | null>(null);
   const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
+  const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
 
   // Use external state when embedded, internal otherwise
   const currentLevel = embedded && externalCurrentLevel !== undefined ? externalCurrentLevel : currentLevelInternal;
@@ -1138,6 +1139,7 @@ export default function CaptureBoard({
       setFailed(false);
       setMsg('');
       setPromotionPending(null);
+      setLastMove(null);
     }
   }, [currentLevel, levels]);
 
@@ -1311,6 +1313,7 @@ export default function CaptureBoard({
       setPosition(newFen);
       setMoves((c) => c + 1);
       setMsg('');
+      setLastMove({ from, to });
       onAnyMove?.();
       onPositionChange?.(newFen);
 
@@ -1374,15 +1377,28 @@ export default function CaptureBoard({
               setGameOver(true);
               return false;
             }
-            delete newSquares[ac.captureSquare];
-            // Move the black attacker to the capture square
-            newSquares[ac.captureSquare] = newSquares[ac.blackFrom];
-            delete newSquares[ac.blackFrom];
-            const fenAfterCapture = squaresToFen(newSquares, 'w');
-            positionRef.current = fenAfterCapture;
-            setPosition(fenAfterCapture);
-            setFailed(true);
-            setGameOver(true);
+            const attackerPiece = newSquares[ac.blackFrom];
+            // Pause then animate black capture
+            setTimeout(() => {
+              setOpponentAnimatingMove({
+                from: ac.blackFrom,
+                to: ac.captureSquare,
+                piece: { type: attackerPiece?.type || '', color: attackerPiece?.color || 'b' },
+              });
+              setTimeout(() => {
+                const finalSquares = { ...newSquares };
+                delete finalSquares[ac.captureSquare];
+                finalSquares[ac.captureSquare] = attackerPiece;
+                delete finalSquares[ac.blackFrom];
+                const fenAfterCapture = squaresToFen(finalSquares, 'w');
+                positionRef.current = fenAfterCapture;
+                setPosition(fenAfterCapture);
+                setFailed(true);
+                setGameOver(true);
+                setLastMove({ from: ac.blackFrom, to: ac.captureSquare });
+                setOpponentAnimatingMove(null);
+              }, 220);
+            }, 800);
             return false;
           }
         }
@@ -1469,6 +1485,7 @@ export default function CaptureBoard({
             setFailed(true);
             setMsg(`💀 ${bp.type === 'r' ? 'Ладья' : bp.type === 'b' ? 'Слон' : bp.type === 'q' ? 'Ферзь' : bp.type === 'n' ? 'Конь' : bp.type === 'p' ? 'Пешка' : 'Фигура'} съела ${wp.type === 'r' ? 'ладью' : wp.type === 'b' ? 'слона' : wp.type === 'q' ? 'ферзя' : wp.type === 'n' ? 'коня' : wp.type === 'p' ? 'пешку' : wp.type === 'k' ? 'короля' : 'фигуру'}!`);
             setOpponentAnimatingMove(null);
+            setLastMove({ from: bsq, to: wsq }); // Highlight black's last move
           }, 220); // Ghost animation duration
         }, 800); // Pause before black move
 
@@ -1822,7 +1839,7 @@ export default function CaptureBoard({
       {embedded ? (
         /* Minimal mode: only the board + fail callback */
         <div className="flex flex-col items-center gap-3">
-          <InlineChessBoard key={currentLevel} fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} promotionPending={promotionPending} onPromotion={handlePromotion} opponentAnimatingMove={opponentAnimatingMove} />
+          <InlineChessBoard key={currentLevel} fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} promotionPending={promotionPending} onPromotion={handlePromotion} opponentAnimatingMove={opponentAnimatingMove} lastMove={lastMove} />
           {failed && onFail && (
             <div className="w-full">
               <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
@@ -1898,7 +1915,7 @@ export default function CaptureBoard({
 
       {/* CENTER COLUMN: Chess board + stats */}
       <div className="flex-1 flex flex-col items-center gap-3">
-        <InlineChessBoard key={currentLevel} fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} opponentAnimatingMove={opponentAnimatingMove} />
+        <InlineChessBoard key={currentLevel} fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} opponentAnimatingMove={opponentAnimatingMove} lastMove={lastMove} />
 
         {/* Red fail banner */}
         {failed && (
