@@ -1395,9 +1395,9 @@ export default function CaptureBoard({
                 piece: { type: attackerPiece?.type || '', color: attackerPiece?.color || 'b' },
               });
               setTimeout(() => {
+                setLastMove({ from: ac.blackFrom, to: ac.captureSquare }); // Highlight FIRST
                 setFailed(true);
                 setGameOver(true);
-                setLastMove({ from: ac.blackFrom, to: ac.captureSquare });
                 setOpponentAnimatingMove(null);
               }, 220);
             }, 800);
@@ -1484,11 +1484,11 @@ export default function CaptureBoard({
           });
 
           setTimeout(() => {
+            setLastMove({ from: bsq, to: wsq }); // Highlight FIRST (during ghost)
             setGameOver(true);
             setFailed(true);
             setMsg(`💀 ${bp.type === 'r' ? 'Ладья' : bp.type === 'b' ? 'Слон' : bp.type === 'q' ? 'Ферзь' : bp.type === 'n' ? 'Конь' : bp.type === 'p' ? 'Пешка' : 'Фигура'} съела ${wp.type === 'r' ? 'ладью' : wp.type === 'b' ? 'слона' : wp.type === 'q' ? 'ферзя' : wp.type === 'n' ? 'коня' : wp.type === 'p' ? 'пешку' : wp.type === 'k' ? 'короля' : 'фигуру'}!`);
             setOpponentAnimatingMove(null);
-            setLastMove({ from: bsq, to: wsq }); // Highlight black's last move
           }, 220); // Ghost animation duration
         }, 800); // Pause before black move
 
