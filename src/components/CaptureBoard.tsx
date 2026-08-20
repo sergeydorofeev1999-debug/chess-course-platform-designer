@@ -1378,21 +1378,23 @@ export default function CaptureBoard({
               return false;
             }
             const attackerPiece = newSquares[ac.blackFrom];
-            // Pause then animate black capture
+            // Pause then animate black capture (apply position first, like PawnRaceBoard)
             setTimeout(() => {
+              // Apply move immediately — remove victim, move attacker
+              const animSquares = { ...newSquares };
+              delete animSquares[ac.captureSquare];
+              animSquares[ac.captureSquare] = attackerPiece;
+              delete animSquares[ac.blackFrom];
+              const animFen = squaresToFen(animSquares, 'w');
+              positionRef.current = animFen;
+              setPosition(animFen);
+              // Then ghost animate
               setOpponentAnimatingMove({
                 from: ac.blackFrom,
                 to: ac.captureSquare,
                 piece: { type: attackerPiece?.type || '', color: attackerPiece?.color || 'b' },
               });
               setTimeout(() => {
-                const finalSquares = { ...newSquares };
-                delete finalSquares[ac.captureSquare];
-                finalSquares[ac.captureSquare] = attackerPiece;
-                delete finalSquares[ac.blackFrom];
-                const fenAfterCapture = squaresToFen(finalSquares, 'w');
-                positionRef.current = fenAfterCapture;
-                setPosition(fenAfterCapture);
                 setFailed(true);
                 setGameOver(true);
                 setLastMove({ from: ac.blackFrom, to: ac.captureSquare });
@@ -1465,8 +1467,16 @@ export default function CaptureBoard({
         const { wsq, wp, bsq, bp } = candidates[0];
         const attackerPiece = newSquares[bsq];
 
-        // Pause then animate black capture (like PawnRaceBoard)
+        // Pause then animate black capture (apply position first, like PawnRaceBoard)
         setTimeout(() => {
+          // Apply move immediately — remove victim, move attacker
+          const animSquares = { ...newSquares };
+          delete animSquares[bsq];
+          animSquares[wsq] = attackerPiece;
+          const animFen = squaresToFen(animSquares, 'w');
+          positionRef.current = animFen;
+          setPosition(animFen);
+          // Then ghost animate
           setOpponentAnimatingMove({
             from: bsq,
             to: wsq,
@@ -1474,13 +1484,6 @@ export default function CaptureBoard({
           });
 
           setTimeout(() => {
-            // Apply capture after ghost animation
-            const finalSquares = { ...newSquares };
-            delete finalSquares[bsq];
-            finalSquares[wsq] = attackerPiece;
-            const captureFen = squaresToFen(finalSquares, 'w');
-            positionRef.current = captureFen;
-            setPosition(captureFen);
             setGameOver(true);
             setFailed(true);
             setMsg(`💀 ${bp.type === 'r' ? 'Ладья' : bp.type === 'b' ? 'Слон' : bp.type === 'q' ? 'Ферзь' : bp.type === 'n' ? 'Конь' : bp.type === 'p' ? 'Пешка' : 'Фигура'} съела ${wp.type === 'r' ? 'ладью' : wp.type === 'b' ? 'слона' : wp.type === 'q' ? 'ферзя' : wp.type === 'n' ? 'коня' : wp.type === 'p' ? 'пешку' : wp.type === 'k' ? 'короля' : 'фигуру'}!`);
