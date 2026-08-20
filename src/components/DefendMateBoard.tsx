@@ -260,42 +260,38 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
 
       if (mateMove) {
         setMessage('Не защитились! Соперник ставит мат.');
+        // Apply move immediately (like PawnRaceBoard), then ghost animate
+        afterWhite.move(mateMove);
+        setGame(new Chess(afterWhite.fen()));
+        const compMovedPiece = afterWhite.get(mateMove.to);
+        setLastMove({ from: mateMove.from, to: mateMove.to });
+        setOpponentAnimatingMove({
+          from: mateMove.from,
+          to: mateMove.to,
+          piece: { type: compMovedPiece?.type.toUpperCase() || '', color: compMovedPiece?.color as 'w' | 'b' || 'b' },
+        });
         setTimeout(() => {
           if (!mountedRef.current) return;
-          afterWhite.move(mateMove);
-          setGame(new Chess(afterWhite.fen()));
-          const compMovedPiece = afterWhite.get(mateMove.to);
-          setLastMove({ from: mateMove.from, to: mateMove.to });
-          setOpponentAnimatingMove({
-            from: mateMove.from,
-            to: mateMove.to,
-            piece: { type: compMovedPiece?.type.toUpperCase() || '', color: compMovedPiece?.color as 'w' | 'b' || 'b' },
-          });
-          setTimeout(() => {
-            if (!mountedRef.current) return;
-            setOpponentAnimatingMove(null);
-            setIsFail(true); // Show fail UI after animation completes
-          }, 220);
-        }, 800);
+          setOpponentAnimatingMove(null);
+          setIsFail(true); // Show fail UI after animation completes
+        }, 220);
       } else if (captureMoves.length > 0) {
         setMessage('Вы потеряли фигуру!');
+        // Apply move immediately (like PawnRaceBoard), then ghost animate
+        afterWhite.move(captureMoves[0]);
+        setGame(new Chess(afterWhite.fen()));
+        const compMovedPiece = afterWhite.get(captureMoves[0].to);
+        setLastMove({ from: captureMoves[0].from, to: captureMoves[0].to });
+        setOpponentAnimatingMove({
+          from: captureMoves[0].from,
+          to: captureMoves[0].to,
+          piece: { type: compMovedPiece?.type.toUpperCase() || '', color: compMovedPiece?.color as 'w' | 'b' || 'b' },
+        });
         setTimeout(() => {
           if (!mountedRef.current) return;
-          afterWhite.move(captureMoves[0]);
-          setGame(new Chess(afterWhite.fen()));
-          const compMovedPiece = afterWhite.get(captureMoves[0].to);
-          setLastMove({ from: captureMoves[0].from, to: captureMoves[0].to });
-          setOpponentAnimatingMove({
-            from: captureMoves[0].from,
-            to: captureMoves[0].to,
-            piece: { type: compMovedPiece?.type.toUpperCase() || '', color: compMovedPiece?.color as 'w' | 'b' || 'b' },
-          });
-          setTimeout(() => {
-            if (!mountedRef.current) return;
-            setOpponentAnimatingMove(null);
-            setIsFail(true); // Show fail UI after animation completes
-          }, 220);
-        }, 800);
+          setOpponentAnimatingMove(null);
+          setIsFail(true); // Show fail UI after animation completes
+        }, 220);
       } else {
         setMessage('Не защитились! Соперник ставит мат.');
         setIsFail(true);
