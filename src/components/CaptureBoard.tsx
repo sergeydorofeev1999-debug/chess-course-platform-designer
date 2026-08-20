@@ -568,6 +568,7 @@ function InlineChessBoard({
   hintArrows?: { from: string; to: string }[];
   promotionPending?: { from: string; to: string } | null;
   onPromotion?: (piece: string) => void;
+  opponentAnimatingMove?: { from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null;
 }) {
   const parsed = parseFen(fen);
   const [squares, setSquares] = useState(parsed.squares);
@@ -575,6 +576,7 @@ function InlineChessBoard({
   const squaresRef = useRef(squares);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [playerAnimatingMove, setPlayerAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
+  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
   const selectedSquareRef = useRef(selectedSquare);
   const [hoveredSquare, setHoveredSquare] = useState<string | null>(null);
   const [dragState, setDragState] = useState<{
@@ -959,6 +961,9 @@ function InlineChessBoard({
         {playerAnimatingMove && (
           <GhostOverlay move={playerAnimatingMove} sqSize={sqSize} />
         )}
+        {opponentAnimatingMove && (
+          <GhostOverlay move={opponentAnimatingMove} sqSize={sqSize} isOpponent />
+        )}
         {/* Hint arrows SVG - always rendered, high visibility */}
         <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize, display: hintArrows.length > 0 ? 'block' : 'none' }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
           {hintArrows.map((arrow, i) => {
@@ -1115,6 +1120,7 @@ export default function CaptureBoard({
   const [moves, setMoves] = useState(0);
   const [allDone, setAllDone] = useState(false);
   const [promotionPending, setPromotionPending] = useState<{from: string, to: string} | null>(null);
+  const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
 
   // Use external state when embedded, internal otherwise
   const currentLevel = embedded && externalCurrentLevel !== undefined ? externalCurrentLevel : currentLevelInternal;
@@ -1441,15 +1447,31 @@ export default function CaptureBoard({
         // Sort by value descending (highest value first)
         candidates.sort((a, b) => (pieceValues[b.wp.type] || 0) - (pieceValues[a.wp.type] || 0));
         const { wsq, wp, bsq, bp } = candidates[0];
-        const attacker = { ...newSquares[bsq] };
-        delete newSquares[bsq];
-        newSquares[wsq] = attacker;
-        const captureFen = squaresToFen(newSquares, 'w');
-        positionRef.current = captureFen;
-        setPosition(captureFen);
-        setGameOver(true);
-        setFailed(true);
-        setMsg(`💀 ${bp.type === 'r' ? 'Ладья' : bp.type === 'b' ? 'Слон' : bp.type === 'q' ? 'Ферзь' : bp.type === 'n' ? 'Конь' : bp.type === 'p' ? 'Пешка' : 'Фигура'} съела ${wp.type === 'r' ? 'ладью' : wp.type === 'b' ? 'слона' : wp.type === 'q' ? 'ферзя' : wp.type === 'n' ? 'коня' : wp.type === 'p' ? 'пешку' : wp.type === 'k' ? 'короля' : 'фигуру'}!`);
+        const attackerPiece = newSquares[bsq];
+
+        // Pause then animate black capture (like PawnRaceBoard)
+        setTimeout(() => {
+          setOpponentAnimatingMove({
+            from: bsq,
+            to: wsq,
+            piece: { type: attackerPiece.type, color: attackerPiece.color },
+          });
+
+          setTimeout(() => {
+            // Apply capture after ghost animation
+            const finalSquares = { ...newSquares };
+            delete finalSquares[bsq];
+            finalSquares[wsq] = attackerPiece;
+            const captureFen = squaresToFen(finalSquares, 'w');
+            positionRef.current = captureFen;
+            setPosition(captureFen);
+            setGameOver(true);
+            setFailed(true);
+            setMsg(`💀 ${bp.type === 'r' ? 'Ладья' : bp.type === 'b' ? 'Слон' : bp.type === 'q' ? 'Ферзь' : bp.type === 'n' ? 'Конь' : bp.type === 'p' ? 'Пешка' : 'Фигура'} съела ${wp.type === 'r' ? 'ладью' : wp.type === 'b' ? 'слона' : wp.type === 'q' ? 'ферзя' : wp.type === 'n' ? 'коня' : wp.type === 'p' ? 'пешку' : wp.type === 'k' ? 'короля' : 'фигуру'}!`);
+            setOpponentAnimatingMove(null);
+          }, 220); // Ghost animation duration
+        }, 800); // Pause before black move
+
         return true;
       }
       } // end if (!skipAutoCapture)
@@ -1800,7 +1822,7 @@ export default function CaptureBoard({
       {embedded ? (
         /* Minimal mode: only the board + fail callback */
         <div className="flex flex-col items-center gap-3">
-          <InlineChessBoard key={currentLevel} fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} promotionPending={promotionPending} onPromotion={handlePromotion} />
+          <InlineChessBoard key={currentLevel} fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} promotionPending={promotionPending} onPromotion={handlePromotion} opponentAnimatingMove={opponentAnimatingMove} />
           {failed && onFail && (
             <div className="w-full">
               <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
@@ -1876,7 +1898,7 @@ export default function CaptureBoard({
 
       {/* CENTER COLUMN: Chess board + stats */}
       <div className="flex-1 flex flex-col items-center gap-3">
-        <InlineChessBoard key={currentLevel} fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} />
+        <InlineChessBoard key={currentLevel} fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} opponentAnimatingMove={opponentAnimatingMove} />
 
         {/* Red fail banner */}
         {failed && (
