@@ -935,7 +935,7 @@ function InlineChessBoard({
                     />
                   </div>
                 )}
-                {pieceObj && !isSource && !(playerAnimatingMove && sq === playerAnimatingMove.from) && (
+                {pieceObj && !isSource && !(playerAnimatingMove && sq === playerAnimatingMove.from) && !(opponentAnimatingMove && (sq === opponentAnimatingMove.to || sq === opponentAnimatingMove.from)) && (
                   <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize*0.85), height: Math.round(sqSize*0.85) }}>
                     <PieceImg type={pieceObj.type} color={pieceObj.color} />
                   </div>
