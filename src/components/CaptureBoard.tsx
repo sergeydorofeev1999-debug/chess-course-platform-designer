@@ -858,7 +858,7 @@ function InlineChessBoard({
               <div
                 key={sq}
                 data-square={sq}
-                className={`flex items-center justify-center relative select-none ${isSource ? 'opacity-50' : ''}`}
+                className={`flex items-center justify-center relative select-none ${isSource && !(externalLastMove && (sq === externalLastMove.from || sq === externalLastMove.to)) ? 'opacity-50' : ''}`}
                 style={{
                   width: sqSize,
                   height: sqSize,
