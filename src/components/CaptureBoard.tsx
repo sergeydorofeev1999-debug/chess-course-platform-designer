@@ -1602,14 +1602,32 @@ export default function CaptureBoard({
                 }
               }
               if (defenderSq) {
-                const defender = { ...newSquares[defenderSq] };
-                delete newSquares[defenderSq];
-                newSquares[attackerSq] = defender;
-                const captureFen = squaresToFen(newSquares, 'w');
-                positionRef.current = captureFen;
-                setPosition(captureFen);
-                setFailed(true);
-                setGameOver(true);
+                const defender = newSquares[defenderSq];
+
+                setTimeout(() => {
+                  // Apply move immediately — remove defender from old square, place on attacker square
+                  const animSquares = { ...newSquares };
+                  delete animSquares[defenderSq];
+                  animSquares[attackerSq] = defender;
+                  const animFen = squaresToFen(animSquares, 'w');
+                  positionRef.current = animFen;
+                  setPosition(animFen);
+
+                  // Then ghost animate the black capture
+                  setOpponentAnimatingMove({
+                    from: defenderSq,
+                    to: attackerSq,
+                    piece: { type: defender.type, color: defender.color },
+                  });
+
+                  setTimeout(() => {
+                    setLastMove({ from: defenderSq, to: attackerSq });
+                    setFailed(true);
+                    setGameOver(true);
+                    setOpponentAnimatingMove(null);
+                  }, 220);
+                }, 800);
+
                 return false;
               }
             }
