@@ -1120,6 +1120,12 @@ export default function CaptureBoard({
   const [promotionPending, setPromotionPending] = useState<{from: string, to: string} | null>(null);
   const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
+  const successTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  const clearSuccessTimers = useCallback(() => {
+    successTimersRef.current.forEach(clearTimeout);
+    successTimersRef.current = [];
+  }, []);
 
   // Use external state when embedded, internal otherwise
   const currentLevel = embedded && externalCurrentLevel !== undefined ? externalCurrentLevel : currentLevelInternal;
@@ -1262,6 +1268,7 @@ export default function CaptureBoard({
   const handleMove = useCallback(
     (from: string, to: string) => {
       if (gameOver) return false;
+      clearSuccessTimers();
       const parsed = parseFen(positionRef.current);
       if (parsed.squares[from]?.color !== 'w') return false;
       const fromType = parsed.squares[from]?.type || 'p';
@@ -1539,7 +1546,7 @@ export default function CaptureBoard({
             return nextStars;
           });
           onLevelComplete?.(currentLevel, earned);
-          setTimeout(() => {
+          const t = setTimeout(() => {
             if (currentLevel + 1 < totalLevels) {
               setCurrentLevel(currentLevel + 1);
               setMsg('');
@@ -1549,6 +1556,7 @@ export default function CaptureBoard({
               onAllComplete?.();
             }
           }, 600);
+          successTimersRef.current.push(t);
           return true;
         } else {
           // Not the required move yet
@@ -1639,7 +1647,7 @@ export default function CaptureBoard({
           return nextStars;
         });
         onLevelComplete?.(currentLevel, earned);
-        setTimeout(() => {
+        const t2 = setTimeout(() => {
           if (currentLevel + 1 < totalLevels) {
             setCurrentLevel(currentLevel + 1);
             setMsg('');
@@ -1649,6 +1657,7 @@ export default function CaptureBoard({
             onAllComplete?.();
           }
         }, 600);
+        successTimersRef.current.push(t2);
         return true;
       }
 
@@ -1690,7 +1699,7 @@ export default function CaptureBoard({
           return nextStars;
         });
         onLevelComplete?.(currentLevel, earned);
-        setTimeout(() => {
+        const t3 = setTimeout(() => {
           if (currentLevel + 1 < totalLevels) {
             setCurrentLevel(currentLevel + 1);
             setMsg('');
@@ -1700,6 +1709,7 @@ export default function CaptureBoard({
             onAllComplete?.();
           }
         }, 600);
+        successTimersRef.current.push(t3);
         return true;
       }
 
@@ -1724,7 +1734,7 @@ export default function CaptureBoard({
               return nextStars;
             });
             onLevelComplete?.(currentLevel, earned);
-            setTimeout(() => {
+            const t4 = setTimeout(() => {
               if (currentLevel + 1 < totalLevels) {
                 setCurrentLevel(currentLevel + 1);
                 setMsg('');
@@ -1734,6 +1744,7 @@ export default function CaptureBoard({
                 onAllComplete?.();
               }
             }, 600);
+            successTimersRef.current.push(t4);
           }
           return next;
         });
@@ -1748,6 +1759,7 @@ export default function CaptureBoard({
   const remainingBlack = Object.values(parseFen(position).squares).filter((p) => p.color === 'b').length;
 
   const resetLevel = () => {
+    clearSuccessTimers();
     const lvl = levels[currentLevel];
     setPosition(lvl.initialFen);
     setCollected([]);
