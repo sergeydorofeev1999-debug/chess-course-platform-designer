@@ -1131,6 +1131,13 @@ export default function CaptureBoard({
   const currentLevel = embedded && externalCurrentLevel !== undefined ? externalCurrentLevel : currentLevelInternal;
   const levelStars = embedded && externalLevelStars ? externalLevelStars : levelStarsInternal;
 
+  // Cleanup pending success timers on unmount to prevent race after remount
+  useEffect(() => {
+    return () => {
+      clearSuccessTimers();
+    };
+  }, [clearSuccessTimers]);
+
   // Sync position when currentLevel changes
   useEffect(() => {
     const lvl = levels[currentLevel];
@@ -1415,7 +1422,7 @@ export default function CaptureBoard({
       // pick the most valuable one, then capture it.
       // Skip if level has explicit autoCaptures config (e.g. Lesson 10 ex4 escape check)
       // Skip if level is requireCheck (king reaction takes priority)
-      if ((!level.autoCaptures || level.autoCaptures.length === 0) && (!level.requireCheck || level.checkOnMove) && level.blackAutoCapture !== false) {
+      if ((!level.autoCaptures || level.autoCaptures.length === 0) && (!level.requireCheck || level.checkOnMove) && level.blackAutoCapture !== false && !level.requireMate) {
         // For requireMate levels: skip auto-capture if black king is in check — king must react first
         let skipAutoCapture = false;
         if (level.requireMate) {
