@@ -796,15 +796,13 @@ function InlineChessBoard({
           setSelectedSquare(null);
           setDragState(null);
           dragStateRef.current = null;
-          // Instant local update to prevent flash
-          const newSquares = { ...squaresRef.current };
-          if (newSquares[start]) {
-            newSquares[targetSquare] = newSquares[start];
-            delete newSquares[start];
+          const accepted = onMoveRef.current?.(start, targetSquare);
+          if (!accepted) {
+            // Rollback local squares if move was rejected
+            const p = parseFen(fen);
+            setSquares(p.squares);
+            squaresRef.current = p.squares;
           }
-          setSquares(newSquares);
-          squaresRef.current = newSquares;
-          onMoveRef.current?.(start, targetSquare);
         }
       }
     }
