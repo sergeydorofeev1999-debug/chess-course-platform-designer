@@ -1221,6 +1221,7 @@ export default function CaptureBoard({
 
   // Reset on level change
   useEffect(() => {
+    clearSuccessTimers();
     const lvl = levels[currentLevel];
     setPosition(lvl.initialFen);
     setCollected([]);
