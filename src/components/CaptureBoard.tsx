@@ -681,9 +681,24 @@ function InlineChessBoard({
           setSelectedSquare(null);
           return;
         }
+        // Validate move before animating — if square is not in valid moves, just deselect
+        const movingPiece = sqs[sel];
+        const parsed = parseFen(fen);
+        const vm = getValidSquares(
+          movingPiece?.type || 'p',
+          sel,
+          sqs,
+          'w',
+          [],
+          parsed.enPassant
+        ).filter(sq => !forbiddenSquares.includes(sq));
+        if (!vm.includes(square)) {
+          selectedSquareRef.current = null;
+          setSelectedSquare(null);
+          return;
+        }
         selectedSquareRef.current = null;
         setSelectedSquare(null);
-        const movingPiece = sqs[sel];
         if (movingPiece) {
           setPlayerAnimatingMove({ from: sel, to: square, piece: movingPiece });
         }
