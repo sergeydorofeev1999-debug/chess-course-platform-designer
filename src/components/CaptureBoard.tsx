@@ -807,6 +807,25 @@ function InlineChessBoard({
         const targetSquare = `${FILES[fi]}${RANKS[ri]}`;
         const start = dragStateRef.current.square;
         if (start && targetSquare !== start) {
+          // Validate drag-drop move before calling onMove
+          const movingPiece = squaresRef.current[start];
+          const vm = getValidSquares(
+            movingPiece?.type || 'p',
+            start,
+            squaresRef.current,
+            'w',
+            [],
+            parsed.enPassant
+          ).filter(sq => !forbiddenSquares.includes(sq));
+          if (!vm.includes(targetSquare)) {
+            selectedSquareRef.current = null;
+            setSelectedSquare(null);
+            setDragState(null);
+            dragStateRef.current = null;
+            pointerStartRef.current = null;
+            justDraggedRef.current = false;
+            return;
+          }
           selectedSquareRef.current = null;
           setSelectedSquare(null);
           setDragState(null);
