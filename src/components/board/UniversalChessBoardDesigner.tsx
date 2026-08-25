@@ -528,19 +528,27 @@ export default function UniversalChessBoardDesigner({
           if (isPromotion) {
             onPromotionPending?.(start.square, targetSquare);
           } else {
-            if (propPieces) {
-              // Custom engine: just notify, no internal Chess.js update
-              onMove(start.square, targetSquare);
-            } else {
-              // Instant visual update: apply move internally first
-              const tempGame = new Chess(game.fen());
-              const move = tempGame.move({ from: start.square, to: targetSquare });
-              if (move) {
-                setInternalFen(tempGame.fen());
-                skipAutoAnimRef.current = true; // skip auto-animation for instant drag move
+            // Validate move before proceeding — reject illegal drops silently
+            if (!propPieces) {
+              try {
+                const possibleMoves = game.moves({ verbose: true, square: start.square }).map((m: any) => m.to);
+                if (!possibleMoves.includes(targetSquare)) {
+                  pointerStartRef.current = null;
+                  return;
+                }
+              } catch {
+                pointerStartRef.current = null;
+                return;
               }
-              onMove(start.square, targetSquare);
             }
+            // Instant visual update: apply move internally first
+            const tempGame = new Chess(game.fen());
+            const move = tempGame.move({ from: start.square, to: targetSquare });
+            if (move) {
+              setInternalFen(tempGame.fen());
+              skipAutoAnimRef.current = true; // skip auto-animation for instant drag move
+            }
+            onMove(start.square, targetSquare);
           }
         }
       }
