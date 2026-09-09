@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "public/stockfish.js",
+    "public/stockfish.wasm",
+    "test-*.js",
+    "*.sql",
   ]),
 ]);
 

@@ -31,4 +31,12 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .env.local
+
+# Backup files
+*.original
+*.bak
+*.backup*
+*.before*
+*.v2
+
 # force rebuild 20260722013801

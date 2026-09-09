@@ -933,10 +933,10 @@ export default function TacticalStormBoard({ onComplete }: Props) {
 /* ═══ Fallback puzzles if JSON fails ═══ */
 function getFallbackPuzzles(): Puzzle[] {
   return [
-    { fen: 'r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 1', moves: ['Qxf7#'], theme: 'mate-in-1', rating: 400 },
-    { fen: 'r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1', moves: ['Nxe5'], theme: 'fork', rating: 500 },
-    { fen: 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1', moves: ['Qh4'], theme: 'attack', rating: 600 },
-    { fen: 'rnbqkb1r/pppp1ppp/5n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1', moves: ['Nxe5'], theme: 'fork', rating: 700 },
-    { fen: 'r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1', moves: ['Nxe5'], theme: 'fork', rating: 800 },
+    { fen: 'r1bqkb1r/pppp1ppp/2n2n2/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 0 1', moves: ['h5f7'], theme: 'mate-in-1', rating: 400 },
+    { fen: 'r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1', moves: ['f3e5'], theme: 'fork', rating: 500 },
+    { fen: 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1', moves: ['d7d5'], theme: 'attack', rating: 600 },
+    { fen: 'rnbqkb1r/pppp1ppp/5n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1', moves: ['f3e5'], theme: 'fork', rating: 700 },
+    { fen: 'r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 1', moves: ['f3e5'], theme: 'fork', rating: 800 },
   ];
 }

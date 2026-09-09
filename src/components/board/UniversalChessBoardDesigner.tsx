@@ -863,14 +863,14 @@ export default function UniversalChessBoardDesigner({
   );
 }
 
-const styleSheet = document.createElement('style');
-styleSheet.textContent = `
-  @keyframes ghostFadeIn {
-    from { opacity: 0; transform: scale(0.9); }
-    to { opacity: 1; transform: scale(1); }
-  }
-  /* Ghost animations use inline transition via GhostAnimPiece component */
-`;
 if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement('style');
+  styleSheet.textContent = `
+    @keyframes ghostFadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    /* Ghost animations use inline transition via GhostAnimPiece component */
+  `;
   document.head.appendChild(styleSheet);
 }
