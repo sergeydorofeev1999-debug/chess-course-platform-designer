@@ -441,10 +441,13 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
         const el = document.elementFromPoint(e.clientX, e.clientY);
         const cell = el?.closest('[data-square]') as HTMLElement | null;
         const targetSq = cell?.dataset.square || null;
+        // Clear drag BEFORE processMove to prevent drag + ghost overlay overlap
+        setDragPiece(null);
+        pointerStartRef.current = null;
         if (targetSq && targetSq !== start.square) {
           processMove(start.square, targetSq);
         }
-        setDragPiece(null);
+        return;
       }
       pointerStartRef.current = null;
     };
@@ -456,13 +459,20 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
       }
     };
 
+    const handleBlur = () => {
+      setDragPiece(null);
+      pointerStartRef.current = null;
+    };
+
     window.addEventListener('pointermove', handleGlobalMove);
     window.addEventListener('pointerup', handleGlobalUp);
     window.addEventListener('pointercancel', handleGlobalCancel);
+    window.addEventListener('blur', handleBlur);
     return () => {
       window.removeEventListener('pointermove', handleGlobalMove);
       window.removeEventListener('pointerup', handleGlobalUp);
       window.removeEventListener('pointercancel', handleGlobalCancel);
+      window.removeEventListener('blur', handleBlur);
     };
   }, [game, processMove]);
 
@@ -865,7 +875,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
 
 
 
-          {dragPiece && (
+          {dragPiece && !playerAnimatingMove && !opponentAnimatingMove && (
             <div
               className="fixed pointer-events-none z-50"
               style={{
