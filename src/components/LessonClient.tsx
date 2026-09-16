@@ -440,6 +440,7 @@ interface InlineChessBoardProps {
   promotionPending?: { from: string; to: string } | null;
   onPromotion?: (piece: string) => void;
   lastMove?: { from: string; to: string } | null;
+  playerAnimatingMoves?: { from: string; to: string; piece: { type: string; color: string } }[] | null;
 }
 
 function InlineChessBoard({
@@ -457,6 +458,7 @@ function InlineChessBoard({
   promotionPending,
   onPromotion,
   lastMove,
+  playerAnimatingMoves,
 }: InlineChessBoardProps) {
   const pieceErrHint =
     pieceType === 'b' ? 'Слон ходит по диагонали!' :
@@ -744,8 +746,8 @@ function InlineChessBoard({
             const hover = hoveredSquare === sq;
             const isLastMoveSource = lastMove?.from === sq;
             const isLastMoveTarget = lastMove?.to === sq;
-            const isAnimatingSource = playerAnimatingMove?.from === sq;
-            const isAnimatingTarget = playerAnimatingMove?.to === sq;
+            const isAnimatingSource = playerAnimatingMove?.from === sq || playerAnimatingMoves?.some(m => m.from === sq);
+            const isAnimatingTarget = playerAnimatingMove?.to === sq || playerAnimatingMoves?.some(m => m.to === sq);
             return (
               <div
                 key={sq}
@@ -853,6 +855,36 @@ function InlineChessBoard({
             </div>
           );
         })()}
+        {/* Multi-piece ghost animations (e.g., castling) */}
+        {playerAnimatingMoves?.map((m, i) => {
+          const fromF = FILES.indexOf(m.from[0]);
+          const fromR = RANKS.indexOf(m.from[1]);
+          const toF = FILES.indexOf(m.to[0]);
+          const toR = RANKS.indexOf(m.to[1]);
+          const x1 = fromF * sqSize;
+          const y1 = fromR * sqSize;
+          const x2 = toF * sqSize;
+          const y2 = toR * sqSize;
+          return (
+            <div
+              key={`multi-${i}-${m.from}-${m.to}`}
+              className="absolute pointer-events-none animate-player-move"
+              style={{
+                left: x1,
+                top: y1,
+                width: sqSize,
+                height: sqSize,
+                zIndex: 60,
+                ['--ghost-dx' as string]: `${x2 - x1}px`,
+                ['--ghost-dy' as string]: `${y2 - y1}px`,
+              } as React.CSSProperties}
+            >
+              <div className="w-full h-full flex items-center justify-center" style={{ padding: Math.round(sqSize * 0.075) }}>
+                <PieceImg type={m.piece.type} color={m.piece.color as 'w' | 'b'} />
+              </div>
+            </div>
+          );
+        })}
         {hintArrows.length > 0 && !selectedSquare && !dragPiece && (
           <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
             {hintArrows.map((arrow, i) => {
@@ -1067,6 +1099,7 @@ function MultiLevelStarBoard({
   const [hintArrows, setHintArrows] = useState<{from: string; to: string}[]>([]);
   const [showIntro, setShowIntro] = useState(true);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
+  const [playerAnimatingMoves, setPlayerAnimatingMoves] = useState<{ from: string; to: string; piece: { type: string; color: string } }[] | null>(null);
   useEffect(() => {
     const checkStarted = () => {
       if (typeof window !== 'undefined' && currentLessonId) {
@@ -1623,6 +1656,8 @@ function MultiLevelStarBoard({
     setHintArrows([]);
     setHintLevel(0);
     setPromotionPending(null);
+    setLastMove(null);
+    setPlayerAnimatingMoves(null);
   }, [level]);
 
   useEffect(() => {
@@ -1634,6 +1669,7 @@ function MultiLevelStarBoard({
     setShowHint(false);
     setHintLevel(0);
     setLastMove(null);
+    setPlayerAnimatingMoves(null);
   }, [currentLevel, levels]);
 
   const handleMove = useCallback(
@@ -1667,25 +1703,31 @@ function MultiLevelStarBoard({
               setMsg('Король не может рокироваться через битое поле!');
               return false;
             }
-            const castlingSquares = { ...parsed.squares };
-            delete castlingSquares['e1'];
-            castlingSquares['g1'] = { type: 'k', color: 'w' };
-            delete castlingSquares['h1'];
-            castlingSquares['f1'] = { type: 'r', color: 'w' };
-            const castlingFen = squaresToFen(castlingSquares, 'w');
+            // Animate both king and rook BEFORE updating position
+            setPlayerAnimatingMoves([
+              { from: 'e1', to: 'g1', piece: { type: 'K', color: 'w' } },
+              { from: 'h1', to: 'f1', piece: { type: 'R', color: 'w' } },
+            ]);
             setLastMove({ from, to });
-            positionRef.current = castlingFen;
-            setPosition(castlingFen);
             setMoves((c) => c + 1);
             setMsg('🏰 Рокировка!');
             if (stars.includes('g1') && !collected.includes('g1')) {
               setCollected((prev) => [...prev, 'g1']);
             }
             setTimeout(() => {
+              setPlayerAnimatingMoves(null);
+              const castlingSquares = { ...parsed.squares };
+              delete castlingSquares['e1'];
+              castlingSquares['g1'] = { type: 'k', color: 'w' };
+              delete castlingSquares['h1'];
+              castlingSquares['f1'] = { type: 'r', color: 'w' };
+              const castlingFen = squaresToFen(castlingSquares, 'w');
+              positionRef.current = castlingFen;
+              setPosition(castlingFen);
               setLevelStars((prev) => ({ ...prev, [currentLevel]: 3 }));
               onLevelComplete?.(currentLevel, 3);
               setPhase('success');
-            }, 800);
+            }, 200);
             return true;
           }
         }
@@ -1702,22 +1744,28 @@ function MultiLevelStarBoard({
               setMsg('Король не может рокироваться через битое поле!');
               return false;
             }
-            const castlingSquares = { ...parsed.squares };
-            delete castlingSquares['e1'];
-            castlingSquares['c1'] = { type: 'k', color: 'w' };
-            delete castlingSquares['a1'];
-            castlingSquares['d1'] = { type: 'r', color: 'w' };
-            const castlingFen = squaresToFen(castlingSquares, 'w');
+            // Animate both king and rook BEFORE updating position
+            setPlayerAnimatingMoves([
+              { from: 'e1', to: 'c1', piece: { type: 'K', color: 'w' } },
+              { from: 'a1', to: 'd1', piece: { type: 'R', color: 'w' } },
+            ]);
             setLastMove({ from, to });
-            positionRef.current = castlingFen;
-            setPosition(castlingFen);
             setMoves((c) => c + 1);
             setMsg('🏰 Рокировка!');
             setTimeout(() => {
+              setPlayerAnimatingMoves(null);
+              const castlingSquares = { ...parsed.squares };
+              delete castlingSquares['e1'];
+              castlingSquares['c1'] = { type: 'k', color: 'w' };
+              delete castlingSquares['a1'];
+              castlingSquares['d1'] = { type: 'r', color: 'w' };
+              const castlingFen = squaresToFen(castlingSquares, 'w');
+              positionRef.current = castlingFen;
+              setPosition(castlingFen);
               setLevelStars((prev) => ({ ...prev, [currentLevel]: 3 }));
               onLevelComplete?.(currentLevel, 3);
               setPhase('success');
-            }, 800);
+            }, 200);
             return true;
           }
         }
@@ -2298,6 +2346,7 @@ function MultiLevelStarBoard({
               promotionPending={promotionPending}
               onPromotion={handlePromotion}
               lastMove={lastMove}
+              playerAnimatingMoves={playerAnimatingMoves}
             />
             {phase === 'intro' && <IntroOverlay />}
             {phase === 'success' && <SuccessOverlay />}
