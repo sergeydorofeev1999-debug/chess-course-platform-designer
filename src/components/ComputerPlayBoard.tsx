@@ -697,7 +697,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
                       cursor: pieceObj && pieceObj.color === playerColor && !gameOver && !isComplete ? 'grab' : 'default',
                       touchAction: 'none',
                       backgroundColor: light ? 'var(--square-light)' : 'var(--square-dark)',
-                      opacity: isDragSource ? 0.3 : 1,
+                      opacity: isDragSource ? 0 : 1,
                     }}
                     onClick={() => handleSquareClick(sq)}
                     onPointerDown={(e) => handlePointerDown(e, sq)}
