@@ -108,7 +108,6 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
   const mountedRef = useRef(true);
   const workerRef = useRef<Worker | null>(null);
   const openingStepRef = useRef(0);
-  const wasDragRef = useRef(false);
 
   useEffect(() => () => { mountedRef.current = false; }, []);
 
@@ -265,7 +264,6 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
     setPlayerAnimatingMove(null);
     setOpponentAnimatingMove(null);
     openingStepRef.current = 0;
-    wasDragRef.current = false;
     setHistory([]);
 
     if (playerColor === 'b') {
@@ -322,11 +320,8 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
         ? { type: piece.type.toUpperCase(), color: piece.color as 'w' | 'b' }
         : { type: 'P', color: playerColor };
 
-      // Show player ghost animation only for click (not drag)
-      if (!wasDragRef.current) {
-        setPlayerAnimatingMove({ from, to, piece: pieceData });
-      }
-      wasDragRef.current = false;
+      // Show player ghost animation
+      setPlayerAnimatingMove({ from, to, piece: pieceData });
       setLastMove({ from, to });
       setSelectedSquare(null);
       setHistory(h => [...h, { fen: prevFen, openingStep: prevStep }]);
@@ -400,7 +395,6 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
     } else if (selectedSquare && piece && piece.color === playerColor) {
       setSelectedSquare(sq);
     } else if (selectedSquare) {
-      wasDragRef.current = false;
       processMove(selectedSquare, sq);
     } else {
       if (piece && piece.color === playerColor) {
@@ -428,7 +422,6 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
       const dy = e.clientY - start.y;
       if (!start.moved && (Math.abs(dx) > 20 || Math.abs(dy) > 20)) {
         start.moved = true;
-        wasDragRef.current = true;
         const piece = game?.get(start.square as any);
         if (piece) {
           setDragPiece({ square: start.square, type: piece.type.toUpperCase(), color: piece.color as 'w' | 'b' });
