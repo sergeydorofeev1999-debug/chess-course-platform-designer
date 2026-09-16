@@ -84,6 +84,7 @@ export default function TacticalStormBoard({ onComplete }: Props) {
 
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [sqSize, setSqSize] = useState(56);
+  const [promotionPending, setPromotionPending] = useState<{from: string; to: string}|null>(null);
 
   interface DragState {
     square: string;
@@ -207,6 +208,7 @@ export default function TacticalStormBoard({ onComplete }: Props) {
     setPlayerAnimatingMove(null);
     setOpponentAnimatingMove(null);
     setLastMove(null);
+    setPromotionPending(null);
     wasDragRef.current = false;
     pointerStartRef.current = null;
     setMoveIndex(0);
@@ -338,7 +340,7 @@ export default function TacticalStormBoard({ onComplete }: Props) {
   }, [streak, puzzleIndex, pickPuzzle, mode]);
 
   /* ─── Move logic ─── */
-  const processMove = useCallback((from: string, to: string) => {
+  const processMove = useCallback((from: string, to: string, promotion?: string) => {
     const wasDrag = wasDragRef.current;
     wasDragRef.current = false;
     if (!game || !currentPuzzleRef.current) return;
@@ -346,7 +348,7 @@ export default function TacticalStormBoard({ onComplete }: Props) {
     const testGame = new Chess(game.fen());
     let move;
     try {
-      move = testGame.move({ from, to });
+      move = testGame.move({ from, to, promotion });
     } catch {
       move = null;
     }
@@ -354,6 +356,18 @@ export default function TacticalStormBoard({ onComplete }: Props) {
     if (!move) {
       setSelectedSquare(null);
       return;
+    }
+
+    // Check if pawn promotion needed
+    const piece = testGame.get(from as any);
+    if (piece?.type === 'p' && !to.includes('=')) {
+      const lastRank = piece.color === 'w' ? '8' : '1';
+      if (to[1] === lastRank) {
+        setPromotionPending({ from, to });
+        setSelectedSquare(null);
+        setDragPiece(null);
+        return;
+      }
     }
 
     // Apply the move to the actual game state so the piece stays on target square
@@ -909,9 +923,9 @@ export default function TacticalStormBoard({ onComplete }: Props) {
           selectedSquare={selectedSquare}
           lastMove={lastMove}
           validMoves={validMoves}
-          onMove={(from, to) => {
+          onMove={(from, to, promotion) => {
             wasDragRef.current = true;
-            processMove(from, to);
+            processMove(from, to, promotion);
           }}
           onSquareClick={handleSquareClick}
           onDragPieceChange={(piece) => {
@@ -922,9 +936,59 @@ export default function TacticalStormBoard({ onComplete }: Props) {
           opponentAnimatingMove={opponentAnimatingMove}
           disableAutoGhost={true}
           clickGhost={false}
-          interactive={phase === 'playing'}
+          interactive={phase === 'playing' && !promotionPending}
           sqSize={sqSize}
         />
+        {promotionPending && (
+          <div className="absolute z-50 pointer-events-auto" style={{
+            left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
+            top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
+            width: sqSize,
+            height: 4 * sqSize,
+            backgroundColor: '#2C241B',
+            borderRadius: '0px',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            overflow: 'hidden',
+          }}>
+            {[
+              { code: 'q', name: 'Ферзь' },
+              { code: 'r', name: 'Ладья' },
+              { code: 'b', name: 'Слон' },
+              { code: 'n', name: 'Конь' },
+            ].map(({ code, name }) => (
+              <button
+                key={code}
+                onClick={() => { processMove(promotionPending.from, promotionPending.to, code); setPromotionPending(null); }}
+                className="w-full aspect-square flex items-center justify-center transition-all duration-150"
+                style={{
+                  backgroundColor: 'transparent',
+                  border: '2px solid transparent',
+                  borderRadius: '0px',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
+                  e.currentTarget.style.borderColor = '#C9A84C';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                  e.currentTarget.style.borderColor = 'transparent';
+                }}
+                title={name}
+              >
+                <img
+                  src={`/pieces/cburnett/${promotionPending.from[1] === '2' ? 'b' : 'w'}${code.toUpperCase()}.svg`}
+                  alt={name}
+                  draggable={false}
+                  style={{ width: '70%', height: '70%', objectFit: 'contain' }}
+                />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       {/* Error indicators + Difficulty */}
       <div className="flex w-full justify-between items-center mt-1">
