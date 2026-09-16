@@ -560,6 +560,7 @@ function InlineChessBoard({
   onPromotion,
   opponentAnimatingMove,
   lastMove: externalLastMove,
+  waitingForOpponent,
 }: {
   fen: string;
   onMove: (from: string, to: string) => boolean;
@@ -572,6 +573,7 @@ function InlineChessBoard({
   onPromotion?: (piece: string) => void;
   opponentAnimatingMove?: { from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null;
   lastMove?: { from: string; to: string } | null;
+  waitingForOpponent?: boolean;
 }) {
   const parsed = parseFen(fen);
   const [squares, setSquares] = useState(parsed.squares);
@@ -660,6 +662,7 @@ function InlineChessBoard({
 
   const click = useCallback(
     (square: string) => {
+      if (waitingForOpponent) return;
       if (promotionPending) return;
       if (justDraggedRef.current) { justDraggedRef.current = false; return; }
       const sqs = squaresRef.current;
@@ -722,10 +725,11 @@ function InlineChessBoard({
         }
       }
     },
-    [setMsg, forbiddenSquares, promotionPending],
+    [setMsg, forbiddenSquares, promotionPending, waitingForOpponent],
   );
 
   const handlePointerDown = (e: React.PointerEvent, sq: string) => {
+    if (waitingForOpponent) return;
     if (!containerRef.current) return;
     const piece = squares[sq];
     if (!piece || piece.color !== 'w') return;
@@ -1075,6 +1079,10 @@ function InlineChessBoard({
             ))}
           </div>
         )}
+        {/* Block input during opponent auto-move */}
+        {waitingForOpponent && (
+          <div className="absolute inset-0 z-40 pointer-events-auto cursor-wait" style={{ backgroundColor: 'transparent' }} />
+        )}
       </div>
       {msg && <div className="text-red-500 text-sm mt-1">{msg}</div>}
     </div>
@@ -1154,6 +1162,7 @@ export default function CaptureBoard({
   const [promotionPending, setPromotionPending] = useState<{from: string, to: string} | null>(null);
   const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
+  const [waitingForOpponent, setWaitingForOpponent] = useState(false);
   const successTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const clearSuccessTimers = useCallback(() => {
@@ -1185,6 +1194,7 @@ export default function CaptureBoard({
       setMsg('');
       setPromotionPending(null);
       setLastMove(null);
+      setWaitingForOpponent(false);
     }
   }, [currentLevel, levels]);
 
@@ -1278,6 +1288,7 @@ export default function CaptureBoard({
 
     moves.forEach((move, idx) => {
       const { from, to, delayMs } = move;
+      setWaitingForOpponent(true);
       const timer = setTimeout(() => {
         if (gameOver) return;
         const parsed = parseFen(positionRef.current);
@@ -1300,6 +1311,7 @@ export default function CaptureBoard({
         positionRef.current = newFen;
         setPosition(newFen);
         setLastMove({ from, to });
+        setWaitingForOpponent(false);
         onPositionChange?.(newFen); // Notify parent about en passant field update
       }, delayMs);
       timers.push(timer);
@@ -1310,7 +1322,7 @@ export default function CaptureBoard({
 
   const handleMove = useCallback(
     (from: string, to: string) => {
-      if (gameOver) return false;
+      if (gameOver || waitingForOpponent) return false;
       clearSuccessTimers();
       const parsed = parseFen(positionRef.current);
       if (parsed.squares[from]?.color !== 'w') return false;
@@ -1798,7 +1810,7 @@ export default function CaptureBoard({
 
       return true;
     },
-    [stars, collected, currentLevel, totalLevels, onAllComplete, gameOver, level.maxMoves, successMessage, setFailed, setGameOver]
+    [stars, collected, currentLevel, totalLevels, onAllComplete, gameOver, waitingForOpponent, level.maxMoves, successMessage, setFailed, setGameOver]
   );
 
   const collectedCount = stars.filter((s: string) => collected.includes(s)).length;
@@ -1898,7 +1910,7 @@ export default function CaptureBoard({
       {embedded ? (
         /* Minimal mode: only the board + fail callback */
         <div className="flex flex-col items-center gap-3">
-          <InlineChessBoard key={currentLevel} fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} promotionPending={promotionPending} onPromotion={handlePromotion} opponentAnimatingMove={opponentAnimatingMove} lastMove={lastMove} />
+          <InlineChessBoard key={currentLevel} fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} promotionPending={promotionPending} onPromotion={handlePromotion} opponentAnimatingMove={opponentAnimatingMove} lastMove={lastMove} waitingForOpponent={waitingForOpponent} />
           {failed && onFail && (
             <div className="w-full">
               <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
@@ -1974,7 +1986,7 @@ export default function CaptureBoard({
 
       {/* CENTER COLUMN: Chess board + stats */}
       <div className="flex-1 flex flex-col items-center gap-3">
-        <InlineChessBoard key={currentLevel} fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} opponentAnimatingMove={opponentAnimatingMove} lastMove={lastMove} />
+        <InlineChessBoard key={currentLevel} fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} opponentAnimatingMove={opponentAnimatingMove} lastMove={lastMove} waitingForOpponent={waitingForOpponent} />
 
         {/* Red fail banner */}
         {failed && (
