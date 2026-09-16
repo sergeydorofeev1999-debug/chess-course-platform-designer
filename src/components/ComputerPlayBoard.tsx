@@ -114,6 +114,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
   const [dragPiece, setDragPiece] = useState<DragState | null>(null);
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const pointerStartRef = useRef<PointerStart | null>(null);
+  const wasDragRef = useRef(false);
 
   const storageKey = lessonId ? `computerplay_progress_${lessonId}` : 'computerplay_progress';
 
@@ -263,6 +264,9 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
     setLastMove(null);
     setPlayerAnimatingMove(null);
     setOpponentAnimatingMove(null);
+    wasDragRef.current = false;
+    setDragPiece(null);
+    pointerStartRef.current = null;
     openingStepRef.current = 0;
     setHistory([]);
 
@@ -283,6 +287,9 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
     setPromotionPending(null);
     setPlayerAnimatingMove(null);
     setOpponentAnimatingMove(null);
+    wasDragRef.current = false;
+    setDragPiece(null);
+    pointerStartRef.current = null;
     setHistory(h => h.slice(0, -1));
   }, [history, game]);
 
@@ -320,14 +327,18 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
         ? { type: piece.type.toUpperCase(), color: piece.color as 'w' | 'b' }
         : { type: 'P', color: playerColor };
 
-      // Show player ghost animation
-      setPlayerAnimatingMove({ from, to, piece: pieceData });
+      const wasDrag = wasDragRef.current;
+      wasDragRef.current = false;
+
+      if (!wasDrag) {
+        setPlayerAnimatingMove({ from, to, piece: pieceData });
+      }
       setLastMove({ from, to });
       setSelectedSquare(null);
       setHistory(h => [...h, { fen: prevFen, openingStep: prevStep }]);
 
-      // After 200ms update board and remove ghost
-      setTimeout(() => {
+      // Commit drops immediately; wait for the ghost on click moves.
+      const finishPlayerMove = () => {
         if (!mountedRef.current) return;
         setGame(new Chess(g.fen()));
         setPlayerAnimatingMove(null);
@@ -381,8 +392,16 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
         setTimeout(() => {
           if (mountedRef.current) makeComputerMove(new Chess(g.fen()), selectedLevel, openingStepRef.current);
         }, 600);
-      }, 200);
-    } catch {}
+      };
+
+      if (wasDrag) {
+        finishPlayerMove();
+      } else {
+        setTimeout(finishPlayerMove, 200);
+      }
+    } catch {
+      wasDragRef.current = false;
+    }
   }, [game, selectedLevel, isComplete, gameOver, playerColor, checkGameOver, makeComputerMove]);
 
   // ──── CLICK ────
@@ -395,6 +414,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
     } else if (selectedSquare && piece && piece.color === playerColor) {
       setSelectedSquare(sq);
     } else if (selectedSquare) {
+      wasDragRef.current = false;
       processMove(selectedSquare, sq);
     } else {
       if (piece && piece.color === playerColor) {
@@ -422,6 +442,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
       const dy = e.clientY - start.y;
       if (!start.moved && (Math.abs(dx) > 20 || Math.abs(dy) > 20)) {
         start.moved = true;
+        wasDragRef.current = true;
         const piece = game?.get(start.square as any);
         if (piece) {
           setDragPiece({ square: start.square, type: piece.type.toUpperCase(), color: piece.color as 'w' | 'b' });
@@ -446,6 +467,8 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
         pointerStartRef.current = null;
         if (targetSq && targetSq !== start.square) {
           processMove(start.square, targetSq);
+        } else {
+          wasDragRef.current = false;
         }
         return;
       }
@@ -454,6 +477,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
 
     const handleGlobalCancel = (e: PointerEvent) => {
       if (pointerStartRef.current && e.pointerId === pointerStartRef.current.pointerId) {
+        wasDragRef.current = false;
         setDragPiece(null);
         pointerStartRef.current = null;
       }
@@ -697,7 +721,6 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
                       cursor: pieceObj && pieceObj.color === playerColor && !gameOver && !isComplete ? 'grab' : 'default',
                       touchAction: 'none',
                       backgroundColor: light ? 'var(--square-light)' : 'var(--square-dark)',
-                      opacity: isDragSource ? 0.3 : 1,
                     }}
                     onClick={() => handleSquareClick(sq)}
                     onPointerDown={(e) => handlePointerDown(e, sq)}
