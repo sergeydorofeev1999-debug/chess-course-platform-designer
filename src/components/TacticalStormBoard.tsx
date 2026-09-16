@@ -68,6 +68,7 @@ export default function TacticalStormBoard({ onComplete }: Props) {
   const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
 
   const moveIndexRef = useRef(0);
+  const wasDragRef = useRef(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'none' | 'correct' | 'wrong'>('none');
   const [lives, setLives] = useState(3);
@@ -205,6 +206,8 @@ export default function TacticalStormBoard({ onComplete }: Props) {
     setDragPiece(null);
     setPlayerAnimatingMove(null);
     setOpponentAnimatingMove(null);
+    wasDragRef.current = false;
+    pointerStartRef.current = null;
     setMoveIndex(0);
     moveIndexRef.current = 0;
     puzzleStartTimeRef.current = Date.now();
@@ -231,6 +234,8 @@ export default function TacticalStormBoard({ onComplete }: Props) {
     setReviewIndex(null);
     setPlayerAnimatingMove(null);
     setOpponentAnimatingMove(null);
+    wasDragRef.current = false;
+    pointerStartRef.current = null;
     usedPuzzlesRef.current.clear();
 
     const first = pickPuzzle(0);
@@ -332,6 +337,8 @@ export default function TacticalStormBoard({ onComplete }: Props) {
 
   /* ─── Move logic ─── */
   const processMove = useCallback((from: string, to: string) => {
+    const wasDrag = wasDragRef.current;
+    wasDragRef.current = false;
     if (!game || !currentPuzzleRef.current) return;
 
     const testGame = new Chess(game.fen());
@@ -350,6 +357,13 @@ export default function TacticalStormBoard({ onComplete }: Props) {
     // Apply the move to the actual game state so the piece stays on target square
     const newGame = new Chess(game.fen());
     newGame.move({ from, to });
+    setSelectedSquare(null);
+    setDragPiece(null);
+    setLastMove({ from, to });
+
+    // UCBD already moved the dropped piece internally.
+    // Synchronize the parent immediately without replaying the move.
+    if (wasDrag) setGame(newGame);
 
     // Build UCI from move result (handles promotions correctly)
     const userUci = move.from + move.to + (move.promotion || '');
@@ -372,25 +386,29 @@ export default function TacticalStormBoard({ onComplete }: Props) {
 
     if (moveIndexRef.current >= currentPuzzleRef.current.moves.length) {
       // All moves solved — puzzle complete
-      setPlayerAnimatingMove({ from, to, piece: movingPiece });
+      if (!wasDrag) {
+        setPlayerAnimatingMove({ from, to, piece: movingPiece });
+      }
       flashTimeoutRef.current = setTimeout(() => {
         setGame(newGame);
-        setPlayerAnimatingMove(null);
+        if (!wasDrag) setPlayerAnimatingMove(null);
         setShowCorrect(true);
         flashTimeoutRef.current = setTimeout(() => {
           setShowCorrect(false);
           nextPuzzle(true);
         }, 1200);
-      }, 200);
+      }, wasDrag ? 0 : 200);
       return;
     }
 
     // More moves needed — animate player move, then schedule opponent
-    setPlayerAnimatingMove({ from, to, piece: movingPiece });
+    if (!wasDrag) {
+      setPlayerAnimatingMove({ from, to, piece: movingPiece });
+    }
 
     flashTimeoutRef.current = setTimeout(() => {
       setGame(newGame);
-      setPlayerAnimatingMove(null);
+      if (!wasDrag) setPlayerAnimatingMove(null);
 
       opponentTimeoutRef.current = setTimeout(() => {
         if (!currentPuzzleRef.current || moveIndexRef.current >= currentPuzzleRef.current.moves.length) return;
@@ -414,8 +432,8 @@ export default function TacticalStormBoard({ onComplete }: Props) {
           setOpponentAnimatingMove(null);
           setIsBlack(afterOpp.turn() === 'b');
         }, 200);
-      }, 600); // total ~800ms from player move
-    }, 200);
+      }, wasDrag ? 0 : 600);
+    }, wasDrag ? 0 : 200);
   }, [game, nextPuzzle]);
 
   /* ─── CLICK ─── */
@@ -509,11 +527,10 @@ export default function TacticalStormBoard({ onComplete }: Props) {
 
   const isLight = (fi: number, ri: number) => (fi + ri) % 2 === 0;
 
-  const validMoves = selectedSquare && game
-    ? (game.moves({ square: selectedSquare as any, verbose: true }).map(m => m.to) as string[])
-    : dragPiece && game
-      ? (game.moves({ square: dragPiece.square as any, verbose: true }).map(m => m.to) as string[])
-      : [];
+  const moveSource = dragPiece?.square ?? selectedSquare;
+  const validMoves = moveSource && game
+    ? game.moves({ square: moveSource as any, verbose: true }).map(m => m.to)
+    : [];
 
   const formatTime = (s: number) => {
     const m = Math.floor(s / 60);
@@ -885,13 +902,23 @@ export default function TacticalStormBoard({ onComplete }: Props) {
       <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
         <UniversalChessBoardDesigner
           fen={game?.fen() || ''}
+          isReversed={isBlack}
           selectedSquare={selectedSquare}
           lastMove={lastMove}
-          autoValidMoves={true}
-          onMove={(from, to) => processMove(from, to)}
+          validMoves={validMoves}
+          onMove={(from, to) => {
+            wasDragRef.current = true;
+            processMove(from, to);
+          }}
           onSquareClick={handleSquareClick}
+          onDragPieceChange={(piece) => {
+            setDragPiece(piece);
+            if (piece) setSelectedSquare(null);
+          }}
           playerAnimatingMove={playerAnimatingMove}
           opponentAnimatingMove={opponentAnimatingMove}
+          disableAutoGhost={true}
+          clickGhost={false}
           interactive={phase === 'playing'}
           sqSize={sqSize}
         />
