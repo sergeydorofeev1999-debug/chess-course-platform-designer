@@ -435,7 +435,7 @@ export default function TacticalStormBoard({ onComplete }: Props) {
           setOpponentAnimatingMove(null);
           setIsBlack(afterOpp.turn() === 'b');
         }, 200);
-      }, wasDrag ? 0 : 600);
+      }, wasDrag ? 400 : 600);
     }, wasDrag ? 0 : 200);
   }, [game, nextPuzzle]);
 
