@@ -206,6 +206,7 @@ export default function TacticalStormBoard({ onComplete }: Props) {
     setDragPiece(null);
     setPlayerAnimatingMove(null);
     setOpponentAnimatingMove(null);
+    setLastMove(null);
     wasDragRef.current = false;
     pointerStartRef.current = null;
     setMoveIndex(0);
@@ -318,6 +319,7 @@ export default function TacticalStormBoard({ onComplete }: Props) {
       setMessageType('none');
       setPlayerAnimatingMove(null);
       setOpponentAnimatingMove(null);
+      setLastMove(null);
       
       puzzleIndexRef.current += 1;
       setPuzzleIndex(puzzleIndexRef.current);
@@ -420,6 +422,7 @@ export default function TacticalStormBoard({ onComplete }: Props) {
         const oppPiece = newGame.get(oppFrom as any);
         if (oppPiece) {
           setOpponentAnimatingMove({ from: oppFrom, to: oppTo, piece: { type: oppPiece.type.toUpperCase(), color: oppPiece.color as 'w' | 'b' } });
+          setLastMove({ from: oppFrom, to: oppTo });
         }
 
         opponentTimeoutRef.current = setTimeout(() => {
