@@ -1299,6 +1299,7 @@ export default function CaptureBoard({
         }
         positionRef.current = newFen;
         setPosition(newFen);
+        setLastMove({ from, to });
         onPositionChange?.(newFen); // Notify parent about en passant field update
       }, delayMs);
       timers.push(timer);
@@ -1390,6 +1391,7 @@ export default function CaptureBoard({
               }
               positionRef.current = newFen2;
               setPosition(newFen2);
+              setLastMove({ from: trigger.from, to: trigger.to });
               onPositionChange?.(newFen2); // Notify parent about trigger auto-move update
             }
             nextTriggerIdxRef.current = idx + 1;
@@ -1435,6 +1437,7 @@ export default function CaptureBoard({
               const animFen = squaresToFen(animSquares, 'w');
               positionRef.current = animFen;
               setPosition(animFen);
+              setLastMove({ from: ac.blackFrom, to: ac.captureSquare });
               // Then ghost animate
               setOpponentAnimatingMove({
                 from: ac.blackFrom,
@@ -1523,6 +1526,7 @@ export default function CaptureBoard({
           const animFen = squaresToFen(animSquares, 'w');
           positionRef.current = animFen;
           setPosition(animFen);
+          setLastMove({ from: bsq, to: wsq });
           // Then ghost animate
           setOpponentAnimatingMove({
             from: bsq,
