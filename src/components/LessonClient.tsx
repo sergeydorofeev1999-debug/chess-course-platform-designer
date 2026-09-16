@@ -1623,7 +1623,6 @@ function MultiLevelStarBoard({
     setHintArrows([]);
     setHintLevel(0);
     setPromotionPending(null);
-    setLastMove(null);
   }, [level]);
 
   useEffect(() => {
