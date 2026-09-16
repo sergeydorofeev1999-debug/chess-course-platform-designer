@@ -475,10 +475,6 @@ function InlineChessBoard({
     to: string;
     piece: { type: string; color: string };
   } | null>(null);
-  const [playerAnimatingRookMove, setPlayerAnimatingRookMove] = useState<{
-    from: string;
-    to: string;
-  } | null>(null);
 
   const pointerStartRef = useRef<{ x: number; y: number; square: string; moved: boolean; pointerId: number } | null>(null);
   const processLockRef = useRef(false);
@@ -563,16 +559,9 @@ function InlineChessBoard({
             to: square,
             piece: { type: movedPiece.type, color: movedPiece.color },
           });
-          // Castling: animate rook simultaneously with king
-          if (movedPiece.type === 'k' && sel === 'e1' && (square === 'g1' || square === 'c1')) {
-            const rookFrom = square === 'g1' ? 'h1' : 'a1';
-            const rookTo = square === 'g1' ? 'f1' : 'd1';
-            setPlayerAnimatingRookMove({ from: rookFrom, to: rookTo });
-          }
         }
         setTimeout(() => {
           setPlayerAnimatingMove(null);
-          setPlayerAnimatingRookMove(null);
         }, 200);
         const accepted = onMoveRef.current?.(sel, square);
         if (accepted !== false) {
@@ -755,8 +744,8 @@ function InlineChessBoard({
             const hover = hoveredSquare === sq;
             const isLastMoveSource = lastMove?.from === sq;
             const isLastMoveTarget = lastMove?.to === sq;
-            const isAnimatingSource = playerAnimatingMove?.from === sq || playerAnimatingRookMove?.from === sq;
-            const isAnimatingTarget = playerAnimatingMove?.to === sq || playerAnimatingRookMove?.to === sq;
+            const isAnimatingSource = playerAnimatingMove?.from === sq;
+            const isAnimatingTarget = playerAnimatingMove?.to === sq;
             return (
               <div
                 key={sq}
@@ -1685,15 +1674,13 @@ function MultiLevelStarBoard({
             castlingSquares['f1'] = { type: 'r', color: 'w' };
             const castlingFen = squaresToFen(castlingSquares, 'w');
             setLastMove({ from, to });
+            positionRef.current = castlingFen;
+            setPosition(castlingFen);
             setMoves((c) => c + 1);
             setMsg('🏰 Рокировка!');
             if (stars.includes('g1') && !collected.includes('g1')) {
               setCollected((prev) => [...prev, 'g1']);
             }
-            setTimeout(() => {
-              positionRef.current = castlingFen;
-              setPosition(castlingFen);
-            }, 200);
             setTimeout(() => {
               setLevelStars((prev) => ({ ...prev, [currentLevel]: 3 }));
               onLevelComplete?.(currentLevel, 3);
@@ -1722,12 +1709,10 @@ function MultiLevelStarBoard({
             castlingSquares['d1'] = { type: 'r', color: 'w' };
             const castlingFen = squaresToFen(castlingSquares, 'w');
             setLastMove({ from, to });
+            positionRef.current = castlingFen;
+            setPosition(castlingFen);
             setMoves((c) => c + 1);
             setMsg('🏰 Рокировка!');
-            setTimeout(() => {
-              positionRef.current = castlingFen;
-              setPosition(castlingFen);
-            }, 200);
             setTimeout(() => {
               setLevelStars((prev) => ({ ...prev, [currentLevel]: 3 }));
               onLevelComplete?.(currentLevel, 3);
