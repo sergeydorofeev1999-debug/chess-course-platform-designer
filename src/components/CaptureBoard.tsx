@@ -602,6 +602,12 @@ function InlineChessBoard({
   const [sqSize, setSqSize] = useState(44);
   const sqSizeRef = useRef(sqSize);
   const pointerIdRef = useRef(0);
+  const fenRef = useRef(fen);
+  const forbiddenSquaresRef = useRef(forbiddenSquares);
+  const clickRef = useRef<((square: string) => void) | null>(null);
+
+  useEffect(() => { fenRef.current = fen; }, [fen]);
+  useEffect(() => { forbiddenSquaresRef.current = forbiddenSquares; }, [forbiddenSquares]);
 
   useEffect(() => {
     const update = () => {
@@ -679,14 +685,14 @@ function InlineChessBoard({
           setSelectedSquare(square);
           return;
         }
-        if (forbiddenSquares.includes(square)) {
+        if (forbiddenSquaresRef.current.includes(square)) {
           selectedSquareRef.current = null;
           setSelectedSquare(null);
           return;
         }
         // Validate move before animating — if square is not in valid moves, just deselect
         const movingPiece = sqs[sel];
-        const parsed = parseFen(fen);
+        const parsed = parseFen(fenRef.current);
         const vm = getValidSquares(
           movingPiece?.type || 'p',
           sel,
@@ -694,7 +700,7 @@ function InlineChessBoard({
           'w',
           [],
           parsed.enPassant
-        ).filter(sq => !forbiddenSquares.includes(sq));
+        ).filter(sq => !forbiddenSquaresRef.current.includes(sq));
         if (!vm.includes(square)) {
           selectedSquareRef.current = null;
           setSelectedSquare(null);
@@ -725,7 +731,7 @@ function InlineChessBoard({
         }
       }
     },
-    [setMsg, forbiddenSquares, promotionPending, waitingForOpponent],
+    [setMsg, promotionPending, waitingForOpponent],
   );
 
   const handlePointerDown = (e: React.PointerEvent, sq: string) => {
@@ -813,14 +819,15 @@ function InlineChessBoard({
         if (start && targetSquare !== start) {
           // Validate drag-drop move before calling onMove
           const movingPiece = squaresRef.current[start];
+          const currentParsed = parseFen(fenRef.current);
           const vm = getValidSquares(
             movingPiece?.type || 'p',
             start,
             squaresRef.current,
             'w',
             [],
-            parsed.enPassant
-          ).filter(sq => !forbiddenSquares.includes(sq));
+            currentParsed.enPassant
+          ).filter(sq => !forbiddenSquaresRef.current.includes(sq));
           if (!vm.includes(targetSquare)) {
             selectedSquareRef.current = null;
             setSelectedSquare(null);
@@ -837,7 +844,7 @@ function InlineChessBoard({
           const accepted = onMoveRef.current?.(start, targetSquare);
           if (!accepted) {
             // Rollback local squares if move was rejected
-            const p = parseFen(fen);
+            const p = parseFen(fenRef.current);
             setSquares(p.squares);
             squaresRef.current = p.squares;
           }
