@@ -709,6 +709,17 @@ function InlineChessBoard({
         selectedSquareRef.current = null;
         setSelectedSquare(null);
         if (movingPiece) {
+          // En passant: immediately remove the captured pawn from local squares
+          // so it disappears at the same time as the animation starts
+          if (movingPiece.type === 'p' && parsed.enPassant && square === parsed.enPassant) {
+            const capturedFile = square[0];
+            const capturedRank = sel[1];
+            const capturedSq = `${capturedFile}${capturedRank}`;
+            const updatedSquares = { ...squaresRef.current };
+            delete updatedSquares[capturedSq];
+            squaresRef.current = updatedSquares;
+            setSquares(updatedSquares);
+          }
           setPlayerAnimatingMove({ from: sel, to: square, piece: movingPiece });
         }
         setTimeout(() => {
@@ -841,6 +852,16 @@ function InlineChessBoard({
           setSelectedSquare(null);
           setDragState(null);
           dragStateRef.current = null;
+          // En passant: immediately remove the captured pawn from local squares
+          if (movingPiece?.type === 'p' && currentParsed.enPassant && targetSquare === currentParsed.enPassant) {
+            const capturedFile = targetSquare[0];
+            const capturedRank = start[1];
+            const capturedSq = `${capturedFile}${capturedRank}`;
+            const updatedSquares = { ...squaresRef.current };
+            delete updatedSquares[capturedSq];
+            squaresRef.current = updatedSquares;
+            setSquares(updatedSquares);
+          }
           const accepted = onMoveRef.current?.(start, targetSquare);
           if (!accepted) {
             // Rollback local squares if move was rejected
