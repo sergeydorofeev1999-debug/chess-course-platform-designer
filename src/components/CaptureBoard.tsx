@@ -1411,6 +1411,7 @@ export default function CaptureBoard({
         if (idx < level.triggerAutoMove.length) {
           const trigger = level.triggerAutoMove[idx];
           const delayMs = (trigger as any).delayMs || 0;
+          setWaitingForOpponent(true);
           setTimeout(() => {
             // Check if white moved the expected piece for this trigger
             const parsedAfter = parseFen(positionRef.current);
@@ -1435,6 +1436,7 @@ export default function CaptureBoard({
               onPositionChange?.(newFen2); // Notify parent about trigger auto-move update
             }
             nextTriggerIdxRef.current = idx + 1;
+            setWaitingForOpponent(false);
           }, delayMs);
         }
       }
@@ -1468,6 +1470,7 @@ export default function CaptureBoard({
             }
             const attackerPiece = newSquares[ac.blackFrom];
             // Pause then animate black capture (apply position first, like PawnRaceBoard)
+            setWaitingForOpponent(true);
             setTimeout(() => {
               // Apply move immediately — remove victim, move attacker
               const animSquares = { ...newSquares };
@@ -1489,6 +1492,7 @@ export default function CaptureBoard({
                 setFailed(true);
                 setGameOver(true);
                 setOpponentAnimatingMove(null);
+                setWaitingForOpponent(false);
               }, 220);
             }, 800);
             return false;
@@ -1558,6 +1562,7 @@ export default function CaptureBoard({
         const attackerPiece = newSquares[bsq];
 
         // Pause then animate black capture (apply position first, like PawnRaceBoard)
+        setWaitingForOpponent(true);
         setTimeout(() => {
           // Apply move immediately — remove victim, move attacker
           const animSquares = { ...newSquares };
@@ -1580,6 +1585,7 @@ export default function CaptureBoard({
             setFailed(true);
             setMsg(`💀 ${bp.type === 'r' ? 'Ладья' : bp.type === 'b' ? 'Слон' : bp.type === 'q' ? 'Ферзь' : bp.type === 'n' ? 'Конь' : bp.type === 'p' ? 'Пешка' : 'Фигура'} съела ${wp.type === 'r' ? 'ладью' : wp.type === 'b' ? 'слона' : wp.type === 'q' ? 'ферзя' : wp.type === 'n' ? 'коня' : wp.type === 'p' ? 'пешку' : wp.type === 'k' ? 'короля' : 'фигуру'}!`);
             setOpponentAnimatingMove(null);
+            setWaitingForOpponent(false);
           }, 220); // Ghost animation duration
         }, 800); // Pause before black move
 
