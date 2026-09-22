@@ -1842,6 +1842,14 @@ export default function CaptureBoard({
         });
       }
 
+      // ── Lesson 14 (en passant): any non-target move is an immediate fail ──
+      const isEnPassantLesson = lessonId === '14' || lessonId === 'b244d9da-23d9-438f-a81d-64b050b3b32e';
+      if (isEnPassantLesson && !stars.includes(to)) {
+        setFailed(true);
+        setGameOver(true);
+        return false;
+      }
+
       return true;
     },
     [stars, collected, currentLevel, totalLevels, onAllComplete, gameOver, waitingForOpponent, level.maxMoves, successMessage, setFailed, setGameOver]
