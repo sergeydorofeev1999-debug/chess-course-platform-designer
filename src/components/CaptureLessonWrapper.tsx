@@ -42,6 +42,7 @@ export default function CaptureLessonWrapper({
     // SSR-safe: initialize synchronously with the initial level's FEN
     return levels[0]?.initialFen || '';
   });
+  const [failed, setFailed] = useState(false);
   const currentPositionRef = useRef(currentPosition);
   useEffect(() => {
     currentPositionRef.current = currentPosition;
@@ -119,6 +120,7 @@ function parseFenSimple(fen: string) {
     setCurrentLevel(idx);
     setShowHint(false);
     setHintArrows([]);
+    setFailed(false);
     setCurrentPosition(levels[idx]?.initialFen || '');
   };
 
@@ -835,6 +837,7 @@ function parseFenSimple(fen: string) {
               // DO NOT reset currentPosition here — onPositionChange handles it
             }}
             onPositionChange={setCurrentPosition}
+            onFail={() => setFailed(true)}
           />
         </div>
       </div>
@@ -936,6 +939,23 @@ function parseFenSimple(fen: string) {
           <RotateCcw size={14} /> Заново
         </button>
       </div>
+
+      {failed && (
+        <div className="w-full">
+          <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
+            <p className="text-white font-bold text-lg">Задание провалено!</p>
+            <button
+              onClick={() => {
+                setResetKey((prev) => prev + 1);
+                goToLevel(currentLevel);
+              }}
+              className="bg-white text-[#c62828] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
+            >
+              ЕЩЁ РАЗ
+            </button>
+          </div>
+        </div>
+      )}
 
     </div>
   );
