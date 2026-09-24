@@ -718,16 +718,6 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
           </div>
         </div>
 
-        {/* Demo button */}
-        {currentExercise === 1 && !demoMode && !isComplete && (
-          <button
-            onClick={() => { reset(); setDemoMode(true); setDemoStep(0); }}
-            className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
-          >
-            <Eye size={14} /> Посмотреть как ставить мат
-          </button>
-        )}
-
         {/* Exercise pills */}
         <div className="w-full flex items-stretch gap-[1px]">
           {EXERCISES.map((ex) => {
@@ -794,14 +784,6 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
 
         {/* Action buttons */}
         <div className="flex flex-col gap-2">
-          {currentExercise === 1 && !demoMode && !isComplete && (
-            <button
-              onClick={() => { reset(); setDemoMode(true); setDemoStep(0); }}
-              className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
-            >
-              <Eye size={14} /> Посмотреть как ставить мат
-            </button>
-          )}
           <button
             onClick={reset}
             className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
@@ -950,14 +932,6 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
 
         {/* Mobile buttons */}
         <div className="flex lg:hidden gap-2 w-full">
-          {currentExercise === 1 && !demoMode && !isComplete && (
-            <button
-              onClick={() => { reset(); setDemoMode(true); setDemoStep(0); }}
-              className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
-            >
-              <Eye size={14} /> Посмотреть как ставить мат
-            </button>
-          )}
           <button
             onClick={reset}
             className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"

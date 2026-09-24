@@ -1365,20 +1365,12 @@ if (!skipAnimation) {
 
           {/* Sidebar action buttons */}
           {exercise === 1 && !demoMode && !isComplete && !isFail && (
-            <>
-              <button
-                onClick={handleShowSquare}
-                className={`flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border text-xs font-medium transition-all w-full ${showSquare ? 'border-[rgba(92,64,51,0.25)] bg-[rgba(92,64,51,0.08)] text-[#5A4A3A]' : 'border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}
-              >
-                <Eye size={14} /> {showSquare ? 'Скрыть квадрат' : 'Показать квадрат'}
-              </button>
-              <button
-                onClick={startDemo}
-                className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all w-full"
-              >
-                <Eye size={14} /> Сыграть a5
-              </button>
-            </>
+            <button
+              onClick={handleShowSquare}
+              className={`flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border text-xs font-medium transition-all w-full ${showSquare ? 'border-[rgba(92,64,51,0.25)] bg-[rgba(92,64,51,0.08)] text-[#5A4A3A]' : 'border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}
+            >
+              <Eye size={14} /> {showSquare ? 'Скрыть квадрат' : 'Показать квадрат'}
+            </button>
           )}
           {exercise === 2 && !ex2Mode && !isComplete && !isFail && (
             <>
@@ -1682,14 +1674,9 @@ if (!skipAnimation) {
           {/* Mobile action buttons row */}
           <div className="flex lg:hidden gap-2 w-full">
             {exercise === 1 && !demoMode && !isComplete && !isFail && (
-              <>
-                <button onClick={handleShowSquare} className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all ${showSquare ? 'border-[rgba(92,64,51,0.25)] bg-[rgba(92,64,51,0.08)] text-[#5A4A3A]' : 'border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
-                  <Eye size={14} /> {showSquare ? 'Скрыть квадрат' : 'Квадрат'}
-                </button>
-                <button onClick={startDemo} className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all">
-                  <Eye size={14} /> Сыграть a5
-                </button>
-              </>
+              <button onClick={handleShowSquare} className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all ${showSquare ? 'border-[rgba(92,64,51,0.25)] bg-[rgba(92,64,51,0.08)] text-[#5A4A3A]' : 'border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
+                <Eye size={14} /> {showSquare ? 'Скрыть квадрат' : 'Квадрат'}
+              </button>
             )}
             {exercise === 2 && !ex2Mode && !isComplete && !isFail && (
               <>
