@@ -912,12 +912,6 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
           </div>
         )}
 
-        {demoComment && (
-          <div className="px-4 py-2 bg-[#5A4A3A]/10 border border-[#5A4A3A]/20 rounded-lg text-sm text-[#5A4A3A] text-center max-w-sm">
-            {demoComment}
-          </div>
-        )}
-
         {/* Stalemate / fail banner */}
         {isStalemate && (
           <div className="w-full max-w-sm">

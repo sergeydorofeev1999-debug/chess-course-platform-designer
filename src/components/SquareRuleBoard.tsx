@@ -1455,12 +1455,6 @@ if (!skipAnimation) {
 
           <div className="text-center font-bold text-slate-700 text-lg">{turnText}</div>
 
-          {message && (
-            <div className={`px-4 py-2 rounded-lg text-sm text-center max-w-sm ${isComplete ? 'bg-green-50 border border-green-200 text-green-800' : isFail ? 'bg-red-50 border border-red-200 text-red-800' : 'bg-blue-50 border border-blue-200 text-blue-800'}`}>
-              {message}
-            </div>
-          )}
-
           {isComplete && exercise === 1 && (
             <div className="flex flex-col items-center gap-3">
               <div className="px-6 py-3 rounded-xl text-center font-bold text-white bg-green-500">
