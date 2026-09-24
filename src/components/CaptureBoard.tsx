@@ -605,6 +605,7 @@ function InlineChessBoard({
   const fenRef = useRef(fen);
   const forbiddenSquaresRef = useRef(forbiddenSquares);
   const clickRef = useRef<((square: string) => void) | null>(null);
+  const handledByPointerUpRef = useRef(false);
 
   useEffect(() => { fenRef.current = fen; }, [fen]);
   useEffect(() => { forbiddenSquaresRef.current = forbiddenSquares; }, [forbiddenSquares]);
@@ -819,8 +820,25 @@ function InlineChessBoard({
     }
     if (e.pointerId !== pointerIdRef.current) return;
     if (!justDraggedRef.current) {
-      // It was a click, not a drag — process it through the click handler
-      click(dragStateRef.current.square);
+      // It was a click, not a drag — use the square under the cursor because
+      // pointerCapture redirects the click to the captured element, not the target.
+      handledByPointerUpRef.current = true;
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const size = sqSizeRef.current;
+        const fi = Math.floor(x / size);
+        const ri = Math.floor(y / size);
+        if (fi >= 0 && fi < 8 && ri >= 0 && ri < 8) {
+          const clickedSquare = `${FILES[fi]}${RANKS[ri]}`;
+          clickRef.current?.(clickedSquare);
+        } else {
+          clickRef.current?.(dragStateRef.current.square);
+        }
+      } else {
+        clickRef.current?.(dragStateRef.current.square);
+      }
     } else {
       const rect = containerRef.current.getBoundingClientRect();
       const x = e.clientX - rect.left;
@@ -935,7 +953,13 @@ function InlineChessBoard({
                   backgroundColor: light ? 'var(--square-light)' : 'var(--square-dark)',
                 }}
                 onPointerDown={(e) => handlePointerDown(e, sq)}
-                onClick={() => click(sq)}
+                onClick={() => {
+                  if (handledByPointerUpRef.current) {
+                    handledByPointerUpRef.current = false;
+                    return;
+                  }
+                  click(sq);
+                }}
                 onDragStart={preventDrag}
                 onMouseEnter={() => setHoveredSquare(sq)}
                 onMouseLeave={() => setHoveredSquare(null)}
