@@ -1025,7 +1025,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
     <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
       {/* LEFT COLUMN */}
       <div className="w-full lg:w-[300px] flex-shrink-0 space-y-2">
-        <div className="hidden lg:grid grid-cols-5 gap-1 rounded p-1 border border-gray-200">
+        <div className="hidden lg:grid grid-cols-6 gap-1 rounded p-1 border border-[rgba(92,64,51,0.08)]">
           {[1, 2, 3, 4, 5, 6].map((num) => {
             const earnedStars = exerciseStars[num] || 0;
             const isCurrent = num === exercise;
@@ -1034,20 +1034,20 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
               <button
                 key={num}
                 onClick={() => switchExercise(num as 1)}
-                className={`flex items-center justify-center px-1 py-1 rounded transition ${
+                className={`relative flex items-center justify-center px-1 py-2 rounded-lg transition cursor-pointer hover:brightness-110 ${
                   isCurrent
-                    ? 'bg-blue-500 text-white'
+                    ? 'bg-[#2C241B] border-2 border-[#2C241B] text-white shadow-md'
                     : isDone
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-gray-200 text-gray-500'
-                } cursor-pointer hover:brightness-110`}
+                    ? 'bg-white border-2 border-[#C9A84C] text-[#2C241B]'
+                    : 'bg-white border-2 border-[#E8E0D5] text-[#8B7355] hover:border-[#C9A84C] hover:bg-[#F9F8F6]'
+                }`}
               >
-                <div className="flex gap-0.5">
-                  {[1, 2, 3].map(s => (
-                    <StarPng key={s} filled={earnedStars > 0 && s <= earnedStars} size={14} />
-                  ))}
-                </div>
-                <span className="ml-1 text-xs font-medium">{num}</span>
+                <span className="text-sm font-bold">{num}</span>
+                {isDone && (
+                  <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-[#C9A84C] rounded-full flex items-center justify-center">
+                    <StarPng filled={true} size={10} />
+                  </div>
+                )}
               </button>
             );
           })}
