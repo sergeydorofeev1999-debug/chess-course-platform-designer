@@ -688,6 +688,7 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
       const start = pointerStartRef.current;
       if (!start) return;
       if (e.pointerId !== start.pointerId) return;
+      if (turnRef.current !== 'w') return; // Block drag during black's turn
       if (!start.moved) {
         clickRef.current(start.square);
       } else {

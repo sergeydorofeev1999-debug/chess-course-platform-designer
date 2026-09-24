@@ -705,6 +705,7 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
   const handlePointerDown = useCallback((e: React.PointerEvent, square: string) => {
     if (promotionPending) return;
     if (winnerRef.current) return;
+    if (turnRef.current !== 'w') return; // Wait for opponent's turn
     if (turnRef.current === 'w' && hasNoMoves(squaresRef.current, 'w', enPassantRef.current)) {
       setWinner('Ничья');
       return;
@@ -745,6 +746,7 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
       const start = pointerStartRef.current;
       if (!start) return;
       if (e.pointerId !== start.pointerId) return;
+      if (turnRef.current !== 'w') return; // Block drag during black's turn
       if (!start.moved) {
         clickRef.current(start.square);
       } else {

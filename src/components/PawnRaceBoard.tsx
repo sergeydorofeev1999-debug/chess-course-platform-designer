@@ -727,6 +727,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
   const handlePointerDown = useCallback((e: React.PointerEvent, square: string) => {
     if (promotionPending) return;
     if (winnerRef.current) return; // BLOCK moves after game over
+    if (turnRef.current !== 'w') return; // Wait for opponent's turn
     // Check for draw BEFORE white's move
     if (turnRef.current === 'w' && hasNoMoves(squaresRef.current, 'w', enPassantRef.current)) {
       setWinner('Ничья');
@@ -769,6 +770,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
       const start = pointerStartRef.current;
       if (!start) return;
       if (e.pointerId !== start.pointerId) return;
+      if (turnRef.current !== 'w') return; // Block drag during black's turn
       if (!start.moved) {
         clickRef.current(start.square);
       } else {
