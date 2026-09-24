@@ -758,9 +758,7 @@ function InlineChessBoard({
     pointerStartRef.current = sq;
     justDraggedRef.current = false;
     pointerIdRef.current = e.pointerId;
-    // Select piece immediately like LessonClient
-    selectedSquareRef.current = sq;
-    setSelectedSquare(sq);
+    // Don't select piece here — let onClick handle selection (like UCBD)
     const rect = containerRef.current.getBoundingClientRect();
     const fi = FILES.indexOf(sq[0]);
     const ri = RANKS.indexOf(sq[1]);
@@ -782,7 +780,6 @@ function InlineChessBoard({
     };
     // Don't set dragState yet — wait for threshold
     dragStateRef.current = initState;
-    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
   };
 
   const handleGlobalMove = (e: PointerEvent) => {
