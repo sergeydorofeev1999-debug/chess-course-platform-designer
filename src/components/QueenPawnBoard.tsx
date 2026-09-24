@@ -595,6 +595,7 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
       setWhiteCaptured(prev => prev + 1);
     }
     setTurn('b');
+          turnRef.current = 'b';
     setSelectedSquare(null);
     setValidSquares([]);
     selectedSquareRef.current = null;
@@ -675,6 +676,7 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
           setSquares(result.squares);
           setEnPassant(result.enPassant);
           setTurn('b');
+          turnRef.current = 'b';
           setPlayerAnimatingMove(null);
           setSelectedSquare(null);
           setValidSquares([]);
@@ -795,6 +797,7 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
               setSquares(result.squares);
               setEnPassant(result.enPassant);
               setTurn('b');
+          turnRef.current = 'b';
               setSelectedSquare(null);
               setValidSquares([]);
               selectedSquareRef.current = null;

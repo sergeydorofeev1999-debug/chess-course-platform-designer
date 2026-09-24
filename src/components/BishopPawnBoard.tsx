@@ -661,6 +661,7 @@ export default function BishopPawnBoard({ onComplete, lessonId, lessonTitle }: {
           setSquares(result.squares);
           setEnPassant(result.enPassant);
           setTurn('b');
+          turnRef.current = 'b';
           setPlayerAnimatingMove(null);
           if (hasNoMoves(result.squares, 'b', result.enPassant)) {
             setWinner('Ничья');
@@ -775,6 +776,7 @@ export default function BishopPawnBoard({ onComplete, lessonId, lessonTitle }: {
               setSquares(result.squares);
               setEnPassant(result.enPassant);
               setTurn('b');
+          turnRef.current = 'b';
               if (hasNoMoves(result.squares, 'b', result.enPassant)) {
                 setWinner('Ничья');
               }

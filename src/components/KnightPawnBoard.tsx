@@ -644,6 +644,7 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
             }
           } else {
             setTurn('b');
+          turnRef.current = 'b';
             if (hasNoMoves(result.squares, 'b', result.enPassant)) {
               setWinner('Ничья');
             }
@@ -693,6 +694,7 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
       }
     } else {
       setTurn('b');
+          turnRef.current = 'b';
       if (hasNoMoves(sqs, 'b', enPassant)) {
         setWinner('Ничья');
       }
@@ -799,6 +801,7 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
               setSquares(result.squares);
               setEnPassant(result.enPassant);
               setTurn('b');
+          turnRef.current = 'b';
               if (hasNoMoves(result.squares, 'b', result.enPassant)) {
                 setWinner('Ничья');
               }

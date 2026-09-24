@@ -616,6 +616,7 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
           setSquares(result.squares);
           setEnPassant(result.enPassant);
           setTurn('b');
+          turnRef.current = 'b';
           setPlayerAnimatingMove(null);
           if (hasNoMoves(result.squares, 'b', result.enPassant)) {
             setWinner('Ничья');
@@ -726,6 +727,7 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
               setSquares(result.squares);
               setEnPassant(result.enPassant);
               setTurn('b');
+          turnRef.current = 'b';
               setPlayerAnimatingMove(null);
               if (hasNoMoves(result.squares, 'b', result.enPassant)) {
                 setWinner('Ничья');

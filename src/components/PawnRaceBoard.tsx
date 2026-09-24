@@ -695,6 +695,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
           setSquares(result.squares);
           setEnPassant(result.enPassant);
           setTurn('b');
+          turnRef.current = 'b';
           // Check if black has no moves after white's move
           if (hasNoMoves(result.squares, 'b', result.enPassant)) {
             setWinner('Ничья');
@@ -824,6 +825,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
                 setSquares(result.squares);
                 setEnPassant(result.enPassant);
                 setTurn('b');
+          turnRef.current = 'b';
                 setSelectedSquare(null);
                 setValidSquares([]);
                 selectedSquareRef.current = null;
@@ -878,6 +880,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
       }
     } else {
       setTurn('b');
+          turnRef.current = 'b';
       if (hasNoMoves(sqs, 'b', enPassant)) {
         setWinner('Ничья');
       }
