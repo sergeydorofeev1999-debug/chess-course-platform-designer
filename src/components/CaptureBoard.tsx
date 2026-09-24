@@ -1893,6 +1893,7 @@ export default function CaptureBoard({
     setGameOver(false);
     setFailed(false);
     setPromotionPending(null);
+    setLastMove(null);
     setMsg('');
   };
 
