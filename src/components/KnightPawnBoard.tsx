@@ -680,6 +680,21 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
     setSquares(sqs);
     setPromotionPending(null);
 
+    // Pawn reached rank 8 — immediate win
+    if (to[1] === '8') {
+      setWinner('Белые победили!');
+      if (difficultyRef.current) {
+        const d = difficultyRef.current;
+        setCompletedLevels(prev => {
+          const next = { ...prev, [d]: true };
+          localStorage.setItem(savedKey, JSON.stringify(next));
+          return next;
+        });
+        onComplete();
+      }
+      return;
+    }
+
     const win = checkGameOver(sqs, enPassant, 'b');
     if (win) {
       setWinner(win);
