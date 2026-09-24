@@ -919,7 +919,7 @@ function InlineChessBoard({
   return (
     <div className="flex flex-col items-center gap-2 select-none">
       <div
-        className="grid border-[5px] border-[#1a1612] rounded relative select-none board-fade-in"
+        className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none board-fade-in"
         style={{
           gridTemplateColumns: `repeat(8, ${sqSize}px)`,
           gridTemplateRows: `repeat(8, ${sqSize}px)`,
