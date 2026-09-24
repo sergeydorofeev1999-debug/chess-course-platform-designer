@@ -592,6 +592,7 @@ export default function BishopPawnBoard({ onComplete, lessonId, lessonTitle }: {
   // Click logic
   const click = useCallback((square: string) => {
     if (winnerRef.current) return;
+    if (turnRef.current !== 'w') return; // Wait for opponent's turn
     if (turnRef.current === 'w' && hasNoMoves(squaresRef.current, 'w', enPassantRef.current)) {
       setWinner('Ничья');
       return;

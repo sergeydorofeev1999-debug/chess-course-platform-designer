@@ -605,6 +605,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
   const click = useCallback((square: string) => {
     if (promotionPending) return;
     if (winnerRef.current) return; // BLOCK moves after game over
+    if (turnRef.current !== 'w') return; // Wait for opponent's turn
     // Check for draw BEFORE white's move
     if (turnRef.current === 'w' && hasNoMoves(squaresRef.current, 'w', enPassantRef.current)) {
       setWinner('Ничья');

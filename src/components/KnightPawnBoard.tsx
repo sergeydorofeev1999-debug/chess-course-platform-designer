@@ -577,6 +577,7 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
   const click = useCallback((square: string) => {
     if (promotionPending) return;
     if (winnerRef.current) return;
+    if (turnRef.current !== 'w') return; // Wait for opponent's turn
     if (turnRef.current === 'w' && hasNoMoves(squaresRef.current, 'w', enPassantRef.current)) {
       setWinner('Ничья');
       return;
