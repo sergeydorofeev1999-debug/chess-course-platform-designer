@@ -594,6 +594,23 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
     if (cap && cap.color === 'b') {
       setWhiteCaptured(prev => prev + 1);
     }
+
+    // Check win after promotion
+    const win = checkGameOver(promotedSquares, result.enPassant, 'b', true);
+    if (win) {
+      setWinner(win);
+      if (win === 'Белые победили!' && difficultyRef.current) {
+        const d = difficultyRef.current;
+        setCompletedLevels(prev => {
+          const next = { ...prev, [d]: true };
+          localStorage.setItem(savedKey, JSON.stringify(next));
+          return next;
+        });
+        onComplete();
+      }
+      return;
+    }
+
     setTurn('b');
           turnRef.current = 'b';
     setSelectedSquare(null);
