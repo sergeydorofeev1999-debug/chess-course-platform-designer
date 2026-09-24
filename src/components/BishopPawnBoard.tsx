@@ -3,6 +3,13 @@
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { RotateCcw, ChevronRight, Star, Trophy, Eye, Undo2 } from 'lucide-react';
 
+const PROMOTION_PIECES: { code: string; name: string }[] = [
+  { code: 'q', name: 'Ферзь' },
+  { code: 'r', name: 'Ладья' },
+  { code: 'b', name: 'Слон' },
+  { code: 'n', name: 'Конь' },
+];
+
 const FILES = ['a','b','c','d','e','f','g','h'];
 const RANKS = ['8','7','6','5','4','3','2','1'];
 
@@ -439,6 +446,7 @@ export default function BishopPawnBoard({ onComplete, lessonId, lessonTitle }: {
   const [blackCaptured, setBlackCaptured] = useState(0);
   const [history, setHistory] = useState<{ squares: Record<string, Piece>; whiteCaptured: number; blackCaptured: number; enPassant: string | null; turn: 'w' | 'b' }[]>([]);
   const [sqSize, setSqSize] = useState(44);
+  const [promotionPending, setPromotionPending] = useState<{ from: string; to: string } | null>(null);
 
   const [dragPiece, setDragPiece] = useState<{ square: string; type: string; color: string } | null>(null);
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
@@ -591,6 +599,7 @@ export default function BishopPawnBoard({ onComplete, lessonId, lessonTitle }: {
 
   // Click logic
   const click = useCallback((square: string) => {
+    if (promotionPending) return;
     if (winnerRef.current) return;
     if (turnRef.current !== 'w') return; // Wait for opponent's turn
     if (turnRef.current === 'w' && hasNoMoves(squaresRef.current, 'w', enPassantRef.current)) {
@@ -617,6 +626,16 @@ export default function BishopPawnBoard({ onComplete, lessonId, lessonTitle }: {
       }
 
       if (validSquaresRef.current.includes(square)) {
+        const movedPiece = sqs[sel];
+        // Promotion: pawn reached rank 8
+        if (movedPiece?.type === 'p' && square[1] === '8') {
+          setPromotionPending({ from: sel, to: square });
+          setSelectedSquare(null);
+          setValidSquares([]);
+          selectedSquareRef.current = null;
+          setLastMove({ from: sel, to: square });
+          return;
+        }
         const result = makeMove(sqs, enPassantRef.current, sel, square);
         if (result.captured && result.captured.color === 'b') {
           setWhiteCaptured(prev => prev + 1);
@@ -644,7 +663,6 @@ export default function BishopPawnBoard({ onComplete, lessonId, lessonTitle }: {
         }
 
         // Ghost animation for player move
-        const movedPiece = sqs[sel];
         setPlayerAnimatingMove({
           from: sel,
           to: square,
@@ -688,10 +706,55 @@ export default function BishopPawnBoard({ onComplete, lessonId, lessonTitle }: {
     }
   }, [checkGameOver, onComplete, savedKey]);
 
+  const handlePromotion = useCallback((pieceCode: string) => {
+    if (!promotionPending) return;
+    const { from, to } = promotionPending;
+    const sqs = { ...squares };
+    delete sqs[from];
+    sqs[to] = { type: pieceCode, color: 'w' };
+    setSquares(sqs);
+    setPromotionPending(null);
+
+    if (to[1] === '8') {
+      setWinner('Белые победили!');
+      if (difficultyRef.current) {
+        const d = difficultyRef.current;
+        setCompletedLevels(prev => {
+          const next = { ...prev, [d]: true };
+          localStorage.setItem(savedKey, JSON.stringify(next));
+          return next;
+        });
+        onComplete();
+      }
+      return;
+    }
+
+    const win = checkGameOver(sqs, enPassant, 'b');
+    if (win) {
+      setWinner(win);
+      if (win === 'Белые победили!' && difficultyRef.current) {
+        const d = difficultyRef.current;
+        setCompletedLevels(prev => {
+          const next = { ...prev, [d]: true };
+          localStorage.setItem(savedKey, JSON.stringify(next));
+          return next;
+        });
+        onComplete();
+      }
+    } else {
+      setTurn('b');
+      turnRef.current = 'b';
+      if (hasNoMoves(sqs, 'b', enPassant)) {
+        setWinner('Ничья');
+      }
+    }
+  }, [promotionPending, squares, enPassant, checkGameOver, onComplete, savedKey]);
+
   useEffect(() => { clickRef.current = click; }, [click]);
 
   // Drag and drop
   const handlePointerDown = useCallback((e: React.PointerEvent, square: string) => {
+    if (promotionPending) return;
     if (winnerRef.current) return;
     if (turnRef.current !== 'w') return; // Wait for opponent's turn
     if (turnRef.current === 'w' && hasNoMoves(squaresRef.current, 'w', enPassantRef.current)) {
@@ -708,7 +771,7 @@ export default function BishopPawnBoard({ onComplete, lessonId, lessonTitle }: {
       setSelectedSquare(square);
       setValidSquares(getPieceMoves(square, sqs, 'w', enPassantRef.current));
     }
-  }, []);
+  }, [promotionPending]);
 
   useEffect(() => {
     const handleGlobalMove = (e: PointerEvent) => {
@@ -744,6 +807,18 @@ export default function BishopPawnBoard({ onComplete, lessonId, lessonTitle }: {
         if (targetSquare && targetSquare !== start.square) {
           const valid = getPieceMoves(start.square, squaresRef.current, 'w', enPassantRef.current);
           if (valid.includes(targetSquare)) {
+            const movingPiece = squaresRef.current[start.square];
+            // Promotion via drag: pawn reached rank 8
+            if (movingPiece?.type === 'p' && targetSquare[1] === '8') {
+              setPromotionPending({ from: start.square, to: targetSquare });
+              setLastMove({ from: start.square, to: targetSquare });
+              setSelectedSquare(null);
+              setValidSquares([]);
+              selectedSquareRef.current = null;
+              setDragPiece(null);
+              pointerStartRef.current = null;
+              return;
+            }
             const result = makeMove(squaresRef.current, enPassantRef.current, start.square, targetSquare);
             if (result.captured && result.captured.color === 'b') {
               setWhiteCaptured(prev => prev + 1);
@@ -1024,6 +1099,63 @@ export default function BishopPawnBoard({ onComplete, lessonId, lessonTitle }: {
               sqSize={sqSize}
               opponent={true}
             />
+          )}
+          {/* Promotion picker */}
+          {promotionPending && (
+            <div className="absolute z-50 pointer-events-auto" style={{
+              left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
+              top: 0,
+              width: sqSize,
+              height: 4 * sqSize,
+              backgroundColor: '#2C241B',
+              borderRadius: '0px',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+            }}>
+              {PROMOTION_PIECES.map(({ code, name }) => (
+                <button
+                  key={code}
+                  onClick={() => handlePromotion(code)}
+                  className="w-full aspect-square flex items-center justify-center transition-all duration-150"
+                  style={{
+                    backgroundColor: 'transparent',
+                    border: '2px solid transparent',
+                    borderRadius: '0px',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
+                    e.currentTarget.style.borderColor = '#C9A84C';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                    e.currentTarget.style.borderColor = 'transparent';
+                  }}
+                  onMouseDown={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.25)';
+                  }}
+                  onMouseUp={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
+                  }}
+                  title={name}
+                >
+                  <div
+                    style={{
+                      width: Math.round(sqSize * 0.78),
+                      height: Math.round(sqSize * 0.78),
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <PieceImg type={code} color="w" />
+                  </div>
+                </button>
+              ))}
+            </div>
           )}
         </div>
       </div>
