@@ -484,7 +484,7 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
   }, [reset]);
 
   const checkGameOver = useCallback((sqs: Record<string, Piece>, ep: string | null, currentTurn: 'w' | 'b'): string | null => {
-    if (hasPawnOnBackRank(sqs, 'w') || hasPromotedPiece(sqs, 'w') || !hasPieces(sqs, 'b')) return 'Белые победили!';
+    if (hasPawnOnBackRank(sqs, 'w') || !hasPieces(sqs, 'b')) return 'Белые победили!';
     if (hasPawnOnBackRank(sqs, 'b') || !hasPieces(sqs, 'w')) return 'Чёрные победили!';
     if (hasNoMoves(sqs, currentTurn, ep)) return 'Ничья';
     return null;
