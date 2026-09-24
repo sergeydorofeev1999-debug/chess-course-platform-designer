@@ -1182,7 +1182,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         </div>
 
         {/* Board */}
-        <div className="flex justify-center w-full overflow-hidden">
+        <div className="flex flex-col items-center w-full">
           <div className="relative" style={{ width: 8 * sqSize, height: 8 * sqSize }}>
             <UniversalChessBoardDesigner
               fen={game?.fen() || ''}
