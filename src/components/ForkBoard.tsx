@@ -1182,8 +1182,8 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
         </div>
 
         {/* Board */}
-        <div className="flex justify-center w-full relative overflow-hidden" style={{ minHeight: 8 * sqSize }}>
-          <div className="relative" style={{ width: 8 * sqSize, height: 8 * sqSize }}>
+        <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
+          <div className="relative">
             <UniversalChessBoardDesigner
               fen={game?.fen() || ''}
               autoValidMoves={true}
