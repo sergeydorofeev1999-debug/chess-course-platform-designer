@@ -1176,7 +1176,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
 
 
         {/* Mobile exercise pills */}
-        <div className="flex lg:hidden flex-wrap justify-center gap-1 w-full">
+        <div className="flex lg:hidden gap-[1px] w-full">
           {[1,2,3,4,5,6].map((num) => {
             const earned = exerciseStars[num] || 0;
             const isCurrent = num === exercise;
@@ -1187,7 +1187,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
                 key={num}
                 onClick={() => { if (!isCurrent) switchExercise(num as 1); }}
                 disabled={isCurrent}
-                className={`flex flex-col items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 w-12 ${
+                className={`flex-1 flex flex-col items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 min-w-[36px] ${
                   isCurrent ? 'bg-[#2C241B] shadow-md'
                   : isDone ? 'bg-[#C9A84C]'
                   : 'bg-[#F0EBE4] border border-[#D4C5B5]'
