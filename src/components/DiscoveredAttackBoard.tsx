@@ -1105,7 +1105,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
 
         {/* Board */}
         <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
-          <div className="relative" style={{ width: 8 * sqSize, height: 8 * sqSize }}>
+          <div className="relative" style={{ width: 8 * sqSize + 6, height: 8 * sqSize + 6 }}>
             <UniversalChessBoardDesigner
             fen={game?.fen() || ''}
             selectedSquare={selectedSquare}
