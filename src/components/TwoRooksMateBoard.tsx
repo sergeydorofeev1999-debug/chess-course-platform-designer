@@ -383,6 +383,20 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
     });
   }, [storageKey]);
 
+  // Auto-advance to next exercise after completion
+  useEffect(() => {
+    if (isComplete && !isStalemate) {
+      const timer = setTimeout(() => {
+        if (currentExercise < 8) {
+          switchExercise((currentExercise + 1) as ExerciseId);
+        } else {
+          onComplete();
+        }
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isComplete, isStalemate, currentExercise, switchExercise, onComplete]);
+
   // Demo auto-play
   useEffect(() => {
     if (!demoMode || !currentExercise) return;

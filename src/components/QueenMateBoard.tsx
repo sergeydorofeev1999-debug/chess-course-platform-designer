@@ -453,6 +453,20 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
     });
   }, [storageKey]);
 
+  // Auto-advance to next exercise after completion
+  useEffect(() => {
+    if (isComplete && !isStalemate) {
+      const timer = setTimeout(() => {
+        if (currentExercise < 8) {
+          switchExercise((currentExercise + 1) as ExerciseId);
+        } else {
+          onComplete();
+        }
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isComplete, isStalemate, currentExercise, switchExercise, onComplete]);
+
   // Demo auto-play
   useEffect(() => {
     if (!demoMode || !currentExercise) return;
@@ -508,7 +522,7 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
       setMessage(`Мат чёрному королю! ${earned} ★`);
       setIsComplete(true);
       saveStars(currentExercise, earned);
-      if (currentExercise === 8) onComplete();
+      
       return;
     }
 
@@ -570,7 +584,7 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
             setMessage(`Мат чёрному королю! ${earned} ★`);
             setIsComplete(true);
             saveStars(currentExercise, earned);
-            if (currentExercise === 8) onComplete();
+            
           } else if (ex.matIn1) {
             setIsStalemate(true);
             setMessage('Провалено');
@@ -582,7 +596,7 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
           setMessage(`Мат чёрному королю! ${earned} ★`);
           setIsComplete(true);
           saveStars(currentExercise, earned);
-          if (currentExercise === 8) onComplete();
+          
         } else if (g.isStalemate()) {
           setIsStalemate(true);
           setMessage('Пат. Провалено.');
