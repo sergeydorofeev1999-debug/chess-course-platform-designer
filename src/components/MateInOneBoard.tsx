@@ -212,6 +212,16 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
     setOpponentAnimatingMove(null);
   }, []);
 
+  // Auto-advance to next exercise after completion (like MateInTwoBoard)
+  useEffect(() => {
+    if (isComplete && exercise < 8) {
+      const timer = setTimeout(() => {
+        switchExercise((exercise + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isComplete, exercise, switchExercise]);
+
   // ──── MATE IN 1 LOGIC ────
   const processMove = useCallback((from: string, to: string, promotionPiece?: string, skipAnimation = false) => {
     if (!game) return;
