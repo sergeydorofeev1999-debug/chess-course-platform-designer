@@ -1127,7 +1127,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
               const phaseArrows = arrows.filter(a => a.phase === whiteMoves);
               if (phaseArrows.length === 0) return null;
               return (
-                <svg className="absolute inset-0 pointer-events-none z-[35]" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
+                <svg className="absolute pointer-events-none z-[35]" style={{ top: 3, left: 3, width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
                   {phaseArrows.map((arrow, i) => {
                     const fromF = FILES.indexOf(arrow.from[0]);
                     const fromR = RANKS.indexOf(arrow.from[1]);
