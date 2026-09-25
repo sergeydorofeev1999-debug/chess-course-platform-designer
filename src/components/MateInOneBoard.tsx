@@ -459,6 +459,7 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
             playerAnimatingMove={playerAnimatingMove || null}
             opponentAnimatingMove={opponentAnimatingMove || null}
             disableAutoGhost={true}
+            sqSize={sqSize}
             pieceTheme="cburnett"
           />
           {/* Hint arrows SVG overlay */}
