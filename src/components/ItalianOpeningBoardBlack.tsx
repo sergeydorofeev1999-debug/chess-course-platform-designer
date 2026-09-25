@@ -2694,37 +2694,15 @@ setLastMove({ from: 'd1', to: 'f3' });
     <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
       {/* LEFT COLUMN */}
       <div className="w-full lg:w-[300px] flex-shrink-0 space-y-2">
-        <div className="hidden lg:grid grid-cols-2 gap-1 rounded p-1 border border-gray-200">
-          {[1, 2, 3, 4, 5, 6].map((num) => {
-            const stars = exerciseStars[num] || 0;
-            const isCurrent = num === exercise;
-            const isDone = stars > 0;
-            return (
-              <button
-                key={num}
-                onClick={() => switchExercise(num as 1 | 2 | 3 | 4 | 5 | 6)}
-                className={`flex items-center justify-center px-1 py-1 rounded transition ${
-                  isCurrent
-                    ? 'bg-blue-500 text-white'
-                    : isDone
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-gray-200 text-gray-500'
-                } cursor-pointer hover:brightness-110`}
-              >
-                <div className="flex gap-0.5">
-                  {[1, 2, 3].map(s => (
-                    <StarPng key={s} filled={stars > 0 && s <= stars} size={14} />
-                  ))}
-                </div>
-                <span className="ml-1 text-xs font-medium">{num}</span>
-              </button>
-            );
-          })}
-        </div>
-
+        <button
+          onClick={handleHint}
+          className={`hidden lg:flex items-center gap-1 px-3 py-1.5 text-xs border rounded transition w-full justify-center ${hintVisible ? 'bg-[#C9A84C] text-white border-[#C9A84C]' : 'text-[var(--text-secondary)] border-[rgba(92,64,51,0.12)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}
+        >
+          <Eye size={14} /> Подсказка
+        </button>
         <button
           onClick={reset}
-          className="hidden lg:flex items-center gap-1 px-3 py-1.5 text-xs text-gray-600 bg-gray-100 rounded hover:bg-gray-200 transition w-full justify-center"
+          className="hidden lg:flex items-center gap-1 px-3 py-1.5 text-xs text-[var(--text-secondary)] border border-[rgba(92,64,51,0.12)] rounded hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] transition w-full justify-center"
         >
           <RotateCcw size={14} /> Заново
         </button>
