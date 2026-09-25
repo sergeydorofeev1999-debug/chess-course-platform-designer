@@ -302,8 +302,9 @@ setLastMove({ from: 'e2', to: 'e4' });
 
     const handleHint = useCallback(() => {
     if (isComplete || isFail) return;
+    if (game?.turn() !== 'b') return;
     setHintVisible(prev => !prev);
-  }, [isComplete, isFail]);
+  }, [isComplete, isFail, game]);
 
   const reset = useCallback(() => {
     const g = new Chess(START_FEN);
