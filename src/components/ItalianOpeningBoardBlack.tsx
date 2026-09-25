@@ -2863,9 +2863,9 @@ setLastMove({ from: 'd1', to: 'f3' });
                   <svg className="absolute pointer-events-none z-[35]" style={{ top: 3, left: 3, width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
                     {phaseArrows.map((arrow, i) => {
                       const fromF = FILES.indexOf(arrow.from[0]);
-                      const fromR = RANKS.indexOf(arrow.from[1]);
+                      const fromR = 7 - RANKS.indexOf(arrow.from[1]);
                       const toF = FILES.indexOf(arrow.to[0]);
-                      const toR = RANKS.indexOf(arrow.to[1]);
+                      const toR = 7 - RANKS.indexOf(arrow.to[1]);
                       const x1 = (fromF + 0.5) * sqSize;
                       const y1 = (fromR + 0.5) * sqSize;
                       const x2 = (toF + 0.5) * sqSize;
