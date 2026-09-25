@@ -568,7 +568,8 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
 
         {/* Board */}
         <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
-          <UniversalChessBoardDesigner
+          <div className="relative" style={{ width: 8 * sqSize + 6, height: 8 * sqSize + 6 }}>
+            <UniversalChessBoardDesigner
             fen={game.fen()}
             isReversed={exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7}
             selectedSquare={selectedSquare}
@@ -589,7 +590,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
               const arrows = stage === 'after_computer' ? (SECOND_HINTS[exercise] || []) : (HINTS[exercise] || []);
               if (arrows.length === 0) return null;
               return (
-                <svg className="absolute inset-0 pointer-events-none z-[35]" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
+                <svg className="absolute pointer-events-none z-[35]" style={{ top: 3, left: 3, width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
                   {arrows.map((arrow, i) => {
                     const isReversed = exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7;
                     const fromF = (isReversed ? REVERSED_FILES : FILES).indexOf(arrow.from[0]);
@@ -633,6 +634,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
               );
             })()
           )}
+          </div>
         </div>
 
         {/* Mobile exercise pills */}

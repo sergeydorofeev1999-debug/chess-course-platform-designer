@@ -18,7 +18,7 @@ const HintArrowsOverlay = memo(function HintArrowsOverlay({
   arrows: { from: string; to: string }[];
 }) {
   return (
-    <svg className="absolute inset-0 pointer-events-none z-[35]" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
+    <svg className="absolute pointer-events-none z-[35]" style={{ top: 3, left: 3, width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
       {arrows.map((arrow, i) => {
         const fromF = FILES.indexOf(arrow.from[0]);
         const fromR = RANKS.indexOf(arrow.from[1]);
@@ -1183,7 +1183,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
 
         {/* Board */}
         <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
-          <div className="relative">
+          <div className="relative" style={{ width: 8 * sqSize + 6, height: 8 * sqSize + 6 }}>
             <UniversalChessBoardDesigner
               fen={game?.fen() || ''}
               autoValidMoves={true}

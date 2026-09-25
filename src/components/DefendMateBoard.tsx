@@ -446,7 +446,8 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
         )}
         {/* Board */}
         <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
-          <UniversalChessBoardDesigner
+          <div className="relative" style={{ width: 8 * sqSize + 6, height: 8 * sqSize + 6 }}>
+            <UniversalChessBoardDesigner
             fen={game.fen()}
             isReversed={exercise === 2 || exercise === 6 || exercise === 8}
             selectedSquare={selectedSquare}
@@ -514,6 +515,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
               );
             })()
           )}
+          </div>
         </div>
         {/* Mobile exercise pills */}
         <div className="flex lg:hidden gap-[1px] w-full">
