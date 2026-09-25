@@ -33,6 +33,60 @@ const HINTS: Record<number, { from: string; to: string; phase: number }[]> = {
     { from: 'b1', to: 'c3', phase: 5 },
     { from: 'e1', to: 'g1', phase: 6 },
   ],
+  3: [
+    { from: 'e2', to: 'e4', phase: 0 },
+    { from: 'g1', to: 'f3', phase: 1 },
+    { from: 'f1', to: 'c4', phase: 2 },
+    { from: 'd2', to: 'd3', phase: 3 },
+    { from: 'b1', to: 'c3', phase: 4 },
+    { from: 'c1', to: 'g5', phase: 5 },
+    { from: 'c3', to: 'd5', phase: 6 },
+    { from: 'd5', to: 'f6', phase: 7 },
+    { from: 'g5', to: 'h6', phase: 8 },
+    { from: 'h2', to: 'h3', phase: 9 },
+    { from: 'g2', to: 'f3', phase: 10 },
+    { from: 'h1', to: 'g1', phase: 11 },
+    { from: 'h6', to: 'g7', phase: 12 },
+    { from: 'g7', to: 'f6', phase: 13 },
+    { from: 'f6', to: 'd8', phase: 14 },
+  ],
+  4: [
+    { from: 'e2', to: 'e4', phase: 0 },
+    { from: 'g1', to: 'f3', phase: 1 },
+    { from: 'f1', to: 'c4', phase: 2 },
+    { from: 'd2', to: 'd3', phase: 3 },
+    { from: 'b1', to: 'c3', phase: 4 },
+    { from: 'c1', to: 'g5', phase: 5 },
+    { from: 'c3', to: 'd5', phase: 6 },
+    { from: 'd5', to: 'f6', phase: 7 },
+    { from: 'g5', to: 'h6', phase: 8 },
+    { from: 'h2', to: 'h3', phase: 9 },
+    { from: 'g2', to: 'f3', phase: 10 },
+    { from: 'h1', to: 'g1', phase: 11 },
+    { from: 'h6', to: 'g7', phase: 12 },
+    { from: 'g7', to: 'f6', phase: 13 },
+    { from: 'f6', to: 'd8', phase: 14 },
+  ],
+  5: [
+    { from: 'e2', to: 'e4', phase: 0 },
+    { from: 'g1', to: 'f3', phase: 1 },
+    { from: 'f1', to: 'c4', phase: 2 },
+    { from: 'd2', to: 'd3', phase: 3 },
+    { from: 'b1', to: 'c3', phase: 4 },
+    { from: 'h2', to: 'h3', phase: 5 },
+    { from: 'g2', to: 'g4', phase: 6 },
+    { from: 'g4', to: 'g5', phase: 7 },
+    { from: 'c4', to: 'g5', phase: 8 },
+    { from: 'd1', to: 'd2', phase: 9 },
+    { from: 'e1', to: 'c1', phase: 10 },
+    { from: 'c1', to: 'f6', phase: 11 },
+    { from: 'd2', to: 'h6', phase: 12 },
+    { from: 'a1', to: 'd1', phase: 13 },
+    { from: 'd1', to: 'g1', phase: 14 },
+    { from: 'h1', to: 'g1', phase: 15 },
+    { from: 'g1', to: 'g4', phase: 16 },
+    { from: 'h3', to: 'g4', phase: 17 },
+  ],
 };
 
 // Find a black capture that leaves the black piece safe (no white recapture)
@@ -2515,9 +2569,57 @@ const handleSquareClick = useCallback((square: string) => {
                exercise === 1 && whiteMoves === 5 ? 'Сыграйте Nb1-c3 — развейте второго коня.' :
                exercise === 1 && whiteMoves === 6 ? 'Сделайте рокировку — уберите короля в безопасность.' :
                exercise === 2 ? 'Сыграйте итальянскую партию: e4, затем Nf3, затем Bc4.' :
-               exercise === 3 ? 'Дырокол — разменяйте коня на f6, разрушьте рокировку и заберите ферзя!' :
-               exercise === 4 ? 'Самостоятельный дырокол — повторите все ходы!' :
-               exercise === 5 ? 'Пешечный штурм — захватите центр, развейтесь и атакуйте короля!' :
+               exercise === 3 && whiteMoves === 0 ? 'Сыграйте e2-e4 — захватите центр пешкой.' :
+               exercise === 3 && whiteMoves === 1 ? 'Конь выходит на f3 — защищает пешку e4.' :
+               exercise === 3 && whiteMoves === 2 ? 'Сыграйте Bf1-c4 — классическая итальянская партия.' :
+               exercise === 3 && whiteMoves === 3 ? 'Сыграйте d2-d3 — тихая итальянская.' :
+               exercise === 3 && whiteMoves === 4 ? 'Сыграйте Nb1-c3 — развейте второго коня.' :
+               exercise === 3 && whiteMoves === 5 ? 'Сыграйте Bc1-g5 — свяжите коня f6.' :
+               exercise === 3 && whiteMoves === 6 ? 'Конь d5 — форк на коня и пешку!' :
+               exercise === 3 && whiteMoves === 7 ? 'Конь забирает на f6 — размен!' :
+               exercise === 3 && whiteMoves === 8 ? 'Слон h6 — атакуем ладью!' :
+               exercise === 3 && whiteMoves === 9 ? 'h3 — не даём слону чёрных выйти.' :
+               exercise === 3 && whiteMoves === 10 ? 'gxf3 — открываем линию f!' :
+               exercise === 3 && whiteMoves === 11 ? 'Ладья g1 — защищаем пешку.' :
+               exercise === 3 && whiteMoves === 12 ? 'Слон g7+ — шах!' :
+               exercise === 3 && whiteMoves === 13 ? 'Bxf6+ — шах с разрушением рокировки!' :
+               exercise === 3 && whiteMoves === 14 ? 'Слон забирает ферзя на d8! Дырокол выполнен!' :
+               exercise === 3 ? 'Дырокол выполнен!' :
+               exercise === 4 && whiteMoves === 0 ? 'Сыграйте e2-e4 — захватите центр пешкой.' :
+               exercise === 4 && whiteMoves === 1 ? 'Конь выходит на f3 — защищает пешку e4.' :
+               exercise === 4 && whiteMoves === 2 ? 'Сыграйте Bf1-c4 — классическая итальянская партия.' :
+               exercise === 4 && whiteMoves === 3 ? 'Сыграйте d2-d3 — тихая итальянская.' :
+               exercise === 4 && whiteMoves === 4 ? 'Сыграйте Nb1-c3 — развейте второго коня.' :
+               exercise === 4 && whiteMoves === 5 ? 'Сыграйте Bc1-g5 — свяжите коня f6.' :
+               exercise === 4 && whiteMoves === 6 ? 'Конь d5 — форк на коня и пешку!' :
+               exercise === 4 && whiteMoves === 7 ? 'Конь забирает на f6 — размен!' :
+               exercise === 4 && whiteMoves === 8 ? 'Слон h6 — атакуем ладью!' :
+               exercise === 4 && whiteMoves === 9 ? 'h3 — не даём слону чёрных выйти.' :
+               exercise === 4 && whiteMoves === 10 ? 'gxf3 — открываем линию f!' :
+               exercise === 4 && whiteMoves === 11 ? 'Ладья g1 — защищаем пешку.' :
+               exercise === 4 && whiteMoves === 12 ? 'Слон g7+ — шах!' :
+               exercise === 4 && whiteMoves === 13 ? 'Bxf6+ — шах с разрушением рокировки!' :
+               exercise === 4 && whiteMoves === 14 ? 'Слон забирает ферзя на d8! Дырокол выполнен!' :
+               exercise === 4 ? 'Дырокол выполнен!' :
+               exercise === 5 && whiteMoves === 0 ? 'Сыграйте e2-e4 — захватите центр пешкой.' :
+               exercise === 5 && whiteMoves === 1 ? 'Конь выходит на f3 — защищает пешку e4.' :
+               exercise === 5 && whiteMoves === 2 ? 'Сыграйте Bf1-c4 — классическая итальянская.' :
+               exercise === 5 && whiteMoves === 3 ? 'Сыграйте d2-d3 — тихая итальянская.' :
+               exercise === 5 && whiteMoves === 4 ? 'Сыграйте Nb1-c3 — развейте второго коня.' :
+               exercise === 5 && whiteMoves === 5 ? 'h3 — не даём слону чёрных выйти на g4.' :
+               exercise === 5 && whiteMoves === 6 ? 'g4 — начинаем пешечный штурм!' :
+               exercise === 5 && whiteMoves === 7 ? 'g5 — продолжаем штурм!' :
+               exercise === 5 && whiteMoves === 8 ? 'Bxg5 — размен слона на пешку.' :
+               exercise === 5 && whiteMoves === 9 ? 'Qd2 — ферзь готовится к атаке.' :
+               exercise === 5 && whiteMoves === 10 ? 'O-O-O — длинная рокировка!' :
+               exercise === 5 && whiteMoves === 11 ? 'Bxf6 — разрушаем защиту короля!' :
+               exercise === 5 && whiteMoves === 12 ? 'Qh6 — ферзь атакует!' :
+               exercise === 5 && whiteMoves === 13 ? 'Ладья d1 — удваиваем ладьи.' :
+               exercise === 5 && whiteMoves === 14 ? 'Ладья g1 — атака на королевском фланге!' :
+               exercise === 5 && whiteMoves === 15 ? 'Rxg1 — забираем ладью.' :
+               exercise === 5 && whiteMoves === 16 ? 'Rxg4 — забираем пешку!' :
+               exercise === 5 && whiteMoves === 17 ? 'hxg4 — пешечный штурм завершён!' :
+               exercise === 5 ? 'Пешечный штурм завершён!' :
                exercise === 6 ? 'Пешечный штурм — повторите атаку на королевском фланге!' : ''}
             </p>
           </div>
@@ -2576,9 +2678,57 @@ const handleSquareClick = useCallback((square: string) => {
                exercise === 1 && whiteMoves === 5 ? 'Сыграйте Nb1-c3 — развейте второго коня.' :
                exercise === 1 && whiteMoves === 6 ? 'Сделайте рокировку — уберите короля в безопасность.' :
                exercise === 2 ? 'Сыграйте итальянскую партию: e4, затем Nf3, затем Bc4.' :
-               exercise === 3 ? 'Дырокол — разменяйте коня на f6, разрушьте рокировку и заберите ферзя!' :
-               exercise === 4 ? 'Самостоятельный дырокол — повторите все ходы!' :
-               exercise === 5 ? 'Пешечный штурм — захватите центр, развейтесь и атакуйте короля!' :
+               exercise === 3 && whiteMoves === 0 ? 'Сыграйте e2-e4 — захватите центр пешкой.' :
+               exercise === 3 && whiteMoves === 1 ? 'Конь выходит на f3 — защищает пешку e4.' :
+               exercise === 3 && whiteMoves === 2 ? 'Сыграйте Bf1-c4 — классическая итальянская партия.' :
+               exercise === 3 && whiteMoves === 3 ? 'Сыграйте d2-d3 — тихая итальянская.' :
+               exercise === 3 && whiteMoves === 4 ? 'Сыграйте Nb1-c3 — развейте второго коня.' :
+               exercise === 3 && whiteMoves === 5 ? 'Сыграйте Bc1-g5 — свяжите коня f6.' :
+               exercise === 3 && whiteMoves === 6 ? 'Конь d5 — форк на коня и пешку!' :
+               exercise === 3 && whiteMoves === 7 ? 'Конь забирает на f6 — размен!' :
+               exercise === 3 && whiteMoves === 8 ? 'Слон h6 — атакуем ладью!' :
+               exercise === 3 && whiteMoves === 9 ? 'h3 — не даём слону чёрных выйти.' :
+               exercise === 3 && whiteMoves === 10 ? 'gxf3 — открываем линию f!' :
+               exercise === 3 && whiteMoves === 11 ? 'Ладья g1 — защищаем пешку.' :
+               exercise === 3 && whiteMoves === 12 ? 'Слон g7+ — шах!' :
+               exercise === 3 && whiteMoves === 13 ? 'Bxf6+ — шах с разрушением рокировки!' :
+               exercise === 3 && whiteMoves === 14 ? 'Слон забирает ферзя на d8! Дырокол выполнен!' :
+               exercise === 3 ? 'Дырокол выполнен!' :
+               exercise === 4 && whiteMoves === 0 ? 'Сыграйте e2-e4 — захватите центр пешкой.' :
+               exercise === 4 && whiteMoves === 1 ? 'Конь выходит на f3 — защищает пешку e4.' :
+               exercise === 4 && whiteMoves === 2 ? 'Сыграйте Bf1-c4 — классическая итальянская партия.' :
+               exercise === 4 && whiteMoves === 3 ? 'Сыграйте d2-d3 — тихая итальянская.' :
+               exercise === 4 && whiteMoves === 4 ? 'Сыграйте Nb1-c3 — развейте второго коня.' :
+               exercise === 4 && whiteMoves === 5 ? 'Сыграйте Bc1-g5 — свяжите коня f6.' :
+               exercise === 4 && whiteMoves === 6 ? 'Конь d5 — форк на коня и пешку!' :
+               exercise === 4 && whiteMoves === 7 ? 'Конь забирает на f6 — размен!' :
+               exercise === 4 && whiteMoves === 8 ? 'Слон h6 — атакуем ладью!' :
+               exercise === 4 && whiteMoves === 9 ? 'h3 — не даём слону чёрных выйти.' :
+               exercise === 4 && whiteMoves === 10 ? 'gxf3 — открываем линию f!' :
+               exercise === 4 && whiteMoves === 11 ? 'Ладья g1 — защищаем пешку.' :
+               exercise === 4 && whiteMoves === 12 ? 'Слон g7+ — шах!' :
+               exercise === 4 && whiteMoves === 13 ? 'Bxf6+ — шах с разрушением рокировки!' :
+               exercise === 4 && whiteMoves === 14 ? 'Слон забирает ферзя на d8! Дырокол выполнен!' :
+               exercise === 4 ? 'Дырокол выполнен!' :
+               exercise === 5 && whiteMoves === 0 ? 'Сыграйте e2-e4 — захватите центр пешкой.' :
+               exercise === 5 && whiteMoves === 1 ? 'Конь выходит на f3 — защищает пешку e4.' :
+               exercise === 5 && whiteMoves === 2 ? 'Сыграйте Bf1-c4 — классическая итальянская.' :
+               exercise === 5 && whiteMoves === 3 ? 'Сыграйте d2-d3 — тихая итальянская.' :
+               exercise === 5 && whiteMoves === 4 ? 'Сыграйте Nb1-c3 — развейте второго коня.' :
+               exercise === 5 && whiteMoves === 5 ? 'h3 — не даём слону чёрных выйти на g4.' :
+               exercise === 5 && whiteMoves === 6 ? 'g4 — начинаем пешечный штурм!' :
+               exercise === 5 && whiteMoves === 7 ? 'g5 — продолжаем штурм!' :
+               exercise === 5 && whiteMoves === 8 ? 'Bxg5 — размен слона на пешку.' :
+               exercise === 5 && whiteMoves === 9 ? 'Qd2 — ферзь готовится к атаке.' :
+               exercise === 5 && whiteMoves === 10 ? 'O-O-O — длинная рокировка!' :
+               exercise === 5 && whiteMoves === 11 ? 'Bxf6 — разрушаем защиту короля!' :
+               exercise === 5 && whiteMoves === 12 ? 'Qh6 — ферзь атакует!' :
+               exercise === 5 && whiteMoves === 13 ? 'Ладья d1 — удваиваем ладьи.' :
+               exercise === 5 && whiteMoves === 14 ? 'Ладья g1 — атака на королевском фланге!' :
+               exercise === 5 && whiteMoves === 15 ? 'Rxg1 — забираем ладью.' :
+               exercise === 5 && whiteMoves === 16 ? 'Rxg4 — забираем пешку!' :
+               exercise === 5 && whiteMoves === 17 ? 'hxg4 — пешечный штурм завершён!' :
+               exercise === 5 ? 'Пешечный штурм завершён!' :
                exercise === 6 ? 'Пешечный штурм — повторите атаку на королевском фланге!' : ''}
             </p>
           </div>
@@ -2594,9 +2744,57 @@ const handleSquareClick = useCallback((square: string) => {
            exercise === 1 && whiteMoves === 5 ? 'Сыграйте Nb1-c3 — развейте второго коня.' :
            exercise === 1 && whiteMoves === 6 ? 'Сделайте рокировку — уберите короля в безопасность.' :
            exercise === 2 ? 'Сыграйте итальянскую партию: e4, затем Nf3, затем Bc4.' :
-           exercise === 3 ? 'Дырокол — разменяйте коня на f6, разрушьте рокировку и заберите ферзя!' :
-           exercise === 4 ? 'Самостоятельный дырокол — повторите все ходы!' :
-           exercise === 5 ? 'Пешечный штурм — захватите центр, развейтесь и атакуйте короля!' :
+           exercise === 3 && whiteMoves === 0 ? 'Сыграйте e2-e4 — захватите центр пешкой.' :
+               exercise === 3 && whiteMoves === 1 ? 'Конь выходит на f3 — защищает пешку e4.' :
+               exercise === 3 && whiteMoves === 2 ? 'Сыграйте Bf1-c4 — классическая итальянская партия.' :
+               exercise === 3 && whiteMoves === 3 ? 'Сыграйте d2-d3 — тихая итальянская.' :
+               exercise === 3 && whiteMoves === 4 ? 'Сыграйте Nb1-c3 — развейте второго коня.' :
+               exercise === 3 && whiteMoves === 5 ? 'Сыграйте Bc1-g5 — свяжите коня f6.' :
+               exercise === 3 && whiteMoves === 6 ? 'Конь d5 — форк на коня и пешку!' :
+               exercise === 3 && whiteMoves === 7 ? 'Конь забирает на f6 — размен!' :
+               exercise === 3 && whiteMoves === 8 ? 'Слон h6 — атакуем ладью!' :
+               exercise === 3 && whiteMoves === 9 ? 'h3 — не даём слону чёрных выйти.' :
+               exercise === 3 && whiteMoves === 10 ? 'gxf3 — открываем линию f!' :
+               exercise === 3 && whiteMoves === 11 ? 'Ладья g1 — защищаем пешку.' :
+               exercise === 3 && whiteMoves === 12 ? 'Слон g7+ — шах!' :
+               exercise === 3 && whiteMoves === 13 ? 'Bxf6+ — шах с разрушением рокировки!' :
+               exercise === 3 && whiteMoves === 14 ? 'Слон забирает ферзя на d8! Дырокол выполнен!' :
+               exercise === 3 ? 'Дырокол выполнен!' :
+           exercise === 4 && whiteMoves === 0 ? 'Сыграйте e2-e4 — захватите центр пешкой.' :
+               exercise === 4 && whiteMoves === 1 ? 'Конь выходит на f3 — защищает пешку e4.' :
+               exercise === 4 && whiteMoves === 2 ? 'Сыграйте Bf1-c4 — классическая итальянская партия.' :
+               exercise === 4 && whiteMoves === 3 ? 'Сыграйте d2-d3 — тихая итальянская.' :
+               exercise === 4 && whiteMoves === 4 ? 'Сыграйте Nb1-c3 — развейте второго коня.' :
+               exercise === 4 && whiteMoves === 5 ? 'Сыграйте Bc1-g5 — свяжите коня f6.' :
+               exercise === 4 && whiteMoves === 6 ? 'Конь d5 — форк на коня и пешку!' :
+               exercise === 4 && whiteMoves === 7 ? 'Конь забирает на f6 — размен!' :
+               exercise === 4 && whiteMoves === 8 ? 'Слон h6 — атакуем ладью!' :
+               exercise === 4 && whiteMoves === 9 ? 'h3 — не даём слону чёрных выйти.' :
+               exercise === 4 && whiteMoves === 10 ? 'gxf3 — открываем линию f!' :
+               exercise === 4 && whiteMoves === 11 ? 'Ладья g1 — защищаем пешку.' :
+               exercise === 4 && whiteMoves === 12 ? 'Слон g7+ — шах!' :
+               exercise === 4 && whiteMoves === 13 ? 'Bxf6+ — шах с разрушением рокировки!' :
+               exercise === 4 && whiteMoves === 14 ? 'Слон забирает ферзя на d8! Дырокол выполнен!' :
+               exercise === 4 ? 'Дырокол выполнен!' :
+           exercise === 5 && whiteMoves === 0 ? 'Сыграйте e2-e4 — захватите центр пешкой.' :
+               exercise === 5 && whiteMoves === 1 ? 'Конь выходит на f3 — защищает пешку e4.' :
+               exercise === 5 && whiteMoves === 2 ? 'Сыграйте Bf1-c4 — классическая итальянская.' :
+               exercise === 5 && whiteMoves === 3 ? 'Сыграйте d2-d3 — тихая итальянская.' :
+               exercise === 5 && whiteMoves === 4 ? 'Сыграйте Nb1-c3 — развейте второго коня.' :
+               exercise === 5 && whiteMoves === 5 ? 'h3 — не даём слону чёрных выйти на g4.' :
+               exercise === 5 && whiteMoves === 6 ? 'g4 — начинаем пешечный штурм!' :
+               exercise === 5 && whiteMoves === 7 ? 'g5 — продолжаем штурм!' :
+               exercise === 5 && whiteMoves === 8 ? 'Bxg5 — размен слона на пешку.' :
+               exercise === 5 && whiteMoves === 9 ? 'Qd2 — ферзь готовится к атаке.' :
+               exercise === 5 && whiteMoves === 10 ? 'O-O-O — длинная рокировка!' :
+               exercise === 5 && whiteMoves === 11 ? 'Bxf6 — разрушаем защиту короля!' :
+               exercise === 5 && whiteMoves === 12 ? 'Qh6 — ферзь атакует!' :
+               exercise === 5 && whiteMoves === 13 ? 'Ладья d1 — удваиваем ладьи.' :
+               exercise === 5 && whiteMoves === 14 ? 'Ладья g1 — атака на королевском фланге!' :
+               exercise === 5 && whiteMoves === 15 ? 'Rxg1 — забираем ладью.' :
+               exercise === 5 && whiteMoves === 16 ? 'Rxg4 — забираем пешку!' :
+               exercise === 5 && whiteMoves === 17 ? 'hxg4 — пешечный штурм завершён!' :
+               exercise === 5 ? 'Пешечный штурм завершён!' :
            exercise === 6 ? 'Пешечный штурм — повторите атаку на королевском фланге!' : ''}
         </div>
 
