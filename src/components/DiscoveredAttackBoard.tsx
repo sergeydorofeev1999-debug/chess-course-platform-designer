@@ -124,6 +124,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
   }, []);
 
   const handleHint = useCallback(() => {
+    if (game?.turn() !== 'w') return;
     setHintVisible(prev => !prev);
   }, []);
 

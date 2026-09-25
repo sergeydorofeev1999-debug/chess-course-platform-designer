@@ -194,6 +194,7 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
   }, [storageKey]);
 
   const handleHint = useCallback(() => {
+    if (game?.turn() !== 'w') return;
     setHintVisible(prev => !prev);
   }, []);
 

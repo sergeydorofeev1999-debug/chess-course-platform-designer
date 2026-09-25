@@ -243,6 +243,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
   }, []);
 
   const handleHint = useCallback(() => {
+    if (game?.turn() !== 'w') return;
     setHintVisible(prev => !prev);
   }, []);
 

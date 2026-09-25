@@ -296,6 +296,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
   }, [exercise]);
 
   const handleHint = useCallback(() => {
+    if (game?.turn() !== 'w') return;
     setHintVisible(prev => !prev);
   }, []);
 

@@ -176,6 +176,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
   }, []);
 
   const handleHint = useCallback(() => {
+    if (game?.turn() !== 'w') return;
     setHintVisible(prev => !prev);
   }, []);
 
