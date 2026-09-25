@@ -26,6 +26,48 @@ const START_FEN_5 = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 const START_FEN_6 = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 const START_FEN_7 = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 const START_FEN_8 = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+const HINTS: Record<number, { from: string; to: string; phase: number }[]> = {
+  1: [
+    { from: 'e2', to: 'e4', phase: 0 },
+    { from: 'f1', to: 'c4', phase: 1 },
+    { from: 'd1', to: 'h5', phase: 2 },
+    { from: 'h5', to: 'f7', phase: 3 },
+  ],
+  2: [
+    { from: 'e2', to: 'e4', phase: 0 },
+    { from: 'f1', to: 'c4', phase: 1 },
+    { from: 'd1', to: 'h5', phase: 2 },
+    { from: 'h5', to: 'f7', phase: 3 },
+  ],
+  3: [
+    { from: 'e2', to: 'e4', phase: 0 },
+    { from: 'f1', to: 'c4', phase: 1 },
+    { from: 'd1', to: 'f3', phase: 2 },
+    { from: 'f3', to: 'f7', phase: 3 },
+  ],
+  4: [
+    { from: 'e2', to: 'e4', phase: 0 },
+    { from: 'f1', to: 'c4', phase: 1 },
+    { from: 'd1', to: 'f3', phase: 2 },
+    { from: 'f3', to: 'f7', phase: 3 },
+  ],
+  5: [
+    { from: 'e7', to: 'e5', phase: 0 },
+    { from: 'g8', to: 'f6', phase: 1 },
+  ],
+  6: [
+    { from: 'e7', to: 'e5', phase: 0 },
+    { from: 'g8', to: 'f6', phase: 1 },
+  ],
+  7: [
+    { from: 'e7', to: 'e5', phase: 0 },
+    { from: 'g8', to: 'f6', phase: 1 },
+  ],
+  8: [
+    { from: 'e7', to: 'e5', phase: 0 },
+    { from: 'g8', to: 'f6', phase: 1 },
+  ],
+};
 
 // Find a black capture that leaves the black piece safe (no white recapture)
 function findSafeBlackCapture(currentGame: Chess): { from: string; to: string } | null {
@@ -178,6 +220,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
   const [sqSize, setSqSize] = useState(52);
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
+  const [hintVisible, setHintVisible] = useState(false);
   const [playerAnimatingMove, setPlayerAnimatingMove] = useState<GhostMove | null>(null);
   const [playerAnimatingMoves, setPlayerAnimatingMoves] = useState<GhostMove[] | null>(null);
   const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<GhostMove | null>(null);
@@ -263,8 +306,16 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
     setIsFail(false);
     setIsComplete(false);
     setWhiteMoves(0);
+    setHintVisible(false);
     autoStartedRef.current = false;
   }, [exercise]);
+
+  const handleHint = useCallback(() => {
+    if (isComplete || isFail) return;
+    const playerColor = (exercise === 5 || exercise === 6 || exercise === 7 || exercise === 8) ? 'b' : 'w';
+    if (game?.turn() !== playerColor) return;
+    setHintVisible(prev => !prev);
+  }, [isComplete, isFail, game, exercise]);
 
   const saveStars = useCallback((ex: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8, stars: number) => {
     setExerciseStars(prev => {
@@ -323,6 +374,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
       if (!realMove) return;
       setLastMove({ from, to });
       setGame(new Chess(g.fen()));
+      setHintVisible(false);
       setSelectedSquare(null);
 
       if (piece && !skipAnimation) {
@@ -354,6 +406,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         if (whiteMoves === 0) {
           if (from === 'e7' && to === 'e5' && move.piece === 'p') {
             setGame(new Chess(g.fen()));
+            setHintVisible(false);
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
             setMessage('Белые вывели слона на c4 — теперь сыграйте конём на f6!');
@@ -379,6 +432,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         if (whiteMoves === 1) {
           if (from === 'g8' && to === 'f6' && move.piece === 'n') {
             setGame(new Chess(g.fen()));
+            setHintVisible(false);
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
             setIsComplete(true);
@@ -398,6 +452,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         if (whiteMoves === 0) {
           if (from === 'e7' && to === 'e5' && move.piece === 'p') {
             setGame(new Chess(g.fen()));
+            setHintVisible(false);
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
@@ -422,6 +477,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         if (whiteMoves === 1) {
           if (from === 'g8' && to === 'f6' && move.piece === 'n') {
             setGame(new Chess(g.fen()));
+            setHintVisible(false);
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
             setIsComplete(true);
@@ -442,6 +498,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         if (whiteMoves === 0) {
           if (from === 'e7' && to === 'e5' && move.piece === 'p') {
             setGame(new Chess(g.fen()));
+            setHintVisible(false);
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
             setMessage('Отлично! Пешка захватила центр и открыла диагональ для слона.');
@@ -467,6 +524,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         if (whiteMoves === 1) {
           if (from === 'b8' && to === 'c6' && move.piece === 'n') {
             setGame(new Chess(g.fen()));
+            setHintVisible(false);
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
             setMessage('Отлично! Конь вышел ближе к центру и защитил пешку e5.');
@@ -492,6 +550,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         if (whiteMoves === 2) {
           if (from === 'g7' && to === 'g6' && move.piece === 'p') {
             setGame(new Chess(g.fen()));
+            setHintVisible(false);
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
             setMessage('Отлично! Пешка защитила короля от мата и напала на ферзя.');
@@ -517,6 +576,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         if (whiteMoves === 3) {
           if (from === 'g8' && to === 'f6' && move.piece === 'n') {
             setGame(new Chess(g.fen()));
+            setHintVisible(false);
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
             setIsComplete(true);
@@ -537,6 +597,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         if (whiteMoves === 0) {
           if (from === 'e7' && to === 'e5' && move.piece === 'p') {
             setGame(new Chess(g.fen()));
+            setHintVisible(false);
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
             setMessage('Отлично! Пешка захватила центр и открыла диагональ для слона.');
@@ -562,6 +623,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         if (whiteMoves === 1) {
           if (from === 'b8' && to === 'c6' && move.piece === 'n') {
             setGame(new Chess(g.fen()));
+            setHintVisible(false);
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
             setMessage('Отлично! Конь вышел ближе к центру и защитил пешку e5.');
@@ -587,6 +649,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         if (whiteMoves === 2) {
           if (from === 'g7' && to === 'g6' && move.piece === 'p') {
             setGame(new Chess(g.fen()));
+            setHintVisible(false);
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
             setMessage('Отлично! Пешка защитила короля от мата и напала на ферзя.');
@@ -612,6 +675,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         if (whiteMoves === 3) {
           if (from === 'g8' && to === 'f6' && move.piece === 'n') {
             setGame(new Chess(g.fen()));
+            setHintVisible(false);
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
             setIsComplete(true);
@@ -630,6 +694,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         if (whiteMoves === 0) {
           if (from === 'e2' && to === 'e4' && move.piece === 'p') {
             setGame(new Chess(g.fen()));
+            setHintVisible(false);
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
@@ -654,6 +719,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         if (whiteMoves === 1) {
           if (from === 'f1' && to === 'c4' && move.piece === 'b') {
             setGame(new Chess(g.fen()));
+            setHintVisible(false);
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
@@ -678,6 +744,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         if (whiteMoves === 2) {
           if (from === 'd1' && to === 'h5' && move.piece === 'q') {
             setGame(new Chess(g.fen()));
+            setHintVisible(false);
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
@@ -702,6 +769,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         if (whiteMoves === 3) {
           if (from === 'h5' && to === 'f7' && move.piece === 'q') {
             setGame(new Chess(g.fen()));
+            setHintVisible(false);
             setSelectedSquare(null);
             setIsComplete(true);
             setMessage('Мат! Детский мат выполнен! Ферзь забрал пешку на f7, король не может выбраться из-под шаха. Самый быстрый путь к победе — атака на пункт f7!');
@@ -719,6 +787,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         if (whiteMoves === 0) {
           if (from === 'e2' && to === 'e4' && move.piece === 'p') {
             setGame(new Chess(g.fen()));
+            setHintVisible(false);
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
@@ -763,6 +832,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
           }
 
           setGame(new Chess(g.fen()));
+          setHintVisible(false);
           setSelectedSquare(null);
           setWhiteMoves(nextWhiteMoves);
 
@@ -808,6 +878,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         if (whiteMoves === 3) {
           if (from === 'h5' && to === 'f7' && move.piece === 'q') {
             setGame(new Chess(g.fen()));
+            setHintVisible(false);
             setSelectedSquare(null);
             setIsComplete(true);
             setMessage('Мат! Детский mat выполнен! Вы самостоятельно повторили атаку на пункт f7!');
@@ -823,6 +894,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         if (whiteMoves === 0) {
           if (from === 'e2' && to === 'e4' && move.piece === 'p') {
             setGame(new Chess(g.fen()));
+            setHintVisible(false);
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
@@ -847,6 +919,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         if (whiteMoves === 1) {
           if (from === 'f1' && to === 'c4' && move.piece === 'b') {
             setGame(new Chess(g.fen()));
+            setHintVisible(false);
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
@@ -871,6 +944,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         if (whiteMoves === 2) {
           if (from === 'd1' && to === 'f3' && move.piece === 'q') {
             setGame(new Chess(g.fen()));
+            setHintVisible(false);
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
@@ -895,6 +969,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         if (whiteMoves === 3) {
           if (from === 'f3' && to === 'f7' && move.piece === 'q') {
             setGame(new Chess(g.fen()));
+            setHintVisible(false);
             setSelectedSquare(null);
             setIsComplete(true);
             setMessage('Мат! Ферзь забрал пешку на f7. Детский mat через поле f3 выполнен!');
@@ -910,6 +985,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         if (whiteMoves === 0) {
           if (from === 'e2' && to === 'e4' && move.piece === 'p') {
             setGame(new Chess(g.fen()));
+            setHintVisible(false);
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
             setTimeout(() => {
@@ -954,6 +1030,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
           }
 
           setGame(new Chess(g.fen()));
+          setHintVisible(false);
           setSelectedSquare(null);
           setWhiteMoves(nextWhiteMoves);
 
@@ -999,6 +1076,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         if (whiteMoves === 3) {
           if (from === 'f3' && to === 'f7' && move.piece === 'q') {
             setGame(new Chess(g.fen()));
+            setHintVisible(false);
             setSelectedSquare(null);
             setIsComplete(true);
             setMessage('Мат! Детский mat через Qf3 выполнен! Вы сами нашли путь к победе через пункт f7!');
@@ -1247,22 +1325,77 @@ const handleSquareClick = useCallback((square: string) => {
 
         {/* Board */}
         <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
-          <UniversalChessBoardDesigner
-            isReversed={isReversed}
-            fen={game?.fen() || ''}
-            selectedSquare={selectedSquare}
-            lastMove={lastMove}
-            autoValidMoves={true}
-            onMove={async (from, to, _promotion) => { await processWhiteMove(from, to, undefined, true); }}
-            onSquareClick={handleSquareClick}
-            playerAnimatingMove={playerAnimatingMove}
-            playerAnimatingMoves={playerAnimatingMoves}
-            opponentAnimatingMove={opponentAnimatingMove}
-            opponentAnimatingMoves={opponentAnimatingMoves}
-            interactive={!isComplete && !isFail}
-            disableAutoGhost={true}
-            sqSize={sqSize}
-          />
+          <div className="relative" style={{ width: 8 * sqSize + 6, height: 8 * sqSize + 6 }}>
+            <UniversalChessBoardDesigner
+              isReversed={isReversed}
+              fen={game?.fen() || ''}
+              selectedSquare={selectedSquare}
+              lastMove={lastMove}
+              autoValidMoves={true}
+              onMove={async (from, to, _promotion) => { await processWhiteMove(from, to, undefined, true); }}
+              onSquareClick={handleSquareClick}
+              playerAnimatingMove={playerAnimatingMove}
+              playerAnimatingMoves={playerAnimatingMoves}
+              opponentAnimatingMove={opponentAnimatingMove}
+              opponentAnimatingMoves={opponentAnimatingMoves}
+              interactive={!isComplete && !isFail}
+              disableAutoGhost={true}
+              sqSize={sqSize}
+            />
+            {/* Hint arrows SVG overlay */}
+            {hintVisible && !isFail && !isComplete && !selectedSquare && (
+              (() => {
+                const arrows = HINTS[exercise] || [];
+                const phaseArrows = arrows.filter(a => a.phase === whiteMoves);
+                if (phaseArrows.length === 0) return null;
+                return (
+                  <svg className="absolute pointer-events-none z-[35]" style={{ top: 3, left: 3, width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
+                    {phaseArrows.map((arrow, i) => {
+                      const fromF = FILES.indexOf(arrow.from[0]);
+                      const fromR = RANKS.indexOf(arrow.from[1]);
+                      const toF = FILES.indexOf(arrow.to[0]);
+                      const toR = RANKS.indexOf(arrow.to[1]);
+                      const x1 = (fromF + 0.5) * sqSize;
+                      const y1 = (isReversed ? 7.5 - fromR : fromR + 0.5) * sqSize;
+                      const x2 = (toF + 0.5) * sqSize;
+                      const y2 = (isReversed ? 7.5 - toR : toR + 0.5) * sqSize;
+                      const strokeW = sqSize < 60 ? 14 : 18;
+                      const halfW = strokeW / 2;
+                      const dx = x2 - x1;
+                      const dy = y2 - y1;
+                      const len = Math.sqrt(dx * dx + dy * dy);
+                      const headLen = sqSize * 0.38;
+                      const tailLen = sqSize * 0.38;
+                      const nx = dx / len;
+                      const ny = dy / len;
+                      const px = -ny;
+                      const py = nx;
+                      const tipX = x2 - nx * headLen * 0.5;
+                      const tipY = y2 - ny * headLen * 0.5;
+                      const baseX = x2 - nx * (headLen * 0.5 + halfW * 1.8);
+                      const baseY = y2 - ny * (headLen * 0.5 + halfW * 1.8);
+                      const tailX = x1 + nx * tailLen * 0.3;
+                      const tailY = y1 + ny * tailLen * 0.3;
+                      const halfTailW = halfW * 0.6;
+                      return (
+                        <g key={i}>
+                          <polygon
+                            points={`${tipX},${tipY} ${baseX + px * halfW},${baseY + py * halfW} ${baseX - px * halfW},${baseY - py * halfW}`}
+                            fill="rgba(200,50,50,0.85)"
+                          />
+                          <polygon
+                            points={`${tailX + px * halfTailW},${tailY + py * halfTailW} ${baseX + px * halfW},${baseY + py * halfW} ${baseX - px * halfW},${baseY - py * halfW} ${tailX - px * halfTailW},${tailY - py * halfTailW}`}
+                            fill="rgba(200,50,50,0.85)"
+                          />
+                          <circle cx={x1} cy={y1} r={sqSize * 0.18} fill="none" stroke="rgba(200,50,50,0.55)" strokeWidth={2.5} />
+                        </g>
+                      );
+                    })}
+                  </svg>
+                );
+              })()
+            )}
+          </div>
         </div>
         {/* Mobile exercise pills */}
         <div className="flex lg:hidden gap-[1px] w-full">
@@ -1317,7 +1450,7 @@ const handleSquareClick = useCallback((square: string) => {
             </div>
           </div>
           <div className="flex gap-2 w-full">
-            <button className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200">
+            <button onClick={handleHint} className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all duration-200 ${hintVisible ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
               <Eye size={14} /> Подсказка
             </button>
             <button onClick={reset} className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200">
