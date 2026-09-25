@@ -2696,7 +2696,7 @@ setLastMove({ from: 'd1', to: 'f3' });
       <div className="w-full lg:w-[300px] flex-shrink-0 space-y-2">
         <button
           onClick={handleHint}
-          className={`hidden lg:flex items-center gap-1 px-3 py-1.5 text-xs border rounded transition w-full justify-center ${hintVisible ? 'bg-[#C9A84C] text-white border-[#C9A84C]' : 'text-[var(--text-secondary)] border-[rgba(92,64,51,0.12)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}
+          className={`hidden lg:flex items-center gap-1 px-3 py-1.5 text-xs border rounded transition w-full justify-center ${hintVisible ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'text-[var(--text-secondary)] border-[rgba(92,64,51,0.12)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}
         >
           <Eye size={14} /> Подсказка
         </button>
@@ -2936,7 +2936,7 @@ setLastMove({ from: 'd1', to: 'f3' });
             </div>
           </div>
           <div className="flex gap-2 w-full">
-            <button onClick={handleHint} className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all duration-200 ${hintVisible ? 'bg-[#C9A84C] text-white border-[#C9A84C]' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
+            <button onClick={handleHint} className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all duration-200 ${hintVisible ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
               <Eye size={14} /> Подсказка
             </button>
             <button onClick={reset} className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all duration-200 ${isFail ? 'border-[#B04A3A] text-[#B04A3A]' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
