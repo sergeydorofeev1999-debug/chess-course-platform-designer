@@ -433,16 +433,6 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
           </div>
         )}
 
-        {/* Success message */}
-        {message && !isFail && (
-          <div className={`px-6 py-3 rounded-xl text-center font-bold text-white ${
-            message.includes('Отлично') ? 'bg-green-500' : 'bg-yellow-500'
-          }`}>
-            {message.includes('Отлично') && <Trophy className="w-5 h-5 inline-block mr-2" />}
-            {message}
-          </div>
-        )}
-
         {/* Board */}
         <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
           <div className="relative" style={{ width: 8 * sqSize + 6, height: 8 * sqSize + 6 }}>
@@ -578,32 +568,6 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
             </button>
           </div>
         </div>
-
-        {/* Completion banner */}
-        {isComplete && (
-          <div className="flex flex-col items-center gap-3 mt-2">
-            <div className="flex items-center gap-2 text-green-600 font-bold text-lg">
-              <Trophy className="w-6 h-6" />
-              <span>Упражнение {exercise} пройдено!</span>
-            </div>
-            {exercise < 8 && (
-              <button
-                onClick={() => switchExercise((exercise + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8)}
-                className="bg-blue-500 text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-blue-600 transition"
-              >
-                Перейти к Упражнению {exercise + 1} →
-              </button>
-            )}
-            {exercise === 8 && (exerciseStars[8] || 0) >= 3 && (
-              <button
-                onClick={onComplete}
-                className="bg-emerald-500 text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-emerald-600 transition"
-              >
-                Урок завершён ✓
-              </button>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
