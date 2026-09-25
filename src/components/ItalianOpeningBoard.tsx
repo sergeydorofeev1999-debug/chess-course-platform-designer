@@ -297,9 +297,8 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
 
   const handleHint = useCallback(() => {
     if (isComplete || isFail) return;
-    if (game?.turn() !== 'w') return;
     setHintVisible(prev => !prev);
-  }, [isComplete, isFail, game]);
+  }, [isComplete, isFail]);
 
   const processWhiteMove = useCallback(async (from: string, to: string, promotionPiece?: string, skipAnimation = false) => {
     if (!game) return;
