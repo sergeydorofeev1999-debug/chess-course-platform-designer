@@ -362,6 +362,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'e7', to: 'e5' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             }, 800);
@@ -389,6 +390,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'b8', to: 'c6' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             }, 800);
@@ -416,6 +418,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'f8', to: 'c5' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             }, 800);
@@ -443,6 +446,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'g8', to: 'f6' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             }, 800);
@@ -497,6 +501,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'd7', to: 'd6' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             }, 800);
@@ -561,6 +566,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'e7', to: 'e5' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             }, 800);
@@ -589,6 +595,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'b8', to: 'c6' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             }, 800);
@@ -617,6 +624,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'f8', to: 'c5' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             }, 800);
@@ -658,6 +666,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                   if (!mountedRef.current) return;
                   g.move({ from: nf6.from, to: nf6.to });
                   setGame(new Chess(g.fen()));
+                  setHintVisible(false);
                   setOpponentAnimatingMove(null);
                 }, 200);
               }
@@ -695,6 +704,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                   if (!mountedRef.current) return;
                   g.move({ from: d6.from, to: d6.to });
                   setGame(new Chess(g.fen()));
+                  setHintVisible(false);
                   setOpponentAnimatingMove(null);
                 }, 200);
               }
@@ -729,6 +739,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'e7', to: 'e5' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Конь выходит на f3 — защищает пешку e4 и готовит развитие. Сделайте Nf3!');
@@ -757,6 +768,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'b8', to: 'c6' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Отлично! Конь на f3 развит. Теперь разведите слона на c4 — классическая итальянская партия. Сделайте Bc4!');
@@ -785,6 +797,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'f8', to: 'c5' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Слон на c4 разведён. d3 — тихая итальянская, готовим позицию для дырокола. Сделайте d3!');
@@ -813,6 +826,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'g8', to: 'f6' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Пешка d3 защищена. Конь c3 развивает фигуры и готовится к центру. Сделайте Nc3!');
@@ -841,6 +855,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'd7', to: 'd6' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Конь на c3 развит. Слон g5 связывает коня f6 — начало дырокола! Сделайте Bg5!');
@@ -897,6 +912,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'c8', to: 'g4' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Конь забирает коня на f6 — размен! Делайте Nxf6!');
@@ -925,6 +941,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'g7', to: 'f6' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Пешка f открыта — это дырокол! Слон h6 атакует ладью. Делайте Bh6!');
@@ -953,6 +970,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'f8', to: 'e8' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('h3 гоним слона g4. Делайте h3!');
@@ -981,6 +999,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'g4', to: 'f3' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Пешка g берёт слона — линия f открыта! Делайте gxf3!');
@@ -1009,6 +1028,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'c6', to: 'd4' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Ладья g1 защищает пешку f3. Делайте Rg1!');
@@ -1037,6 +1057,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'g8', to: 'h8' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Слон g7 — шах! Делайте Bg7+!');
@@ -1065,6 +1086,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'h8', to: 'g8' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Слон забирает пешку f6 с шахом! Делайте Bxf6+!');
@@ -1093,6 +1115,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'g8', to: 'f8' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Слон забирает ферзя на d8! Дырокол выполнен! Делайте Bxd8!');
@@ -1151,6 +1174,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'e7', to: 'e5' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Отлично! Пешка захватила центр.');
@@ -1179,6 +1203,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'b8', to: 'c6' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Отлично! Конь вышел ближе к центру и напал на пешку e5.');
@@ -1207,6 +1232,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'f8', to: 'c5' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Отлично! Слон вышел ближе к центру.');
@@ -1251,6 +1277,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'g8', to: 'f6' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             } else if (whiteMoves === 4) {
@@ -1265,6 +1292,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'd7', to: 'd6' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             } else if (whiteMoves === 5) {
@@ -1309,6 +1337,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'c8', to: 'g4' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Отлично! Конь идёт на d5 — атака! Nxf6!');
@@ -1338,6 +1367,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'g7', to: 'f6' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Отлично! Разменяли коня на f6, открыли пешку. Слон h6!');
@@ -1367,6 +1397,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'f8', to: 'e8' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Отлично! Слон h6 атакует ладью, готовим дырокол. h3!');
@@ -1396,6 +1427,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'g4', to: 'f3' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Отлично! h3 гоним слона g4. gxf3!');
@@ -1425,6 +1457,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'c6', to: 'd4' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Отлично! Пешка g берёт слона, открывая линию f. Ладья g1!');
@@ -1454,6 +1487,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'g8', to: 'h8' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Отлично! Ладья защищает пешку f3. Bg7+!');
@@ -1483,6 +1517,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'h8', to: 'g8' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Отлично! Шах слоном g7! Bxf6+!');
@@ -1512,6 +1547,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'g8', to: 'f8' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Отлично! Шах слоном f6, король уходит на f8. Bxd8!');
@@ -1571,6 +1607,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'e7', to: 'e5' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Конь выходит на f3 — защищает пешку e4 и готовит развитие. Сделайте Nf3!');
@@ -1600,6 +1637,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'b8', to: 'c6' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Отлично! Вы развели слона на c4 — классическая итальянская партия. Сделайте Bc4!');
@@ -1629,6 +1667,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'f8', to: 'c5' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('d3 — тихая итальянская, готовим позицию. Сделайте d3!');
@@ -1672,6 +1711,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'h7', to: 'h6' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             } else {
@@ -1686,6 +1726,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'g8', to: 'f6' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             }
@@ -1741,6 +1782,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'd7', to: 'd6' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('g5 — давим пешками! Сделайте g5!');
@@ -1770,6 +1812,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'h6', to: 'g5' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Белый слон забирает пешку на g5. Сделайте Bxg5!');
@@ -1799,6 +1842,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'c8', to: 'e6' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Ферзь d2 — готовим атаку. Сделайте Qd2!');
@@ -1828,6 +1872,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'f8', to: 'e8' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('O-O-O — длинная рокировка, уводим короля и подключаем ладью. Сделайте O-O-O!');
@@ -1857,6 +1902,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'd8', to: 'd7' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Слон забирает коня на f6. Сделайте Bxf6!');
@@ -1886,6 +1932,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'g7', to: 'f6' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Ферзь h6 — атакуем! Сделайте Qh6!');
@@ -1915,6 +1962,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'c5', to: 'f2' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Ладья d1 защищает первую линию. Сделайте Rdg1!');
@@ -1944,6 +1992,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'f2', to: 'g1' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Ладья забирает слона. Сделайте Rxg1!');
@@ -1973,6 +2022,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'e6', to: 'g4' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('Ладья бьёт слона. Сделайте Rxg4!');
@@ -2002,6 +2052,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'd7', to: 'g4' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
               setMessage('h x g4 — забираем ферзя! Сделайте hxg4!');
@@ -2062,6 +2113,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'e7', to: 'e5' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             }, 800);
@@ -2091,6 +2143,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'b8', to: 'c6' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             }, 800);
@@ -2120,6 +2173,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'f8', to: 'c5' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             }, 800);
@@ -2163,6 +2217,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'h7', to: 'h6' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             } else {
@@ -2177,6 +2232,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'g8', to: 'f6' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             }
@@ -2232,6 +2288,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'd7', to: 'd6' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             }, 800);
@@ -2261,6 +2318,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'h6', to: 'g5' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             }, 800);
@@ -2290,6 +2348,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'c8', to: 'e6' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             }, 800);
@@ -2319,6 +2378,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'f8', to: 'e8' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             }, 800);
@@ -2348,6 +2408,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'd8', to: 'd7' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             }, 800);
@@ -2377,6 +2438,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'g7', to: 'f6' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             }, 800);
@@ -2406,6 +2468,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'c5', to: 'f2' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             }, 800);
@@ -2435,6 +2498,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'f2', to: 'g1' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             }, 800);
@@ -2464,6 +2528,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'e6', to: 'g4' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             }, 800);
@@ -2493,6 +2558,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
                 if (!mountedRef.current) return;
                 g.move({ from: 'd7', to: 'g4' });
                 setGame(new Chess(g.fen()));
+                setHintVisible(false);
                 setOpponentAnimatingMove(null);
               }, 200);
             }, 800);
