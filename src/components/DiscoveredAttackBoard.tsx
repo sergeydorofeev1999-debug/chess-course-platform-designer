@@ -188,6 +188,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
       setGame(new Chess(g.fen()));
       setSelectedSquare(null);
       setLastMove({ from, to });
+      setHintVisible(false);
 
       const fromSq = from;
       const toSq = to;

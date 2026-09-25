@@ -159,6 +159,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
           ng.move({ from, to });
           const piece = g.get(from as any);
           setLastMove({ from, to });
+          setHintVisible(false);
           if (!wasDragRef.current) {
             setPlayerAnimatingMove({ from, to, piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' } });
             setTimeout(() => setPlayerAnimatingMove(null), 220);
@@ -179,6 +180,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
               if (compMove) {
                 setGame(new Chess(afterComp.fen()));
                 setLastMove({ from: 'c6', to: 'd7' });
+                setHintVisible(false);
                 setOpponentAnimatingMove({
                   from: 'c6', to: 'd7',
                   piece: { type: compMovedPiece?.type.toUpperCase() || '', color: compMovedPiece?.color as 'w' | 'b' || 'b' },
@@ -193,6 +195,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
                 afterComp.move({ from: 'c6', to: 'b7' });
                 setGame(new Chess(afterComp.fen()));
                 setLastMove({ from: 'c6', to: 'b7' });
+                setHintVisible(false);
                 setOpponentAnimatingMove({
                   from: 'c6', to: 'b7',
                   piece: { type: compMovedPiece2?.type.toUpperCase() || '', color: compMovedPiece2?.color as 'w' | 'b' || 'b' },
@@ -212,6 +215,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
           ng.move({ from, to });
           const piece = g.get(from as any);
           setLastMove({ from, to });
+          setHintVisible(false);
           if (!wasDragRef.current) {
             setPlayerAnimatingMove({ from, to, piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' } });
             setTimeout(() => setPlayerAnimatingMove(null), 220);
@@ -234,6 +238,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
 
       const piece = g.get(from as any);
       setLastMove({ from, to });
+      setHintVisible(false);
       if (!wasDragRef.current) {
         setPlayerAnimatingMove({ from, to, piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' } });
         setTimeout(() => setPlayerAnimatingMove(null), 220);
@@ -265,6 +270,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
         setGame(new Chess(afterWhite.fen()));
         const compMovedPiece = afterWhite.get(mateMove.to);
         setLastMove({ from: mateMove.from, to: mateMove.to });
+        setHintVisible(false);
         setOpponentAnimatingMove({
           from: mateMove.from,
           to: mateMove.to,
@@ -282,6 +288,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
         setGame(new Chess(afterWhite.fen()));
         const compMovedPiece = afterWhite.get(captureMoves[0].to);
         setLastMove({ from: captureMoves[0].from, to: captureMoves[0].to });
+        setHintVisible(false);
         setOpponentAnimatingMove({
           from: captureMoves[0].from,
           to: captureMoves[0].to,

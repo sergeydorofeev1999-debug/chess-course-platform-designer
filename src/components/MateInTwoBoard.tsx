@@ -206,6 +206,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
           if (skipAnimation) {
             setLastMove({ from, to });
             setSelectedSquare(null);
+            setHintVisible(false);
             setMessage('Отличный ход! Продолжайте!');
             setIsFail(false);
             setStage('after_computer');
@@ -225,6 +226,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
                   piece: { type: compMovedPiece?.type.toUpperCase() || '', color: compMovedPiece?.color as 'w' | 'b' || 'b' },
                 });
                 setLastMove({ from: compMove.from, to: compMove.to });
+                setHintVisible(false);
                 setTimeout(() => {
                   cg.move(compMove);
                   setGame(new Chess(cg.fen()));
@@ -244,6 +246,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
           });
           setLastMove({ from, to });
           setSelectedSquare(null);
+          setHintVisible(false);
           setMessage('Отличный ход! Продолжайте!');
           setIsFail(false);
           setStage('after_computer');
@@ -269,6 +272,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
                 piece: { type: compMovedPiece?.type.toUpperCase() || '', color: compMovedPiece?.color as 'w' | 'b' || 'b' },
               });
               setLastMove({ from: compMove.from, to: compMove.to });
+              setHintVisible(false);
               // Update board + remove opponent ghost after 200ms
               setTimeout(() => {
                 cg.move(compMove);
@@ -286,6 +290,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
           if (skipAnimation) {
             setLastMove({ from, to });
             setSelectedSquare(null);
+            setHintVisible(false);
             setGame(ng);
             setIsFail(true);
             setStage('fail');
@@ -300,6 +305,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
             piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' },
           });
           setLastMove({ from, to });
+          setHintVisible(false);
           setSelectedSquare(null);
 
           setTimeout(() => {
@@ -327,6 +333,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
         if (testGame.isCheckmate()) {
           if (skipAnimation) {
             setLastMove({ from, to });
+            setHintVisible(false);
             setSelectedSquare(null);
             setMessage('Браво! Мат в 2 хода!');
             setIsComplete(true);
@@ -344,6 +351,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
             piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' },
           });
           setLastMove({ from, to });
+          setHintVisible(false);
           setSelectedSquare(null);
           setMessage('Браво! Мат в 2 хода!');
           setIsComplete(true);
@@ -364,6 +372,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
 
           if (skipAnimation) {
             // setLastMove({ from, to }); // NO lastMove highlight for instant drag
+            setHintVisible(false);
             setSelectedSquare(null);
             setGame(ng);
             setIsFail(true);
@@ -379,6 +388,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
             piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' },
           });
           setLastMove({ from, to });
+          setHintVisible(false);
           setSelectedSquare(null);
 
           setTimeout(() => {

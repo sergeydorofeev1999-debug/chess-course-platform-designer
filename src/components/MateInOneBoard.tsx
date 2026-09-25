@@ -234,6 +234,7 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
           setGame(new Chess(g.fen()));
           setLastMove({ from, to });
           setSelectedSquare(null);
+          setHintVisible(false);
           setIsComplete(true);
           setMessage('Отлично! Мат в 1 ход!');
           saveStars(exercise, 3);
@@ -247,6 +248,7 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
           });
           setLastMove({ from, to });
           setSelectedSquare(null);
+          setHintVisible(false);
           setIsComplete(true);
           setMessage('Отлично! Мат в 1 ход!');
           saveStars(exercise, 3);
@@ -264,6 +266,7 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
       setGame(new Chess(g.fen()));
       setLastMove({ from, to });
       setSelectedSquare(null);
+      setHintVisible(false);
       setIsFail(true);
       setMessage('Это не мат. Попробуйте найти мат в 1 ход!');
     } catch {
