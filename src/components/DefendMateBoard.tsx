@@ -145,6 +145,21 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
     wasDragRef.current = false;
   }, []);
 
+  // Auto-advance to next exercise after completion (like MateInTwoBoard)
+  useEffect(() => {
+    if (isComplete && !isFail) {
+      const timer = setTimeout(() => {
+        if (exercise < 8) {
+          const next = (exercise + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+          switchExercise(next);
+        } else {
+          onComplete();
+        }
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isComplete, isFail, exercise, switchExercise, onComplete]);
+
   // ──── DEFEND MATE LOGIC ────
   const processMove = useCallback((from: string, to: string, promotionPiece?: string) => {
     if (!game) return;
@@ -224,7 +239,6 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
           setGame(ng);
           setSelectedSquare(null);
           setIsComplete(true);
-          setMessage('Отлично! Вы защитились от мата!');
           saveStars(exercise, 3);
           return;
         }
@@ -249,9 +263,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
 
       if (validMoves.has(`${from},${to}`)) {
         setIsComplete(true);
-        setMessage('Отлично! Вы защитились от мата!');
         saveStars(exercise, 3);
-        if (exercise === 8) onComplete();
         return;
       }
 
@@ -470,7 +482,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
               const arrows = HINTS[exercise] || [];
               if (arrows.length === 0) return null;
               return (
-                <svg className="absolute inset-0 pointer-events-none z-[35]" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
+                <svg className="absolute pointer-events-none z-[35]" style={{ top: 3, left: 3, width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
                   {arrows.map((arrow, i) => {
                     const isReversed = exercise === 2 || exercise === 6 || exercise === 8;
                     const fromF = (isReversed ? REVERSED_FILES : FILES).indexOf(arrow.from[0]);
