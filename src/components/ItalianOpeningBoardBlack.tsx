@@ -18,6 +18,97 @@ const PROMOTION_PIECES = [
 
 const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
+const HINTS: Record<number, { from: string; to: string; phase: number }[]> = {
+  1: [
+    { from: 'e7', to: 'e5', phase: 0 },
+    { from: 'b8', to: 'c6', phase: 1 },
+    { from: 'f8', to: 'c5', phase: 2 },
+    { from: 'd7', to: 'd6', phase: 3 },
+    { from: 'g8', to: 'f6', phase: 4 },
+    { from: 'c8', to: 'g4', phase: 5 },
+    { from: 'e8', to: 'g8', phase: 6 },
+  ],
+  2: [
+    { from: 'e7', to: 'e5', phase: 0 },
+    { from: 'b8', to: 'c6', phase: 1 },
+    { from: 'f8', to: 'c5', phase: 2 },
+  ],
+  3: [
+    { from: 'e7', to: 'e5', phase: 0 },
+    { from: 'b8', to: 'c6', phase: 1 },
+    { from: 'f8', to: 'c5', phase: 2 },
+    { from: 'd7', to: 'd6', phase: 3 },
+    { from: 'g8', to: 'f6', phase: 4 },
+    { from: 'c8', to: 'g4', phase: 5 },
+    { from: 'f6', to: 'd4', phase: 6 },
+    { from: 'g4', to: 'f3', phase: 7 },
+    { from: 'c5', to: 'h3', phase: 8 },
+    { from: 'd4', to: 'f3', phase: 9 },
+    { from: 'h3', to: 'g2', phase: 10 },
+    { from: 'f6', to: 'f5', phase: 11 },
+    { from: 'h8', to: 'g8', phase: 12 },
+    { from: 'g2', to: 'f3', phase: 13 },
+    { from: 'f3', to: 'g3', phase: 14 },
+  ],
+  4: [
+    { from: 'e7', to: 'e5', phase: 0 },
+    { from: 'b8', to: 'c6', phase: 1 },
+    { from: 'f8', to: 'c5', phase: 2 },
+    { from: 'd7', to: 'd6', phase: 3 },
+    { from: 'g8', to: 'f6', phase: 4 },
+    { from: 'c8', to: 'g4', phase: 5 },
+    { from: 'f6', to: 'd4', phase: 6 },
+    { from: 'g4', to: 'f3', phase: 7 },
+    { from: 'c5', to: 'h3', phase: 8 },
+    { from: 'd4', to: 'f3', phase: 9 },
+    { from: 'h3', to: 'g2', phase: 10 },
+    { from: 'f6', to: 'f5', phase: 11 },
+    { from: 'h8', to: 'g8', phase: 12 },
+    { from: 'g2', to: 'f3', phase: 13 },
+    { from: 'f3', to: 'g3', phase: 14 },
+  ],
+  5: [
+    { from: 'e7', to: 'e5', phase: 0 },
+    { from: 'b8', to: 'c6', phase: 1 },
+    { from: 'f8', to: 'c5', phase: 2 },
+    { from: 'd7', to: 'd6', phase: 3 },
+    { from: 'g8', to: 'f6', phase: 4 },
+    { from: 'h7', to: 'h6', phase: 5 },
+    { from: 'g7', to: 'g5', phase: 6 },
+    { from: 'g5', to: 'g4', phase: 7 },
+    { from: 'h6', to: 'g5', phase: 8 },
+    { from: 'f6', to: 'g4', phase: 9 },
+    { from: 'f8', to: 'h8', phase: 10 },
+    { from: 'g4', to: 'f2', phase: 11 },
+    { from: 'g7', to: 'h6', phase: 12 },
+    { from: 'h6', to: 'h4', phase: 13 },
+    { from: 'd8', to: 'h4', phase: 14 },
+    { from: 'h4', to: 'h2', phase: 15 },
+    { from: 'f2', to: 'g3', phase: 16 },
+    { from: 'h2', to: 'h1', phase: 17 },
+  ],
+  6: [
+    { from: 'e7', to: 'e5', phase: 0 },
+    { from: 'b8', to: 'c6', phase: 1 },
+    { from: 'f8', to: 'c5', phase: 2 },
+    { from: 'd7', to: 'd6', phase: 3 },
+    { from: 'g8', to: 'f6', phase: 4 },
+    { from: 'h7', to: 'h6', phase: 5 },
+    { from: 'g7', to: 'g5', phase: 6 },
+    { from: 'g5', to: 'g4', phase: 7 },
+    { from: 'h6', to: 'g5', phase: 8 },
+    { from: 'f6', to: 'g4', phase: 9 },
+    { from: 'f8', to: 'h8', phase: 10 },
+    { from: 'g4', to: 'f2', phase: 11 },
+    { from: 'g7', to: 'h6', phase: 12 },
+    { from: 'h6', to: 'h4', phase: 13 },
+    { from: 'd8', to: 'h4', phase: 14 },
+    { from: 'h4', to: 'h2', phase: 15 },
+    { from: 'f2', to: 'g3', phase: 16 },
+    { from: 'h2', to: 'h1', phase: 17 },
+  ],
+};
+
 // Find a white capture that leaves the white piece safe (no black recapture)
 function findSafeWhiteCapture(currentGame: Chess): { from: string; to: string } | null {
   const whiteMoves = currentGame.moves({ verbose: true });
@@ -128,6 +219,7 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
   const [isFail, setIsFail] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
   const [blackMoves, setBlackMoves] = useState(0);
+  const [hintVisible, setHintVisible] = useState(false);
   const [sqSize, setSqSize] = useState(52);
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
   const [postMoveHint, setPostMoveHint] = useState('');
@@ -207,6 +299,11 @@ setLastMove({ from: 'e2', to: 'e4' });
     return () => window.removeEventListener('resize', update);
   }, []);
 
+    const handleHint = useCallback(() => {
+    if (isComplete || isFail) return;
+    setHintVisible(prev => !prev);
+  }, [isComplete, isFail]);
+
   const reset = useCallback(() => {
     const g = new Chess(START_FEN);
     setGame(g);
@@ -216,6 +313,7 @@ setLastMove({ from: 'e2', to: 'e4' });
     setIsFail(false);
     setIsComplete(false);
     setBlackMoves(0);
+    setHintVisible(false);
     setPostMoveHint('');
     autoStartedRef.current = false;
     // Auto-play white e4 again
@@ -2684,76 +2782,128 @@ setLastMove({ from: 'd1', to: 'f3' });
         )}
 
         {/* Board */}
-        <div className="flex justify-center w-full relative">
-          <UniversalChessBoardDesigner
-            fen={game?.fen() || ''}
-            selectedSquare={selectedSquare}
-            lastMove={lastMove}
-            autoValidMoves={true}
-            onMove={async (from, to, _promotion) => { await processBlackMove(from, to, undefined, true); }}
-            onSquareClick={handleSquareClick}
-            playerAnimatingMove={playerAnimatingMove}
-            playerAnimatingMoves={playerAnimatingMoves}
-            opponentAnimatingMove={opponentAnimatingMove}
-            opponentAnimatingMoves={opponentAnimatingMoves}
-            interactive={!isComplete && !isFail}
-            disableAutoGhost={true}
-            isReversed={true}
-            sqSize={sqSize}
-            absoluteOverlay={
-              promotionPending ? (
-                <div className="absolute z-50 pointer-events-auto" style={{
-                  left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
-                  top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
-                  width: sqSize,
-                  height: 4 * sqSize,
-                  backgroundColor: '#2C241B',
-                  borderRadius: '0px',
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden',
-                }}>
-                  {PROMOTION_PIECES.map(({ code, name }) => (
-                    <button
-                      key={code}
-                      onClick={() => handlePromotion(code)}
-                      className="w-full aspect-square flex items-center justify-center transition-all duration-150"
-                      style={{
-                        backgroundColor: 'transparent',
-                        border: '2px solid transparent',
-                        borderRadius: '0px',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
-                        e.currentTarget.style.borderColor = '#C9A84C';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = 'transparent';
-                        e.currentTarget.style.borderColor = 'transparent';
-                      }}
-                      onMouseDown={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.25)';
-                      }}
-                      onMouseUp={(e) => {
-                        e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
-                      }}
-                      title={name}
-                    >
-                      <img
-                        src={`/pieces/cburnett/${promotionPending.from[1] === '2' ? 'b' : 'w'}${code.toUpperCase()}.svg`}
-                        alt={name}
-                        draggable={false}
-                        style={{ width: '70%', height: '70%', objectFit: 'contain' }}
-                      />
-                    </button>
-                  ))}
-                </div>
-              ) : null
-            }
-          />
+        <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
+          <div className="relative" style={{ width: 8 * sqSize + 6, height: 8 * sqSize + 6 }}>
+            <UniversalChessBoardDesigner
+              fen={game?.fen() || ''}
+              selectedSquare={selectedSquare}
+              lastMove={lastMove}
+              autoValidMoves={true}
+              onMove={async (from, to, _promotion) => { await processBlackMove(from, to, undefined, true); }}
+              onSquareClick={handleSquareClick}
+              playerAnimatingMove={playerAnimatingMove}
+              playerAnimatingMoves={playerAnimatingMoves}
+              opponentAnimatingMove={opponentAnimatingMove}
+              opponentAnimatingMoves={opponentAnimatingMoves}
+              interactive={!isComplete && !isFail}
+              disableAutoGhost={true}
+              isReversed={true}
+              sqSize={sqSize}
+              absoluteOverlay={
+                promotionPending ? (
+                  <div className="absolute z-50 pointer-events-auto" style={{
+                    left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
+                    top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
+                    width: sqSize,
+                    height: 4 * sqSize,
+                    backgroundColor: '#2C241B',
+                    borderRadius: '0px',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                  }}>
+                    {PROMOTION_PIECES.map(({ code, name }) => (
+                      <button
+                        key={code}
+                        onClick={() => handlePromotion(code)}
+                        className="w-full aspect-square flex items-center justify-center transition-all duration-150"
+                        style={{
+                          backgroundColor: 'transparent',
+                          border: '2px solid transparent',
+                          borderRadius: '0px',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
+                          e.currentTarget.style.borderColor = '#C9A84C';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.backgroundColor = 'transparent';
+                          e.currentTarget.style.borderColor = 'transparent';
+                        }}
+                        onMouseDown={(e) => {
+                          e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.25)';
+                        }}
+                        onMouseUp={(e) => {
+                          e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
+                        }}
+                        title={name}
+                      >
+                        <img
+                          src={`/pieces/cburnett/${promotionPending.from[1] === '2' ? 'b' : 'w'}${code.toUpperCase()}.svg`}
+                          alt={name}
+                          draggable={false}
+                          style={{ width: '70%', height: '70%', objectFit: 'contain' }}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                ) : null
+              }
+            />
+            {/* Hint arrows SVG overlay */}
+            {hintVisible && !isFail && !isComplete && !selectedSquare && (
+              (() => {
+                const arrows = HINTS[exercise] || [];
+                const phaseArrows = arrows.filter(a => a.phase === blackMoves);
+                if (phaseArrows.length === 0) return null;
+                return (
+                  <svg className="absolute pointer-events-none z-[35]" style={{ top: 3, left: 3, width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
+                    {phaseArrows.map((arrow, i) => {
+                      const fromF = FILES.indexOf(arrow.from[0]);
+                      const fromR = RANKS.indexOf(arrow.from[1]);
+                      const toF = FILES.indexOf(arrow.to[0]);
+                      const toR = RANKS.indexOf(arrow.to[1]);
+                      const x1 = (fromF + 0.5) * sqSize;
+                      const y1 = (fromR + 0.5) * sqSize;
+                      const x2 = (toF + 0.5) * sqSize;
+                      const y2 = (toR + 0.5) * sqSize;
+                      const strokeW = sqSize < 60 ? 14 : 18;
+                      const halfW = strokeW / 2;
+                      const dx = x2 - x1;
+                      const dy = y2 - y1;
+                      const len = Math.sqrt(dx * dx + dy * dy) || 1;
+                      const headHeight = sqSize * 0.6;
+                      const headBase = strokeW * 3;
+                      const nx = -dy / len;
+                      const ny = dx / len;
+                      const blx = x1 + nx * halfW;   const bly = y1 + ny * halfW;
+                      const brx = x1 - nx * halfW;   const bry = y1 - ny * halfW;
+                      const tailX = x2 - (dx / len) * headHeight;
+                      const tailY = y2 - (dy / len) * headHeight;
+                      const tlx = tailX + nx * halfW; const tly = tailY + ny * halfW;
+                      const trx = tailX - nx * halfW; const try_ = tailY - ny * halfW;
+                      const hlx = tailX + nx * headBase / 2; const hly = tailY + ny * headBase / 2;
+                      const hrx = tailX - nx * headBase / 2; const hry = tailY - ny * headBase / 2;
+                      const cross = (brx - blx) * (-dy / len) - (bry - bly) * (-dx / len);
+                      const sweep = cross > 0 ? 1 : 0;
+                      const pathD = `M ${blx} ${bly} L ${tlx} ${tly} L ${hlx} ${hly} L ${x2} ${y2} L ${hrx} ${hry} L ${trx} ${try_} L ${brx} ${bry} A ${halfW} ${halfW} 0 1 ${sweep} ${blx} ${bly} Z`;
+                      return (
+                        <path
+                          key={i}
+                          d={pathD}
+                          fill="rgba(44, 36, 27, 0.35)"
+                          className="arrow-hint-line"
+                        />
+                      );
+                    })}
+                  </svg>
+                );
+              })()
+            )}
+          </div>
         </div>
         {/* Mobile exercise pills */}
         <div className="flex lg:hidden gap-[1px] w-full">
@@ -2808,7 +2958,7 @@ setLastMove({ from: 'd1', to: 'f3' });
             </div>
           </div>
           <div className="flex gap-2 w-full">
-            <button className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200">
+            <button onClick={handleHint} className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all duration-200 ${hintVisible ? 'bg-[#C9A84C] text-white border-[#C9A84C]' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
               <Eye size={14} /> Подсказка
             </button>
             <button onClick={reset} className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all duration-200 ${isFail ? 'border-[#B04A3A] text-[#B04A3A]' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
