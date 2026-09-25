@@ -370,6 +370,7 @@ setLastMove({ from: 'e2', to: 'e4' });
       if (!move) return;
       setLastMove({ from, to });
       setSelectedSquare(null);
+      setHintVisible(false);
 
       if (!skipAnimation) {
         const isCastle = move.piece === 'k' && Math.abs(from.charCodeAt(0) - to.charCodeAt(0)) === 2;
