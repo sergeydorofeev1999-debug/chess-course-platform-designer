@@ -241,7 +241,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
     worker.postMessage('setoption name Skill Level value 20');
     worker.postMessage('setoption name UCI_LimitStrength value false');
     worker.postMessage(`position fen ${g.fen()}`);
-    worker.postMessage('go depth 15');
+    worker.postMessage('go depth 10');
   }, []);
 
   const checkGameOver = useCallback((g: Chess, context: string) => {
