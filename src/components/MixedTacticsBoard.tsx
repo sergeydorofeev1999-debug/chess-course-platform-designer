@@ -138,12 +138,8 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
   const isFailRef = useRef(false);
   const mountedRef = useRef(true);
 
-  const [dragPiece, setDragPiece] = useState<DragState | null>(null);
-  const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const pointerStartRef = useRef<PointerStart | null>(null);
   const [promotionPending, setPromotionPending] = useState<{from: string; to: string} | null>(null);
-  const handledByPointerUpRef = useRef(false);
-  const lastMoveTimeRef = useRef(0);
 
   const storageKey = lessonId ? `mixed_progress_${lessonId}` : 'mixed_progress';
 
@@ -230,10 +226,6 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
     if (!game) return;
     const g = game;
     if (g.turn() !== 'w') return;
-
-    const now = Date.now();
-    if (now - lastMoveTimeRef.current < 800) return;
-    lastMoveTimeRef.current = now;
 
     const piece = g.get(from as any);
     if (piece) {
@@ -952,10 +944,6 @@ const handleSquareClick = useCallback((square: string) => {
     if (promotionPending) return;
     if (isCompleteRef.current || isFailRef.current) return;
     if (!game) return;
-    if (handledByPointerUpRef.current) {
-      handledByPointerUpRef.current = false;
-      return;
-    }
     const g = game;
     if (g.turn() !== 'w') return;
 
@@ -990,63 +978,6 @@ const handleSquareClick = useCallback((square: string) => {
     pointerStartRef.current = { x: e.clientX, y: e.clientY, square, moved: false, pointerId: e.pointerId };
   }, [game]);
 
-  useEffect(() => {
-    const handleGlobalMove = (e: PointerEvent) => {
-      const start = pointerStartRef.current;
-      if (!start) return;
-      if (e.pointerId !== start.pointerId) return;
-      const dx = e.clientX - start.x;
-      const dy = e.clientY - start.y;
-      if (!start.moved && (Math.abs(dx) > 20 || Math.abs(dy) > 20)) {
-        start.moved = true;
-        const piece = game?.get(start.square as any);
-        if (piece) {
-          setDragPiece({ square: start.square, type: piece.type.toUpperCase(), color: piece.color as 'w' | 'b' });
-          setSelectedSquare(null);
-        }
-      }
-      if (start.moved) {
-        setDragPos({ x: e.clientX, y: e.clientY });
-      }
-    };
-
-    const handleGlobalUp = (e: PointerEvent) => {
-      const start = pointerStartRef.current;
-      if (!start) return;
-      if (e.pointerId !== start.pointerId) return;
-      if (!start.moved) {
-        // click handled by onClick
-      } else {
-        const el = document.elementFromPoint(e.clientX, e.clientY);
-        const cell = el?.closest('[data-square]') as HTMLElement | null;
-        const targetSquare = cell?.dataset.square || null;
-        if (targetSquare && targetSquare !== start.square) {
-          handledByPointerUpRef.current = true;
-          // Drag move is handled by UCBD onMove — don't duplicate
-        }
-        setDragPiece(null);
-        setPromotionPending(null);
-      }
-      pointerStartRef.current = null;
-    };
-
-    const handleGlobalCancel = (e: PointerEvent) => {
-      if (pointerStartRef.current && e.pointerId === pointerStartRef.current.pointerId) {
-        setDragPiece(null);
-    setPromotionPending(null);
-        pointerStartRef.current = null;
-      }
-    };
-
-    window.addEventListener('pointermove', handleGlobalMove);
-    window.addEventListener('pointerup', handleGlobalUp);
-    window.addEventListener('pointercancel', handleGlobalCancel);
-    return () => {
-      window.removeEventListener('pointermove', handleGlobalMove);
-      window.removeEventListener('pointerup', handleGlobalUp);
-      window.removeEventListener('pointercancel', handleGlobalCancel);
-    };
-  }, [game, processWhiteMove]);
 
   // ──── PROMOTION ────
   const handlePromotion = useCallback((pieceCode: string) => {
@@ -1067,9 +998,7 @@ const handleSquareClick = useCallback((square: string) => {
 
   const validMoves = selectedSquare && game
     ? (game.moves({ square: selectedSquare as any, verbose: true }).map(m => m.to) as string[])
-    : dragPiece && game
-      ? (game.moves({ square: dragPiece.square as any, verbose: true }).map(m => m.to) as string[])
-      : [];
+    : [];
 
   const turnText = game ? (game.turn() === 'w' ? 'Ваш ход (белые)' : 'Ход чёрных...') : '';
 
