@@ -327,6 +327,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
 
   const switchExercise = useCallback((num: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8) => {
     setExercise(num);
+    setHintVisible(false);
     const fen = num === 1 ? START_FEN_1 : num === 2 ? START_FEN_2 : num === 3 ? START_FEN_3 : num === 4 ? START_FEN_4 : num === 5 ? START_FEN_5 : num === 6 ? START_FEN_6 : num === 7 ? START_FEN_7 : START_FEN_8;
     setGame(new Chess(fen));
     setSelectedSquare(null);
