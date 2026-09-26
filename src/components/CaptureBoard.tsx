@@ -635,6 +635,7 @@ function InlineChessBoard({
     squaresRef.current = p.squares;
     selectedSquareRef.current = null;
     setSelectedSquare(null);
+    setPlayerAnimatingMove(null);
   }, [fen]);
 
   useEffect(() => {
@@ -919,7 +920,7 @@ function InlineChessBoard({
   return (
     <div className="flex flex-col items-center gap-2 select-none">
       <div
-        className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none board-fade-in"
+        className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none"
         style={{
           gridTemplateColumns: `repeat(8, ${sqSize}px)`,
           gridTemplateRows: `repeat(8, ${sqSize}px)`,
@@ -1996,7 +1997,7 @@ export default function CaptureBoard({
       {embedded ? (
         /* Minimal mode: only the board + fail callback */
         <div className="flex flex-col items-center gap-3">
-          <InlineChessBoard key={currentLevel} fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} promotionPending={promotionPending} onPromotion={handlePromotion} opponentAnimatingMove={opponentAnimatingMove} lastMove={lastMove} waitingForOpponent={waitingForOpponent} />
+          <InlineChessBoard fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} promotionPending={promotionPending} onPromotion={handlePromotion} opponentAnimatingMove={opponentAnimatingMove} lastMove={lastMove} waitingForOpponent={waitingForOpponent} />
           {failed && onFail && (
             <div className="w-full">
               <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
