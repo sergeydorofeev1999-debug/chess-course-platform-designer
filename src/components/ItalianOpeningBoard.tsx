@@ -2964,14 +2964,6 @@ const handleSquareClick = useCallback((square: string) => {
         )}
 
         {/* Success message */}
-        {message && !isFail && (
-          <div className={`px-6 py-3 rounded-xl text-center font-bold text-white w-full mb-2 flex items-center justify-center gap-2 ${
-            message.includes('Отлично') ? 'bg-[#C9A84C]' : 'bg-[#8B7355]'
-          }`}>
-            {message.includes('Отлично') && <Trophy className="w-5 h-5 inline-block mr-2" />}
-            {message}
-          </div>
-        )}
 
         {/* Board */}
         <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
