@@ -6,6 +6,8 @@ import { RotateCcw, Trophy, ChevronRight, Star, Eye, Undo2 } from 'lucide-react'
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const DISPLAY_RANKS = ['8','7','6','5','4','3','2','1'];
+const REVERSED_FILES = ['h','g','f','e','d','c','b','a'];
+const REVERSED_DISPLAY_RANKS = ['1','2','3','4','5','6','7','8'];
 
 // Italian Game forced line (1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5)
 const ITALIAN_LINE = [
@@ -87,6 +89,7 @@ interface AnimatingMove {
 
 export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }: { onComplete: () => void; lessonId?: string; lessonTitle?: string }) {
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null);
+  const [selectedColor, setSelectedColor] = useState<'w' | 'random' | 'b' | null>(null);
   const [game, setGame] = useState<Chess | null>(null);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [message, setMessage] = useState('');
@@ -95,7 +98,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
   const [levelStars, setLevelStars] = useState<Record<number, number>>({});
   const [thinking, setThinking] = useState(false);
   const [gameOver, setGameOver] = useState<{ result: string; reason: string } | null>(null);
-  const [playerColor] = useState<'w' | 'b'>('w');
+  const [playerColor, setPlayerColor] = useState<'w' | 'b'>('w');
   const [promotionPending, setPromotionPending] = useState<{from:string; to:string}|null>(null);
   const [history, setHistory] = useState<{fen: string; openingStep: number; lastMove: {from: string; to: string} | null}[]>([]);
   const [hintComputing, setHintComputing] = useState(false);
@@ -141,7 +144,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
     return () => window.removeEventListener('resize', update);
   }, []);
 
-  // ─── STOCKFISH WORKER ────
+  const isReversed = playerColor === 'b';
   useEffect(() => {
     const worker = new Worker('/stockfish.js');
     workerRef.current = worker;
@@ -284,6 +287,14 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
   }, [playerColor, selectedLevel, storageKey, onComplete]);
 
   const startGame = useCallback((levelIndex: number) => {
+    let color: 'w' | 'b' = 'w';
+    if (selectedColor === 'random') {
+      color = Math.random() < 0.5 ? 'w' : 'b';
+    } else if (selectedColor === 'b') {
+      color = 'b';
+    }
+    setPlayerColor(color);
+
     const g = new Chess();
     setSelectedLevel(levelIndex);
     setGame(g);
@@ -302,13 +313,13 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
     openingStepRef.current = 0;
     setHistory([]);
 
-    if (playerColor === 'b') {
+    if (color === 'b') {
       // Computer moves first as white — no forced line for white
       setTimeout(() => {
         if (mountedRef.current) makeComputerMove(g, levelIndex, openingStepRef.current);
       }, 500);
     }
-  }, [playerColor, makeComputerMove]);
+  }, [selectedColor, makeComputerMove]);
 
   const undoMove = useCallback(() => {
     if (history.length === 0 || !game) return;
@@ -555,6 +566,87 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
   const turnText = game ? (game.turn() === 'w' ? 'Ход белых' : 'Ход чёрных') : '';
 
   // ──── LEVEL SELECTOR ────
+  if (selectedColor === null) {
+    return (
+      <div className="flex flex-col items-center gap-5 w-full max-w-sm mx-auto px-4 py-6">
+        {lessonTitle ? (
+          <div className="text-center w-full mb-1">
+            <h2 className="text-[20px] font-bold text-[#2C241B]">{lessonTitle}</h2>
+            <p className="text-[14px] font-medium text-[#8B7355] mt-1">Выберите цвет</p>
+          </div>
+        ) : (
+          <>
+            <div
+              className="rounded-2xl py-7 px-6 w-full text-center relative overflow-hidden mb-4"
+              style={{
+                background: 'linear-gradient(135deg, #2C241B 0%, #3A2E1F 50%, #2C241B 100%)',
+              }}
+            >
+              <h2 className="text-white text-2xl font-bold mb-2">Игра против компьютера</h2>
+              <p className="text-sm leading-relaxed" style={{ color: '#E8D5B5' }}>
+                Сыграйте с компьютером от начальной позиции.
+              </p>
+            </div>
+            <h3 className="text-xl font-bold text-[#2C241B] text-center mb-1">Выберите цвет</h3>
+          </>
+        )}
+
+        <div className="flex flex-col gap-3 w-full">
+          <button
+            onClick={() => setSelectedColor('w')}
+            className="flex items-center gap-3.5 px-4 py-4 rounded-2xl bg-white transition-all duration-150 ease-out hover:-translate-y-px text-left cursor-pointer"
+            style={{ border: '2px solid rgba(201,168,76,0.15)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#C9A84C'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.15)'; }}
+          >
+            <div className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#E8E8E8', border: '2px solid #888' }}>
+              <img src="/pieces/cburnett/wP.svg" alt="" className="w-7 h-7" draggable={false} />
+            </div>
+            <div className="flex-1">
+              <div className="font-bold text-base text-[#2C241B]">Белые</div>
+              <div className="text-[13px] text-[#8B7355]">Вы ходите первыми</div>
+            </div>
+            <ChevronRight size={20} className="flex-shrink-0 text-[#C9A84C]" />
+          </button>
+
+          <button
+            onClick={() => setSelectedColor('random')}
+            className="flex items-center gap-3.5 px-4 py-4 rounded-2xl bg-white transition-all duration-150 ease-out hover:-translate-y-px text-left cursor-pointer"
+            style={{ border: '2px solid rgba(201,168,76,0.15)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#C9A84C'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.15)'; }}
+          >
+            <div className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#C9A84C', boxShadow: '0 2px 8px #C9A84C40' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            </div>
+            <div className="flex-1">
+              <div className="font-bold text-base text-[#2C241B]">Случайно</div>
+              <div className="text-[13px] text-[#8B7355]">Цвет определится случайно</div>
+            </div>
+            <ChevronRight size={20} className="flex-shrink-0 text-[#C9A84C]" />
+          </button>
+
+          <button
+            onClick={() => setSelectedColor('b')}
+            className="flex items-center gap-3.5 px-4 py-4 rounded-2xl bg-white transition-all duration-150 ease-out hover:-translate-y-px text-left cursor-pointer"
+            style={{ border: '2px solid rgba(201,168,76,0.15)' }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#C9A84C'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.15)'; }}
+          >
+            <div className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#333', border: '2px solid #666' }}>
+              <img src="/pieces/cburnett/bP.svg" alt="" className="w-7 h-7" draggable={false} />
+            </div>
+            <div className="flex-1">
+              <div className="font-bold text-base text-[#2C241B]">Чёрные</div>
+              <div className="text-[13px] text-[#8B7355]">Компьютер ходит первым</div>
+            </div>
+            <ChevronRight size={20} className="flex-shrink-0 text-[#C9A84C]" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (selectedLevel === null) {
     const allCompleted = LEVELS.every(l => levelStars[l.id] > 0);
     return (
@@ -640,6 +732,9 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
   if (!game) return null;
 
   const currentLevel = LEVELS[selectedLevel];
+
+  const files = isReversed ? REVERSED_FILES : FILES;
+  const ranks = isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS;
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
@@ -736,6 +831,10 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
 
         {/* Board */}
         <div className="flex justify-center w-full relative">
+          {(() => {
+            const files = isReversed ? REVERSED_FILES : FILES;
+            const ranks = isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS;
+            return (
           <div
             data-board
             className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none"
@@ -745,8 +844,8 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
               touchAction: 'none',
             }}
           >
-            {DISPLAY_RANKS.map((rank, ri) => (
-              FILES.map((file, fi) => {
+            {ranks.map((rank, ri) => (
+              files.map((file, fi) => {
                 const sq = `${file}${rank}`;
                 const pieceObj = getPieceAt(sq);
                 const light = isLight(fi, ri);
@@ -832,10 +931,12 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
 
             {/* Player move ghost piece */}
             {playerAnimatingMove && (() => {
-              const fromF = FILES.indexOf(playerAnimatingMove.from[0]);
-              const fromR = DISPLAY_RANKS.indexOf(playerAnimatingMove.from[1]);
-              const toF = FILES.indexOf(playerAnimatingMove.to[0]);
-              const toR = DISPLAY_RANKS.indexOf(playerAnimatingMove.to[1]);
+              const fArr = isReversed ? REVERSED_FILES : FILES;
+              const rArr = isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS;
+              const fromF = fArr.indexOf(playerAnimatingMove.from[0]);
+              const fromR = rArr.indexOf(playerAnimatingMove.from[1]);
+              const toF = fArr.indexOf(playerAnimatingMove.to[0]);
+              const toR = rArr.indexOf(playerAnimatingMove.to[1]);
               const x1 = fromF * sqSize;
               const y1 = fromR * sqSize;
               const x2 = toF * sqSize;
@@ -863,10 +964,12 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
 
             {/* Opponent move ghost piece */}
             {opponentAnimatingMove && (() => {
-              const fromF = FILES.indexOf(opponentAnimatingMove.from[0]);
-              const fromR = DISPLAY_RANKS.indexOf(opponentAnimatingMove.from[1]);
-              const toF = FILES.indexOf(opponentAnimatingMove.to[0]);
-              const toR = DISPLAY_RANKS.indexOf(opponentAnimatingMove.to[1]);
+              const fArr = isReversed ? REVERSED_FILES : FILES;
+              const rArr = isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS;
+              const fromF = fArr.indexOf(opponentAnimatingMove.from[0]);
+              const fromR = rArr.indexOf(opponentAnimatingMove.from[1]);
+              const toF = fArr.indexOf(opponentAnimatingMove.to[0]);
+              const toR = rArr.indexOf(opponentAnimatingMove.to[1]);
               const x1 = fromF * sqSize;
               const y1 = fromR * sqSize;
               const x2 = toF * sqSize;
@@ -894,10 +997,12 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
 
             {/* Hint arrow SVG */}
             {hintArrow && (() => {
-              const fromF = FILES.indexOf(hintArrow.from[0]);
-              const fromR = DISPLAY_RANKS.indexOf(hintArrow.from[1]);
-              const toF = FILES.indexOf(hintArrow.to[0]);
-              const toR = DISPLAY_RANKS.indexOf(hintArrow.to[1]);
+              const fArr = isReversed ? REVERSED_FILES : FILES;
+              const rArr = isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS;
+              const fromF = fArr.indexOf(hintArrow.from[0]);
+              const fromR = rArr.indexOf(hintArrow.from[1]);
+              const toF = fArr.indexOf(hintArrow.to[0]);
+              const toR = rArr.indexOf(hintArrow.to[1]);
               const x1 = (fromF + 0.5) * sqSize;
               const y1 = (fromR + 0.5) * sqSize;
               const x2 = (toF + 0.5) * sqSize;
@@ -931,7 +1036,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
 
           {promotionPending && (
             <div className="absolute z-50 pointer-events-auto" style={{
-              left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
+              left: `${(isReversed ? REVERSED_FILES : FILES).indexOf(promotionPending.to[0]) * sqSize}px`,
               top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
               width: sqSize,
               height: 4 * sqSize,
@@ -980,11 +1085,9 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
               ))}
             </div>
           )}
-          </div>
-
-
-
-          {dragPiece && !playerAnimatingMove && !opponentAnimatingMove && (
+        </div>
+        )})()}
+        {dragPiece && !playerAnimatingMove && !opponentAnimatingMove && (
             <div
               className="fixed pointer-events-none z-50"
               style={{
