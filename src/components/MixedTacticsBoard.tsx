@@ -138,7 +138,6 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
   const isFailRef = useRef(false);
   const mountedRef = useRef(true);
 
-  const pointerStartRef = useRef<PointerStart | null>(null);
   const [promotionPending, setPromotionPending] = useState<{from: string; to: string} | null>(null);
 
   const storageKey = lessonId ? `mixed_progress_${lessonId}` : 'mixed_progress';
@@ -965,19 +964,6 @@ const handleSquareClick = useCallback((square: string) => {
       }
     }
   }, [game, selectedSquare, processWhiteMove]);
-
-  const handlePointerDown = useCallback((e: React.PointerEvent, square: string) => {
-    if (promotionPending) return;
-    if (isCompleteRef.current || isFailRef.current) return;
-    if (!game) return;
-    const g = game;
-    if (g.turn() !== 'w') return;
-    const piece = g.get(square as any);
-    if (!piece || piece.color !== 'w') return;
-    if (e.pointerType === 'touch' && !(e as any).isPrimary) return;
-    pointerStartRef.current = { x: e.clientX, y: e.clientY, square, moved: false, pointerId: e.pointerId };
-  }, [game]);
-
 
   // ──── PROMOTION ────
   const handlePromotion = useCallback((pieceCode: string) => {
