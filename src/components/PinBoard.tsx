@@ -1498,14 +1498,6 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
         )}
 
         {/* Success message */}
-        {message && !isFail && (
-          <div className={`px-6 py-3 rounded-xl text-center font-bold text-white ${
-            message.includes('Отлично') ? 'bg-green-500' : 'bg-yellow-500'
-          }`}>
-            {message.includes('Отлично') && <Trophy className="w-5 h-5 inline-block mr-2" />}
-            {message}
-          </div>
-        )}
 
         {/* Board */}
         <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
