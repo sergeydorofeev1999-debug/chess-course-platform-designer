@@ -28,7 +28,7 @@ const HINTS: Record<number, { from: string; to: string; phase: 0 | 1 }[]> = {
   1: [{ from: 'f3', to: 'd4', phase: 0 }, { from: 'f1', to: 'f8', phase: 1 }],
   2: [{ from: 'f3', to: 'e5', phase: 0 }, { from: 'e5', to: 'd7', phase: 1 }],
   3: [{ from: 'e5', to: 'e6', phase: 0 }, { from: 'd4', to: 'h8', phase: 1 }],
-  4: [{ from: 'e4', to: 'd6', phase: 0 }, { from: 'e1', to: 'e7', phase: 1 }],
+  4: [{ from: 'e4', to: 'g5', phase: 0 }, { from: 'e1', to: 'e7', phase: 1 }],
   5: [{ from: 'f5', to: 'f8', phase: 0 }, { from: 'g4', to: 'd7', phase: 1 }],
   6: [{ from: 'e5', to: 'e3', phase: 0 }, { from: 'e3', to: 'b3', phase: 1 }],
 };
@@ -393,12 +393,13 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
             return;
           }
         } else if (exercise === 4) {
-          // EXERCISE 4: Discovered attack — Rxe7+ check, black king escapes, then Rxh7
-          const isCorrectFirst = fromSq === 'e1' && toSq === 'e7' && realMove.piece === 'r' && realMove.captured;
-          const isCorrectSecond = fromSq === 'e7' && toSq === 'h7' && realMove.piece === 'r' && realMove.captured;
+          // EXERCISE 4: Discovered attack — Ne4-g5+ or Ne4-f6+, then Rxe7
+          const isCorrectFirst_Ng5 = fromSq === 'e4' && toSq === 'g5' && realMove.piece === 'n';
+          const isCorrectFirst_Nf6 = fromSq === 'e4' && toSq === 'f6' && realMove.piece === 'n';
+          const isCorrectSecond = fromSq === 'e1' && toSq === 'e7' && realMove.piece === 'r' && realMove.captured;
 
           if (whiteMoves === 0) {
-            if (!isCorrectFirst) {
+            if (!isCorrectFirst_Ng5 && !isCorrectFirst_Nf6) {
               setTimeout(() => {
                 if (!mountedRef.current) return;
                 const cap = getBestBlackCapture(g);
@@ -418,14 +419,27 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
 
             setTimeout(() => {
               if (!mountedRef.current) return;
-              // After Rxe7+, black king escapes (king moves)
-              const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
               let blackMove = null;
-              if (kingMoves.length > 0) {
-                blackMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
-                g.move({ from: blackMove.from, to: blackMove.to });
-                setLastMove({ from: blackMove.from, to: blackMove.to });
+
+              if (isCorrectFirst_Ng5) {
+                // After Ng5+, black king escapes to h6
+                const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
+                const kingToH6 = kingMoves.find((m: any) => m.to === 'h6');
+                if (kingToH6) {
+                  blackMove = kingToH6;
+                  g.move({ from: blackMove.from, to: blackMove.to });
+                  setLastMove({ from: blackMove.from, to: blackMove.to });
+                }
+              } else if (isCorrectFirst_Nf6) {
+                // After Nf6+, black pawn takes gxf6
+                const gxf6 = g.moves({ verbose: true }).find((m: any) => m.color === 'b' && m.san === 'gxf6');
+                if (gxf6) {
+                  blackMove = gxf6;
+                  g.move({ from: blackMove.from, to: blackMove.to });
+                  setLastMove({ from: blackMove.from, to: blackMove.to });
+                }
               }
+
               if (blackMove) {
                 setOpponentAnimatingMove({ from: blackMove.from, to: blackMove.to, piece: { type: blackMove.piece.toUpperCase(), color: 'b' } });
                 setTimeout(() => setOpponentAnimatingMove(null), 200);
@@ -434,7 +448,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
               setWhiteMoves(nextWhiteMoves);
             }, 1000);
 
-            setMessage('Шах! Теперь заберите пешку.');
+            setMessage('Шах! Теперь заберите ладью.');
             return;
           }
 
@@ -777,12 +791,13 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
               return;
             }
           } else if (exercise === 4) {
-            // EXERCISE 4: Discovered attack — Rxe7+ check, black king escapes, then Rxh7
-            const isCorrectFirst = fromSq === 'e1' && toSq === 'e7' && realMove.piece === 'r' && realMove.captured;
-            const isCorrectSecond = fromSq === 'e7' && toSq === 'h7' && realMove.piece === 'r' && realMove.captured;
+            // EXERCISE 4: Discovered attack — Ne4-g5+ or Ne4-f6+, then Rxe7
+            const isCorrectFirst_Ng5 = fromSq === 'e4' && toSq === 'g5' && realMove.piece === 'n';
+            const isCorrectFirst_Nf6 = fromSq === 'e4' && toSq === 'f6' && realMove.piece === 'n';
+            const isCorrectSecond = fromSq === 'e1' && toSq === 'e7' && realMove.piece === 'r' && realMove.captured;
 
             if (whiteMoves === 0) {
-              if (!isCorrectFirst) {
+              if (!isCorrectFirst_Ng5 && !isCorrectFirst_Nf6) {
                 setTimeout(() => {
                   if (!mountedRef.current) return;
                   const cap = getBestBlackCapture(g);
@@ -802,14 +817,27 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
 
               setTimeout(() => {
                 if (!mountedRef.current) return;
-                // After Rxe7+, black king escapes (king moves)
-                const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
                 let blackMove = null;
-                if (kingMoves.length > 0) {
-                  blackMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
-                  g.move({ from: blackMove.from, to: blackMove.to });
-                  setLastMove({ from: blackMove.from, to: blackMove.to });
+
+                if (isCorrectFirst_Ng5) {
+                  // After Ng5+, black king escapes to h6
+                  const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
+                  const kingToH6 = kingMoves.find((m: any) => m.to === 'h6');
+                  if (kingToH6) {
+                    blackMove = kingToH6;
+                    g.move({ from: blackMove.from, to: blackMove.to });
+                    setLastMove({ from: blackMove.from, to: blackMove.to });
+                  }
+                } else if (isCorrectFirst_Nf6) {
+                  // After Nf6+, black pawn takes gxf6
+                  const gxf6 = g.moves({ verbose: true }).find((m: any) => m.color === 'b' && m.san === 'gxf6');
+                  if (gxf6) {
+                    blackMove = gxf6;
+                    g.move({ from: blackMove.from, to: blackMove.to });
+                    setLastMove({ from: blackMove.from, to: blackMove.to });
+                  }
                 }
+
                 if (blackMove) {
                   setOpponentAnimatingMove({ from: blackMove.from, to: blackMove.to, piece: { type: blackMove.piece.toUpperCase(), color: 'b' } });
                   setTimeout(() => setOpponentAnimatingMove(null), 200);
@@ -818,7 +846,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
                 setWhiteMoves(nextWhiteMoves);
               }, 1000);
 
-              setMessage('Шах! Теперь заберите пешку.');
+              setMessage('Шах! Теперь заберите ладью.');
               return;
             }
 
