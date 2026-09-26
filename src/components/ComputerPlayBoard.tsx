@@ -238,9 +238,8 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
     };
 
     worker.addEventListener('message', onMsg);
-    worker.postMessage('setoption name UCI_LimitStrength value true');
-    worker.postMessage(`setoption name UCI_Elo value 1200`);
     worker.postMessage('setoption name Skill Level value 20');
+    worker.postMessage('setoption name UCI_LimitStrength value false');
     worker.postMessage(`position fen ${g.fen()}`);
     worker.postMessage('go depth 15');
   }, []);
