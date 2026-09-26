@@ -819,7 +819,6 @@ function parseFenSimple(fen: string) {
       <div className="flex justify-center w-full">
         <div className="relative inline-block rounded-sm">
           <CaptureBoard
-            key={String(resetKey)}
             lessonId={lesson.id}
             levels={levels}
             successMessage="Молодец!"
@@ -838,6 +837,7 @@ function parseFenSimple(fen: string) {
             }}
             onPositionChange={setCurrentPosition}
             onFail={() => setFailed(true)}
+            resetTrigger={resetKey}
           />
         </div>
       </div>

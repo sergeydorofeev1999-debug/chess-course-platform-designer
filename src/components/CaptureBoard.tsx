@@ -1179,6 +1179,7 @@ interface Props {
   hintArrows?: { from: string; to: string }[];
   onAnyMove?: () => void;
   onPositionChange?: (fen: string) => void;
+  resetTrigger?: number;
 }
 
 export default function CaptureBoard({
@@ -1196,6 +1197,7 @@ export default function CaptureBoard({
   hintArrows = [],
   onAnyMove,
   onPositionChange,
+  resetTrigger,
 }: Props) {
   const router = useRouter();
   const savedKey = `lesson_capture_${lessonId}`;
@@ -1330,6 +1332,23 @@ export default function CaptureBoard({
     nextTriggerIdxRef.current = 0;
     positionRef.current = lvl.initialFen;
   }, [currentLevel, levels]);
+
+  // Reset trigger from parent (e.g. "Заново" button)
+  useEffect(() => {
+    if (resetTrigger === undefined) return;
+    clearSuccessTimers();
+    const lvl = levels[currentLevel];
+    setPosition(lvl.initialFen);
+    setCollected([]);
+    setMoves(0);
+    setAllDone(false);
+    setGameOver(false);
+    setFailed(false);
+    setMsg('');
+    movesRef.current = 0;
+    nextTriggerIdxRef.current = 0;
+    positionRef.current = lvl.initialFen;
+  }, [resetTrigger, currentLevel, levels]);
 
   // Auto black move (e.g. pawn g7→g5) after delay on level start
   useEffect(() => {
