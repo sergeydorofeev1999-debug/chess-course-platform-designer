@@ -100,6 +100,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
   const [history, setHistory] = useState<{fen: string; openingStep: number}[]>([]);
 
   const [lastMove, setLastMove] = useState<{from: string; to: string} | null>(null);
+  const [hintArrow, setHintArrow] = useState<{from: string; to: string} | null>(null);
 
   // Ghost animation states
   const [playerAnimatingMove, setPlayerAnimatingMove] = useState<AnimatingMove | null>(null);
@@ -213,6 +214,42 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
     worker.postMessage('setoption name Skill Level value ' + Math.min(20, Math.max(0, cfg.depth)));
     worker.postMessage(`position fen ${g.fen()}`);
     worker.postMessage(`go depth ${cfg.depth}`);
+  }, []);
+
+  const getStockfishHint = useCallback((g: Chess) => {
+    if (!workerRef.current || !g) return;
+    setThinking(true);
+    const worker = workerRef.current;
+
+    const onMsg = (e: MessageEvent) => {
+      const line = e.data;
+      if (typeof line !== 'string') return;
+
+      if (line.startsWith('bestmove')) {
+        worker.removeEventListener('message', onMsg);
+        setThinking(false);
+
+        const parts = line.split(' ');
+        const bestMove = parts[1];
+        if (!bestMove || bestMove === '(none)') return;
+
+        const from = bestMove.slice(0, 2);
+        const to = bestMove.slice(2, 4);
+        setHintArrow({ from, to });
+
+        // Auto-hide hint after 5 seconds
+        setTimeout(() => {
+          if (mountedRef.current) setHintArrow(null);
+        }, 5000);
+      }
+    };
+
+    worker.addEventListener('message', onMsg);
+    worker.postMessage('setoption name UCI_LimitStrength value true');
+    worker.postMessage(`setoption name UCI_Elo value 1200`);
+    worker.postMessage('setoption name Skill Level value 20');
+    worker.postMessage(`position fen ${g.fen()}`);
+    worker.postMessage('go depth 10');
   }, []);
 
   const checkGameOver = useCallback((g: Chess, context: string) => {
@@ -611,10 +648,23 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
       <div className="w-full lg:w-[300px] flex-shrink-0 space-y-2">
         <div className="hidden lg:flex flex-col gap-2">
           <button
-            onClick={() => alert('Подсказка: развивайте фигуры быстро, контролируйте центр и не забывайте о безопасности короля.')}
-            className="flex items-center gap-1 px-3 py-1.5 text-xs text-[#2C241B] bg-[#F5F0E8] border border-[#D4C9B8] rounded hover:bg-[#EBE4DA] transition w-full justify-center"
+            onClick={() => {
+              if (game && !thinking) {
+                if (hintArrow) {
+                  setHintArrow(null);
+                } else {
+                  getStockfishHint(game);
+                }
+              }
+            }}
+            disabled={!game || thinking}
+            className={`flex items-center gap-1 px-3 py-1.5 text-xs rounded hover:bg-[#EBE4DA] transition w-full justify-center ${
+              hintArrow
+                ? 'text-[#8a6a3a] bg-[#c9a84c]/10 border border-[#c9a84c]/40'
+                : 'text-[#2C241B] bg-[#F5F0E8] border border-[#D4C9B8]'
+            } disabled:opacity-40 disabled:cursor-not-allowed`}
           >
-            <Eye size={14} /> Подсказка
+            <Eye size={14} /> {hintArrow ? 'Скрыть' : 'Подсказка'}
           </button>
           <div className="text-center text-sm font-bold text-[#2C241B]">
             Уровень: {currentLevel.elo} Elo — {currentLevel.label}
@@ -843,6 +893,43 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
               );
             })()}
 
+            {/* Hint arrow SVG */}
+            {hintArrow && (() => {
+              const fromF = FILES.indexOf(hintArrow.from[0]);
+              const fromR = DISPLAY_RANKS.indexOf(hintArrow.from[1]);
+              const toF = FILES.indexOf(hintArrow.to[0]);
+              const toR = DISPLAY_RANKS.indexOf(hintArrow.to[1]);
+              const x1 = (fromF + 0.5) * sqSize;
+              const y1 = (fromR + 0.5) * sqSize;
+              const x2 = (toF + 0.5) * sqSize;
+              const y2 = (toR + 0.5) * sqSize;
+              const strokeW = sqSize < 60 ? 14 : 18;
+              const halfW = strokeW / 2;
+              const dx = x2 - x1;
+              const dy = y2 - y1;
+              const len = Math.sqrt(dx * dx + dy * dy) || 1;
+              const headHeight = sqSize * 0.6;
+              const headBase = strokeW * 3;
+              const nx = -dy / len;
+              const ny = dx / len;
+              const blx = x1 + nx * halfW;   const bly = y1 + ny * halfW;
+              const brx = x1 - nx * halfW;   const bry = y1 - ny * halfW;
+              const tailX = x2 - (dx / len) * headHeight;
+              const tailY = y2 - (dy / len) * headHeight;
+              const tlx = tailX + nx * halfW; const tly = tailY + ny * halfW;
+              const trx = tailX - nx * halfW; const try_ = tailY - ny * halfW;
+              const hlx = tailX + nx * headBase / 2; const hly = tailY + ny * headBase / 2;
+              const hrx = tailX - nx * headBase / 2; const hry = tailY - ny * headBase / 2;
+              const cross = (brx - blx) * (-dy / len) - (bry - bly) * (-dx / len);
+              const sweep = cross > 0 ? 1 : 0;
+              const pathD = `M ${blx} ${bly} L ${tlx} ${tly} L ${hlx} ${hly} L ${x2} ${y2} L ${hrx} ${hry} L ${trx} ${try_} L ${brx} ${bry} A ${halfW} ${halfW} 0 1 ${sweep} ${blx} ${bly} Z`;
+              return (
+                <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
+                  <path d={pathD} fill="rgba(44, 36, 27, 0.35)" className="arrow-hint-line" />
+                </svg>
+              );
+            })()}
+
           {promotionPending && (
             <div className="absolute z-50 pointer-events-auto" style={{
               left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
@@ -924,10 +1011,23 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
         <div className="flex flex-col gap-2 w-full max-w-sm">
           <div className="flex gap-2 w-full">
             <button
-              onClick={() => alert('Подсказка: развивайте фигуры быстро, контролируйте центр и не забывайте о безопасности короля.')}
-              className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200"
+              onClick={() => {
+                if (game && !thinking) {
+                  if (hintArrow) {
+                    setHintArrow(null);
+                  } else {
+                    getStockfishHint(game);
+                  }
+                }
+              }}
+              disabled={!game || thinking}
+              className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all duration-200 ${
+                hintArrow
+                  ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10'
+                  : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'
+              } disabled:opacity-40 disabled:cursor-not-allowed`}
             >
-              <Eye size={14} /> Подсказка
+              <Eye size={14} /> {hintArrow ? 'Скрыть' : 'Подсказка'}
             </button>
             <button
               onClick={reset}
