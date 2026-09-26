@@ -333,7 +333,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
             return;
           }
         } else if (exercise === 3) {
-          // EXERCISE 3: Discovered attack — e5-e6 check, black king escapes to d7, then Rxh8
+          // EXERCISE 3: Discovered attack — e5-e6 check, black king escapes to b8, then Rxh8
           const isCorrectFirst = fromSq === 'e5' && toSq === 'e6' && realMove.piece === 'p';
           const isCorrectSecond = fromSq === 'd4' && toSq === 'h8' && realMove.piece === 'r' && realMove.captured === 'r';
 
@@ -358,12 +358,12 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
 
             setTimeout(() => {
               if (!mountedRef.current) return;
-              // After e6+, black king escapes to d7
+              // After e6+, black king escapes to b8 (d7 is attacked by Rd1)
               const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
-              const kingToD7 = kingMoves.find((m: any) => m.to === 'd7');
+              const kingToB8 = kingMoves.find((m: any) => m.to === 'b8');
               let blackMove = null;
-              if (kingToD7) {
-                blackMove = kingToD7;
+              if (kingToB8) {
+                blackMove = kingToB8;
                 g.move({ from: blackMove.from, to: blackMove.to });
                 setLastMove({ from: blackMove.from, to: blackMove.to });
               } else if (kingMoves.length > 0) {
@@ -722,7 +722,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
               return;
             }
           } else if (exercise === 3) {
-            // EXERCISE 3: Discovered attack — e5-e6 check, black king escapes to d7, then Rxh8
+            // EXERCISE 3: Discovered attack — e5-e6 check, black king escapes to b8, then Rxh8
             const isCorrectFirst = fromSq === 'e5' && toSq === 'e6' && realMove.piece === 'p';
             const isCorrectSecond = fromSq === 'd4' && toSq === 'h8' && realMove.piece === 'r' && realMove.captured === 'r';
 
@@ -747,12 +747,12 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
 
               setTimeout(() => {
                 if (!mountedRef.current) return;
-                // After e6+, black king escapes to d7
+                // After e6+, black king escapes to b8 (d7 is attacked by Rd1)
                 const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
-                const kingToD7 = kingMoves.find((m: any) => m.to === 'd7');
+                const kingToB8 = kingMoves.find((m: any) => m.to === 'b8');
                 let blackMove = null;
-                if (kingToD7) {
-                  blackMove = kingToD7;
+                if (kingToB8) {
+                  blackMove = kingToB8;
                   g.move({ from: blackMove.from, to: blackMove.to });
                   setLastMove({ from: blackMove.from, to: blackMove.to });
                 } else if (kingMoves.length > 0) {
