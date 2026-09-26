@@ -143,6 +143,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
   const pointerStartRef = useRef<PointerStart | null>(null);
   const [promotionPending, setPromotionPending] = useState<{from: string; to: string} | null>(null);
   const handledByPointerUpRef = useRef(false);
+  const lastMoveTimeRef = useRef(0);
 
   const storageKey = lessonId ? `mixed_progress_${lessonId}` : 'mixed_progress';
 
@@ -229,6 +230,10 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
     if (!game) return;
     const g = game;
     if (g.turn() !== 'w') return;
+
+    const now = Date.now();
+    if (now - lastMoveTimeRef.current < 300) return;
+    lastMoveTimeRef.current = now;
 
     const piece = g.get(from as any);
     if (piece) {
