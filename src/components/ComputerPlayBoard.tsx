@@ -218,7 +218,6 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
 
   const getStockfishHint = useCallback((g: Chess) => {
     if (!workerRef.current || !g) return;
-    setThinking(true);
     const worker = workerRef.current;
 
     const onMsg = (e: MessageEvent) => {
@@ -227,7 +226,6 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
 
       if (line.startsWith('bestmove')) {
         worker.removeEventListener('message', onMsg);
-        setThinking(false);
 
         const parts = line.split(' ');
         const bestMove = parts[1];
@@ -236,11 +234,6 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
         const from = bestMove.slice(0, 2);
         const to = bestMove.slice(2, 4);
         setHintArrow({ from, to });
-
-        // Auto-hide hint after 5 seconds
-        setTimeout(() => {
-          if (mountedRef.current) setHintArrow(null);
-        }, 5000);
       }
     };
 
@@ -344,6 +337,9 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
 
     const prevFen = game.fen();
     const prevStep = openingStepRef.current;
+
+    // Clear hint arrow on move
+    setHintArrow(null);
 
     // Check if pawn promotion needed
     const piece = g.get(from as any);
