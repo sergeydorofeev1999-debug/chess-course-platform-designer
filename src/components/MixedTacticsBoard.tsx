@@ -221,15 +221,17 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
     }
   }, []);
 
-  const processWhiteMove = useCallback((from: string, to: string, promotionPiece?: string) => {
+  const processWhiteMove = useCallback((from: string, to: string, promotionPiece?: string, skipAnimation?: boolean) => {
     if (!game) return;
     const g = game;
     if (g.turn() !== 'w') return;
 
     const piece = g.get(from as any);
-    if (piece) {
-      setPlayerAnimatingMove({ from, to, piece: { type: piece.type.toUpperCase(), color: 'w' as 'w' | 'b' } });
-      setTimeout(() => setPlayerAnimatingMove(null), 220);
+    if (!skipAnimation) {
+      if (piece) {
+        setPlayerAnimatingMove({ from, to, piece: { type: piece.type.toUpperCase(), color: 'w' as 'w' | 'b' } });
+        setTimeout(() => setPlayerAnimatingMove(null), 220);
+      }
     }
 
     try {
@@ -241,6 +243,8 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
       const move = g.move({ from, to, promotion: promotionPiece });
       if (!move) return;
       setLastMove({ from, to });
+
+      const runExerciseLogic = () => {
 
       const nextWhiteMoves = whiteMoves + 1;
 
@@ -934,6 +938,13 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
         }
         return;
       }
+      }; // runExerciseLogic
+
+      if (skipAnimation) {
+        runExerciseLogic();
+      } else {
+        setTimeout(() => runExerciseLogic(), 220);
+      }
     } catch {
       // Invalid move
     }
@@ -957,7 +968,7 @@ const handleSquareClick = useCallback((square: string) => {
         setSelectedSquare(square);
         return;
       }
-      processWhiteMove(selectedSquare, square);
+      processWhiteMove(selectedSquare, square, undefined, false);
     } else {
       if (piece && piece.color === 'w') {
         setSelectedSquare(square);
@@ -1145,7 +1156,7 @@ const getExerciseGoal = (ex: number) => {
             selectedSquare={selectedSquare}
             lastMove={lastMove}
             autoValidMoves={true}
-            onMove={(from, to) => processWhiteMove(from, to)}
+            onMove={(from, to) => processWhiteMove(from, to, undefined, true)}
             onSquareClick={handleSquareClick}
             playerAnimatingMove={playerAnimatingMove}
             opponentAnimatingMove={opponentAnimatingMove}
