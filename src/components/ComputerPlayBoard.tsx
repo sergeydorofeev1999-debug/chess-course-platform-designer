@@ -89,7 +89,7 @@ interface AnimatingMove {
 
 export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }: { onComplete: () => void; lessonId?: string; lessonTitle?: string }) {
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null);
-  const [selectedColor, setSelectedColor] = useState<'w' | 'random' | 'b' | null>(null);
+  const [selectedColor, setSelectedColor] = useState<'w' | 'random' | 'b'>('random');
   const [game, setGame] = useState<Chess | null>(null);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [message, setMessage] = useState('');
@@ -339,6 +339,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
 
   const reset = useCallback(() => {
     if (selectedLevel !== null) {
+      // Preserve color choice on reset
       startGame(selectedLevel);
     }
   }, [selectedLevel, startGame]);
@@ -566,87 +567,6 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
   const turnText = game ? (game.turn() === 'w' ? 'Ход белых' : 'Ход чёрных') : '';
 
   // ──── LEVEL SELECTOR ────
-  if (selectedColor === null) {
-    return (
-      <div className="flex flex-col items-center gap-5 w-full max-w-sm mx-auto px-4 py-6">
-        {lessonTitle ? (
-          <div className="text-center w-full mb-1">
-            <h2 className="text-[20px] font-bold text-[#2C241B]">{lessonTitle}</h2>
-            <p className="text-[14px] font-medium text-[#8B7355] mt-1">Выберите цвет</p>
-          </div>
-        ) : (
-          <>
-            <div
-              className="rounded-2xl py-7 px-6 w-full text-center relative overflow-hidden mb-4"
-              style={{
-                background: 'linear-gradient(135deg, #2C241B 0%, #3A2E1F 50%, #2C241B 100%)',
-              }}
-            >
-              <h2 className="text-white text-2xl font-bold mb-2">Игра против компьютера</h2>
-              <p className="text-sm leading-relaxed" style={{ color: '#E8D5B5' }}>
-                Сыграйте с компьютером от начальной позиции.
-              </p>
-            </div>
-            <h3 className="text-xl font-bold text-[#2C241B] text-center mb-1">Выберите цвет</h3>
-          </>
-        )}
-
-        <div className="flex flex-col gap-3 w-full">
-          <button
-            onClick={() => setSelectedColor('w')}
-            className="flex items-center gap-3.5 px-4 py-4 rounded-2xl bg-white transition-all duration-150 ease-out hover:-translate-y-px text-left cursor-pointer"
-            style={{ border: '2px solid rgba(201,168,76,0.15)' }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#C9A84C'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.15)'; }}
-          >
-            <div className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#E8E8E8', border: '2px solid #888' }}>
-              <img src="/pieces/cburnett/wP.svg" alt="" className="w-7 h-7" draggable={false} />
-            </div>
-            <div className="flex-1">
-              <div className="font-bold text-base text-[#2C241B]">Белые</div>
-              <div className="text-[13px] text-[#8B7355]">Вы ходите первыми</div>
-            </div>
-            <ChevronRight size={20} className="flex-shrink-0 text-[#C9A84C]" />
-          </button>
-
-          <button
-            onClick={() => setSelectedColor('random')}
-            className="flex items-center gap-3.5 px-4 py-4 rounded-2xl bg-white transition-all duration-150 ease-out hover:-translate-y-px text-left cursor-pointer"
-            style={{ border: '2px solid rgba(201,168,76,0.15)' }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#C9A84C'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.15)'; }}
-          >
-            <div className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#C9A84C', boxShadow: '0 2px 8px #C9A84C40' }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-            </div>
-            <div className="flex-1">
-              <div className="font-bold text-base text-[#2C241B]">Случайно</div>
-              <div className="text-[13px] text-[#8B7355]">Цвет определится случайно</div>
-            </div>
-            <ChevronRight size={20} className="flex-shrink-0 text-[#C9A84C]" />
-          </button>
-
-          <button
-            onClick={() => setSelectedColor('b')}
-            className="flex items-center gap-3.5 px-4 py-4 rounded-2xl bg-white transition-all duration-150 ease-out hover:-translate-y-px text-left cursor-pointer"
-            style={{ border: '2px solid rgba(201,168,76,0.15)' }}
-            onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#C9A84C'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.15)'; }}
-          >
-            <div className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#333', border: '2px solid #666' }}>
-              <img src="/pieces/cburnett/bP.svg" alt="" className="w-7 h-7" draggable={false} />
-            </div>
-            <div className="flex-1">
-              <div className="font-bold text-base text-[#2C241B]">Чёрные</div>
-              <div className="text-[13px] text-[#8B7355]">Компьютер ходит первым</div>
-            </div>
-            <ChevronRight size={20} className="flex-shrink-0 text-[#C9A84C]" />
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   if (selectedLevel === null) {
     const allCompleted = LEVELS.every(l => levelStars[l.id] > 0);
     return (
@@ -666,7 +586,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
             >
               <h2 className="text-white text-2xl font-bold mb-2">Игра против компьютера</h2>
               <p className="text-sm leading-relaxed" style={{ color: '#E8D5B5' }}>
-                Сыграйте с компьютером от начальной позиции. Вы играете белыми.
+                Сыграйте с компьютером от начальной позиции.
               </p>
               <div
                 className="absolute bottom-0 left-[10%] right-[10%] h-[3px]"
@@ -683,6 +603,41 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
         )}
 
         <div className="flex flex-col gap-3 w-full">
+          {/* Color selector */}
+          <div className="flex gap-2 w-full">
+            <button
+              onClick={() => setSelectedColor('w')}
+              className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl border px-2 py-2.5 text-xs font-bold transition-all duration-150 ${
+                selectedColor === 'w'
+                  ? 'border-[#C9A84C] bg-[#C9A84C]/10 text-[#8A6A3A]'
+                  : 'border-[rgba(201,168,76,0.25)] bg-white text-[#8B7355]'
+              }`}
+            >
+              <img src="/pieces/cburnett/wP.svg" alt="" className="w-5 h-5" draggable={false} /> Белые
+            </button>
+            <button
+              onClick={() => setSelectedColor('random')}
+              className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl border px-2 py-2.5 text-xs font-bold transition-all duration-150 ${
+                selectedColor === 'random'
+                  ? 'border-[#C9A84C] bg-[#C9A84C]/10 text-[#8A6A3A]'
+                  : 'border-[rgba(201,168,76,0.25)] bg-white text-[#8B7355]'
+              }`}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+              Случайно
+            </button>
+            <button
+              onClick={() => setSelectedColor('b')}
+              className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl border px-2 py-2.5 text-xs font-bold transition-all duration-150 ${
+                selectedColor === 'b'
+                  ? 'border-[#C9A84C] bg-[#C9A84C]/10 text-[#8A6A3A]'
+                  : 'border-[rgba(201,168,76,0.25)] bg-[#2C241B] text-[#E8D5B5]'
+              }`}
+            >
+              <img src="/pieces/cburnett/bP.svg" alt="" className="w-5 h-5" draggable={false} /> Чёрные
+            </button>
+          </div>
+
           {LEVELS.map((lvl) => {
             const earned = levelStars[lvl.id] || 0;
             const isDone = earned > 0;
@@ -1103,7 +1058,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
         </div>
 
         <button
-          onClick={() => setSelectedLevel(null)}
+          onClick={() => { setSelectedLevel(null); setSelectedColor('random'); }}
           className="flex lg:hidden items-center gap-1 px-3 py-1.5 text-xs text-[#2C241B] bg-[#F5F0E8] border border-[#D4C9B8] rounded-lg hover:bg-[#EBE4DA] transition"
         >
           ← Выбрать уровень
