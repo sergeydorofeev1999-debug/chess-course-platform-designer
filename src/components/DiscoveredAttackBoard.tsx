@@ -333,9 +333,9 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
             return;
           }
         } else if (exercise === 3) {
-          // EXERCISE 3: Discovered attack — e5-e6 check, black king escapes to b8, then Rxh8
+          // EXERCISE 3: Discovered attack — e5-e6+ check, black blocks with Re7, then Bxh8
           const isCorrectFirst = fromSq === 'e5' && toSq === 'e6' && realMove.piece === 'p';
-          const isCorrectSecond = fromSq === 'd4' && toSq === 'h8' && realMove.piece === 'r' && realMove.captured === 'r';
+          const isCorrectSecond = fromSq === 'd4' && toSq === 'h8' && realMove.piece === 'b' && realMove.captured === 'r';
 
           if (whiteMoves === 0) {
             if (!isCorrectFirst) {
@@ -358,16 +358,11 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
 
             setTimeout(() => {
               if (!mountedRef.current) return;
-              // After e6+, black king escapes to b8 (d7 is attacked by Rd1)
-              const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
-              const kingToB8 = kingMoves.find((m: any) => m.to === 'b8');
+              // After e6+, black blocks with Re7 (f7→e7)
+              const rookMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'r' && m.from === 'f7' && m.to === 'e7');
               let blackMove = null;
-              if (kingToB8) {
-                blackMove = kingToB8;
-                g.move({ from: blackMove.from, to: blackMove.to });
-                setLastMove({ from: blackMove.from, to: blackMove.to });
-              } else if (kingMoves.length > 0) {
-                blackMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+              if (rookMoves.length > 0) {
+                blackMove = rookMoves[0];
                 g.move({ from: blackMove.from, to: blackMove.to });
                 setLastMove({ from: blackMove.from, to: blackMove.to });
               }
@@ -379,7 +374,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
               setWhiteMoves(nextWhiteMoves);
             }, 1000);
 
-            setMessage('Шах! Теперь заберите ладью.');
+            setMessage('Шах! Теперь заберите ладью слоном.');
             return;
           }
 
@@ -722,9 +717,9 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
               return;
             }
           } else if (exercise === 3) {
-            // EXERCISE 3: Discovered attack — e5-e6 check, black king escapes to b8, then Rxh8
+            // EXERCISE 3: Discovered attack — e5-e6+ check, black blocks with Re7, then Bxh8
             const isCorrectFirst = fromSq === 'e5' && toSq === 'e6' && realMove.piece === 'p';
-            const isCorrectSecond = fromSq === 'd4' && toSq === 'h8' && realMove.piece === 'r' && realMove.captured === 'r';
+            const isCorrectSecond = fromSq === 'd4' && toSq === 'h8' && realMove.piece === 'b' && realMove.captured === 'r';
 
             if (whiteMoves === 0) {
               if (!isCorrectFirst) {
@@ -747,16 +742,11 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
 
               setTimeout(() => {
                 if (!mountedRef.current) return;
-                // After e6+, black king escapes to b8 (d7 is attacked by Rd1)
-                const kingMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'k');
-                const kingToB8 = kingMoves.find((m: any) => m.to === 'b8');
+                // After e6+, black blocks with Re7 (f7→e7)
+                const rookMoves = g.moves({ verbose: true }).filter((m: any) => m.color === 'b' && m.piece === 'r' && m.from === 'f7' && m.to === 'e7');
                 let blackMove = null;
-                if (kingToB8) {
-                  blackMove = kingToB8;
-                  g.move({ from: blackMove.from, to: blackMove.to });
-                  setLastMove({ from: blackMove.from, to: blackMove.to });
-                } else if (kingMoves.length > 0) {
-                  blackMove = kingMoves[Math.floor(Math.random() * kingMoves.length)];
+                if (rookMoves.length > 0) {
+                  blackMove = rookMoves[0];
                   g.move({ from: blackMove.from, to: blackMove.to });
                   setLastMove({ from: blackMove.from, to: blackMove.to });
                 }
@@ -768,7 +758,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
                 setWhiteMoves(nextWhiteMoves);
               }, 1000);
 
-              setMessage('Шах! Теперь заберите ладью.');
+              setMessage('Шах! Теперь заберите ладью слоном.');
               return;
             }
 
