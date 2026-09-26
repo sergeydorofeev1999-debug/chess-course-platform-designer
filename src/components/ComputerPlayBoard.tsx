@@ -153,10 +153,35 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
   }, []);
 
   const makeComputerMove = useCallback((g: Chess, level: number, openStep: number) => {
-    if (!workerRef.current) return;
     const cfg = LEVELS[level];
     if (!cfg) return;
 
+    // ── Italian opening forced line ──
+    if (openStep < ITALIAN_LINE.length) {
+      const forced = playerColor === 'w' ? ITALIAN_LINE[openStep].black : ITALIAN_LINE[openStep].white;
+      try {
+        const movedPiece = g.get(forced.from as any);
+        const pieceData = movedPiece
+          ? { type: movedPiece.type.toUpperCase(), color: movedPiece.color as 'w' | 'b' }
+          : { type: 'P', color: 'b' as 'w' | 'b' };
+
+        setOpponentAnimatingMove({ from: forced.from, to: forced.to, piece: pieceData });
+        setLastMove({ from: forced.from, to: forced.to });
+
+        setTimeout(() => {
+          if (!mountedRef.current) return;
+          const newG = new Chess(g.fen());
+          newG.move({ from: forced.from, to: forced.to });
+          setGame(new Chess(newG.fen()));
+          setOpponentAnimatingMove(null);
+          openingStepRef.current = openStep + 1;
+          checkGameOver(newG, 'after computer forced');
+        }, 200);
+        return;
+      } catch {}
+    }
+
+    if (!workerRef.current) return;
     setThinking(true);
     const worker = workerRef.current;
 
@@ -218,10 +243,23 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
     worker.postMessage('setoption name Skill Level value ' + Math.min(20, Math.max(0, cfg.depth)));
     worker.postMessage(`position fen ${g.fen()}`);
     worker.postMessage(`go depth ${cfg.depth}`);
-  }, []);
+  }, [playerColor]);
 
   const getStockfishHint = useCallback((g: Chess) => {
-    if (!workerRef.current || !g) return;
+    if (!g) return;
+
+    // ── Italian opening hint ──
+    const step = openingStepRef.current;
+    if (step < ITALIAN_LINE.length && g.turn() === playerColor) {
+      if (playerColor === 'w') {
+        setHintArrow({ from: ITALIAN_LINE[step].white.from, to: ITALIAN_LINE[step].white.to });
+      } else {
+        setHintArrow({ from: ITALIAN_LINE[step].black.from, to: ITALIAN_LINE[step].black.to });
+      }
+      return;
+    }
+
+    if (!workerRef.current) return;
     setHintComputing(true);
     const worker = workerRef.current;
 
@@ -396,47 +434,18 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
           return;
         }
 
-        // ── Italian opening forced line ──
+        // ── Italian opening tracking ──
         const step = openingStepRef.current;
-        if (playerColor === 'w' && step < ITALIAN_LINE.length) {
-          const expected = ITALIAN_LINE[step].white;
+        if (step < ITALIAN_LINE.length) {
+          const expected = playerColor === 'w' ? ITALIAN_LINE[step].white : ITALIAN_LINE[step].black;
           if (move.from === expected.from && move.to === expected.to) {
-            // White followed the line — play forced black response
-            setTimeout(() => {
-              if (!mountedRef.current) return;
-              const blackMove = ITALIAN_LINE[step].black;
-              try {
-                const blackPiece = g.get(blackMove.from as any);
-                const blackPieceData = blackPiece
-                  ? { type: blackPiece.type.toUpperCase(), color: blackPiece.color as 'w' | 'b' }
-                  : { type: 'P', color: 'b' as 'w' | 'b' };
-
-                setOpponentAnimatingMove({
-                  from: blackMove.from,
-                  to: blackMove.to,
-                  piece: blackPieceData,
-                });
-                setLastMove({ from: blackMove.from, to: blackMove.to });
-
-                setTimeout(() => {
-                  if (!mountedRef.current) return;
-                  const newG = new Chess(g.fen());
-                  newG.move({ from: blackMove.from, to: blackMove.to });
-                  setGame(new Chess(newG.fen()));
-                  setOpponentAnimatingMove(null);
-                  openingStepRef.current = step + 1;
-                  checkGameOver(newG, 'after computer forced');
-                }, 200);
-              } catch {}
-            }, 600);
-            return;
+            openingStepRef.current = step + 1;  // Followed the line
           } else {
-            // White deviated — disable forced line
-            openingStepRef.current = ITALIAN_LINE.length;
+            openingStepRef.current = ITALIAN_LINE.length;  // Deviated
           }
         }
 
-        // Computer's turn (Stockfish)
+        // Computer's turn (forced line or Stockfish)
         setTimeout(() => {
           if (mountedRef.current) makeComputerMove(new Chess(g.fen()), selectedLevel, openingStepRef.current);
         }, 600);
