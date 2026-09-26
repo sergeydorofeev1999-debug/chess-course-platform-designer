@@ -232,7 +232,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
     if (g.turn() !== 'w') return;
 
     const now = Date.now();
-    if (now - lastMoveTimeRef.current < 300) return;
+    if (now - lastMoveTimeRef.current < 800) return;
     lastMoveTimeRef.current = now;
 
     const piece = g.get(from as any);
@@ -1022,7 +1022,7 @@ const handleSquareClick = useCallback((square: string) => {
         const targetSquare = cell?.dataset.square || null;
         if (targetSquare && targetSquare !== start.square) {
           handledByPointerUpRef.current = true;
-          processWhiteMove(start.square, targetSquare);
+          // Drag move is handled by UCBD onMove — don't duplicate
         }
         setDragPiece(null);
         setPromotionPending(null);
