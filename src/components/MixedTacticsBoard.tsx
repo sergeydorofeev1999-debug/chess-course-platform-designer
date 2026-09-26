@@ -142,6 +142,7 @@ export default function MixedTacticsBoard({ onComplete, lessonId }: { onComplete
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const pointerStartRef = useRef<PointerStart | null>(null);
   const [promotionPending, setPromotionPending] = useState<{from: string; to: string} | null>(null);
+  const handledByPointerUpRef = useRef(false);
 
   const storageKey = lessonId ? `mixed_progress_${lessonId}` : 'mixed_progress';
 
@@ -946,6 +947,10 @@ const handleSquareClick = useCallback((square: string) => {
     if (promotionPending) return;
     if (isCompleteRef.current || isFailRef.current) return;
     if (!game) return;
+    if (handledByPointerUpRef.current) {
+      handledByPointerUpRef.current = false;
+      return;
+    }
     const g = game;
     if (g.turn() !== 'w') return;
 
@@ -1011,10 +1016,11 @@ const handleSquareClick = useCallback((square: string) => {
         const cell = el?.closest('[data-square]') as HTMLElement | null;
         const targetSquare = cell?.dataset.square || null;
         if (targetSquare && targetSquare !== start.square) {
+          handledByPointerUpRef.current = true;
           processWhiteMove(start.square, targetSquare);
         }
         setDragPiece(null);
-    setPromotionPending(null);
+        setPromotionPending(null);
       }
       pointerStartRef.current = null;
     };
