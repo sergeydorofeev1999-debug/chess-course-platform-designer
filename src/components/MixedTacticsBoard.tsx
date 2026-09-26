@@ -38,10 +38,10 @@ const HINTS: Record<number, { from: string; to: string; phase: 0 | 1 | 2 }[]> = 
   6: [{ from: 'c2', to: 'c5', phase: 0 }, { from: 'c5', to: 'e5', phase: 1 }],
   7: [{ from: 'e4', to: 'e7', phase: 0 }, { from: 'e7', to: 'd7', phase: 1 }],
   8: [{ from: 'e4', to: 'f6', phase: 0 }, { from: 'g2', to: 'c6', phase: 1 }],
-  9: [{ from: 'c5', to: 'e6', phase: 0 }, { from: 'e6', to: 'g5', phase: 1 }],
-  10: [{ from: 'd1', to: 'a4', phase: 0 }, { from: 'a4', to: 'a5', phase: 1 }],
-  11: [{ from: 'e4', to: 'f6', phase: 0 }, { from: 'f6', to: 'd7', phase: 1 }],
-  12: [{ from: 'c5', to: 'e7', phase: 0 }, { from: 'c5', to: 'd6', phase: 1 }],
+  9: [{ from: 'e4', to: 'f6', phase: 0 }],
+  10: [{ from: 'c5', to: 'e6', phase: 0 }, { from: 'e6', to: 'g5', phase: 1 }],
+  11: [{ from: 'd1', to: 'a4', phase: 0 }, { from: 'a4', to: 'a5', phase: 1 }],
+  12: [{ from: 'f4', to: 'd6', phase: 0 }],
 };
 
 function StarPng({ filled, size = 14 }: { filled: boolean; size?: number }) {
