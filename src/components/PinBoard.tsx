@@ -283,6 +283,16 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
     setWhiteMoves(0);
   }, []);
 
+  // Auto-advance to next exercise after completion (like MateInTwoBoard)
+  useEffect(() => {
+    if (isComplete && exercise < 12) {
+      const timer = setTimeout(() => {
+        switchExercise((exercise + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [isComplete, exercise, switchExercise]);
+
   const getBlackPieceType = (game: Chess, square: string) => {
     const piece = game.get(square as any);
     return piece ? piece.type : 'p';
@@ -1673,32 +1683,6 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             </button>
           </div>
         </div>
-
-        {/* Completion banner */}
-        {isComplete && (
-          <div className="flex flex-col items-center gap-3 mt-2">
-            <div className="flex items-center gap-2 text-green-600 font-bold text-lg">
-              <Trophy className="w-6 h-6" />
-              <span>Упражнение {exercise} пройдено!</span>
-            </div>
-            {exercise < 12 && (
-              <button
-                onClick={() => switchExercise((exercise + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12)}
-                className="bg-blue-500 text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-blue-600 transition"
-              >
-                Перейти к Упражнению {exercise + 1} →
-              </button>
-            )}
-            {exercise === 12 && (exerciseStars[12] || 0) >= 3 && (
-              <button
-                onClick={onComplete}
-                className="bg-emerald-500 text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-emerald-600 transition"
-              >
-                Урок завершён ✓
-              </button>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
