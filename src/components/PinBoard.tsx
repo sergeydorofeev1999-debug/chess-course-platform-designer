@@ -1501,20 +1501,72 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
 
         {/* Board */}
         <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
-          <UniversalChessBoardDesigner
-            fen={game?.fen() || ''}
-            selectedSquare={selectedSquare}
-            lastMove={lastMove}
-            autoValidMoves={true}
-            onMove={(from, to) => processWhiteMove(from, to)}
-            onSquareClick={handleSquareClick}
-            interactive={!isComplete && !isFail}
-            sqSize={sqSize}
-            clickGhost={true}
-            userColor="w"
-            disableAutoGhost={true}
-            opponentAnimatingMove={opponentAnimatingMove}
-          />
+          <div className="relative" style={{ width: 8 * sqSize + 6, height: 8 * sqSize + 6 }}>
+            <UniversalChessBoardDesigner
+              fen={game?.fen() || ''}
+              selectedSquare={selectedSquare}
+              lastMove={lastMove}
+              autoValidMoves={true}
+              onMove={(from, to) => processWhiteMove(from, to)}
+              onSquareClick={handleSquareClick}
+              interactive={!isComplete && !isFail}
+              sqSize={sqSize}
+              clickGhost={true}
+              userColor="w"
+              disableAutoGhost={true}
+              opponentAnimatingMove={opponentAnimatingMove}
+            />
+            {/* Hint arrows SVG overlay */}
+            {hintVisible && !isFail && !isComplete && !selectedSquare && (
+              (() => {
+                const arrows = HINTS[exercise] || [];
+                const phaseArrows = arrows.filter(a => a.phase === whiteMoves);
+                if (phaseArrows.length === 0) return null;
+                return (
+                  <svg className="absolute pointer-events-none z-[35]" style={{ top: 3, left: 3, width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
+                    {phaseArrows.map((arrow, i) => {
+                      const fromF = FILES.indexOf(arrow.from[0]);
+                      const fromR = RANKS.indexOf(arrow.from[1]);
+                      const toF = FILES.indexOf(arrow.to[0]);
+                      const toR = RANKS.indexOf(arrow.to[1]);
+                      const x1 = (fromF + 0.5) * sqSize;
+                      const y1 = (fromR + 0.5) * sqSize;
+                      const x2 = (toF + 0.5) * sqSize;
+                      const y2 = (toR + 0.5) * sqSize;
+                      const strokeW = sqSize < 60 ? 14 : 18;
+                      const halfW = strokeW / 2;
+                      const dx = x2 - x1;
+                      const dy = y2 - y1;
+                      const len = Math.sqrt(dx * dx + dy * dy) || 1;
+                      const headHeight = sqSize * 0.6;
+                      const headBase = strokeW * 3;
+                      const nx = -dy / len;
+                      const ny = dx / len;
+                      const blx = x1 + nx * halfW;   const bly = y1 + ny * halfW;
+                      const brx = x1 - nx * halfW;   const bry = y1 - ny * halfW;
+                      const tailX = x2 - (dx / len) * headHeight;
+                      const tailY = y2 - (dy / len) * headHeight;
+                      const tlx = tailX + nx * halfW; const tly = tailY + ny * halfW;
+                      const trx = tailX - nx * halfW; const try_ = tailY - ny * halfW;
+                      const hlx = tailX + nx * headBase / 2; const hly = tailY + ny * headBase / 2;
+                      const hrx = tailX - nx * headBase / 2; const hry = tailY - ny * headBase / 2;
+                      const cross = (brx - blx) * (-dy / len) - (bry - bly) * (-dx / len);
+                      const sweep = cross > 0 ? 1 : 0;
+                      const pathD = `M ${blx} ${bly} L ${tlx} ${tly} L ${hlx} ${hly} L ${x2} ${y2} L ${hrx} ${hry} L ${trx} ${try_} L ${brx} ${bry} A ${halfW} ${halfW} 0 1 ${sweep} ${blx} ${bly} Z`;
+                      return (
+                        <path
+                          key={i}
+                          d={pathD}
+                          fill="rgba(44, 36, 27, 0.35)"
+                          className="arrow-hint-line"
+                        />
+                      );
+                    })}
+                  </svg>
+                );
+              })()
+            )}
+          </div>
         </div>
         {/* Mobile exercise pills — 2 rows of 6 */}
         <div className="flex lg:hidden flex-col gap-[1px] w-full">
