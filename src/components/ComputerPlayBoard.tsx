@@ -97,7 +97,8 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
   const [gameOver, setGameOver] = useState<{ result: string; reason: string } | null>(null);
   const [playerColor] = useState<'w' | 'b'>('w');
   const [promotionPending, setPromotionPending] = useState<{from:string; to:string}|null>(null);
-  const [history, setHistory] = useState<{fen: string; openingStep: number}[]>([]);
+  const [history, setHistory] = useState<{fen: string; openingStep: number; lastMove: {from: string; to: string} | null}[]>([]);
+  const [hintComputing, setHintComputing] = useState(false);
 
   const [lastMove, setLastMove] = useState<{from: string; to: string} | null>(null);
   const [hintArrow, setHintArrow] = useState<{from: string; to: string} | null>(null);
@@ -218,6 +219,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
 
   const getStockfishHint = useCallback((g: Chess) => {
     if (!workerRef.current || !g) return;
+    setHintComputing(true);
     const worker = workerRef.current;
 
     const onMsg = (e: MessageEvent) => {
@@ -226,6 +228,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
 
       if (line.startsWith('bestmove')) {
         worker.removeEventListener('message', onMsg);
+        setHintComputing(false);
 
         const parts = line.split(' ');
         const bestMove = parts[1];
@@ -316,6 +319,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
     setPromotionPending(null);
     setPlayerAnimatingMove(null);
     setOpponentAnimatingMove(null);
+    setLastMove(last.lastMove);
     wasDragRef.current = false;
     setDragPiece(null);
     pointerStartRef.current = null;
@@ -367,7 +371,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
       }
       setLastMove({ from, to });
       setSelectedSquare(null);
-      setHistory(h => [...h, { fen: prevFen, openingStep: prevStep }]);
+      setHistory(h => [...h, { fen: prevFen, openingStep: prevStep, lastMove }]);
 
       // Commit drops immediately; wait for the ghost on click moves.
       const finishPlayerMove = () => {
@@ -644,7 +648,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
         <div className="hidden lg:flex flex-col gap-2">
           <button
             onClick={() => {
-              if (game && !thinking) {
+              if (game && !hintComputing && !thinking) {
                 if (hintArrow) {
                   setHintArrow(null);
                 } else {
@@ -652,7 +656,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
                 }
               }
             }}
-            disabled={!game || thinking}
+            disabled={!game || hintComputing || thinking}
             className={`flex items-center gap-1 px-3 py-1.5 text-xs rounded hover:bg-[#EBE4DA] transition w-full justify-center ${
               hintArrow
                 ? 'text-[#8a6a3a] bg-[#c9a84c]/10 border border-[#c9a84c]/40'
@@ -1007,7 +1011,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
           <div className="flex gap-2 w-full">
             <button
               onClick={() => {
-                if (game && !thinking) {
+                if (game && !hintComputing && !thinking) {
                   if (hintArrow) {
                     setHintArrow(null);
                   } else {
@@ -1015,7 +1019,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
                   }
                 }
               }}
-              disabled={!game || thinking}
+              disabled={!game || hintComputing || thinking}
               className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all duration-200 ${
                 hintArrow
                   ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10'
