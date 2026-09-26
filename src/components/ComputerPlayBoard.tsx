@@ -648,7 +648,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
         <div className="hidden lg:flex flex-col gap-2">
           <button
             onClick={() => {
-              if (game && !hintComputing && !thinking) {
+              if (game && !hintComputing) {
                 if (hintArrow) {
                   setHintArrow(null);
                 } else {
@@ -656,7 +656,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
                 }
               }
             }}
-            disabled={!game || hintComputing || thinking}
+            disabled={!game || hintComputing}
             className={`flex items-center gap-1 px-3 py-1.5 text-xs rounded hover:bg-[#EBE4DA] transition w-full justify-center ${
               hintArrow
                 ? 'text-[#8a6a3a] bg-[#c9a84c]/10 border border-[#c9a84c]/40'
@@ -1011,7 +1011,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
           <div className="flex gap-2 w-full">
             <button
               onClick={() => {
-                if (game && !hintComputing && !thinking) {
+                if (game && !hintComputing) {
                   if (hintArrow) {
                     setHintArrow(null);
                   } else {
@@ -1019,7 +1019,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
                   }
                 }
               }}
-              disabled={!game || hintComputing || thinking}
+              disabled={!game || hintComputing}
               className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all duration-200 ${
                 hintArrow
                   ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10'
