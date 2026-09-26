@@ -1162,6 +1162,7 @@ const getExerciseGoal = (ex: number) => {
             opponentAnimatingMove={opponentAnimatingMove}
             interactive={!isComplete && !isFail}
             sqSize={sqSize}
+            disableAutoGhost={true}
           />
           {/* Hint arrows SVG overlay */}
           {hintVisible && !isFail && !isComplete && !selectedSquare && (
