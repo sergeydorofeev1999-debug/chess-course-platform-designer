@@ -1299,10 +1299,17 @@ function MultiLevelStarBoard({
       }
     }
 
-    // ── Generic multi-pawn hint for Lesson 6 Exercise 8 ──
-    if (pieceType === 'p' && currentLevel === 7) {
-      const currentParsed = parseFen(positionRef.current);
-      const pawns: string[] = [];
+    // ── Generic multi-pawn hint for any exercise with multiple pawns ──
+    const currentParsedMP = parseFen(positionRef.current);
+    const pawnsMP: string[] = [];
+    for (const sq of Object.keys(currentParsedMP.squares)) {
+      if (currentParsedMP.squares[sq]?.type === 'p' && currentParsedMP.squares[sq]?.color === 'w') {
+        pawnsMP.push(sq);
+      }
+    }
+    if (pieceType === 'p' && pawnsMP.length > 1) {
+      const currentParsed = currentParsedMP;
+      const pawns: string[] = pawnsMP;
       for (const sq of Object.keys(currentParsed.squares)) {
         if (currentParsed.squares[sq]?.type === 'p' && currentParsed.squares[sq]?.color === 'w') {
           pawns.push(sq);
