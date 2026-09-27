@@ -930,10 +930,10 @@ function InlineChessBoard({
         {promotionPending && onPromotion && (
         <div className="absolute z-50 pointer-events-auto promotion-panel" style={{
           left: `${(FILES.indexOf(promotionPending.to[0])) * sqSize}px`,
-          top: promotionPending.from[1] === '2' && squares[promotionPending.from]?.color === 'b' ? 4 * sqSize : 0,
+          top: promotionPending.to[1] === '2' && squares[promotionPending.to]?.color === 'b' ? 4 * sqSize : 0,
           width: sqSize,
           height: 4 * sqSize,
-          backgroundColor: squares[promotionPending.from]?.color === 'b' ? '#F5F0E8' : '#2C241B',
+          backgroundColor: squares[promotionPending.to]?.color === 'b' ? '#F5F0E8' : '#2C241B',
           borderRadius: '0px',
           boxShadow: '0 4px 16px rgba(0, 0, 0, 0.35)',
           display: 'flex',
@@ -943,7 +943,7 @@ function InlineChessBoard({
           overflow: 'hidden',
         }}>
           {PROMOTION_PIECES.map(({ code }) => {
-            const pawnColor = squares[promotionPending.from]?.color || 'w';
+            const pawnColor = squares[promotionPending.to]?.color || 'w';
             const isBlackPawn = pawnColor === 'b';
             return (
             <button
@@ -1144,12 +1144,66 @@ function MultiLevelStarBoard({
 
     // ── Special case: Lesson 3 Exercise 1 (queen d2 → d5 → g8) ──
     if (pieceType === 'q' && currentLevel === 0) {
-      const parsed = parseFen(level.initialFen);
-      const hasQueenOnD2 = parsed.squares['d2']?.type === 'q' && parsed.squares['d2']?.color === 'w';
       const hasStarD5 = stars.includes('d5');
       const hasStarG8 = stars.includes('g8');
-      if (hasQueenOnD2 && hasStarD5 && hasStarG8) {
-        return [{from: 'd2', to: 'd5'}, {from: 'd5', to: 'g8'}];
+      if (hasStarD5 && hasStarG8) {
+        const arrows = [
+          {from: 'd2', to: 'd5'},
+          {from: 'd5', to: 'g8'},
+        ];
+        const currentParsed = parseFen(positionRef.current);
+        for (const arrow of arrows) {
+          if (currentParsed.squares[arrow.from]?.type === 'q' && currentParsed.squares[arrow.from]?.color === 'w') {
+            return [arrow];
+          }
+        }
+      }
+    }
+
+    // ── Special case: Lesson 3 Exercise 4 (queen b7 → b1 → b8 → h2 → a2 → a5 → g5 → e3) ──
+    if (pieceType === 'q' && currentLevel === 3) {
+      const hasStarB1 = stars.includes('b1');
+      const hasStarE3 = stars.includes('e3');
+      if (hasStarB1 && hasStarE3) {
+        const arrows = [
+          {from: 'b7', to: 'b1'},
+          {from: 'b1', to: 'b8'},
+          {from: 'b8', to: 'h2'},
+          {from: 'h2', to: 'a2'},
+          {from: 'a2', to: 'a5'},
+          {from: 'a5', to: 'g5'},
+          {from: 'g5', to: 'e3'},
+        ];
+        const currentParsed = parseFen(positionRef.current);
+        for (const arrow of arrows) {
+          if (currentParsed.squares[arrow.from]?.type === 'q' && currentParsed.squares[arrow.from]?.color === 'w') {
+            return [arrow];
+          }
+        }
+      }
+    }
+
+    // ── Special case: Lesson 3 Exercise 5 (queen d1 → e1 → a1 → a4 → c2 → c6 → h6 → b6 → b8) ──
+    if (pieceType === 'q' && currentLevel === 4) {
+      const hasStarE1 = stars.includes('e1');
+      const hasStarB8 = stars.includes('b8');
+      if (hasStarE1 && hasStarB8) {
+        const arrows = [
+          {from: 'd1', to: 'e1'},
+          {from: 'e1', to: 'a1'},
+          {from: 'a1', to: 'a4'},
+          {from: 'a4', to: 'c2'},
+          {from: 'c2', to: 'c6'},
+          {from: 'c6', to: 'h6'},
+          {from: 'h6', to: 'b6'},
+          {from: 'b6', to: 'b8'},
+        ];
+        const currentParsed = parseFen(positionRef.current);
+        for (const arrow of arrows) {
+          if (currentParsed.squares[arrow.from]?.type === 'q' && currentParsed.squares[arrow.from]?.color === 'w') {
+            return [arrow];
+          }
+        }
       }
     }
 
@@ -1173,6 +1227,52 @@ function MultiLevelStarBoard({
       }
     }
 
+    // ── Special case: Lesson 2 Exercise 4 (bishop f4 → g3 → h4 → f2 → g1 → e3 → d2) ──
+    if (pieceType === 'b' && currentLevel === 3) {
+      const hasStarH4 = stars.includes('h4');
+      if (hasStarH4) {
+        const arrows = [
+          {from: 'f4', to: 'g3'},
+          {from: 'g3', to: 'h4'},
+          {from: 'h4', to: 'f2'},
+          {from: 'f2', to: 'g1'},
+          {from: 'g1', to: 'e3'},
+          {from: 'e3', to: 'd2'},
+        ];
+        // Текущая позиция слона на доске (не начальная!)
+        const currentParsed = parseFen(positionRef.current);
+        for (const arrow of arrows) {
+          if (currentParsed.squares[arrow.from]?.type === 'b' && currentParsed.squares[arrow.from]?.color === 'w') {
+            return [arrow];
+          }
+        }
+      }
+    }
+
+    // ── Special case: Lesson 2 Exercise 6 (bishops c6 and d2) ──
+    if (pieceType === 'b' && currentLevel === 5) {
+      const hasStarH5 = stars.includes('h5');
+      const hasStarA6 = stars.includes('a6');
+      if (hasStarH5 && hasStarA6) {
+        const arrows = [
+          {from: 'c6', to: 'f3'},
+          {from: 'f3', to: 'h5'},
+          {from: 'h5', to: 'e2'},
+          {from: 'e2', to: 'a6'},
+          {from: 'd2', to: 'f4'},
+          {from: 'f4', to: 'c7'},
+          {from: 'c7', to: 'h2'},
+          {from: 'h2', to: 'g1'},
+        ];
+        const currentParsed = parseFen(positionRef.current);
+        for (const arrow of arrows) {
+          if (currentParsed.squares[arrow.from]?.type === 'b' && currentParsed.squares[arrow.from]?.color === 'w') {
+            return [arrow];
+          }
+        }
+      }
+    }
+
     // ── Special case: Lesson 1 Exercise 2 (rook f7 → f5 → b5) ──
     if (pieceType === 'r' && currentLevel === 1) {
       const parsed = parseFen(level.initialFen);
@@ -1184,31 +1284,136 @@ function MultiLevelStarBoard({
       }
     }
 
-    // ── Special case: Pawn Lesson Exercise 1 (h5 → h6 → h7 → h8 → c3) ──
+    // ── Special case: Pawn Lesson Exercise 1 — sequential forward (h5→h6→h7→h8), after promotion generic TSP ──
     if (pieceType === 'p' && currentLevel === 0) {
-      const parsed = parseFen(level.initialFen);
-      const hasPawnOnH5 = parsed.squares['h5']?.type === 'p' && parsed.squares['h5']?.color === 'w';
-      if (hasPawnOnH5) {
-        return [
-          {from: 'h5', to: 'h6'},
-          {from: 'h6', to: 'h7'},
-          {from: 'h7', to: 'h8'},
-          {from: 'h8', to: 'c3'},
-        ];
+      const currentParsed = parseFen(positionRef.current);
+      const arrows = [
+        {from: 'h5', to: 'h6'},
+        {from: 'h6', to: 'h7'},
+        {from: 'h7', to: 'h8'},
+      ];
+      for (const arrow of arrows) {
+        if (currentParsed.squares[arrow.from]?.type === 'p' && currentParsed.squares[arrow.from]?.color === 'w') {
+          return [arrow];
+        }
+      }
+    }
+
+    // ── Special case: Pawn Lesson Exercise 2 (c5 → c6 → c7 → c8, then queen c8 → h8 → g6 → e7 → d5 → f4) ──
+    if (pieceType === 'p' && currentLevel === 1) {
+      const currentParsed = parseFen(positionRef.current);
+      const arrows = [
+        {from: 'c5', to: 'c6'},
+        {from: 'c6', to: 'c7'},
+        {from: 'c7', to: 'c8'},
+      ];
+      for (const arrow of arrows) {
+        if (currentParsed.squares[arrow.from]?.type === 'p' && currentParsed.squares[arrow.from]?.color === 'w') {
+          return [arrow];
+        }
+      }
+      if (currentParsed.squares['c8']?.type === 'q' && currentParsed.squares['c8']?.color === 'w') {
+        return [{from: 'c8', to: 'h8'}];
+      }
+      if (currentParsed.squares['c8']?.type === 'n' && currentParsed.squares['c8']?.color === 'w') {
+        return [{from: 'c8', to: 'e7'}];
       }
     }
 
     // ── Special case: Pawn Lesson Exercise 3 (d3 → d4 → e5 → f6 → e7) ──
     if (pieceType === 'p' && currentLevel === 2) {
-      const parsed = parseFen(level.initialFen);
-      const hasPawnOnD3 = parsed.squares['d3']?.type === 'p' && parsed.squares['d3']?.color === 'w';
-      if (hasPawnOnD3) {
-        return [
-          {from: 'd3', to: 'd4'},
-          {from: 'd4', to: 'e5'},
-          {from: 'e5', to: 'f6'},
-          {from: 'f6', to: 'e7'},
-        ];
+      const currentParsed = parseFen(positionRef.current);
+      const arrows = [
+        {from: 'd3', to: 'd4'},
+        {from: 'd4', to: 'e5'},
+        {from: 'e5', to: 'f6'},
+        {from: 'f6', to: 'e7'},
+      ];
+      for (const arrow of arrows) {
+        if (currentParsed.squares[arrow.from]?.type === 'p' && currentParsed.squares[arrow.from]?.color === 'w') {
+          return [arrow];
+        }
+      }
+    }
+
+    // ── Special case: Pawn Lesson Exercise 4 (g3 → f4 → f5 → e6 → f7 → f8, then queen f8 → f6 → g6 → g4) ──
+    if (pieceType === 'p' && currentLevel === 3) {
+      const currentParsed = parseFen(positionRef.current);
+      const arrows = [
+        {from: 'g3', to: 'f4'},
+        {from: 'f4', to: 'f5'},
+        {from: 'f5', to: 'e6'},
+        {from: 'e6', to: 'f7'},
+        {from: 'f7', to: 'f8'},
+      ];
+      for (const arrow of arrows) {
+        if (currentParsed.squares[arrow.from]?.type === 'p' && currentParsed.squares[arrow.from]?.color === 'w') {
+          return [arrow];
+        }
+      }
+      if (currentParsed.squares['f8']?.type === 'q' && currentParsed.squares['f8']?.color === 'w') {
+        return [{from: 'f8', to: 'f6'}];
+      }
+      if (currentParsed.squares['f8']?.type === 'n' && currentParsed.squares['f8']?.color === 'w') {
+        return [{from: 'f8', to: 'g6'}];
+      }
+    }
+
+    // ── Special case: Pawn Lesson Exercise 5 (e3 → f4 → e5 → d6 → e7 → f8, then queen f8 → f7 → g6 → g5) ──
+    if (pieceType === 'p' && currentLevel === 4) {
+      const currentParsed = parseFen(positionRef.current);
+      const arrows = [
+        {from: 'e3', to: 'f4'},
+        {from: 'f4', to: 'e5'},
+        {from: 'e5', to: 'd6'},
+        {from: 'd6', to: 'e7'},
+        {from: 'e7', to: 'f8'},
+      ];
+      for (const arrow of arrows) {
+        if (currentParsed.squares[arrow.from]?.type === 'p' && currentParsed.squares[arrow.from]?.color === 'w') {
+          return [arrow];
+        }
+      }
+      if (currentParsed.squares['f8']?.type === 'q' && currentParsed.squares['f8']?.color === 'w') {
+        return [{from: 'f8', to: 'f7'}];
+      }
+      if (currentParsed.squares['f8']?.type === 'n' && currentParsed.squares['f8']?.color === 'w') {
+        return [{from: 'f8', to: 'g6'}];
+      }
+    }
+
+    // ── Special case: Pawn Lesson Exercise 6 (a3→b4, f3→e4→f5, e3→e4→d5, h3→h4→g5) ──
+    if (pieceType === 'p' && currentLevel === 5) {
+      const currentParsed = parseFen(positionRef.current);
+      // First: a3→b4
+      if (currentParsed.squares['a3']?.type === 'p' && currentParsed.squares['a3']?.color === 'w') {
+        return [{from: 'a3', to: 'b4'}];
+      }
+      // f3→e4→f5: first f3 captures e4
+      if (currentParsed.squares['f3']?.type === 'p' && currentParsed.squares['f3']?.color === 'w') {
+        return [{from: 'f3', to: 'e4'}];
+      }
+      // e4 pawn (from f3) goes to f5
+      if (currentParsed.squares['e4']?.type === 'p' && currentParsed.squares['e4']?.color === 'w') {
+        // Check if this pawn came from f3 (not from e3) — if e3 still has a pawn, it's the f3 pawn
+        if (currentParsed.squares['e3']?.type === 'p') {
+          return [{from: 'e4', to: 'f5'}];
+        }
+      }
+      // e3→e4 (only when e4 is free)
+      if (currentParsed.squares['e3']?.type === 'p' && currentParsed.squares['e3']?.color === 'w') {
+        return [{from: 'e3', to: 'e4'}];
+      }
+      // e4 pawn (from e3) goes to d5
+      if (currentParsed.squares['e4']?.type === 'p' && currentParsed.squares['e4']?.color === 'w') {
+        return [{from: 'e4', to: 'd5'}];
+      }
+      // h3→h4→g5
+      if (currentParsed.squares['h3']?.type === 'p' && currentParsed.squares['h3']?.color === 'w') {
+        return [{from: 'h3', to: 'h4'}];
+      }
+      if (currentParsed.squares['h4']?.type === 'p' && currentParsed.squares['h4']?.color === 'w') {
+        return [{from: 'h4', to: 'g5'}];
       }
     }
 
@@ -1221,8 +1426,85 @@ function MultiLevelStarBoard({
       }
     }
 
+    // ── Generic multi-pawn hint for Lesson 6 Exercise 8 ──
+    if (pieceType === 'p' && currentLevel === 7) {
+      const currentParsed = parseFen(positionRef.current);
+      const pawns: string[] = [];
+      for (const sq of Object.keys(currentParsed.squares)) {
+        if (currentParsed.squares[sq]?.type === 'p' && currentParsed.squares[sq]?.color === 'w') {
+          pawns.push(sq);
+        }
+      }
+      const visibleS = stars.filter((s: string) => !collected.includes(s));
+      if (pawns.length > 0 && visibleS.length > 0) {
+        // Priority 1: diagonal captures of stars
+        const captures: {from: string, to: string, dist: number}[] = [];
+        for (const from of pawns) {
+          const ff = FILES.indexOf(from[0]);
+          const fr = RANKS.indexOf(from[1]);
+          for (const df of [-1, 1]) {
+            const tf = ff + df;
+            const tr = fr - 1;
+            if (tf < 0 || tf > 7 || tr < 0) continue;
+            const to = `${FILES[tf]}${RANKS[tr]}`;
+            if (visibleS.includes(to) && currentParsed.squares[to]?.color !== 'w') {
+              let maxDist = 0;
+              for (const s of visibleS) {
+                if (s === to) continue;
+                const sf = FILES.indexOf(s[0]);
+                const sr = RANKS.indexOf(s[1]);
+                const dist = Math.abs(tf - sf) + Math.abs(tr - sr);
+                maxDist = Math.max(maxDist, dist);
+              }
+              captures.push({from, to, dist: maxDist});
+            }
+          }
+        }
+        if (captures.length > 0) {
+          captures.sort((a, b) => a.dist - b.dist);
+          return [{from: captures[0].from, to: captures[0].to}];
+        }
+
+        // Priority 2: forward moves
+        const forwards: {from: string, to: string, dist: number}[] = [];
+        for (const from of pawns) {
+          const ff = FILES.indexOf(from[0]);
+          const fr = RANKS.indexOf(from[1]);
+          const ts = `${FILES[ff]}${RANKS[fr - 1]}`;
+          if (fr > 0 && !currentParsed.squares[ts] && !visibleS.includes(ts)) {
+            let minDist = Infinity;
+            for (const s of visibleS) {
+              const sf = FILES.indexOf(s[0]);
+              const sr = RANKS.indexOf(s[1]);
+              const dist = Math.abs(ff - sf) + Math.abs((fr - 1) - sr);
+              minDist = Math.min(minDist, dist);
+            }
+            forwards.push({from, to: ts, dist: minDist});
+          }
+          if (from[1] === '2') {
+            const tm = `${FILES[ff]}${RANKS[fr - 1]}`;
+            const td = `${FILES[ff]}${RANKS[fr - 2]}`;
+            if (!currentParsed.squares[tm] && !currentParsed.squares[td] && !visibleS.includes(tm) && !visibleS.includes(td)) {
+              let minDist = Infinity;
+              for (const s of visibleS) {
+                const sf = FILES.indexOf(s[0]);
+                const sr = RANKS.indexOf(s[1]);
+                const dist = Math.abs(ff - sf) + Math.abs((fr - 2) - sr);
+                minDist = Math.min(minDist, dist);
+              }
+              forwards.push({from, to: td, dist: minDist});
+            }
+          }
+        }
+        if (forwards.length > 0) {
+          forwards.sort((a, b) => a.dist - b.dist);
+          return [{from: forwards[0].from, to: forwards[0].to}];
+        }
+      }
+    }
+
     return [];
-  }, [level, pieceType, stars, currentLevel, currentLessonId]);
+  }, [level, pieceType, stars, currentLevel, currentLessonId, position]);
 
   const computeHintArrow = useCallback(() => {
     const parsed = parseFen(positionRef.current);
@@ -1373,18 +1655,321 @@ function MultiLevelStarBoard({
       }
     }
 
+    // ── Special case: Lesson 3 Exercise 4 (queen b7 → b1 → b8 → h2 → a2 → a5 → g5 → e3) ──
+    if (pieceType === 'q' && currentLevel === 3) {
+      const hasStarB1 = stars.includes('b1');
+      const hasStarE3 = stars.includes('e3');
+      if (hasStarB1 && hasStarE3) {
+        const arrows = [
+          {from: 'b7', to: 'b1'},
+          {from: 'b1', to: 'b8'},
+          {from: 'b8', to: 'h2'},
+          {from: 'h2', to: 'a2'},
+          {from: 'a2', to: 'a5'},
+          {from: 'a5', to: 'g5'},
+          {from: 'g5', to: 'e3'},
+        ];
+        for (const arrow of arrows) {
+          if (parsed.squares[arrow.from]?.type === 'q' && parsed.squares[arrow.from]?.color === 'w') {
+            return [arrow];
+          }
+        }
+      }
+    }
+
+    // ── Special case: Lesson 3 Exercise 5 (queen d1 → e1 → a1 → a4 → c2 → c6 → h6 → b6 → b8) ──
+    if (pieceType === 'q' && currentLevel === 4) {
+      const hasStarE1 = stars.includes('e1');
+      const hasStarB8 = stars.includes('b8');
+      if (hasStarE1 && hasStarB8) {
+        const arrows = [
+          {from: 'd1', to: 'e1'},
+          {from: 'e1', to: 'a1'},
+          {from: 'a1', to: 'a4'},
+          {from: 'a4', to: 'c2'},
+          {from: 'c2', to: 'c6'},
+          {from: 'c6', to: 'h6'},
+          {from: 'h6', to: 'b6'},
+          {from: 'b6', to: 'b8'},
+        ];
+        for (const arrow of arrows) {
+          if (parsed.squares[arrow.from]?.type === 'q' && parsed.squares[arrow.from]?.color === 'w') {
+            return [arrow];
+          }
+        }
+      }
+    }
+
+    // ── Special case: Pawn Lesson Exercise 1 — sequential forward (h5→h6→h7→h8), after promotion generic TSP ──
+    if (pieceType === 'p' && currentLevel === 0) {
+      const arrows = [
+        {from: 'h5', to: 'h6'},
+        {from: 'h6', to: 'h7'},
+        {from: 'h7', to: 'h8'},
+      ];
+      for (const arrow of arrows) {
+        if (parsed.squares[arrow.from]?.type === 'p' && parsed.squares[arrow.from]?.color === 'w') {
+          return [arrow];
+        }
+      }
+    }
+
+    // ── Special case: Pawn Lesson Exercise 2 (c5 → c6 → c7 → c8, then queen c8 → h8 → g6 → e7 → d5 → f4) ──
+    if (pieceType === 'p' && currentLevel === 1) {
+      const arrows = [
+        {from: 'c5', to: 'c6'},
+        {from: 'c6', to: 'c7'},
+        {from: 'c7', to: 'c8'},
+      ];
+      for (const arrow of arrows) {
+        if (parsed.squares[arrow.from]?.type === 'p' && parsed.squares[arrow.from]?.color === 'w') {
+          return [arrow];
+        }
+      }
+      if (parsed.squares['c8']?.type === 'q' && parsed.squares['c8']?.color === 'w') {
+        return [{from: 'c8', to: 'h8'}];
+      }
+      if (parsed.squares['c8']?.type === 'n' && parsed.squares['c8']?.color === 'w') {
+        return [{from: 'c8', to: 'e7'}];
+      }
+    }
+
+    // ── Special case: Pawn Lesson Exercise 3 — sequential (d3→d4→e5→f6→e7) ──
+    if (pieceType === 'p' && currentLevel === 2) {
+      const arrows = [
+        {from: 'd3', to: 'd4'},
+        {from: 'd4', to: 'e5'},
+        {from: 'e5', to: 'f6'},
+        {from: 'f6', to: 'e7'},
+      ];
+      for (const arrow of arrows) {
+        if (parsed.squares[arrow.from]?.type === 'p' && parsed.squares[arrow.from]?.color === 'w') {
+          return [arrow];
+        }
+      }
+    }
+
+    // ── Special case: Pawn Lesson Exercise 4 (g3 → f4 → f5 → e6 → f7 → f8, then queen f8 → f6 → g6 → g4) ──
+    if (pieceType === 'p' && currentLevel === 3) {
+      const arrows = [
+        {from: 'g3', to: 'f4'},
+        {from: 'f4', to: 'f5'},
+        {from: 'f5', to: 'e6'},
+        {from: 'e6', to: 'f7'},
+        {from: 'f7', to: 'f8'},
+      ];
+      for (const arrow of arrows) {
+        if (parsed.squares[arrow.from]?.type === 'p' && parsed.squares[arrow.from]?.color === 'w') {
+          return [arrow];
+        }
+      }
+      if (parsed.squares['f8']?.type === 'q' && parsed.squares['f8']?.color === 'w') {
+        return [{from: 'f8', to: 'f6'}];
+      }
+      if (parsed.squares['f8']?.type === 'n' && parsed.squares['f8']?.color === 'w') {
+        return [{from: 'f8', to: 'g6'}];
+      }
+    }
+
+    // ── Special case: Pawn Lesson Exercise 5 (e3 → f4 → e5 → d6 → e7 → f8, then queen f8 → f7 → g6 → g5) ──
+    if (pieceType === 'p' && currentLevel === 4) {
+      const arrows = [
+        {from: 'e3', to: 'f4'},
+        {from: 'f4', to: 'e5'},
+        {from: 'e5', to: 'd6'},
+        {from: 'd6', to: 'e7'},
+        {from: 'e7', to: 'f8'},
+      ];
+      for (const arrow of arrows) {
+        if (parsed.squares[arrow.from]?.type === 'p' && parsed.squares[arrow.from]?.color === 'w') {
+          return [arrow];
+        }
+      }
+      if (parsed.squares['f8']?.type === 'q' && parsed.squares['f8']?.color === 'w') {
+        return [{from: 'f8', to: 'f7'}];
+      }
+      if (parsed.squares['f8']?.type === 'n' && parsed.squares['f8']?.color === 'w') {
+        return [{from: 'f8', to: 'g6'}];
+      }
+    }
+
+    // ── Special case: Pawn Lesson Exercise 6 (a3→b4, f3→e4→f5, e3→e4→d5, h3→h4→g5) ──
+    if (pieceType === 'p' && currentLevel === 5) {
+      // First: a3→b4
+      if (parsed.squares['a3']?.type === 'p' && parsed.squares['a3']?.color === 'w') {
+        return [{from: 'a3', to: 'b4'}];
+      }
+      // f3→e4→f5: first f3 captures e4
+      if (parsed.squares['f3']?.type === 'p' && parsed.squares['f3']?.color === 'w') {
+        return [{from: 'f3', to: 'e4'}];
+      }
+      // e4 pawn (from f3) goes to f5
+      if (parsed.squares['e4']?.type === 'p' && parsed.squares['e4']?.color === 'w') {
+        // Check if this pawn came from f3 (not from e3) — if e3 still has a pawn, it's the f3 pawn
+        if (parsed.squares['e3']?.type === 'p') {
+          return [{from: 'e4', to: 'f5'}];
+        }
+      }
+      // e3→e4 (only when e4 is free)
+      if (parsed.squares['e3']?.type === 'p' && parsed.squares['e3']?.color === 'w') {
+        return [{from: 'e3', to: 'e4'}];
+      }
+      // e4 pawn (from e3) goes to d5
+      if (parsed.squares['e4']?.type === 'p' && parsed.squares['e4']?.color === 'w') {
+        return [{from: 'e4', to: 'd5'}];
+      }
+      // h3→h4→g5
+      if (parsed.squares['h3']?.type === 'p' && parsed.squares['h3']?.color === 'w') {
+        return [{from: 'h3', to: 'h4'}];
+      }
+      if (parsed.squares['h4']?.type === 'p' && parsed.squares['h4']?.color === 'w') {
+        return [{from: 'h4', to: 'g5'}];
+      }
+    }
+
+    // ── Special case: Pawn Lesson Exercise 7 (d2 → d4) ──
+    if (pieceType === 'p' && currentLevel === 6) {
+      if (parsed.squares['d2']?.type === 'p' && parsed.squares['d2']?.color === 'w') {
+        return [{from: 'd2', to: 'd4'}];
+      }
+    }
+
+    // ── Generic multi-pawn hint for Lesson 6 Exercise 8 ──
+    if (pieceType === 'p' && currentLevel === 7) {
+      const pawns: string[] = [];
+      for (const sq of Object.keys(parsed.squares)) {
+        if (parsed.squares[sq]?.type === 'p' && parsed.squares[sq]?.color === 'w') {
+          pawns.push(sq);
+        }
+      }
+      if (pawns.length > 0 && visibleStars.length > 0) {
+        // Priority 1: diagonal captures of stars
+        const captures: {from: string, to: string, dist: number}[] = [];
+        for (const from of pawns) {
+          const ff = FILES.indexOf(from[0]);
+          const fr = RANKS.indexOf(from[1]);
+          for (const df of [-1, 1]) {
+            const tf = ff + df;
+            const tr = fr - 1;
+            if (tf < 0 || tf > 7 || tr < 0) continue;
+            const to = `${FILES[tf]}${RANKS[tr]}`;
+            if (visibleStars.includes(to) && parsed.squares[to]?.color !== 'w') {
+              // Distance to remaining stars after capture
+              let maxDist = 0;
+              for (const s of visibleStars) {
+                if (s === to) continue;
+                const sf = FILES.indexOf(s[0]);
+                const sr = RANKS.indexOf(s[1]);
+                const dist = Math.abs(tf - sf) + Math.abs(tr - sr);
+                maxDist = Math.max(maxDist, dist);
+              }
+              captures.push({from, to, dist: maxDist});
+            }
+          }
+        }
+        if (captures.length > 0) {
+          captures.sort((a, b) => a.dist - b.dist);
+          return [{from: captures[0].from, to: captures[0].to}];
+        }
+
+        // Priority 2: forward moves (single or double step)
+        const forwards: {from: string, to: string, dist: number}[] = [];
+        for (const from of pawns) {
+          const ff = FILES.indexOf(from[0]);
+          const fr = RANKS.indexOf(from[1]);
+          // Single step forward
+          const ts = `${FILES[ff]}${RANKS[fr - 1]}`;
+          if (fr > 0 && !parsed.squares[ts] && !visibleStars.includes(ts)) {
+            let minDist = Infinity;
+            for (const s of visibleStars) {
+              const sf = FILES.indexOf(s[0]);
+              const sr = RANKS.indexOf(s[1]);
+              const dist = Math.abs(ff - sf) + Math.abs((fr - 1) - sr);
+              minDist = Math.min(minDist, dist);
+            }
+            forwards.push({from, to: ts, dist: minDist});
+          }
+          // Double step from rank 2
+          if (from[1] === '2') {
+            const tm = `${FILES[ff]}${RANKS[fr - 1]}`;
+            const td = `${FILES[ff]}${RANKS[fr - 2]}`;
+            if (!parsed.squares[tm] && !parsed.squares[td] && !visibleStars.includes(tm) && !visibleStars.includes(td)) {
+              let minDist = Infinity;
+              for (const s of visibleStars) {
+                const sf = FILES.indexOf(s[0]);
+                const sr = RANKS.indexOf(s[1]);
+                const dist = Math.abs(ff - sf) + Math.abs((fr - 2) - sr);
+                minDist = Math.min(minDist, dist);
+              }
+              forwards.push({from, to: td, dist: minDist});
+            }
+          }
+        }
+        if (forwards.length > 0) {
+          forwards.sort((a, b) => a.dist - b.dist);
+          return [{from: forwards[0].from, to: forwards[0].to}];
+        }
+      }
+    }
+
     // ── Special case: Lesson 3 Exercise 1 (queen d2 → d5 → g8) ──
     if (pieceType === 'q' && currentLevel === 0) {
       const hasStarD5 = stars.includes('d5');
       const hasStarG8 = stars.includes('g8');
-      const queenSq = Object.keys(parsed.squares).find(
-        (sq) => parsed.squares[sq]?.type === 'q' && parsed.squares[sq]?.color === 'w'
-      );
-      if (queenSq === 'd2' && hasStarD5 && hasStarG8) {
-        return [{from: 'd2', to: 'd5'}, {from: 'd5', to: 'g8'}];
+      const arrows: {from: string; to: string}[] = [];
+      if (hasStarD5 && hasStarG8) {
+        arrows.push({from: 'd2', to: 'd5'});
+        arrows.push({from: 'd5', to: 'g8'});
+      } else if (hasStarG8) {
+        arrows.push({from: 'd5', to: 'g8'});
       }
-      if (queenSq === 'd5' && hasStarG8) {
-        return [{from: 'd5', to: 'g8'}];
+      for (const arrow of arrows) {
+        if (parsed.squares[arrow.from]?.type === 'q' && parsed.squares[arrow.from]?.color === 'w') {
+          return [arrow];
+        }
+      }
+    }
+
+    // ── Special case: Lesson 2 Exercise 4 (bishop f4 → g3 → h4 → f2 → g1 → e3 → d2) ──
+    if (pieceType === 'b' && currentLevel === 3) {
+      const hasStarH4 = stars.includes('h4');
+      if (hasStarH4) {
+        const arrows = [
+          {from: 'f4', to: 'g3'},
+          {from: 'g3', to: 'h4'},
+          {from: 'h4', to: 'f2'},
+          {from: 'f2', to: 'g1'},
+          {from: 'g1', to: 'e3'},
+          {from: 'e3', to: 'd2'},
+        ];
+        for (const arrow of arrows) {
+          if (parsed.squares[arrow.from]?.type === 'b' && parsed.squares[arrow.from]?.color === 'w') {
+            return [arrow];
+          }
+        }
+      }
+    }
+
+    // ── Special case: Lesson 2 Exercise 6 (bishops c6 and d2) ──
+    if (pieceType === 'b' && currentLevel === 5) {
+      const hasStarH5 = stars.includes('h5');
+      const hasStarA6 = stars.includes('a6');
+      if (hasStarH5 && hasStarA6) {
+        const arrows = [
+          {from: 'c6', to: 'f3'},
+          {from: 'f3', to: 'h5'},
+          {from: 'h5', to: 'e2'},
+          {from: 'e2', to: 'a6'},
+          {from: 'd2', to: 'f4'},
+          {from: 'f4', to: 'c7'},
+          {from: 'c7', to: 'h2'},
+          {from: 'h2', to: 'g1'},
+        ];
+        for (const arrow of arrows) {
+          if (parsed.squares[arrow.from]?.type === 'b' && parsed.squares[arrow.from]?.color === 'w') {
+            return [arrow];
+          }
+        }
       }
     }
 
@@ -1401,26 +1986,6 @@ function MultiLevelStarBoard({
       }
     }
     if (allFroms.length === 0 || visibleStars.length === 0) return [];
-
-    // ── Special case: pawn — show first step toward promotion ──
-    if (pieceType === 'p') {
-      const pawnSq = allFroms[0];
-      if (pawnSq) {
-        const file = pawnSq[0];
-        const rank = parseInt(pawnSq[1]);
-        let firstStep: string | null = null;
-        if (rank === 7) firstStep = `${file}8`;
-        else if (rank === 6) firstStep = `${file}7`;
-        else if (rank === 5) firstStep = `${file}6`;
-        else if (rank === 4) firstStep = `${file}5`;
-        else if (rank === 3) firstStep = `${file}4`;
-        else if (rank === 2) firstStep = `${file}4`;
-        else if (rank === 1) firstStep = `${file}2`;
-        if (firstStep) {
-          return [{ from: pawnSq, to: firstStep }];
-        }
-      }
-    }
 
     /* ── BFS shortest path from → to (chess-legal, returns path array or null) ── */
     const pathCache = new Map<string, string[] | null>();
@@ -1447,7 +2012,29 @@ function MultiLevelStarBoard({
           for (let r = 0; r < 8; r++) {
             const dest = `${FILES[f]}${RANKS[r]}`;
             if (dest === cur || prev.has(dest)) continue;
-            if (!isValidMove(effectivePieceType, cur, dest, virtualSquares, passableBlocked, parsed.enPassant)) continue;
+            if (!isValidMove(effectivePieceType, cur, dest, virtualSquares, passableBlocked, parsed.enPassant)) {
+              // Для пешки в подсказке разрешаем ход вперёд и взятие по диагонали на любую звезду
+              if (effectivePieceType !== 'p') continue;
+              const cff = FILES.indexOf(cur[0]);
+              const ctf = FILES.indexOf(dest[0]);
+              const cfr = RANKS.indexOf(cur[1]);
+              const ctr = RANKS.indexOf(dest[1]);
+              const cdf = ctf - cff;
+              const cdr = ctr - cfr;
+              const startRankIdx = 6; // rank '2' = RANKS[6]
+              const doubleMiddleR = cfr + (-1);
+              const doubleMiddleSq = `${FILES[cff]}${RANKS[doubleMiddleR]}`;
+              // Прямой ход вперёд на 1 (только если нет звезды)
+              if (cdf === 0 && cdr === -1 && !virtualSquares[dest] && !visibleStars.includes(dest)) {
+                // OK — прямой ход вперёд
+              } else if (cdf === 0 && cdr === -2 && cfr === startRankIdx && !virtualSquares[dest] && !virtualSquares[doubleMiddleSq] && !visibleStars.includes(dest) && !visibleStars.includes(doubleMiddleSq)) {
+                // OK — двойной ход вперёд с начальной позиции
+              } else if (Math.abs(cdf) === 1 && cdr === -1 && visibleStars.includes(dest) && !virtualSquares[dest]) {
+                // OK — взятие по диагонали на любую звезду
+              } else {
+                continue;
+              }
+            }
             prev.set(dest, cur);
             q.push(dest);
           }
