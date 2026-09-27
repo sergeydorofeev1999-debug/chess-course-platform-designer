@@ -733,7 +733,7 @@ function InlineChessBoard({
 
   return (
     <div className="flex flex-col items-center gap-2 select-none" style={{ touchAction: 'none' }}>
-      <div className="grid border-[5px] border-[#1a1612] rounded relative select-none board-fade-in" style={{ gridTemplateColumns: `repeat(8, ${sqSize}px)`, gridTemplateRows: `repeat(8, ${sqSize}px)`, touchAction: 'none', boxShadow: '0 12px 40px rgba(0,0,0,0.35), 0 2px 8px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.06)' }}>
+      <div className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none board-fade-in" style={{ gridTemplateColumns: `repeat(8, ${sqSize}px)`, gridTemplateRows: `repeat(8, ${sqSize}px)`, touchAction: 'none' }}>
         {RANKS.map((rank, ri) =>
           FILES.map((file, fi) => {
             const sq = `${file}${rank}`;
@@ -1308,77 +1308,87 @@ function MultiLevelStarBoard({
       }
     }
     if (pieceType === 'p' && pawnsMP.length > 1) {
-      const currentParsed = currentParsedMP;
-      const pawns: string[] = pawnsMP;
-      for (const sq of Object.keys(currentParsed.squares)) {
-        if (currentParsed.squares[sq]?.type === 'p' && currentParsed.squares[sq]?.color === 'w') {
-          pawns.push(sq);
-        }
-      }
       const visibleS = stars.filter((s: string) => !collected.includes(s));
-      if (pawns.length > 0 && visibleS.length > 0) {
-        // Priority 1: diagonal captures of stars
-        const captures: {from: string, to: string, dist: number}[] = [];
-        for (const from of pawns) {
-          const ff = FILES.indexOf(from[0]);
-          const fr = RANKS.indexOf(from[1]);
-          for (const df of [-1, 1]) {
-            const tf = ff + df;
-            const tr = fr - 1;
-            if (tf < 0 || tf > 7 || tr < 0) continue;
-            const to = `${FILES[tf]}${RANKS[tr]}`;
-            if (visibleS.includes(to) && currentParsed.squares[to]?.color !== 'w') {
-              let maxDist = 0;
-              for (const s of visibleS) {
-                if (s === to) continue;
-                const sf = FILES.indexOf(s[0]);
-                const sr = RANKS.indexOf(s[1]);
-                const dist = Math.abs(tf - sf) + Math.abs(tr - sr);
-                maxDist = Math.max(maxDist, dist);
-              }
-              captures.push({from, to, dist: maxDist});
-            }
-          }
-        }
-        if (captures.length > 0) {
-          captures.sort((a, b) => a.dist - b.dist);
-          return [{from: captures[0].from, to: captures[0].to}];
-        }
+      if (pawnsMP.length > 0 && visibleS.length > 0) {
+        // BFS over game states for multi-pawn to find shortest path to collect all stars
+        const serializeState = (sqs: Record<string, any>, remStars: string[]) => {
+          const pawns = Object.keys(sqs)
+            .filter(sq => sqs[sq]?.type === 'p' && sqs[sq]?.color === 'w')
+            .sort();
+          const sortedStars = remStars.slice().sort();
+          return `${pawns.join(',')}|${sortedStars.join(',')}`;
+        };
 
-        // Priority 2: forward moves
-        const forwards: {from: string, to: string, dist: number}[] = [];
-        for (const from of pawns) {
-          const ff = FILES.indexOf(from[0]);
-          const fr = RANKS.indexOf(from[1]);
-          const ts = `${FILES[ff]}${RANKS[fr - 1]}`;
-          if (fr > 0 && !currentParsed.squares[ts] && !visibleS.includes(ts)) {
-            let minDist = Infinity;
-            for (const s of visibleS) {
-              const sf = FILES.indexOf(s[0]);
-              const sr = RANKS.indexOf(s[1]);
-              const dist = Math.abs(ff - sf) + Math.abs((fr - 1) - sr);
-              minDist = Math.min(minDist, dist);
-            }
-            forwards.push({from, to: ts, dist: minDist});
+        const initialKey = serializeState(currentParsedMP.squares, visibleS);
+        const queue: {squares: Record<string, any>, stars: string[], firstMove: {from: string, to: string} | null, depth: number}[] = [];
+        queue.push({squares: {...currentParsedMP.squares}, stars: [...visibleS], firstMove: null, depth: 0});
+        const visited = new Set<string>();
+        visited.add(initialKey);
+
+        while (queue.length > 0) {
+          const {squares: curSq, stars: curStars, firstMove, depth} = queue.shift()!;
+
+          if (curStars.length === 0) {
+            if (firstMove) return [firstMove];
+            break;
           }
-          if (from[1] === '2') {
-            const tm = `${FILES[ff]}${RANKS[fr - 1]}`;
-            const td = `${FILES[ff]}${RANKS[fr - 2]}`;
-            if (!currentParsed.squares[tm] && !currentParsed.squares[td] && !visibleS.includes(tm) && !visibleS.includes(td)) {
-              let minDist = Infinity;
-              for (const s of visibleS) {
-                const sf = FILES.indexOf(s[0]);
-                const sr = RANKS.indexOf(s[1]);
-                const dist = Math.abs(ff - sf) + Math.abs((fr - 2) - sr);
-                minDist = Math.min(minDist, dist);
+          if (depth >= 12) continue;
+
+          const pawns = Object.keys(curSq).filter(sq => curSq[sq]?.type === 'p' && curSq[sq]?.color === 'w');
+          for (const from of pawns) {
+            const ff = FILES.indexOf(from[0]);
+            const fr = RANKS.indexOf(from[1]);
+
+            // Forward 1
+            const ts = `${FILES[ff]}${RANKS[fr - 1]}`;
+            if (fr > 0 && !curSq[ts] && !curStars.includes(ts)) {
+              const newSq = {...curSq};
+              delete newSq[from];
+              newSq[ts] = {type: 'p', color: 'w'};
+              const newStars = curStars.filter(s => s !== ts);
+              const key = serializeState(newSq, newStars);
+              if (!visited.has(key)) {
+                visited.add(key);
+                queue.push({squares: newSq, stars: newStars, firstMove: firstMove || {from, to: ts}, depth: depth + 1});
               }
-              forwards.push({from, to: td, dist: minDist});
+            }
+
+            // Forward 2 from rank 2
+            if (from[1] === '2') {
+              const tm = `${FILES[ff]}${RANKS[fr - 1]}`;
+              const td = `${FILES[ff]}${RANKS[fr - 2]}`;
+              if (!curSq[tm] && !curSq[td] && !curStars.includes(tm) && !curStars.includes(td)) {
+                const newSq = {...curSq};
+                delete newSq[from];
+                newSq[td] = {type: 'p', color: 'w'};
+                const newStars = curStars.filter(s => s !== td);
+                const key = serializeState(newSq, newStars);
+                if (!visited.has(key)) {
+                  visited.add(key);
+                  queue.push({squares: newSq, stars: newStars, firstMove: firstMove || {from, to: td}, depth: depth + 1});
+                }
+              }
+            }
+
+            // Diagonal captures (including stars)
+            for (const df of [-1, 1]) {
+              const tf = ff + df;
+              const tr = fr - 1;
+              if (tf < 0 || tf > 7 || tr < 0) continue;
+              const to = `${FILES[tf]}${RANKS[tr]}`;
+              if (curStars.includes(to) && !curSq[to]) {
+                const newSq = {...curSq};
+                delete newSq[from];
+                newSq[to] = {type: 'p', color: 'w'};
+                const newStars = curStars.filter(s => s !== to);
+                const key = serializeState(newSq, newStars);
+                if (!visited.has(key)) {
+                  visited.add(key);
+                  queue.push({squares: newSq, stars: newStars, firstMove: firstMove || {from, to}, depth: depth + 1});
+                }
+              }
             }
           }
-        }
-        if (forwards.length > 0) {
-          forwards.sort((a, b) => a.dist - b.dist);
-          return [{from: forwards[0].from, to: forwards[0].to}];
         }
       }
     }
@@ -1897,62 +1907,141 @@ function MultiLevelStarBoard({
         }
       }
     } else {
-      // ── Multi-piece: перебираем все разбиения звёзд между фигурами ──
-      // Кодируем разбиение битовой маской: для каждой звезды i, бит i указывает какой фигуре она отдана
-      // (для 2+ фигур используем base-(allFroms.length) partition, но оптимально: генерируем маски)
-      // Упрощаем: для N фигур генерируем все назначения (N^stars). Для 2 фигур и 7 звёзд = 128 вариантов
-      const nPieces = allFroms.length;
-      const nStars = visibleStars.length;
-      let globalBestTotal = Infinity;
-      let globalBestFirstStep: string | null = null;
-      let globalBestFrom: string | null = null;
+      // ── Multi-piece: BFS over game states for pawns, TSP for others ──
+      if (effectivePieceType === 'p' && allFroms.length > 1) {
+        // BFS по состояниям игры для нескольких пешек
+        const serializeState = (sqs: Record<string, any>, remStars: string[]) => {
+          const pawns = Object.keys(sqs)
+            .filter(sq => sqs[sq]?.type === 'p' && sqs[sq]?.color === 'w')
+            .sort();
+          const sortedStars = remStars.slice().sort();
+          return `${pawns.join(',')}|${sortedStars.join(',')}`;
+        };
 
-      const generatePartitions = (idx: number, assignment: number[]) => {
-        if (idx === nStars) {
-          // assignment[i] = индекс фигуры, которой отдана звезда i
-          const pieceStars: string[][] = Array(nPieces).fill(null).map(() => []);
-          for (let i = 0; i < nStars; i++) {
-            pieceStars[assignment[i]].push(visibleStars[i]);
+        const initialKey = serializeState(parsed.squares, visibleStars);
+        const queue: {squares: Record<string, any>, stars: string[], firstMove: {from: string, to: string} | null, depth: number}[] = [];
+        queue.push({squares: {...parsed.squares}, stars: [...visibleStars], firstMove: null, depth: 0});
+        const visited = new Set<string>();
+        visited.add(initialKey);
+
+        while (queue.length > 0) {
+          const {squares: curSq, stars: curStars, firstMove, depth} = queue.shift()!;
+
+          if (curStars.length === 0) {
+            if (firstMove) return [firstMove];
+            break;
           }
-          let totalSum = 0;
-          let anyNull = false;
-          for (let p = 0; p < nPieces; p++) {
-            const result = solveTSP(allFroms[p], pieceStars[p]);
-            if (result.total === null) { anyNull = true; break; }
-            totalSum += result.total;
-          }
-          if (anyNull) return;
-          if (totalSum < globalBestTotal) {
-            globalBestTotal = totalSum;
-            // Выбираем первый ход первой фигуры, у которой есть звёзды
-            for (let p = 0; p < nPieces; p++) {
-              if (pieceStars[p].length > 0) {
-                const result = solveTSP(allFroms[p], pieceStars[p]);
-                globalBestFirstStep = result.firstStep;
-                globalBestFrom = allFroms[p];
-                break;
+          if (depth >= 12) continue;
+
+          const pawns = Object.keys(curSq).filter(sq => curSq[sq]?.type === 'p' && curSq[sq]?.color === 'w');
+          for (const from of pawns) {
+            const ff = FILES.indexOf(from[0]);
+            const fr = RANKS.indexOf(from[1]);
+
+            // Forward 1
+            const ts = `${FILES[ff]}${RANKS[fr - 1]}`;
+            if (fr > 0 && !curSq[ts] && !curStars.includes(ts)) {
+              const newSq = {...curSq};
+              delete newSq[from];
+              newSq[ts] = {type: 'p', color: 'w'};
+              const newStars = curStars.filter(s => s !== ts);
+              const key = serializeState(newSq, newStars);
+              if (!visited.has(key)) {
+                visited.add(key);
+                queue.push({squares: newSq, stars: newStars, firstMove: firstMove || {from, to: ts}, depth: depth + 1});
+              }
+            }
+
+            // Forward 2 from rank 2
+            if (from[1] === '2') {
+              const tm = `${FILES[ff]}${RANKS[fr - 1]}`;
+              const td = `${FILES[ff]}${RANKS[fr - 2]}`;
+              if (!curSq[tm] && !curSq[td] && !curStars.includes(tm) && !curStars.includes(td)) {
+                const newSq = {...curSq};
+                delete newSq[from];
+                newSq[td] = {type: 'p', color: 'w'};
+                const newStars = curStars.filter(s => s !== td);
+                const key = serializeState(newSq, newStars);
+                if (!visited.has(key)) {
+                  visited.add(key);
+                  queue.push({squares: newSq, stars: newStars, firstMove: firstMove || {from, to: td}, depth: depth + 1});
+                }
+              }
+            }
+
+            // Diagonal captures (including stars)
+            for (const df of [-1, 1]) {
+              const tf = ff + df;
+              const tr = fr - 1;
+              if (tf < 0 || tf > 7 || tr < 0) continue;
+              const to = `${FILES[tf]}${RANKS[tr]}`;
+              if (curStars.includes(to) && !curSq[to]) {
+                const newSq = {...curSq};
+                delete newSq[from];
+                newSq[to] = {type: 'p', color: 'w'};
+                const newStars = curStars.filter(s => s !== to);
+                const key = serializeState(newSq, newStars);
+                if (!visited.has(key)) {
+                  visited.add(key);
+                  queue.push({squares: newSq, stars: newStars, firstMove: firstMove || {from, to}, depth: depth + 1});
+                }
               }
             }
           }
-          return;
         }
-        for (let p = 0; p < nPieces; p++) {
-          assignment.push(p);
-          generatePartitions(idx + 1, assignment);
-          assignment.pop();
-        }
-      };
+      } else if (allFroms.length > 1) {
+        // ── Multi-piece TSP для не-пешек ──
+        const nPieces = allFroms.length;
+        const nStars = visibleStars.length;
+        let globalBestTotal = Infinity;
+        let globalBestFirstStep: string | null = null;
+        let globalBestFrom: string | null = null;
 
-      generatePartitions(0, []);
+        const generatePartitions = (idx: number, assignment: number[]) => {
+          if (idx === nStars) {
+            const pieceStars: string[][] = Array(nPieces).fill(null).map(() => []);
+            for (let i = 0; i < nStars; i++) {
+              pieceStars[assignment[i]].push(visibleStars[i]);
+            }
+            let totalSum = 0;
+            let anyNull = false;
+            for (let p = 0; p < nPieces; p++) {
+              const result = solveTSP(allFroms[p], pieceStars[p]);
+              if (result.total === null) { anyNull = true; break; }
+              totalSum += result.total;
+            }
+            if (anyNull) return;
+            if (totalSum < globalBestTotal) {
+              globalBestTotal = totalSum;
+              for (let p = 0; p < nPieces; p++) {
+                if (pieceStars[p].length > 0) {
+                  const result = solveTSP(allFroms[p], pieceStars[p]);
+                  globalBestFirstStep = result.firstStep;
+                  globalBestFrom = allFroms[p];
+                  break;
+                }
+              }
+            }
+            return;
+          }
+          for (let p = 0; p < nPieces; p++) {
+            assignment.push(p);
+            generatePartitions(idx + 1, assignment);
+            assignment.pop();
+          }
+        };
 
-      if (globalBestFirstStep && globalBestFrom) {
-        const sameFile = globalBestFrom[0] === globalBestFirstStep[0];
-        const sameRank = globalBestFrom[1] === globalBestFirstStep[1];
-        if (effectivePieceType === 'r' && (sameFile || sameRank)) {
-          return [{ from: globalBestFrom, to: globalBestFirstStep }];
-        }
-        if (effectivePieceType !== 'r') {
-          return [{ from: globalBestFrom, to: globalBestFirstStep }];
+        generatePartitions(0, []);
+
+        if (globalBestFirstStep && globalBestFrom) {
+          const sameFile = globalBestFrom[0] === globalBestFirstStep[0];
+          const sameRank = globalBestFrom[1] === globalBestFirstStep[1];
+          if (effectivePieceType === 'r' && (sameFile || sameRank)) {
+            return [{ from: globalBestFrom, to: globalBestFirstStep }];
+          }
+          if (effectivePieceType !== 'r') {
+            return [{ from: globalBestFrom, to: globalBestFirstStep }];
+          }
         }
       }
     }
