@@ -1670,61 +1670,54 @@ export default function CaptureBoard({
             return false;
           }
 
-          // Check if black can capture the checking piece
-          let checkingSq = '';
-          if (blackKingSq) {
-            for (const sq in newSquares) {
-              const p = newSquares[sq];
-              if (p.color !== 'w') continue;
-              if (isValidMove(p.type, sq, blackKingSq, newSquares, 'w')) {
-                checkingSq = sq;
+          // Check if black can capture ANY white piece
+          let capturableSq = '';
+          let capturerSq = '';
+          for (const whiteSq in newSquares) {
+            const wp = newSquares[whiteSq];
+            if (wp.color !== 'w') continue;
+            for (const blackSq in newSquares) {
+              const bp = newSquares[blackSq];
+              if (bp.color !== 'b') continue;
+              if (isValidMove(bp.type, blackSq, whiteSq, newSquares, 'b')) {
+                if (bp.type === 'k') {
+                  // King cannot capture into a square attacked by white
+                  if (isSquareAttackedBy(whiteSq, newSquares, 'w', true)) continue;
+                }
+                capturableSq = whiteSq;
+                capturerSq = blackSq;
                 break;
               }
             }
+            if (capturableSq) break;
           }
 
-          if (checkingSq) {
-            let capturerSq = '';
-            for (const sq in newSquares) {
-              const p = newSquares[sq];
-              if (p.color !== 'b') continue;
-              if (isValidMove(p.type, sq, checkingSq, newSquares, 'b')) {
-                if (p.type === 'k') {
-                  // King cannot capture into a square attacked by white
-                  if (isSquareAttackedBy(checkingSq, newSquares, 'w', true)) continue;
-                }
-                capturerSq = sq;
-                break;
-              }
-            }
-
-            if (capturerSq) {
-              // Black captures the checking piece — animate then fail
-              const attackerPiece = newSquares[capturerSq];
-              setWaitingForOpponent(true);
+          if (capturableSq) {
+            // Black captures a white piece — animate then fail
+            const attackerPiece = newSquares[capturerSq];
+            setWaitingForOpponent(true);
+            setTimeout(() => {
+              const animSquares = { ...newSquares };
+              delete animSquares[capturerSq];
+              animSquares[capturableSq] = attackerPiece;
+              const animFen = squaresToFen(animSquares, 'w');
+              positionRef.current = animFen;
+              setPosition(animFen);
+              setLastMove({ from: capturerSq, to: capturableSq });
+              setOpponentAnimatingMove({
+                from: capturerSq,
+                to: capturableSq,
+                piece: { type: attackerPiece.type, color: attackerPiece.color },
+              });
               setTimeout(() => {
-                const animSquares = { ...newSquares };
-                delete animSquares[capturerSq];
-                animSquares[checkingSq] = attackerPiece;
-                const animFen = squaresToFen(animSquares, 'w');
-                positionRef.current = animFen;
-                setPosition(animFen);
-                setLastMove({ from: capturerSq, to: checkingSq });
-                setOpponentAnimatingMove({
-                  from: capturerSq,
-                  to: checkingSq,
-                  piece: { type: attackerPiece.type, color: attackerPiece.color },
-                });
-                setTimeout(() => {
-                  setLastMove({ from: capturerSq, to: checkingSq });
-                  setFailed(true);
-                  setGameOver(true);
-                  setOpponentAnimatingMove(null);
-                  setWaitingForOpponent(false);
-                }, 220);
-              }, 800);
-              return true;
-            }
+                setLastMove({ from: capturerSq, to: capturableSq });
+                setFailed(true);
+                setGameOver(true);
+                setOpponentAnimatingMove(null);
+                setWaitingForOpponent(false);
+              }, 220);
+            }, 800);
+            return true;
           }
 
           // Success path for requireCheck
