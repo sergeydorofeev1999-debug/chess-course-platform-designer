@@ -1422,6 +1422,79 @@ export default function CaptureBoard({
 
       const movedPiece = parsed.squares[from];
 
+      // ── PRE-MOVE CHECK for requireCheck levels: reject unsafe checks immediately ──
+      if (level.requireCheck) {
+        const checkMoveNum = level.checkOnMove || 1;
+        const currentMoveNum = movesRef.current + 1;
+        if (currentMoveNum === checkMoveNum) {
+          // Simulate move on a test board
+          const testSquares = { ...parsed.squares };
+          delete testSquares[from];
+          testSquares[to] = movedPiece;
+          if (fromType === 'p' && parsed.enPassant && to === parsed.enPassant) {
+            const capturedFile = to[0];
+            const capturedRank = from[1];
+            const capturedSq = `${capturedFile}${capturedRank}`;
+            delete testSquares[capturedSq];
+          }
+
+          let blackKingSq = '';
+          for (const sq in testSquares) {
+            if (testSquares[sq].type === 'k' && testSquares[sq].color === 'b') {
+              blackKingSq = sq;
+              break;
+            }
+          }
+
+          let givesCheck = false;
+          if (blackKingSq) {
+            for (const sq in testSquares) {
+              const p = testSquares[sq];
+              if (p.color !== 'w') continue;
+              if (isValidMove(p.type, sq, blackKingSq, testSquares, 'w')) {
+                givesCheck = true;
+                break;
+              }
+            }
+          }
+
+          if (!givesCheck) {
+            setFailed(true);
+            setGameOver(true);
+            return false;
+          }
+
+          let checkingSq = '';
+          if (blackKingSq) {
+            for (const sq in testSquares) {
+              const p = testSquares[sq];
+              if (p.color !== 'w') continue;
+              if (isValidMove(p.type, sq, blackKingSq, testSquares, 'w')) {
+                checkingSq = sq;
+                break;
+              }
+            }
+          }
+
+          if (checkingSq) {
+            let canCapture = false;
+            for (const sq in testSquares) {
+              const p = testSquares[sq];
+              if (p.color !== 'b') continue;
+              if (isValidMove(p.type, sq, checkingSq, testSquares, 'b')) {
+                canCapture = true;
+                break;
+              }
+            }
+            if (canCapture) {
+              setFailed(true);
+              setGameOver(true);
+              return false;
+            }
+          }
+        }
+      }
+
       // Apply move immediately (visual first, like Lichess)
       const newSquares = { ...parsed.squares };
       delete newSquares[from];
@@ -1664,42 +1737,7 @@ export default function CaptureBoard({
         }
 
         if (currentMoveNum === checkMoveNum) {
-          // This is the required move — must give check
-          if (!isCheck) {
-            setFailed(true);
-            setGameOver(true);
-            return false;
-          }
-
-          // NEW: If the checking piece can be captured by black, it's a fail
-          let checkingSq = '';
-          if (blackKingSq) {
-            for (const sq in newSquares) {
-              const p = newSquares[sq];
-              if (p.color !== 'w') continue;
-              if (isValidMove(p.type, sq, blackKingSq, newSquares, 'w')) {
-                checkingSq = sq;
-                break;
-              }
-            }
-          }
-          if (checkingSq) {
-            let canCapture = false;
-            for (const sq in newSquares) {
-              const p = newSquares[sq];
-              if (p.color !== 'b') continue;
-              if (isValidMove(p.type, sq, checkingSq, newSquares, 'b')) {
-                canCapture = true;
-                break;
-              }
-            }
-            if (canCapture) {
-              setFailed(true);
-              setGameOver(true);
-              return false;
-            }
-          }
-
+          // Already validated pre-move in the PRE-MOVE CHECK block above
           // Success path for requireCheck
           const max = level.maxMoves || stars.length + 1;
           const m = movesRef.current + 1;
