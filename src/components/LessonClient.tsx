@@ -2893,7 +2893,7 @@ function MultiLevelStarBoard({
               />
             </div>
             <div className="flex items-center gap-2">
-              {(phase === 'playing' || phase === 'fail') && (
+              {(phase === 'playing' || phase === 'fail' || ((currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2') && phase === 'success')) && (
                 <>
                   <button
                     onClick={() => {
