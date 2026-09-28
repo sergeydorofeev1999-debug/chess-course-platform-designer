@@ -1137,7 +1137,6 @@ function InlineChessBoard({
           <div className="absolute inset-0 z-40 pointer-events-auto cursor-wait" style={{ backgroundColor: 'transparent' }} />
         )}
       </div>
-      {msg && <div className="text-red-500 text-sm mt-1">{msg}</div>}
     </div>
   );
 }
@@ -1214,6 +1213,8 @@ export default function CaptureBoard({
   const [msg, setMsg] = useState('');
   const [moves, setMoves] = useState(0);
   const [allDone, setAllDone] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [lastEarned, setLastEarned] = useState(0);
   const [promotionPending, setPromotionPending] = useState<{from: string, to: string} | null>(null);
   const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
@@ -1244,6 +1245,8 @@ export default function CaptureBoard({
       setCollected([]);
       setMoves(0);
       setAllDone(false);
+      setShowSuccess(false);
+      setLastEarned(0);
       setGameOver(false);
       setFailed(false);
       setMsg('');
@@ -1627,7 +1630,6 @@ export default function CaptureBoard({
             setLastMove({ from: bsq, to: wsq }); // Highlight FIRST (during ghost)
             setGameOver(true);
             setFailed(true);
-            setMsg(`💀 ${bp.type === 'r' ? 'Ладья' : bp.type === 'b' ? 'Слон' : bp.type === 'q' ? 'Ферзь' : bp.type === 'n' ? 'Конь' : bp.type === 'p' ? 'Пешка' : 'Фигура'} съела ${wp.type === 'r' ? 'ладью' : wp.type === 'b' ? 'слона' : wp.type === 'q' ? 'ферзя' : wp.type === 'n' ? 'коня' : wp.type === 'p' ? 'пешку' : wp.type === 'k' ? 'короля' : 'фигуру'}!`);
             setOpponentAnimatingMove(null);
             setWaitingForOpponent(false);
           }, 220); // Ghost animation duration
@@ -1668,6 +1670,36 @@ export default function CaptureBoard({
             setGameOver(true);
             return false;
           }
+
+          // NEW: If the checking piece can be captured by black, it's a fail
+          let checkingSq = '';
+          if (blackKingSq) {
+            for (const sq in newSquares) {
+              const p = newSquares[sq];
+              if (p.color !== 'w') continue;
+              if (isValidMove(p.type, sq, blackKingSq, newSquares, 'w')) {
+                checkingSq = sq;
+                break;
+              }
+            }
+          }
+          if (checkingSq) {
+            let canCapture = false;
+            for (const sq in newSquares) {
+              const p = newSquares[sq];
+              if (p.color !== 'b') continue;
+              if (isValidMove(p.type, sq, checkingSq, newSquares, 'b')) {
+                canCapture = true;
+                break;
+              }
+            }
+            if (canCapture) {
+              setFailed(true);
+              setGameOver(true);
+              return false;
+            }
+          }
+
           // Success path for requireCheck
           const max = level.maxMoves || stars.length + 1;
           const m = movesRef.current + 1;
@@ -1682,16 +1714,18 @@ export default function CaptureBoard({
             return nextStars;
           });
           onLevelComplete?.(currentLevel, earned);
+          setShowSuccess(true);
+          setLastEarned(earned);
           const t = setTimeout(() => {
+            setShowSuccess(false);
             if (currentLevel + 1 < totalLevels) {
               setCurrentLevel(currentLevel + 1);
               setMsg('');
             } else {
               setAllDone(true);
-              setMsg(`🎉 ${successMessage}`);
               onAllComplete?.();
             }
-          }, 600);
+          }, 1200);
           successTimersRef.current.push(t);
           return true;
         } else {
@@ -1783,16 +1817,18 @@ export default function CaptureBoard({
           return nextStars;
         });
         onLevelComplete?.(currentLevel, earned);
+        setShowSuccess(true);
+        setLastEarned(earned);
         const t2 = setTimeout(() => {
+          setShowSuccess(false);
           if (currentLevel + 1 < totalLevels) {
             setCurrentLevel(currentLevel + 1);
             setMsg('');
           } else {
             setAllDone(true);
-            setMsg(`🎉 ${successMessage}`);
             onAllComplete?.();
           }
-        }, 600);
+        }, 1200);
         successTimersRef.current.push(t2);
         return true;
       }
@@ -1812,13 +1848,11 @@ export default function CaptureBoard({
         if (isCheck) {
           setFailed(true);
           setGameOver(true);
-          setMsg('Ещё раз. Провалено.');
           return false;
         }
         if (hasAnyLegalMove(newSquares, 'b')) {
           setFailed(true);
           setGameOver(true);
-          setMsg('Ещё раз. Провалено.');
           return false;
         }
         // Stalemate! Success
@@ -1835,16 +1869,18 @@ export default function CaptureBoard({
           return nextStars;
         });
         onLevelComplete?.(currentLevel, earned);
+        setShowSuccess(true);
+        setLastEarned(earned);
         const t3 = setTimeout(() => {
+          setShowSuccess(false);
           if (currentLevel + 1 < totalLevels) {
             setCurrentLevel(currentLevel + 1);
             setMsg('');
           } else {
             setAllDone(true);
-            setMsg(`🎉 ${successMessage}`);
             onAllComplete?.();
           }
-        }, 600);
+        }, 1200);
         successTimersRef.current.push(t3);
         return true;
       }
@@ -1870,16 +1906,18 @@ export default function CaptureBoard({
               return nextStars;
             });
             onLevelComplete?.(currentLevel, earned);
+            setShowSuccess(true);
+            setLastEarned(earned);
             const t4 = setTimeout(() => {
+              setShowSuccess(false);
               if (currentLevel + 1 < totalLevels) {
                 setCurrentLevel(currentLevel + 1);
                 setMsg('');
               } else {
                 setAllDone(true);
-                setMsg(`🎉 ${successMessage}`);
                 onAllComplete?.();
               }
-            }, 600);
+            }, 1200);
             successTimersRef.current.push(t4);
           }
           return next;
@@ -2000,11 +2038,62 @@ export default function CaptureBoard({
           <InlineChessBoard fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} promotionPending={promotionPending} onPromotion={handlePromotion} opponentAnimatingMove={opponentAnimatingMove} lastMove={lastMove} waitingForOpponent={waitingForOpponent} />
           {failed && onFail && (
             <div className="w-full">
-              <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
-                <p className="text-white font-bold text-lg">Задание провалено!</p>
+              <div className="bg-[#A63838] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
+                <p className="text-white font-bold text-lg">Попробуйте снова</p>
                 <button
                   onClick={resetLevel}
-                  className="bg-white text-[#c62828] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
+                  className="bg-white text-[#2C241B] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
+                >
+                  ЕЩЁ РАЗ
+                </button>
+              </div>
+            </div>
+          )}
+          {showSuccess && (
+            <div className="w-full">
+              <div className="bg-[#4A7A3A] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
+                <p className="text-white font-bold text-lg">Верно!</p>
+                <div className="flex justify-center gap-1">
+                  {[...Array(lastEarned)].map((_, i) => (
+                    <svg
+                      key={i}
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="#FFFFFF"
+                    >
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+          {allDone && (
+            <div className="w-full">
+              <div className="bg-[#4A7A3A] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
+                <p className="text-white font-bold text-lg">Верно!</p>
+                <div className="flex justify-center gap-1">
+                  {[...Array(lastEarned)].map((_, i) => (
+                    <svg
+                      key={i}
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="#FFFFFF"
+                    >
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
+                  ))}
+                </div>
+                <button
+                  onClick={() => {
+                    clearSuccessTimers();
+                    setCurrentLevel(0);
+                    setLevelStars({});
+                    localStorage.removeItem(savedKey);
+                  }}
+                  className="bg-white text-[#2C241B] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
                 >
                   ЕЩЁ РАЗ
                 </button>
@@ -2078,11 +2167,11 @@ export default function CaptureBoard({
         {/* Red fail banner */}
         {failed && (
           <div className="w-full">
-            <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
+            <div className="bg-[#A63838] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
               <p className="text-white font-bold text-lg">Задание провалено!</p>
               <button
                 onClick={resetLevel}
-                className="bg-white text-[#c62828] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
+                className="bg-white text-[#2C241B] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
               >
                 ЕЩЁ РАЗ
               </button>
@@ -2138,8 +2227,63 @@ export default function CaptureBoard({
           {level.instructions}
         </div>
 
-        {allDone && (
-          <div className="mt-2 text-emerald-700 font-bold text-lg">{successMessage}</div>
+        {showSuccess && (
+          <div className="w-full">
+            <div className="bg-[#4A7A3A] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
+              <p className="text-white font-bold text-lg">Верно!</p>
+              <div className="flex justify-center gap-1">
+                {[...Array(lastEarned)].map((_, i) => (
+                  <svg
+                    key={i}
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="#FFFFFF"
+                  >
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {allDone && !showSuccess && (
+          <div className="w-full">
+            <div className="bg-[#4A7A3A] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
+              <p className="text-white font-bold text-lg">Верно!</p>
+              <div className="flex justify-center gap-1">
+                {[...Array(lastEarned)].map((_, i) => (
+                  <svg
+                    key={i}
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="#FFFFFF"
+                  >
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                ))}
+              </div>
+              <button
+                onClick={() => {
+                  setPosition(levels[0].initialFen);
+                  setCollected([]);
+                  setMoves(0);
+                  setMsg('');
+                  setFailed(false);
+                  setGameOver(false);
+                  setAllDone(false);
+                  setCurrentLevel(0);
+                  setLevelStars({});
+                  localStorage.removeItem(savedKey);
+                }}
+                className="bg-white text-[#2C241B] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
+              >
+                ЕЩЁ РАЗ
+              </button>
+            </div>
+          </div>
         )}
       </div>
     </div>
