@@ -893,6 +893,10 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
 
       {/* CENTER COLUMN */}
       <div className="flex-1 flex flex-col items-center gap-3">
+        {/* Difficulty + Turn */}
+        <div className="flex items-center gap-2">
+        </div>
+
         {/* Mobile avatar + speech bubble */}
         <div className="lg:hidden w-full flex flex-col gap-2">
           <div className="flex items-start gap-3">
