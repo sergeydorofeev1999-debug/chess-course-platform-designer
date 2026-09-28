@@ -2752,7 +2752,7 @@ function MultiLevelStarBoard({
         <Link
           href={`/courses/${courseId}`}
           className="inline-flex items-center gap-1 text-[13px] transition-colors"
-          style={{ color: '#9B8566', marginBottom: 24 }}
+          style={{ color: '#9B8566', marginBottom: 4 }}
         >
           <ArrowLeft size={14} /> К курсу
         </Link>
