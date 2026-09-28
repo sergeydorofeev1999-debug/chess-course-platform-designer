@@ -1460,7 +1460,7 @@ export default function CaptureBoard({
       onPositionChange?.(newFen);
 
       // Trigger auto moves after white makes a target move (e.g. en passant capture)
-      if (level.triggerAutoMove && level.triggerAutoMove.length > 0) {
+      if (level.triggerAutoMove && level.triggerAutoMove.length > 0 && !failedRef.current) {
         // Only trigger if the white move was actually correct
         if (stars.includes(to)) {
           const idx = nextTriggerIdxRef.current;
