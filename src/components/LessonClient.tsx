@@ -2925,7 +2925,7 @@ function MultiLevelStarBoard({
                   </button>
                 </>
               )}
-              {phase === 'success' && (
+              {phase === 'success' && !(currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2') && (
                 <button
                   onClick={() => setCurrentLevel(l => l + 1)}
                   className="flex-1 h-10 flex items-center justify-center gap-1 rounded-lg text-sm font-medium transition-all"
