@@ -1353,6 +1353,9 @@ export default function CaptureBoard({
     setGameOver(false);
     setFailed(false);
     setMsg('');
+    setLastMove(null);
+    setWaitingForOpponent(false);
+    setPromotionPending(null);
     movesRef.current = 0;
     nextTriggerIdxRef.current = 0;
     positionRef.current = lvl.initialFen;
