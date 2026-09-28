@@ -2079,6 +2079,17 @@ function MultiLevelStarBoard({
     }
   }, [phase, currentLevel, totalLevels, allDone, onAllComplete]);
 
+  // Auto-advance to next level in castling lesson (like CaptureBoard)
+  useEffect(() => {
+    if ((currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2') && phase === 'success' && currentLevel + 1 < totalLevels) {
+      const timer = setTimeout(() => {
+        setCurrentLevel((l) => l + 1);
+        setPhase('playing');
+      }, 1200);
+      return () => clearTimeout(timer);
+    }
+  }, [phase, currentLevel, totalLevels, currentLessonId]);
+
   const reset = useCallback(() => {
     setPosition(level.initialFen);
     setCollected([]);
