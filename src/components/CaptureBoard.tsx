@@ -1689,6 +1689,10 @@ export default function CaptureBoard({
               const p = newSquares[sq];
               if (p.color !== 'b') continue;
               if (isValidMove(p.type, sq, checkingSq, newSquares, 'b')) {
+                if (p.type === 'k') {
+                  // King cannot capture into a square attacked by white
+                  if (isSquareAttackedBy(checkingSq, newSquares, 'w', true)) continue;
+                }
                 capturerSq = sq;
                 break;
               }
