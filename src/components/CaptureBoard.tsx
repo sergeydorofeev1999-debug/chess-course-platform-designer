@@ -1979,6 +1979,7 @@ export default function CaptureBoard({
     setPromotionPending(null);
     setLastMove(null);
     setMsg('');
+    nextTriggerIdxRef.current = 0;
   };
 
   const handlePromotion = useCallback(
