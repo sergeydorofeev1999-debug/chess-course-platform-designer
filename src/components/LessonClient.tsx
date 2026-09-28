@@ -2829,12 +2829,12 @@ function MultiLevelStarBoard({
 
         {/* Castling lesson banners under board */}
         {(currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2') && phase === 'fail' && (
-          <div className="w-full max-w-sm mt-3">
-            <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
-              <p className="text-white font-bold text-lg">Подумай ещё раз...</p>
+          <div className="w-full mt-3">
+            <div className="bg-[#A63838] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
+              <p className="text-white font-bold text-lg">Попробуйте снова</p>
               <button
                 onClick={reset}
-                className="bg-white text-[#c62828] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
+                className="bg-white text-[#2C241B] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
               >
                 ЕЩЁ РАЗ
               </button>
@@ -2842,7 +2842,7 @@ function MultiLevelStarBoard({
           </div>
         )}
         {(currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2') && phase === 'success' && (
-          <div className="w-full max-w-sm mt-3">
+          <div className="w-full mt-3">
             <div className="bg-[#4A7A3A] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
               <p className="text-white font-bold text-lg">Верно!</p>
               <div className="flex justify-center gap-1">
