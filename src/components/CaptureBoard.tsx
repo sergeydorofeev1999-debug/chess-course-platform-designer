@@ -1799,56 +1799,24 @@ export default function CaptureBoard({
               }
               if (defenderSq) {
                 const defender = { ...newSquares[defenderSq] };
-                setWaitingForOpponent(true);
-                setTimeout(() => {
-                  const animSquares = { ...newSquares };
-                  delete animSquares[defenderSq];
-                  animSquares[attackerSq] = defender;
-                  const animFen = squaresToFen(animSquares, 'w');
-                  positionRef.current = animFen;
-                  setPosition(animFen);
-                  setLastMove({ from: defenderSq, to: attackerSq });
-                  setOpponentAnimatingMove({
-                    from: defenderSq,
-                    to: attackerSq,
-                    piece: { type: defender.type, color: defender.color },
-                  });
-                  setTimeout(() => {
-                    setFailed(true);
-                    setGameOver(true);
-                    setOpponentAnimatingMove(null);
-                    setWaitingForOpponent(false);
-                  }, 220);
-                }, 800);
+                delete newSquares[defenderSq];
+                newSquares[attackerSq] = defender;
+                const captureFen = squaresToFen(newSquares, 'w');
+                positionRef.current = captureFen;
+                setPosition(captureFen);
+                setFailed(true);
+                setGameOver(true);
                 return false;
               }
             }
             // Can't capture — try king escape
             const escapeSq = findKingEscape(newSquares, 'b');
             if (escapeSq) {
-              const kingPiece = newSquares[blackKingSq];
-              setWaitingForOpponent(true);
-              setTimeout(() => {
-                const animSquares = { ...newSquares };
-                delete animSquares[blackKingSq];
-                animSquares[escapeSq] = kingPiece;
-                const animFen = squaresToFen(animSquares, 'w');
-                positionRef.current = animFen;
-                setPosition(animFen);
-                setLastMove({ from: blackKingSq, to: escapeSq });
-                setOpponentAnimatingMove({
-                  from: blackKingSq,
-                  to: escapeSq,
-                  piece: { type: kingPiece.type, color: kingPiece.color },
-                });
-                setTimeout(() => {
-                  setFailed(true);
-                  setGameOver(true);
-                  setOpponentAnimatingMove(null);
-                  setWaitingForOpponent(false);
-                }, 220);
-              }, 800);
-              return false;
+              newSquares[escapeSq] = newSquares[blackKingSq];
+              delete newSquares[blackKingSq];
+              const escapeFen = squaresToFen(newSquares, 'w');
+              positionRef.current = escapeFen;
+              setPosition(escapeFen);
             }
           }
           setFailed(true);
