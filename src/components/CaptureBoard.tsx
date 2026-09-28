@@ -1393,7 +1393,7 @@ export default function CaptureBoard({
     });
 
     return () => timers.forEach(clearTimeout);
-  }, [currentLevel, levels, gameOver]);
+  }, [currentLevel, levels, gameOver, resetTrigger]);
 
   const handleMove = useCallback(
     (from: string, to: string) => {
