@@ -940,23 +940,6 @@ function parseFenSimple(fen: string) {
         </button>
       </div>
 
-      {failed && (
-        <div className="w-full">
-          <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
-            <p className="text-white font-bold text-lg">Задание провалено!</p>
-            <button
-              onClick={() => {
-                setResetKey((prev) => prev + 1);
-                goToLevel(currentLevel);
-              }}
-              className="bg-white text-[#c62828] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
-            >
-              ЕЩЁ РАЗ
-            </button>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }
