@@ -2434,6 +2434,12 @@ function MultiLevelStarBoard({
           }
           return next;
         });
+      } else if ((level.requireAll || level.autoMove) && stars.length > 0 && !stars.includes(to)) {
+        // Wrong move in autoMove/requireAll lesson → immediate fail
+        setFailed(true);
+        setGameOver(true);
+        setPhase('fail');
+        return false;
       }
       return true;
     },
