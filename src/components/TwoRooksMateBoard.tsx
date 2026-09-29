@@ -926,8 +926,8 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
         )}
 
         {/* Board */}
-        <div className="flex justify-center w-full">
-          <div className="relative inline-block">
+        <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
+          <div className="relative" style={{ width: 8 * sqSize + 6, height: 8 * sqSize + 6 }}>
             <UniversalChessBoardDesigner
               fen={game?.fen() || ''}
               selectedSquare={selectedSquare}
@@ -943,8 +943,10 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
             />
             {/* Hint arrows SVG */}
             <svg
-              className="absolute inset-0 pointer-events-none z-20"
+              className="absolute pointer-events-none z-20"
               style={{
+                top: 3,
+                left: 3,
                 width: 8 * sqSize,
                 height: 8 * sqSize,
                 display: hintArrows.length > 0 ? 'block' : 'none',
