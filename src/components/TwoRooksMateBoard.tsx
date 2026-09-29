@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
-import { RotateCcw, Eye, Trophy } from 'lucide-react';
+import { RotateCcw, Eye, Trophy, Lightbulb } from 'lucide-react';
 import UniversalChessBoardDesigner from './board/UniversalChessBoardDesigner';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
@@ -288,6 +288,9 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
   const demoModeRef = useRef(false);
   const mountedRef = useRef(true);
 
+  const [showHint, setShowHint] = useState(false);
+  const [hintArrows, setHintArrows] = useState<{from: string; to: string}[]>([]);
+
   const storageKey = lessonId ? `tworooks_progress_${lessonId}` : 'tworooks_progress';
 
   useEffect(() => () => { mountedRef.current = false; }, []);
@@ -351,6 +354,8 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
     timerIntervalRef.current = null;
     setTimerStarted(false);
     setTimeLeft(null);
+    setShowHint(false);
+    setHintArrows([]);
   }, [currentExercise]);
 
   const switchExercise = useCallback((id: ExerciseId) => {
@@ -536,6 +541,10 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
     if (!game) return;
     const g = game;
     if (g.turn() !== 'w') return;
+
+    // Hide hint arrows after user move
+    setShowHint(false);
+    setHintArrows([]);
 
     try {
       const piece = g.get(from as any);
@@ -817,6 +826,46 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
             </button>
           )}
           <button
+            onClick={() => {
+              if (showHint) {
+                setShowHint(false);
+                setHintArrows([]);
+              } else {
+                const ex = EXERCISES.find(e => e.id === currentExercise);
+                if (ex && game) {
+                  const g = new Chess(game.fen());
+                  // Find the best move from the demo sequence that matches current position
+                  const currentFen = g.fen();
+                  let bestMove: { from: string; to: string } | null = null;
+                  
+                  // Try each demo move in order — find the first one that's legal now
+                  for (const demoMove of ex.demoMoves) {
+                    try {
+                      const test = new Chess(currentFen);
+                      test.move({ from: demoMove.from, to: demoMove.to });
+                      bestMove = { from: demoMove.from, to: demoMove.to };
+                      break;
+                    } catch {
+                      // Skip if not legal
+                    }
+                  }
+                  
+                  if (bestMove) {
+                    setHintArrows([bestMove]);
+                    setShowHint(true);
+                  }
+                }
+              }
+            }}
+            className={`flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border text-xs font-medium transition-all ${
+              showHint
+                ? 'bg-[rgba(201,168,76,0.15)] border-[rgba(201,168,76,0.5)] text-[#C9A84C]'
+                : 'border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'
+            }`}
+          >
+            <Lightbulb size={14} /> {showHint ? 'Скрыть' : 'Подсказка'}
+          </button>
+          <button
             onClick={reset}
             className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
           >
@@ -891,6 +940,63 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
             interactive={!isComplete && !isStalemate && !demoMode}
             sqSize={sqSize}
           />
+          {/* Hint arrows SVG */}
+          <svg
+            className="absolute inset-0 pointer-events-none z-20"
+            style={{
+              width: 8 * sqSize,
+              height: 8 * sqSize,
+              display: hintArrows.length > 0 ? 'block' : 'none',
+              left: 0,
+              top: 0,
+            }}
+            viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}
+          >
+            {hintArrows.map((arrow, i) => {
+              const fromF = FILES.indexOf(arrow.from[0]);
+              const fromR = RANKS.indexOf(arrow.from[1]);
+              const toF = FILES.indexOf(arrow.to[0]);
+              const toR = RANKS.indexOf(arrow.to[1]);
+              const x1 = (fromF + 0.5) * sqSize;
+              const y1 = (fromR + 0.5) * sqSize;
+              const x2 = (toF + 0.5) * sqSize;
+              const y2 = (toR + 0.5) * sqSize;
+              const strokeW = sqSize < 60 ? 14 : 18;
+              const halfW = strokeW / 2;
+              const dx = x2 - x1;
+              const dy = y2 - y1;
+              const len = Math.sqrt(dx * dx + dy * dy) || 1;
+              const headHeight = sqSize * 0.6;
+              const headBase = strokeW * 3;
+              const nx = -dy / len;
+              const ny = dx / len;
+              const blx = x1 + nx * halfW;
+              const bly = y1 + ny * halfW;
+              const brx = x1 - nx * halfW;
+              const bry = y1 - ny * halfW;
+              const tailX = x2 - (dx / len) * headHeight;
+              const tailY = y2 - (dy / len) * headHeight;
+              const tlx = tailX + nx * halfW;
+              const tly = tailY + ny * halfW;
+              const trx = tailX - nx * halfW;
+              const try_ = tailY - ny * halfW;
+              const hlx = tailX + nx * headBase / 2;
+              const hly = tailY + ny * headBase / 2;
+              const hrx = tailX - nx * headBase / 2;
+              const hry = tailY - ny * headBase / 2;
+              const cross = (brx - blx) * (-dy / len) - (bry - bly) * (-dx / len);
+              const sweep = cross > 0 ? 1 : 0;
+              const pathD = `M ${blx} ${bly} L ${tlx} ${tly} L ${hlx} ${hly} L ${x2} ${y2} L ${hrx} ${hry} L ${trx} ${try_} L ${brx} ${bry} A ${halfW} ${halfW} 0 1 ${sweep} ${blx} ${bly} Z`;
+              return (
+                <path
+                  key={i}
+                  d={pathD}
+                  fill="rgba(44, 36, 27, 0.35)"
+                  className="arrow-hint-line"
+                />
+              );
+            })}
+          </svg>
         </div>
         {/* Mobile exercise pills */}
         <div className="flex lg:hidden w-full items-stretch gap-[1px]">
@@ -966,6 +1072,42 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
               <Eye size={14} /> Посмотреть как ставить мат
             </button>
           )}
+          <button
+            onClick={() => {
+              if (showHint) {
+                setShowHint(false);
+                setHintArrows([]);
+              } else {
+                const ex = EXERCISES.find(e => e.id === currentExercise);
+                if (ex && game) {
+                  const g = new Chess(game.fen());
+                  const currentFen = g.fen();
+                  let bestMove: { from: string; to: string } | null = null;
+                  for (const demoMove of ex.demoMoves) {
+                    try {
+                      const test = new Chess(currentFen);
+                      test.move({ from: demoMove.from, to: demoMove.to });
+                      bestMove = { from: demoMove.from, to: demoMove.to };
+                      break;
+                    } catch {
+                      // Skip if not legal
+                    }
+                  }
+                  if (bestMove) {
+                    setHintArrows([bestMove]);
+                    setShowHint(true);
+                  }
+                }
+              }
+            }}
+            className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all ${
+              showHint
+                ? 'bg-[rgba(201,168,76,0.15)] border-[rgba(201,168,76,0.5)] text-[#C9A84C]'
+                : 'border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'
+            }`}
+          >
+            <Lightbulb size={14} /> {showHint ? 'Скрыть' : 'Подсказка'}
+          </button>
           <button
             onClick={reset}
             className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
