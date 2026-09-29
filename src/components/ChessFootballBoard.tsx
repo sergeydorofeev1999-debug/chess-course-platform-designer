@@ -791,56 +791,56 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
   if (!difficulty) {
     const allCompleted = LEVELS.every(l => completedLevels[l.id]);
     return (
-      <div className="flex flex-col lg:flex-row gap-4 w-full">
-        {/* CENTER COLUMN */}
-        <div className="flex-1 flex flex-col items-center gap-3 w-full">
+      <div className="flex flex-col items-center gap-6 w-full px-4 py-6">
+        {lessonTitle ? (
           <div className="text-center">
-            <h2 className="text-[20px] font-bold text-[#2C241B]">{lessonTitle || 'Шахматный футбол'}</h2>
+            <h2 className="text-[20px] font-bold text-[#2C241B]">{lessonTitle}</h2>
             <p className="text-[14px] font-medium text-[#8B7355] mt-1">Выберите уровень сложности</p>
           </div>
-
-          <div className="flex flex-col gap-3 w-full max-w-sm">
-            {LEVELS.map(level => {
-              const isCompleted = completedLevels[level.id];
-              const circleColor = level.color;
-              const borderColor = isCompleted
-                ? circleColor
-                : (level.id === 'easy' ? '#F5EFE0' : level.id === 'medium' ? '#F0E8DA' : '#E8DCD4');
-              const titleColor  = level.id === 'easy' ? '#A07820' : level.id === 'medium' ? '#805820' : '#3A1A0A';
-              const descColor   = level.id === 'easy' ? '#B89A60' : level.id === 'medium' ? '#A08860' : '#7A5A4A';
-              return (
-                <button
-                  key={level.id}
-                  onClick={() => startLevel(level.id)}
-                  className="flex items-center gap-3.5 px-4 py-4 rounded-2xl bg-white transition hover:-translate-y-px text-left"
-                  style={{ border: `2px solid ${borderColor}` }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = circleColor; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = borderColor; }}
+        ) : (
+          <h3 className="text-[20px] font-bold text-[#2C241B] text-center">Выберите уровень сложности</h3>
+        )}
+        <div className="flex flex-col gap-3 w-full max-w-sm">
+          {LEVELS.map(level => {
+            const isCompleted = completedLevels[level.id];
+            const circleColor = level.color;
+            const borderColor = isCompleted
+              ? circleColor
+              : (level.id === 'easy' ? '#F5EFE0' : level.id === 'medium' ? '#F0E8DA' : '#E8DCD4');
+            const titleColor  = level.id === 'easy' ? '#A07820' : level.id === 'medium' ? '#805820' : '#3A1A0A';
+            const descColor   = level.id === 'easy' ? '#B89A60' : level.id === 'medium' ? '#A08860' : '#7A5A4A';
+            return (
+              <button
+                key={level.id}
+                onClick={() => startLevel(level.id)}
+                className="flex items-center gap-3.5 px-4 py-4 rounded-2xl bg-white transition hover:-translate-y-px text-left"
+                style={{ border: `2px solid ${borderColor}` }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = circleColor; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = borderColor; }}
+              >
+                <div
+                  className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0"
+                  style={{
+                    backgroundColor: circleColor,
+                    boxShadow: `0 2px 8px ${circleColor}4D`,
+                  }}
                 >
-                  <div
-                    className="w-11 h-11 rounded-full flex items-center justify-center text-white font-bold text-base flex-shrink-0"
-                    style={{
-                      backgroundColor: circleColor,
-                      boxShadow: `0 2px 8px ${circleColor}4D`,
-                    }}
-                  >
-                    {isCompleted ? <Trophy size={20} /> : level.stars}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-bold text-base" style={{ color: titleColor }}>{level.label}</div>
-                    <div className="text-[13px]" style={{ color: descColor }}>{level.description}</div>
-                  </div>
-                  <ChevronRight size={20} style={{ color: circleColor }} className="flex-shrink-0" />
-                </button>
-              );
-            })}
-          </div>
-          {allCompleted && (
-            <div className="mt-4 px-6 py-3 bg-[#F5EFE6] border border-[#C9A84C] rounded-xl text-[#3E3228] font-bold flex items-center gap-2">
-              <Trophy size={20} /> Все уровни пройдены!
-            </div>
-          )}
+                  {isCompleted ? <Trophy size={20} /> : level.stars}
+                </div>
+                <div className="flex-1">
+                  <div className="font-bold text-base" style={{ color: titleColor }}>{level.label}</div>
+                  <div className="text-[13px]" style={{ color: descColor }}>{level.description}</div>
+                </div>
+                <ChevronRight size={20} style={{ color: circleColor }} className="flex-shrink-0" />
+              </button>
+            );
+          })}
         </div>
+        {allCompleted && (
+          <div className="mt-4 px-6 py-3 bg-[#F5EFE6] border border-[#C9A84C] rounded-xl text-[#3E3228] font-bold flex items-center gap-2">
+            <Trophy size={20} /> Все уровни пройдены!
+          </div>
+        )}
       </div>
     );
   }
