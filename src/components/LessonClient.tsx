@@ -1135,7 +1135,7 @@ function MultiLevelStarBoard({
   }, [currentLevel]);
 
   const level = levels[currentLevel];
-  const stars = useMemo(() => (level.stars || level.targets)?.map((s: any) => typeof s === 'string' ? s : s?.square).filter(Boolean) || [], [level.stars, level.targets]);
+  const stars = useMemo(() => (level.stars?.length > 0 ? level.stars : level.targets)?.map((s: any) => typeof s === 'string' ? s : s?.square).filter(Boolean) || [], [level.stars, level.targets]);
   const visibleStars = useMemo(() => stars.filter((s: string) => !collected.includes(s)), [stars, collected]);
   const totalLevels = levels.length;
 
