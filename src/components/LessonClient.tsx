@@ -2797,7 +2797,7 @@ function MultiLevelStarBoard({
 
       {/* CENTER — Board */}
       <div className="flex-1 flex flex-col items-center justify-center w-full lg:min-w-0">
-        <div className="lg:hidden w-full flex flex-col gap-2 mb-1">
+        <div className="lg:hidden w-full flex flex-col gap-2 mb-3">
           <div className="flex items-start gap-3">
             <div className="w-14 h-14 flex-shrink-0">
               <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
@@ -3125,7 +3125,7 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
   return (
     <div className="w-full px-3 py-4">
     {/* Quiet nav */}
-    <div className="flex items-center justify-between mb-3">
+    <div className="flex items-center justify-between mb-1">
       <Link
         href={`/courses/${courseId}`}
         className="text-[11px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] inline-flex items-center gap-1 transition-colors"
