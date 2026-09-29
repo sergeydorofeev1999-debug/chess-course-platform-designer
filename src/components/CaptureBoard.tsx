@@ -1966,6 +1966,7 @@ export default function CaptureBoard({
       if (isEnPassantLesson && !stars.includes(to)) {
         setFailed(true);
         setGameOver(true);
+        if (onFail) onFail();
         return false;
       }
 
