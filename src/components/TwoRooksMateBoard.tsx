@@ -926,32 +926,31 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
         )}
 
         {/* Board */}
-        <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
-          <UniversalChessBoardDesigner
-            fen={game?.fen() || ''}
-            selectedSquare={selectedSquare}
-            lastMove={lastMove}
-            autoValidMoves={true}
-            onMove={(from, to) => processWhiteMove(from, to, undefined, true)}
-            onSquareClick={handleSquareClick}
-            playerAnimatingMove={playerAnimatingMove}
-            opponentAnimatingMove={opponentAnimatingMove}
-            disableAutoGhost={true}
-            interactive={!isComplete && !isStalemate && !demoMode}
-            sqSize={sqSize}
-          />
-          {/* Hint arrows SVG */}
-          <svg
-            className="absolute inset-0 pointer-events-none z-20"
-            style={{
-              width: 8 * sqSize,
-              height: 8 * sqSize,
-              display: hintArrows.length > 0 ? 'block' : 'none',
-              left: 0,
-              top: 0,
-            }}
-            viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}
-          >
+        <div className="flex justify-center w-full">
+          <div className="relative" style={{ width: 8 * sqSize, height: 8 * sqSize }}>
+            <UniversalChessBoardDesigner
+              fen={game?.fen() || ''}
+              selectedSquare={selectedSquare}
+              lastMove={lastMove}
+              autoValidMoves={true}
+              onMove={(from, to) => processWhiteMove(from, to, undefined, true)}
+              onSquareClick={handleSquareClick}
+              playerAnimatingMove={playerAnimatingMove}
+              opponentAnimatingMove={opponentAnimatingMove}
+              disableAutoGhost={true}
+              interactive={!isComplete && !isStalemate && !demoMode}
+              sqSize={sqSize}
+            />
+            {/* Hint arrows SVG */}
+            <svg
+              className="absolute inset-0 pointer-events-none z-20"
+              style={{
+                width: 8 * sqSize,
+                height: 8 * sqSize,
+                display: hintArrows.length > 0 ? 'block' : 'none',
+              }}
+              viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}
+            >
             {hintArrows.map((arrow, i) => {
               const fromF = FILES.indexOf(arrow.from[0]);
               const fromR = RANKS.indexOf(arrow.from[1]);
@@ -997,8 +996,9 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
               );
             })}
           </svg>
-        </div>
-        {/* Mobile exercise pills */}
+          </div>
+          </div>
+          {/* Mobile exercise pills */}
         <div className="flex lg:hidden w-full items-stretch gap-[1px]">
           {EXERCISES.map((ex) => {
             const earned = exerciseStars[ex.id] || 0;
