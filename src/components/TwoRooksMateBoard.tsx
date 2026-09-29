@@ -808,28 +808,20 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
     }
   }
 
-  const computeBestMateMove = (board: Chess): { from: string; to: string } | null => {
-    const moves = board.moves({ verbose: true }).filter((m: any) => m.color === 'w');
-    if (moves.length === 0) return null;
-
-    let bestMove: { from: string; to: string; score: number } | null = null;
-
-    for (const move of moves) {
-      const test = new Chess(board.fen());
-      test.move({ from: move.from, to: move.to, promotion: move.promotion });
-
-      if (test.isCheckmate()) {
-        return { from: move.from, to: move.to };
-      }
-
-      const score = search(test, 3, -Infinity, Infinity, false);
-
-      if (!bestMove || score > bestMove.score) {
-        bestMove = { from: move.from, to: move.to, score };
+  const computeBestMateMove = (board: Chess, exercise: Exercise): { from: string; to: string } | null => {
+    for (const move of exercise.demoMoves) {
+      try {
+        const test = new Chess(board.fen());
+        test.move({ from: move.from, to: move.to });
+        const piece = board.get(move.from as any);
+        if (piece?.color === 'w') {
+          return { from: move.from, to: move.to };
+        }
+      } catch {
+        // not legal, skip
       }
     }
-
-    return bestMove ? { from: bestMove.from, to: bestMove.to } : null;
+    return null;
   };
 
   const earned = exerciseStars[currentExercise] || 0;
@@ -970,7 +962,7 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
                 setHintArrows([]);
               } else {
                 if (game) {
-                  const bestMove = computeBestMateMove(game);
+                  const bestMove = computeBestMateMove(game, currentEx);
                   if (bestMove) {
                     setHintArrows([bestMove]);
                     setShowHint(true);
@@ -1216,7 +1208,7 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
                 setHintArrows([]);
               } else {
                 if (game) {
-                  const bestMove = computeBestMateMove(game);
+                  const bestMove = computeBestMateMove(game, currentEx);
                   if (bestMove) {
                     setHintArrows([bestMove]);
                     setShowHint(true);
