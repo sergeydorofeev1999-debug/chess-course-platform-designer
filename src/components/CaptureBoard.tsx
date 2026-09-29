@@ -1465,42 +1465,43 @@ export default function CaptureBoard({
       onAnyMove?.();
       onPositionChange?.(newFen);
 
-      // Trigger auto moves after white makes a target move (e.g. en passant capture)
-      if (level.triggerAutoMove && level.triggerAutoMove.length > 0 && !failedRef.current) {
-        // Only trigger if the white move was actually correct
-        if (stars.includes(to)) {
-          const idx = nextTriggerIdxRef.current;
-          if (idx < level.triggerAutoMove.length) {
-            const trigger = level.triggerAutoMove[idx];
-            const delayMs = (trigger as any).delayMs || 0;
-            setWaitingForOpponent(true);
-            setTimeout(() => {
-              // Check if white moved the expected piece for this trigger
-              const parsedAfter = parseFen(positionRef.current);
-              const piece = parsedAfter.squares[trigger.from];
-              if (piece) {
-                const newSquares2 = { ...parsedAfter.squares };
-                delete newSquares2[trigger.from];
-                newSquares2[trigger.to] = piece;
-                let nextEp: string | null = null;
-                if (piece.type === 'p' && trigger.from[1] === '7' && trigger.to[1] === '5') {
-                  nextEp = `${trigger.from[0]}6`;
-                }
-                let newFen2 = squaresToFen(newSquares2, 'w');
-                if (nextEp) {
-                  const fp = newFen2.split(' ');
-                  fp[3] = nextEp;
-                  newFen2 = fp.join(' ');
-                }
-                positionRef.current = newFen2;
-                setPosition(newFen2);
-                setLastMove({ from: trigger.from, to: trigger.to });
-                onPositionChange?.(newFen2); // Notify parent about trigger auto-move update
-              }
-              nextTriggerIdxRef.current = idx + 1;
+      // Trigger auto moves after white makes any move (e.g. en passant exercise progression)
+      if (level.triggerAutoMove && level.triggerAutoMove.length > 0) {
+        const idx = nextTriggerIdxRef.current;
+        if (idx < level.triggerAutoMove.length) {
+          const trigger = level.triggerAutoMove[idx];
+          const delayMs = (trigger as any).delayMs || 0;
+          setWaitingForOpponent(true);
+          const timer = setTimeout(() => {
+            if (failedRef.current) {
               setWaitingForOpponent(false);
-            }, delayMs);
-          }
+              return;
+            }
+            const parsedAfter = parseFen(positionRef.current);
+            const piece = parsedAfter.squares[trigger.from];
+            if (piece) {
+              const newSquares2 = { ...parsedAfter.squares };
+              delete newSquares2[trigger.from];
+              newSquares2[trigger.to] = piece;
+              let nextEp: string | null = null;
+              if (piece.type === 'p' && trigger.from[1] === '7' && trigger.to[1] === '5') {
+                nextEp = `${trigger.from[0]}6`;
+              }
+              let newFen2 = squaresToFen(newSquares2, 'w');
+              if (nextEp) {
+                const fp = newFen2.split(' ');
+                fp[3] = nextEp;
+                newFen2 = fp.join(' ');
+              }
+              positionRef.current = newFen2;
+              setPosition(newFen2);
+              setLastMove({ from: trigger.from, to: trigger.to });
+              onPositionChange?.(newFen2);
+            }
+            nextTriggerIdxRef.current = idx + 1;
+            setWaitingForOpponent(false);
+          }, delayMs);
+          successTimersRef.current.push(timer);
         }
       }
 
