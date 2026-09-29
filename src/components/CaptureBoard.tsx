@@ -1958,8 +1958,8 @@ export default function CaptureBoard({
       const isEnPassantLesson = lessonId === '14' || lessonId === 'b244d9da-23d9-438f-a81d-64b050b3b32e';
       if (isEnPassantLesson && !stars.includes(to)) {
         setFailed(true);
-        setGameOver(true);
-        return false;
+        if (onFail) onFail();
+        return true;
       }
 
       return true;
