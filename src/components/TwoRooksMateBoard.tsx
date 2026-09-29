@@ -927,7 +927,7 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
 
         {/* Board */}
         <div className="flex justify-center w-full">
-          <div className="relative" style={{ width: 8 * sqSize, height: 8 * sqSize }}>
+          <div className="relative inline-block">
             <UniversalChessBoardDesigner
               fen={game?.fen() || ''}
               selectedSquare={selectedSquare}
