@@ -1135,7 +1135,7 @@ function MultiLevelStarBoard({
   }, [currentLevel]);
 
   const level = levels[currentLevel];
-  const stars = useMemo(() => (level.stars?.length > 0 ? level.stars : level.targets)?.map((s: any) => typeof s === 'string' ? s : s?.square).filter(Boolean) || [], [level.stars, level.targets]);
+  const stars = useMemo(() => level.stars?.map((s: any) => typeof s === 'string' ? s : s?.square).filter(Boolean) || [], [level.stars]);
   const visibleStars = useMemo(() => stars.filter((s: string) => !collected.includes(s)), [stars, collected]);
   const totalLevels = levels.length;
 
@@ -2434,12 +2434,6 @@ function MultiLevelStarBoard({
           }
           return next;
         });
-      } else if ((level.requireAll || level.autoMove) && stars.length > 0 && !stars.includes(to)) {
-        // Wrong move in autoMove/requireAll lesson → immediate fail
-        setFailed(true);
-        setGameOver(true);
-        setPhase('fail');
-        return false;
       }
       return true;
     },
@@ -2758,7 +2752,7 @@ function MultiLevelStarBoard({
         <Link
           href={`/courses/${courseId}`}
           className="inline-flex items-center gap-1 text-[13px] transition-colors"
-          style={{ color: '#9B8566', marginBottom: 4 }}
+          style={{ color: '#9B8566', marginBottom: 24 }}
         >
           <ArrowLeft size={14} /> К курсу
         </Link>

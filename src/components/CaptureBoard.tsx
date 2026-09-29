@@ -1211,6 +1211,9 @@ export default function CaptureBoard({
   const [gameOver, setGameOver] = useState(false);
   const [failed, setFailed] = useState(false);
   const failedRef = useRef(false);
+  useEffect(() => {
+    failedRef.current = failed;
+  }, [failed]);
   const [msg, setMsg] = useState('');
   const [moves, setMoves] = useState(0);
   const [allDone, setAllDone] = useState(false);
@@ -1455,15 +1458,6 @@ export default function CaptureBoard({
       setLastMove({ from, to });
       onAnyMove?.();
       onPositionChange?.(newFen);
-
-      // ── Lesson 14 (en passant): any non-target move is an immediate fail ──
-      const isEnPassantLesson = lessonId === '14' || lessonId === 'b244d9da-23d9-438f-a81d-64b050b3b32e';
-      if (isEnPassantLesson && !stars.includes(to)) {
-        setFailed(true);
-        failedRef.current = true;
-        if (onFail) onFail();
-        return true;
-      }
 
       // Trigger auto moves after white makes a target move (e.g. en passant capture)
       if (level.triggerAutoMove && level.triggerAutoMove.length > 0 && !failedRef.current) {
@@ -1958,6 +1952,14 @@ export default function CaptureBoard({
           }
           return next;
         });
+      }
+
+      // ── Lesson 14 (en passant): any non-target move is an immediate fail ──
+      const isEnPassantLesson = lessonId === '14' || lessonId === 'b244d9da-23d9-438f-a81d-64b050b3b32e';
+      if (isEnPassantLesson && !stars.includes(to)) {
+        setFailed(true);
+        setGameOver(true);
+        return false;
       }
 
       return true;
