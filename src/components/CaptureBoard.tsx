@@ -1211,9 +1211,6 @@ export default function CaptureBoard({
   const [gameOver, setGameOver] = useState(false);
   const [failed, setFailed] = useState(false);
   const failedRef = useRef(false);
-  useEffect(() => {
-    failedRef.current = failed;
-  }, [failed]);
   const [msg, setMsg] = useState('');
   const [moves, setMoves] = useState(0);
   const [allDone, setAllDone] = useState(false);
