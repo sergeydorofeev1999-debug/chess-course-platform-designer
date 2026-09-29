@@ -724,6 +724,81 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
       : [];
 
   const currentEx = EXERCISES.find(e => e.id === currentExercise)!;
+  // Compute best white move that reduces mate distance
+  const computeBestMateMove = (board: Chess): { from: string; to: string } | null => {
+    const moves = board.moves({ verbose: true });
+    const whiteMoves = moves.filter((m: any) => m.color === 'w');
+    if (whiteMoves.length === 0) return null;
+
+    let bestMove: { from: string; to: string; score: number } | null = null;
+
+    for (const move of whiteMoves) {
+      // Only rook moves matter for mate
+      if (move.piece !== 'r') continue;
+
+      const test = new Chess(board.fen());
+      test.move({ from: move.from, to: move.to });
+
+      // Checkmate = best possible
+      if (test.isCheckmate()) {
+        return { from: move.from, to: move.to };
+      }
+
+      // Skip stalemate
+      if (test.isStalemate()) continue;
+
+      // Find black king position
+      let bkSquare = '';
+      for (let f = 0; f < 8; f++) {
+        for (let r = 0; r < 8; r++) {
+          const sq = FILES[f] + RANKS[r];
+          const p = test.get(sq as any);
+          if (p?.type === 'k' && p?.color === 'b') {
+            bkSquare = sq;
+            break;
+          }
+        }
+        if (bkSquare) break;
+      }
+      if (!bkSquare) continue;
+      const bkFile = FILES.indexOf(bkSquare[0]);
+      const bkRank = RANKS.indexOf(bkSquare[1]);
+
+      // Count rooks attacking king's rank/file (restriction)
+      let attacks = 0;
+      let kingTrapped = true;
+      const dirs = [[0,1],[0,-1],[1,0],[-1,0]];
+      for (const [df, dr] of dirs) {
+        let nf = bkFile + df;
+        let nr = bkRank + dr;
+        let blocked = false;
+        while (nf >= 0 && nf < 8 && nr >= 0 && nr < 8 && !blocked) {
+          const sq = FILES[nf] + RANKS[nr];
+          const p = test.get(sq as any);
+          if (p?.type === 'r' && p?.color === 'w') {
+            attacks++;
+            blocked = true;
+          } else if (p) {
+            blocked = true;
+          }
+          nf += df;
+          nr += dr;
+        }
+        if (!blocked) kingTrapped = false;
+      }
+
+      // Prefer: check > restrict king > rook attacks king lines
+      const isCheck = test.isCheck();
+      const score = (isCheck ? 1000 : 0) + (kingTrapped ? 500 : 0) + (attacks * 200);
+
+      if (!bestMove || score > bestMove.score) {
+        bestMove = { from: move.from, to: move.to, score };
+      }
+    }
+
+    return bestMove ? { from: bestMove.from, to: bestMove.to } : null;
+  };
+
   const earned = exerciseStars[currentExercise] || 0;
   const turnText = game ? (game.turn() === 'w' ? 'Ваш ход (белые)' : 'Ход чёрных...') : '';
 
@@ -861,25 +936,8 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
                 setShowHint(false);
                 setHintArrows([]);
               } else {
-                const ex = EXERCISES.find(e => e.id === currentExercise);
-                if (ex && game) {
-                  const g = new Chess(game.fen());
-                  // Find the best move from the demo sequence that matches current position
-                  const currentFen = g.fen();
-                  let bestMove: { from: string; to: string } | null = null;
-                  
-                  // Try each demo move in order — find the first one that's legal now
-                  for (const demoMove of ex.demoMoves) {
-                    try {
-                      const test = new Chess(currentFen);
-                      test.move({ from: demoMove.from, to: demoMove.to });
-                      bestMove = { from: demoMove.from, to: demoMove.to };
-                      break;
-                    } catch {
-                      // Skip if not legal
-                    }
-                  }
-                  
+                if (game) {
+                  const bestMove = computeBestMateMove(game);
                   if (bestMove) {
                     setHintArrows([bestMove]);
                     setShowHint(true);
@@ -1124,21 +1182,8 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
                 setShowHint(false);
                 setHintArrows([]);
               } else {
-                const ex = EXERCISES.find(e => e.id === currentExercise);
-                if (ex && game) {
-                  const g = new Chess(game.fen());
-                  const currentFen = g.fen();
-                  let bestMove: { from: string; to: string } | null = null;
-                  for (const demoMove of ex.demoMoves) {
-                    try {
-                      const test = new Chess(currentFen);
-                      test.move({ from: demoMove.from, to: demoMove.to });
-                      bestMove = { from: demoMove.from, to: demoMove.to };
-                      break;
-                    } catch {
-                      // Skip if not legal
-                    }
-                  }
+                if (game) {
+                  const bestMove = computeBestMateMove(game);
                   if (bestMove) {
                     setHintArrows([bestMove]);
                     setShowHint(true);
