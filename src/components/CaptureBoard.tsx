@@ -1459,6 +1459,14 @@ export default function CaptureBoard({
       onAnyMove?.();
       onPositionChange?.(newFen);
 
+      // ── Lesson 14 (en passant): any non-target move is an immediate fail ──
+      const isEnPassantLesson = lessonId === '14' || lessonId === 'b244d9da-23d9-438f-a81d-64b050b3b32e';
+      if (isEnPassantLesson && !stars.includes(to)) {
+        setFailed(true);
+        if (onFail) onFail();
+        return true;
+      }
+
       // Trigger auto moves after white makes a target move (e.g. en passant capture)
       if (level.triggerAutoMove && level.triggerAutoMove.length > 0 && !failedRef.current) {
         // Only trigger if the white move was actually correct
@@ -1952,14 +1960,6 @@ export default function CaptureBoard({
           }
           return next;
         });
-      }
-
-      // ── Lesson 14 (en passant): any non-target move is an immediate fail ──
-      const isEnPassantLesson = lessonId === '14' || lessonId === 'b244d9da-23d9-438f-a81d-64b050b3b32e';
-      if (isEnPassantLesson && !stars.includes(to)) {
-        setFailed(true);
-        if (onFail) onFail();
-        return true;
       }
 
       return true;
