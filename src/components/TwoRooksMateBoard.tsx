@@ -724,72 +724,105 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
       : [];
 
   const currentEx = EXERCISES.find(e => e.id === currentExercise)!;
-  // Compute best white move that reduces mate distance
-  const computeBestMateMove = (board: Chess): { from: string; to: string } | null => {
+  // ── Minimax engine for shortest mate ──
+  const MATE_SCORE = 100000;
+  const STALEMATE_SCORE = -50000;
+
+  function evaluateMate(board: Chess): number {
+    if (board.isCheckmate()) return board.turn() === 'b' ? MATE_SCORE : -MATE_SCORE;
+    if (board.isStalemate()) return STALEMATE_SCORE;
+    if (board.isDraw()) return -1000;
+
+    // Find black king
+    let bkSquare = '';
+    for (let f = 0; f < 8; f++) {
+      for (let r = 0; r < 8; r++) {
+        const sq = FILES[f] + RANKS[r];
+        const p = board.get(sq as any);
+        if (p?.type === 'k' && p?.color === 'b') { bkSquare = sq; break; }
+      }
+      if (bkSquare) break;
+    }
+    if (!bkSquare) return 0;
+    const bkFile = FILES.indexOf(bkSquare[0]);
+    const bkRank = RANKS.indexOf(bkSquare[1]);
+
+    // Count rook attacks on king's rank/file
+    let restriction = 0;
+    const dirs = [[0,1],[0,-1],[1,0],[-1,0]];
+    for (const [df, dr] of dirs) {
+      let nf = bkFile + df, nr = bkRank + dr;
+      while (nf >= 0 && nf < 8 && nr >= 0 && nr < 8) {
+        const sq = FILES[nf] + RANKS[nr];
+        const p = board.get(sq as any);
+        if (p?.type === 'r' && p?.color === 'w') { restriction += 50; break; }
+        if (p) break;
+        nf += df; nr += dr;
+      }
+    }
+
+    // Bonus for check
+    const checkBonus = board.isCheck() ? 100 : 0;
+
+    // Prefer smaller king mobility
+    const bkMoves = board.moves({ square: bkSquare as any, verbose: true }).filter((m: any) => m.color === 'b');
+    const mobilityPenalty = -bkMoves.length * 30;
+
+    return restriction + checkBonus + mobilityPenalty;
+  }
+
+  function search(
+    board: Chess,
+    depth: number,
+    alpha: number,
+    beta: number,
+    isMaximizing: boolean,
+  ): number {
+    if (depth === 0 || board.isCheckmate() || board.isStalemate() || board.isDraw()) {
+      return evaluateMate(board);
+    }
+
     const moves = board.moves({ verbose: true });
-    const whiteMoves = moves.filter((m: any) => m.color === 'w');
-    if (whiteMoves.length === 0) return null;
+    if (isMaximizing) {
+      let maxEval = -Infinity;
+      for (const move of moves) {
+        const test = new Chess(board.fen());
+        test.move({ from: move.from, to: move.to, promotion: move.promotion });
+        const eval_ = search(test, depth - 1, alpha, beta, false);
+        maxEval = Math.max(maxEval, eval_);
+        alpha = Math.max(alpha, eval_);
+        if (beta <= alpha) break;
+      }
+      return maxEval;
+    } else {
+      let minEval = Infinity;
+      for (const move of moves) {
+        const test = new Chess(board.fen());
+        test.move({ from: move.from, to: move.to, promotion: move.promotion });
+        const eval_ = search(test, depth - 1, alpha, beta, true);
+        minEval = Math.min(minEval, eval_);
+        beta = Math.min(beta, eval_);
+        if (beta <= alpha) break;
+      }
+      return minEval;
+    }
+  }
+
+  const computeBestMateMove = (board: Chess): { from: string; to: string } | null => {
+    const moves = board.moves({ verbose: true }).filter((m: any) => m.color === 'w');
+    if (moves.length === 0) return null;
 
     let bestMove: { from: string; to: string; score: number } | null = null;
 
-    for (const move of whiteMoves) {
-      // Only rook moves matter for mate
-      if (move.piece !== 'r') continue;
-
+    for (const move of moves) {
       const test = new Chess(board.fen());
-      test.move({ from: move.from, to: move.to });
+      test.move({ from: move.from, to: move.to, promotion: move.promotion });
 
-      // Checkmate = best possible
       if (test.isCheckmate()) {
         return { from: move.from, to: move.to };
       }
 
-      // Skip stalemate
-      if (test.isStalemate()) continue;
-
-      // Find black king position
-      let bkSquare = '';
-      for (let f = 0; f < 8; f++) {
-        for (let r = 0; r < 8; r++) {
-          const sq = FILES[f] + RANKS[r];
-          const p = test.get(sq as any);
-          if (p?.type === 'k' && p?.color === 'b') {
-            bkSquare = sq;
-            break;
-          }
-        }
-        if (bkSquare) break;
-      }
-      if (!bkSquare) continue;
-      const bkFile = FILES.indexOf(bkSquare[0]);
-      const bkRank = RANKS.indexOf(bkSquare[1]);
-
-      // Count rooks attacking king's rank/file (restriction)
-      let attacks = 0;
-      let kingTrapped = true;
-      const dirs = [[0,1],[0,-1],[1,0],[-1,0]];
-      for (const [df, dr] of dirs) {
-        let nf = bkFile + df;
-        let nr = bkRank + dr;
-        let blocked = false;
-        while (nf >= 0 && nf < 8 && nr >= 0 && nr < 8 && !blocked) {
-          const sq = FILES[nf] + RANKS[nr];
-          const p = test.get(sq as any);
-          if (p?.type === 'r' && p?.color === 'w') {
-            attacks++;
-            blocked = true;
-          } else if (p) {
-            blocked = true;
-          }
-          nf += df;
-          nr += dr;
-        }
-        if (!blocked) kingTrapped = false;
-      }
-
-      // Prefer: check > restrict king > rook attacks king lines
-      const isCheck = test.isCheck();
-      const score = (isCheck ? 1000 : 0) + (kingTrapped ? 500 : 0) + (attacks * 200);
+      const score = search(test, 3, -Infinity, Infinity, false);
 
       if (!bestMove || score > bestMove.score) {
         bestMove = { from: move.from, to: move.to, score };
