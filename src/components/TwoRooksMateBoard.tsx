@@ -378,6 +378,8 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
     timerIntervalRef.current = null;
     setTimerStarted(false);
     setTimeLeft(null);
+    setShowHint(false);
+    setHintArrows([]);
   }, [currentExercise]);
 
   const saveStars = useCallback((id: ExerciseId, stars: number) => {
