@@ -822,7 +822,7 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
         return { from: move.from, to: move.to };
       }
 
-      const score = search(test, 3, -Infinity, Infinity, false);
+      const score = search(test, 10, -Infinity, Infinity, false);
 
       if (!bestMove || score > bestMove.score) {
         bestMove = { from: move.from, to: move.to, score };
