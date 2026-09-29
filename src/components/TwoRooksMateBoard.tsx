@@ -771,8 +771,6 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
     return restriction + checkBonus + mobilityPenalty;
   }
 
-  const transposition = new Map<string, number>();
-
   function search(
     board: Chess,
     depth: number,
@@ -780,13 +778,8 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
     beta: number,
     isMaximizing: boolean,
   ): number {
-    const key = board.fen() + '|' + depth + '|' + isMaximizing;
-    if (transposition.has(key)) return transposition.get(key)!;
-
     if (depth === 0 || board.isCheckmate() || board.isStalemate() || board.isDraw()) {
-      const val = evaluateMate(board);
-      transposition.set(key, val);
-      return val;
+      return evaluateMate(board);
     }
 
     const moves = board.moves({ verbose: true });
@@ -800,7 +793,6 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
         alpha = Math.max(alpha, eval_);
         if (beta <= alpha) break;
       }
-      transposition.set(key, maxEval);
       return maxEval;
     } else {
       let minEval = Infinity;
@@ -812,13 +804,11 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
         beta = Math.min(beta, eval_);
         if (beta <= alpha) break;
       }
-      transposition.set(key, minEval);
       return minEval;
     }
   }
 
   const computeBestMateMove = (board: Chess): { from: string; to: string } | null => {
-    transposition.clear();
     const moves = board.moves({ verbose: true }).filter((m: any) => m.color === 'w');
     if (moves.length === 0) return null;
 
@@ -832,7 +822,7 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
         return { from: move.from, to: move.to };
       }
 
-      const score = search(test, 10, -Infinity, Infinity, false);
+      const score = search(test, 3, -Infinity, Infinity, false);
 
       if (!bestMove || score > bestMove.score) {
         bestMove = { from: move.from, to: move.to, score };
