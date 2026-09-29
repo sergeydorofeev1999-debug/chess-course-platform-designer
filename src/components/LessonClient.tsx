@@ -3125,7 +3125,7 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
   return (
     <div className="w-full px-3 py-4">
     {/* Quiet nav */}
-    <div className="flex items-center justify-between mb-2">
+    <div className="flex items-center justify-between mb-3">
       <Link
         href={`/courses/${courseId}`}
         className="text-[11px] text-[var(--text-tertiary)] hover:text-[var(--text-secondary)] inline-flex items-center gap-1 transition-colors"
