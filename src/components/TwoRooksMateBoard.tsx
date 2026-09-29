@@ -744,14 +744,26 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
         </div>
 
         {/* Demo button */}
-        {currentExercise === 1 && !demoMode && !isComplete && (
-          <button
-            onClick={() => { reset(); setDemoMode(true); setDemoStep(0); }}
-            className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
-          >
-            <Eye size={14} /> Посмотреть как ставить мат
-          </button>
-        )}
+        <button
+          onClick={() => {
+            if (demoMode) {
+              setDemoMode(false);
+              setDemoStep(0);
+              setDemoComment('');
+            } else {
+              reset();
+              setDemoMode(true);
+              setDemoStep(0);
+            }
+          }}
+          className={`flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border text-xs font-medium transition-all ${
+            demoMode
+              ? 'bg-[rgba(201,168,76,0.15)] border-[rgba(201,168,76,0.5)] text-[#C9A84C]'
+              : 'border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'
+          }`}
+        >
+          <Eye size={14} /> Пример
+        </button>
 
         {/* Exercise pills */}
         <div className="w-full flex items-stretch gap-[1px]">
@@ -819,14 +831,26 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
 
         {/* Action buttons */}
         <div className="flex flex-col gap-2">
-          {currentExercise === 1 && !demoMode && !isComplete && (
-            <button
-              onClick={() => { reset(); setDemoMode(true); setDemoStep(0); }}
-              className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
-            >
-              <Eye size={14} /> Посмотреть как ставить мат
-            </button>
-          )}
+          <button
+            onClick={() => {
+              if (demoMode) {
+                setDemoMode(false);
+                setDemoStep(0);
+                setDemoComment('');
+              } else {
+                reset();
+                setDemoMode(true);
+                setDemoStep(0);
+              }
+            }}
+            className={`flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border text-xs font-medium transition-all ${
+              demoMode
+                ? 'bg-[rgba(201,168,76,0.15)] border-[rgba(201,168,76,0.5)] text-[#C9A84C]'
+                : 'border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'
+            }`}
+          >
+            <Eye size={14} /> Пример
+          </button>
           <button
             onClick={() => {
               if (showHint) {
@@ -1068,14 +1092,26 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
 
         {/* Mobile buttons */}
         <div className="flex lg:hidden gap-2 w-full">
-          {currentExercise === 1 && !demoMode && !isComplete && (
-            <button
-              onClick={() => { reset(); setDemoMode(true); setDemoStep(0); }}
-              className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
-            >
-              <Eye size={14} /> Посмотреть как ставить мат
-            </button>
-          )}
+          <button
+            onClick={() => {
+              if (demoMode) {
+                setDemoMode(false);
+                setDemoStep(0);
+                setDemoComment('');
+              } else {
+                reset();
+                setDemoMode(true);
+                setDemoStep(0);
+              }
+            }}
+            className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all ${
+              demoMode
+                ? 'bg-[rgba(201,168,76,0.15)] border-[rgba(201,168,76,0.5)] text-[#C9A84C]'
+                : 'border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'
+            }`}
+          >
+            <Eye size={14} /> Пример
+          </button>
           <button
             onClick={() => {
               if (showHint) {
