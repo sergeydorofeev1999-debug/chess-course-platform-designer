@@ -158,11 +158,22 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
   const validMoves = useMemo(() => {
     if (!selectedSquare || !gameRef.current) return [];
     try {
-      return gameRef.current.moves({ verbose: true, square: selectedSquare as any }).map((m: any) => m.to);
+      const moves = gameRef.current.moves({ verbose: true, square: selectedSquare as any });
+      // In pawn-run mode only show capture targets (rings), not forward moves
+      const isPawnRun =
+        (exercise === 2 && ex2Mode === 'pawn') ||
+        (exercise === 3 && ex3Mode === 'pawn') ||
+        (exercise === 4 && ex4Mode === 'pawn') ||
+        (exercise === 5 && ex5Mode === 'pawn') ||
+        (exercise === 6 && ex6Mode === 'pawn');
+      if (isPawnRun) {
+        return moves.filter((m: any) => m.captured).map((m: any) => m.to);
+      }
+      return moves.map((m: any) => m.to);
     } catch {
       return [];
     }
-  }, [selectedSquare]);
+  }, [selectedSquare, exercise, ex2Mode, ex3Mode, ex4Mode, ex5Mode, ex6Mode]);
 
   // Synchronous wrapper so gameRef always matches the latest game state
   const setGame = useCallback((newGame: Chess) => {
