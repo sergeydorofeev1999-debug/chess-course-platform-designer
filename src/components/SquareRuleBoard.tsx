@@ -156,13 +156,13 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
 
   // Valid moves computed from actual gameRef state
   const validMoves = useMemo(() => {
-    if (!selectedSquare || !gameRef.current) return [];
+    if (playerAnimatingMove || !selectedSquare || !gameRef.current) return [];
     try {
       return gameRef.current.moves({ verbose: true, square: selectedSquare as any }).map((m: any) => m.to);
     } catch {
       return [];
     }
-  }, [selectedSquare]);
+  }, [selectedSquare, playerAnimatingMove]);
 
   // Synchronous wrapper so gameRef always matches the latest game state
   const setGame = useCallback((newGame: Chess) => {
@@ -541,6 +541,7 @@ if (!skipAnimation) {
       const m = gameRef.current.move({ from, to });
       if (!m) return;
       setLastMove({ from, to });
+      setSelectedSquare(null);
       const piece = gameRef.current.get(from as any);
 if (!skipAnimation) {
       setPlayerAnimatingMove({
@@ -680,6 +681,7 @@ if (!skipAnimation) {
       const m = gameRef.current.move({ from, to });
       if (!m) return;
       setLastMove({ from, to });
+      setSelectedSquare(null);
       const piece = gameRef.current.get(from as any);
 if (!skipAnimation) {
       setPlayerAnimatingMove({
@@ -814,6 +816,7 @@ if (!skipAnimation) {
       const m = gameRef.current.move({ from, to });
       if (!m) return;
       setLastMove({ from, to });
+      setSelectedSquare(null);
       const piece = gameRef.current.get(from as any);
 if (!skipAnimation) {
       setPlayerAnimatingMove({
@@ -946,6 +949,7 @@ if (!skipAnimation) {
       const m = gameRef.current.move({ from, to });
       if (!m) return;
       setLastMove({ from, to });
+      setSelectedSquare(null);
       const piece = gameRef.current.get(from as any);
 if (!skipAnimation) {
       setPlayerAnimatingMove({
@@ -1078,6 +1082,7 @@ if (!skipAnimation) {
       const m = gameRef.current.move({ from, to });
       if (!m) return;
       setLastMove({ from, to });
+      setSelectedSquare(null);
       const piece = gameRef.current.get(from as any);
 if (!skipAnimation) {
       setPlayerAnimatingMove({
