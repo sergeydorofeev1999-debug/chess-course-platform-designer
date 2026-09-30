@@ -270,7 +270,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
     // Step 1: white pawn a4→a5
     schedule(() => {
       setMessage(''); setShowSquare(false);
-      setPlayerAnimatingMove({ from: 'a4', to: 'a5' });
+      setPlayerAnimatingMove({ from: 'a4', to: 'a5', piece: { type: 'P', color: 'w' } });
       setLastMove({ from: 'a4', to: 'a5' });
       g1.move({ from: 'a4', to: 'a5' });
       setGame(new Chess(g1.fen())); setDemoPhase(1);
@@ -279,7 +279,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
       schedule(() => {
         const bk = getBlackKingMoveTowards(g1, 'a5');
         if (bk) {
-          setOpponentAnimatingMove({ from: bk.from, to: bk.to });
+          setOpponentAnimatingMove({ from: bk.from, to: bk.to, piece: { type: 'K', color: 'b' } });
           setLastMove({ from: bk.from, to: bk.to });
           g1.move({ from: bk.from, to: bk.to });
         }
@@ -289,7 +289,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
         // Step 3: white pawn a5→a6
         schedule(() => {
           setMessage(''); setShowSquare(false);
-          setPlayerAnimatingMove({ from: 'a5', to: 'a6' });
+          setPlayerAnimatingMove({ from: 'a5', to: 'a6', piece: { type: 'P', color: 'w' } });
           setLastMove({ from: 'a5', to: 'a6' });
           g1.move({ from: 'a5', to: 'a6' });
           setGame(new Chess(g1.fen())); setDemoPhase(3);
@@ -298,7 +298,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
           schedule(() => {
             const bk2 = getBlackKingMoveTowards(g1, 'a6');
             if (bk2) {
-              setOpponentAnimatingMove({ from: bk2.from, to: bk2.to });
+              setOpponentAnimatingMove({ from: bk2.from, to: bk2.to, piece: { type: 'K', color: 'b' } });
               setLastMove({ from: bk2.from, to: bk2.to });
               g1.move({ from: bk2.from, to: bk2.to });
             }
@@ -308,7 +308,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
             // Step 5: white pawn a6→a7
             schedule(() => {
               setMessage(''); setShowSquare(false);
-              setPlayerAnimatingMove({ from: 'a6', to: 'a7' });
+              setPlayerAnimatingMove({ from: 'a6', to: 'a7', piece: { type: 'P', color: 'w' } });
               setLastMove({ from: 'a6', to: 'a7' });
               g1.move({ from: 'a6', to: 'a7' });
               setGame(new Chess(g1.fen())); setDemoPhase(5);
@@ -317,7 +317,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
               schedule(() => {
                 const bk3 = getBlackKingMoveTowards(g1, 'a7');
                 if (bk3) {
-                  setOpponentAnimatingMove({ from: bk3.from, to: bk3.to });
+                  setOpponentAnimatingMove({ from: bk3.from, to: bk3.to, piece: { type: 'K', color: 'b' } });
                   setLastMove({ from: bk3.from, to: bk3.to });
                   g1.move({ from: bk3.from, to: bk3.to });
                 }
@@ -327,7 +327,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
                 // Step 7: white pawn a7→a8=Q
                 schedule(() => {
                   setMessage(''); setShowSquare(false);
-                  setPlayerAnimatingMove({ from: 'a7', to: 'a8' });
+                  setPlayerAnimatingMove({ from: 'a7', to: 'a8', piece: { type: 'P', color: 'w' } });
                   setLastMove({ from: 'a7', to: 'a8' });
                   g1.move({ from: 'a7', to: 'a8', promotion: 'q' });
                   setGame(new Chess(g1.fen())); setDemoPhase(7);
@@ -336,7 +336,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
                   schedule(() => {
                     const bk4 = getBlackKingMoveTowards(g1, 'a8');
                     if (bk4) {
-                      setOpponentAnimatingMove({ from: bk4.from, to: bk4.to });
+                      setOpponentAnimatingMove({ from: bk4.from, to: bk4.to, piece: { type: 'K', color: 'b' } });
                       setLastMove({ from: bk4.from, to: bk4.to });
                       g1.move({ from: bk4.from, to: bk4.to });
                     }
