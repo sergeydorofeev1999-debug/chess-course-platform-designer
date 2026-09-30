@@ -256,6 +256,19 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (isComplete) {
+      if (exercise < 8) {
+        const timer = setTimeout(() => switchExercise((exercise + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8), 2000);
+        return () => clearTimeout(timer);
+      } else if (exercise === 8 && (exerciseStars[8] || 0) >= 3) {
+        const timer = setTimeout(() => onComplete?.(), 2000);
+        return () => clearTimeout(timer);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isComplete, exercise, exerciseStars, onComplete]);
+
   // Auto-start: white plays e4 on init for exercise 5, 6 and 7
   useEffect(() => {
     if (!game) return;
@@ -1299,31 +1312,6 @@ const handleSquareClick = useCallback((square: string) => {
            exercise === 6 ? 'Самостоятельно: сыграйте e5, Nf6 — защититесь от детского мата!' : ''}
         </div>
 
-        {/* Fail banner */}
-        {isFail && (
-          <div className="w-full max-w-sm">
-            <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
-              <p className="text-white font-bold text-lg">{message || 'Провалено'}</p>
-              <button
-                onClick={reset}
-                className="bg-white text-[#c62828] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
-              >
-                ЕЩЁ РАЗ
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Success message */}
-        {message && !isFail && (
-          <div className={`px-6 py-3 rounded-xl text-center font-bold text-white ${
-            (exercise === 7 || exercise === 8) ? 'bg-yellow-500' : message.includes('Отлично') ? 'bg-green-500' : 'bg-yellow-500'
-          }`}>
-            {message.includes('Отлично') && <Trophy className="w-5 h-5 inline-block mr-2" />}
-            {message}
-          </div>
-        )}
-
         {/* Board */}
         <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
           <div className="relative" style={{ width: 8 * sqSize + 6, height: 8 * sqSize + 6 }}>
@@ -1439,6 +1427,35 @@ const handleSquareClick = useCallback((square: string) => {
           })}
         </div>
 
+        {/* Fail banner */}
+        {isFail && (
+          <div className="w-full">
+            <div className="bg-[#A63838] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
+              <p className="text-white font-bold text-lg">Попробуйте снова</p>
+              <button
+                onClick={reset}
+                className="bg-white text-[#2C241B] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
+              >
+                ЕЩЁ РАЗ
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Success banner */}
+        {isComplete && (
+          <div className="w-full">
+            <div className="bg-[#4A7A3A] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
+              <p className="text-white font-bold text-lg">Верно!</p>
+              <div className="flex justify-center gap-1">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Mobile progress + buttons row */}
         <div className="flex lg:hidden flex-col gap-2 w-full">
           <div className="flex flex-col gap-1.5">
@@ -1457,31 +1474,6 @@ const handleSquareClick = useCallback((square: string) => {
           </div>
         </div>
 
-        {/* Completion banner */}
-        {isComplete && (
-          <div className="flex flex-col items-center gap-3 mt-2">
-            <div className="flex items-center gap-2 text-[#C9A84C] font-bold text-lg">
-              <Trophy className="w-6 h-6" />
-              <span>Упражнение {exercise} пройдено!</span>
-            </div>
-            {exercise < 8 && (
-              <button
-                onClick={() => switchExercise((exercise + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8)}
-                className="bg-[#C9A84C] text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-[#B8983C] transition"
-              >
-                Перейти к Упражнению {exercise + 1} →
-              </button>
-            )}
-            {exercise === 8 && (exerciseStars[8] || 0) >= 3 && (
-              <button
-                onClick={onComplete}
-                className="bg-[#2C241B] text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-[#3A2E1F] transition"
-              >
-                Урок завершён ✓
-              </button>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
