@@ -214,13 +214,19 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
 
   // Auto-advance to next exercise after completion (like MateInTwoBoard)
   useEffect(() => {
-    if (isComplete && exercise < 8) {
-      const timer = setTimeout(() => {
-        switchExercise((exercise + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8);
-      }, 2000);
-      return () => clearTimeout(timer);
+    if (isComplete) {
+      if (exercise < 8) {
+        const timer = setTimeout(() => {
+          switchExercise((exercise + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8);
+        }, 2000);
+        return () => clearTimeout(timer);
+      } else if (exercise === 8 && (exerciseStars[8] || 0) >= 3) {
+        const timer = setTimeout(() => onComplete?.(), 2000);
+        return () => clearTimeout(timer);
+      }
     }
-  }, [isComplete, exercise, switchExercise]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isComplete, exercise, exerciseStars, switchExercise, onComplete]);
 
   // ──── MATE IN 1 LOGIC ────
   const processMove = useCallback((from: string, to: string, promotionPiece?: string, skipAnimation = false) => {
@@ -428,21 +434,6 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
           </div>
         </div>
 
-        {/* Fail banner */}
-        {isFail && (
-          <div className="w-full max-w-sm">
-            <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
-              <p className="text-white font-bold text-lg">{message}</p>
-              <button
-                onClick={reset}
-                className="bg-white text-[#c62828] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
-              >
-                ЕЩЁ РАЗ
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Board */}
         <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
           <div className="relative" style={{ width: 8 * sqSize + 6, height: 8 * sqSize + 6 }}>
@@ -515,7 +506,34 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
           </div>
         </div>
 
+        {/* Fail banner */}
+        {isFail && (
+          <div className="w-full">
+            <div className="bg-[#A63838] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
+              <p className="text-white font-bold text-lg">Попробуйте снова</p>
+              <button
+                onClick={reset}
+                className="bg-white text-[#2C241B] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
+              >
+                ЕЩЁ РАЗ
+              </button>
+            </div>
+          </div>
+        )}
 
+        {/* Success banner */}
+        {isComplete && (
+          <div className="w-full">
+            <div className="bg-[#4A7A3A] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
+              <p className="text-white font-bold text-lg">Верно!</p>
+              <div className="flex justify-center gap-1">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Mobile exercise pills */}
         <div className="flex lg:hidden gap-[1px] w-full">
