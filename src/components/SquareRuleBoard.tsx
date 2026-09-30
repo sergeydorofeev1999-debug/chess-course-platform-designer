@@ -1734,10 +1734,24 @@ if (!skipAnimation) {
           {isFail && (
             <div className="w-full">
               <div className="bg-[#A63838] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
-                <p className="text-white font-bold text-lg">{message || 'Задание провалено!'}</p>
+                <p className="text-white font-bold text-lg">Попробуйте снова</p>
                 <button onClick={reset} className="bg-white text-[#2C241B] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition">
                   ЕЩЁ РАЗ
                 </button>
+              </div>
+            </div>
+          )}
+          {isComplete && (
+            <div className="w-full">
+              <div className="bg-[#4A7A3A] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
+                <p className="text-white font-bold text-lg">Верно!</p>
+                <div className="flex justify-center gap-1">
+                  {[...Array(3)].map((_, i) => (
+                    <svg key={i} width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF">
+                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                    </svg>
+                  ))}
+                </div>
               </div>
             </div>
           )}
