@@ -1284,18 +1284,7 @@ if (!skipAnimation) {
   const pawnSq = getPawnSquare(game);
   const squareCells = pawnSq ? getSquareBorder(pawnSq) : [];
 
-  const turnText = exercise === 1 ? (demoMode ? 'Демонстрация…' : 'Ваш ход (белые)') :
-    exercise === 2 && ex2Mode === 'king' ? 'Ваш ход чёрным королём' :
-    exercise === 2 && ex2Mode === 'pawn' ? 'Ваш ход белой пешкой' :
-    exercise === 3 && ex3Mode === 'king' ? 'Ваш ход чёрным королём' :
-    exercise === 3 && ex3Mode === 'pawn' ? 'Ваш ход белой пешкой' :
-    exercise === 4 && ex4Mode === 'king' ? 'Ваш ход чёрным королём' :
-    exercise === 4 && ex4Mode === 'pawn' ? 'Ваш ход белой пешкой' :
-    exercise === 5 && ex5Mode === 'king' ? 'Ваш ход чёрным королём' :
-    exercise === 5 && ex5Mode === 'pawn' ? 'Ваш ход белой пешкой' :
-    exercise === 6 && ex6Mode === 'king' ? 'Ваш ход чёрным королём' :
-    exercise === 6 && ex6Mode === 'pawn' ? 'Ваш ход белой пешкой' :
-    'Выберите режим';
+  const turnText = exercise === 1 ? (demoMode ? 'Демонстрация…' : 'Ваш ход (белые)') : 'Выберите режим';
 
   return (
       <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
