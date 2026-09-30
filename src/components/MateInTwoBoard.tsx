@@ -342,10 +342,12 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
             setHintVisible(false);
             setSelectedSquare(null);
             setMessage('Браво! Мат в 2 хода!');
-            setIsComplete(true);
-            setStage('complete');
-            saveStars(exercise, 3);
-            if (exercise === 8) onComplete();
+            setTimeout(() => {
+              if (!mountedRef.current) return;
+              setIsComplete(true);
+              setStage('complete');
+              saveStars(exercise, 3);
+            }, 500);
             setGame(testGame);
             return;
           }
@@ -360,10 +362,6 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
           setHintVisible(false);
           setSelectedSquare(null);
           setMessage('Браво! Мат в 2 хода!');
-          setIsComplete(true);
-          setStage('complete');
-          saveStars(exercise, 3);
-          if (exercise === 8) onComplete();
 
           // Update board + remove player ghost after 200ms
           setTimeout(() => {
@@ -371,6 +369,14 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
             setGame(testGame);
             setPlayerAnimatingMove(null);
           }, 200);
+
+          // Show success banner after 500ms (same delay as fail)
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            setIsComplete(true);
+            setStage('complete');
+            saveStars(exercise, 3);
+          }, 500);
           return;
         } else {
           const ng = new Chess(g.fen());
