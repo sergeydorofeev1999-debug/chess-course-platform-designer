@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
-import { RotateCcw, Eye, Trophy } from 'lucide-react';
+import { RotateCcw, Eye, Trophy, Lightbulb } from 'lucide-react';
 import UniversalChessBoardDesigner from './board/UniversalChessBoardDesigner';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
@@ -348,6 +348,12 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
   } | null>(null);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  const [showHint, setShowHint] = useState(false);
+  const [hintArrows, setHintArrows] = useState<{from: string; to: string}[]>([]);
+  const [currentEarned, setCurrentEarned] = useState(0);
+  const [hintComputing, setHintComputing] = useState(false);
+  const workerRef = useRef<Worker | null>(null);
+
   // Drag state
   const [dragPiece, setDragPiece] = useState<DragState | null>(null);
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
@@ -372,6 +378,14 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
       timerIntervalRef.current = null;
     }
   }, [isComplete, isStalemate]);
+
+  // Initialize Stockfish worker for hints
+  useEffect(() => {
+    const worker = new Worker('/stockfish.js');
+    workerRef.current = worker;
+    worker.postMessage('uci');
+    return () => { worker.terminate(); };
+  }, []);
 
   useEffect(() => {
     try {
@@ -421,6 +435,9 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
     timerIntervalRef.current = null;
     setTimerStarted(false);
     setTimeLeft(null);
+    setShowHint(false);
+    setHintArrows([]);
+    setCurrentEarned(0);
   }, [currentExercise]);
 
   const switchExercise = useCallback((id: ExerciseId) => {
@@ -443,6 +460,9 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
     timerIntervalRef.current = null;
     setTimerStarted(false);
     setTimeLeft(null);
+    setShowHint(false);
+    setHintArrows([]);
+    setCurrentEarned(0);
   }, [currentExercise]);
 
   const saveStars = useCallback((id: ExerciseId, stars: number) => {
@@ -521,6 +541,7 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
       const earned = calcStars(ex, nextWhiteMoves);
       setMessage(`Мат чёрному королю! ${earned} ★`);
       setIsComplete(true);
+      setCurrentEarned(earned);
       saveStars(currentExercise, earned);
       
       return;
@@ -614,6 +635,10 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
     if (!game) return;
     const g = game;
     if (g.turn() !== 'w') return;
+
+    // Hide hint arrows after user move
+    setShowHint(false);
+    setHintArrows([]);
 
     try {
       const piece = g.get(from as any);
@@ -792,6 +817,50 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
 
   // Stalemate / fail banner
   const ex = EXERCISES.find(e => e.id === currentExercise)!;
+  const computeHintMove = useCallback((board: Chess) => {
+    // Guard: only compute hint on white's turn
+    if (board.turn() !== 'w') return;
+    if (workerRef.current) {
+      setHintComputing(true);
+      const worker = workerRef.current;
+      const onMsg = (e: MessageEvent) => {
+        const line = e.data;
+        if (typeof line !== 'string') return;
+        if (line.startsWith('bestmove')) {
+          worker.removeEventListener('message', onMsg);
+          setHintComputing(false);
+          const parts = line.split(' ');
+          const bestMove = parts[1];
+          if (bestMove && bestMove !== '(none)') {
+            const from = bestMove.slice(0, 2);
+            const to = bestMove.slice(2, 4);
+            setHintArrows([{ from, to }]);
+            setShowHint(true);
+          }
+        }
+      };
+      worker.addEventListener('message', onMsg);
+      worker.postMessage('setoption name Skill Level value 20');
+      worker.postMessage('setoption name UCI_LimitStrength value false');
+      worker.postMessage(`position fen ${board.fen()}`);
+      worker.postMessage('go depth 10');
+      return;
+    }
+    // Fallback to demo moves
+    for (const move of ex.demoMoves) {
+      try {
+        const test = new Chess(board.fen());
+        test.move({ from: move.from, to: move.to });
+        const piece = board.get(move.from as any);
+        if (piece?.color === 'w') {
+          setHintArrows([{ from: move.from, to: move.to }]);
+          setShowHint(true);
+          return;
+        }
+      } catch {}
+    }
+  }, [ex]);
+
   const earned = exerciseStars[currentExercise] || 0;
   const turnText = game ? (game.turn() === 'w' ? 'Ваш ход (белые)' : 'Ход чёрных...') : '';
 
@@ -806,7 +875,7 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
           </div>
           <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2.5 shadow-sm border border-[rgba(92,64,51,0.06)]">
             <p className="text-sm text-[var(--text-primary)] leading-snug">
-              Используйте ферзя для ограничения пространства и короля для поддержки.
+              {ex.matIn1 ? 'Поставьте мат в 1 ход' : 'Используйте ферзя для ограничения пространства и короля для поддержки.'}
             </p>
           </div>
         </div>
@@ -885,6 +954,27 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
           </div>
         </div>
 
+        {/* Hint button */}
+        <button
+          onClick={() => {
+            if (showHint) {
+              setShowHint(false);
+              setHintArrows([]);
+            } else {
+              if (game && game.turn() === 'w' && !demoMode) {
+                computeHintMove(game);
+              }
+            }
+          }}
+          className={`flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border text-xs font-medium transition-all ${
+            showHint
+              ? 'bg-[rgba(201,168,76,0.15)] border-[rgba(201,168,76,0.5)] text-[#C9A84C]'
+              : 'border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'
+          }`}
+        >
+          <Lightbulb size={14} /> {showHint ? 'Скрыть' : 'Подсказка'}
+        </button>
+
         {/* Reset button */}
         <button
           onClick={reset}
@@ -904,18 +994,13 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
             </div>
             <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
               <p className="text-sm text-[var(--text-primary)] leading-snug line-clamp-3">
-                Используйте ферзя для ограничения пространства и короля для поддержки.
+                {ex.matIn1 ? 'Поставьте мат в 1 ход' : 'Используйте ферзя для ограничения пространства и короля для поддержки.'}
               </p>
             </div>
           </div>
         </div>
 
-        {/* Mat-in-1 label for exercises 4-7 */}
-        {ex.matIn1 && (
-          <div className="text-[#2b2b2b] text-[15px] font-medium mb-2 text-center leading-snug w-full">
-            Мат в 1 ход
-          </div>
-        )}
+        {/* Mat-in-1 label removed — now shown in avatar bubble */}
 
         {/* Timer for exercise 8 */}
         {ex.timeLimit && !isComplete && !isStalemate && (
@@ -926,33 +1011,11 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
           </div>
         )}
 
-        {/* Stalemate / fail banner */}
-        {isStalemate && (
-          <div className="w-full max-w-sm">
-            <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
-              <p className="text-white font-bold text-lg">{message || 'Пат. Провалено.'}</p>
-              <button
-                onClick={reset}
-                className="bg-white text-[#c62828] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
-              >
-                ЕЩЁ РАЗ
-              </button>
-            </div>
-          </div>
-        )}
 
-        {/* Success message */}
-        {message && !isStalemate && (
-          <div className={`px-6 py-3 rounded-xl text-center font-bold text-white ${
-            message.includes('Мат') ? 'bg-green-500' : 'bg-yellow-500'
-          }`}>
-            {message.includes('Мат') && <Trophy className="w-5 h-5 inline-block mr-2" />}
-            {message}
-          </div>
-        )}
 
         {/* Board wrapper */}
         <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
+          <div className="relative" style={{ width: 8 * sqSize + 6, height: 8 * sqSize + 6 }}>
           <UniversalChessBoardDesigner
             fen={game?.fen() || ''}
             selectedSquare={selectedSquare}
@@ -966,7 +1029,103 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
             disableAutoGhost={true}
             sqSize={sqSize}
           />
+          {/* Hint arrows SVG */}
+          <svg
+            className="absolute pointer-events-none z-20"
+            style={{
+              top: 3,
+              left: 3,
+              width: 8 * sqSize,
+              height: 8 * sqSize,
+              display: hintArrows.length > 0 ? 'block' : 'none',
+            }}
+            viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}
+          >
+          {hintArrows.map((arrow, i) => {
+            const fromF = FILES.indexOf(arrow.from[0]);
+            const fromR = RANKS.indexOf(arrow.from[1]);
+            const toF = FILES.indexOf(arrow.to[0]);
+            const toR = RANKS.indexOf(arrow.to[1]);
+            const x1 = (fromF + 0.5) * sqSize;
+            const y1 = (fromR + 0.5) * sqSize;
+            const x2 = (toF + 0.5) * sqSize;
+            const y2 = (toR + 0.5) * sqSize;
+            const strokeW = sqSize < 60 ? 14 : 18;
+            const halfW = strokeW / 2;
+            const dx = x2 - x1;
+            const dy = y2 - y1;
+            const len = Math.sqrt(dx * dx + dy * dy) || 1;
+            const headHeight = sqSize * 0.6;
+            const headBase = strokeW * 3;
+            const nx = -dy / len;
+            const ny = dx / len;
+            const blx = x1 + nx * halfW;
+            const bly = y1 + ny * halfW;
+            const brx = x1 - nx * halfW;
+            const bry = y1 - ny * halfW;
+            const tailX = x2 - (dx / len) * headHeight;
+            const tailY = y2 - (dy / len) * headHeight;
+            const tlx = tailX + nx * halfW;
+            const tly = tailY + ny * halfW;
+            const trx = tailX - nx * halfW;
+            const try_ = tailY - ny * halfW;
+            const hlx = tailX + nx * headBase / 2;
+            const hly = tailY + ny * headBase / 2;
+            const hrx = tailX - nx * headBase / 2;
+            const hry = tailY - ny * headBase / 2;
+            const cross = (brx - blx) * (-dy / len) - (bry - bly) * (-dx / len);
+            const sweep = cross > 0 ? 1 : 0;
+            const pathD = `M ${blx} ${bly} L ${tlx} ${tly} L ${hlx} ${hly} L ${x2} ${y2} L ${hrx} ${hry} L ${trx} ${try_} L ${brx} ${bry} A ${halfW} ${halfW} 0 1 ${sweep} ${blx} ${bly} Z`;
+            return (
+              <path
+                key={i}
+                d={pathD}
+                fill="rgba(44, 36, 27, 0.35)"
+                className="arrow-hint-line"
+              />
+            );
+          })}
+        </svg>
         </div>
+        </div>
+
+        {/* Fail banner — under board, like CaptureBoard */}
+        {isStalemate && (
+          <div className="w-full max-w-sm">
+            <div className="bg-[#A63838] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
+              <p className="text-white font-bold text-lg">Попробуйте снова</p>
+              <button
+                onClick={reset}
+                className="bg-white text-[#2C241B] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
+              >
+                ЕЩЁ РАЗ
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Success banner — under board, like CaptureBoard */}
+        {isComplete && !isStalemate && (
+          <div className="w-full max-w-sm">
+            <div className="bg-[#4A7A3A] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
+              <p className="text-white font-bold text-lg">Мат чёрному королю!</p>
+              <div className="flex justify-center gap-1">
+                {Array.from({ length: currentEarned }, (_, i) => (
+                  <svg
+                    key={i}
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="#FFFFFF"
+                  >
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Mobile exercise pills */}
         <div className="flex lg:hidden w-full items-stretch gap-[1px]">
           {EXERCISES.map((ex) => {
@@ -1033,19 +1192,52 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
 
         {/* Mobile buttons */}
         <div className="flex lg:hidden gap-2 w-full">
-          {currentExercise === 1 && !demoMode && !isComplete && (
+          {currentExercise === 1 && (
             <button
-              onClick={() => { reset(); setDemoMode(true); setDemoStep(0); }}
-              className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
+              onClick={() => {
+                if (demoMode) {
+                  setDemoMode(false);
+                  setDemoStep(0);
+                  setDemoComment('');
+                } else {
+                  reset();
+                  setDemoMode(true);
+                  setDemoStep(0);
+                }
+              }}
+              className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all ${
+                demoMode
+                  ? 'bg-[rgba(201,168,76,0.15)] border-[rgba(201,168,76,0.5)] text-[#C9A84C]'
+                  : 'border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'
+              }`}
             >
-              <Eye size={14} /> Посмотреть как ставить мат
+              <Eye size={14} /> {demoMode ? 'Скрыть' : 'Пример'}
             </button>
           )}
+          <button
+            onClick={() => {
+              if (showHint) {
+                setShowHint(false);
+                setHintArrows([]);
+              } else {
+                if (game && game.turn() === 'w' && !demoMode) {
+                  computeHintMove(game);
+                }
+              }
+            }}
+            className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all ${
+              showHint
+                ? 'bg-[rgba(201,168,76,0.15)] border-[rgba(201,168,76,0.5)] text-[#C9A84C]'
+                : 'border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'
+            }`}
+          >
+            <Lightbulb size={14} /> {showHint ? 'Скрыть' : 'Подсказка'}
+          </button>
           <button
             onClick={reset}
             className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
           >
-            <RotateCcw size={14} /> Заново
+              <RotateCcw size={14} /> Заново
           </button>
         </div>
       </div>

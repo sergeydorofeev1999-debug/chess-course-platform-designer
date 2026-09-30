@@ -284,12 +284,15 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
   const pointerStartRef = useRef<PointerStart | null>(null);
   const [promotionPending, setPromotionPending] = useState<{from: string; to: string} | null>(null);
+  const [hintComputing, setHintComputing] = useState(false);
+  const workerRef = useRef<Worker | null>(null);
   const isCompleteRef = useRef(false);
   const demoModeRef = useRef(false);
   const mountedRef = useRef(true);
 
   const [showHint, setShowHint] = useState(false);
   const [hintArrows, setHintArrows] = useState<{from: string; to: string}[]>([]);
+  const [currentEarned, setCurrentEarned] = useState(0);
 
   const storageKey = lessonId ? `tworooks_progress_${lessonId}` : 'tworooks_progress';
 
@@ -305,6 +308,14 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
       timerIntervalRef.current = null;
     }
   }, [isComplete, isStalemate]);
+
+  // Initialize Stockfish worker for hints
+  useEffect(() => {
+    const worker = new Worker('/stockfish.js');
+    workerRef.current = worker;
+    worker.postMessage('uci');
+    return () => { worker.terminate(); };
+  }, []);
 
   useEffect(() => {
     try {
@@ -457,6 +468,7 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
       const earned = calcStars(ex, nextWhiteMoves);
       setMessage(`Мат чёрному королю! ${earned} ★`);
       setIsComplete(true);
+      setCurrentEarned(earned);
       saveStars(currentExercise, earned);
       if (currentExercise === 5) onComplete();
       return;
@@ -518,6 +530,7 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
             const earned = calcStars(ex, nextWhiteMoves);
             setMessage(`Мат чёрному королю! ${earned} ★`);
             setIsComplete(true);
+            setCurrentEarned(earned);
             saveStars(currentExercise, earned);
             if (currentExercise === 5) onComplete();
           }
@@ -527,6 +540,7 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
           const earned = calcStars(ex, nextWhiteMoves);
           setMessage(`Мат чёрному королю! ${earned} ★`);
           setIsComplete(true);
+          setCurrentEarned(earned);
           saveStars(currentExercise, earned);
           if (currentExercise === 5) onComplete();
         } else if (g.isStalemate()) {
@@ -724,105 +738,50 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
       : [];
 
   const currentEx = EXERCISES.find(e => e.id === currentExercise)!;
-  // ── Minimax engine for shortest mate ──
-  const MATE_SCORE = 100000;
-  const STALEMATE_SCORE = -50000;
 
-  function evaluateMate(board: Chess): number {
-    if (board.isCheckmate()) return board.turn() === 'b' ? MATE_SCORE : -MATE_SCORE;
-    if (board.isStalemate()) return STALEMATE_SCORE;
-    if (board.isDraw()) return -1000;
-
-    // Find black king
-    let bkSquare = '';
-    for (let f = 0; f < 8; f++) {
-      for (let r = 0; r < 8; r++) {
-        const sq = FILES[f] + RANKS[r];
-        const p = board.get(sq as any);
-        if (p?.type === 'k' && p?.color === 'b') { bkSquare = sq; break; }
-      }
-      if (bkSquare) break;
+  const computeHintMove = useCallback((board: Chess) => {
+    // Guard: only compute hint on white's turn
+    if (board.turn() !== 'w') return;
+    if (workerRef.current) {
+      setHintComputing(true);
+      const worker = workerRef.current;
+      const onMsg = (e: MessageEvent) => {
+        const line = e.data;
+        if (typeof line !== 'string') return;
+        if (line.startsWith('bestmove')) {
+          worker.removeEventListener('message', onMsg);
+          setHintComputing(false);
+          const parts = line.split(' ');
+          const bestMove = parts[1];
+          if (bestMove && bestMove !== '(none)') {
+            const from = bestMove.slice(0, 2);
+            const to = bestMove.slice(2, 4);
+            setHintArrows([{ from, to }]);
+            setShowHint(true);
+          }
+        }
+      };
+      worker.addEventListener('message', onMsg);
+      worker.postMessage('setoption name Skill Level value 20');
+      worker.postMessage('setoption name UCI_LimitStrength value false');
+      worker.postMessage(`position fen ${board.fen()}`);
+      worker.postMessage('go depth 10');
+      return;
     }
-    if (!bkSquare) return 0;
-    const bkFile = FILES.indexOf(bkSquare[0]);
-    const bkRank = RANKS.indexOf(bkSquare[1]);
-
-    // Count rook attacks on king's rank/file
-    let restriction = 0;
-    const dirs = [[0,1],[0,-1],[1,0],[-1,0]];
-    for (const [df, dr] of dirs) {
-      let nf = bkFile + df, nr = bkRank + dr;
-      while (nf >= 0 && nf < 8 && nr >= 0 && nr < 8) {
-        const sq = FILES[nf] + RANKS[nr];
-        const p = board.get(sq as any);
-        if (p?.type === 'r' && p?.color === 'w') { restriction += 50; break; }
-        if (p) break;
-        nf += df; nr += dr;
-      }
-    }
-
-    // Bonus for check
-    const checkBonus = board.isCheck() ? 100 : 0;
-
-    // Prefer smaller king mobility
-    const bkMoves = board.moves({ square: bkSquare as any, verbose: true }).filter((m: any) => m.color === 'b');
-    const mobilityPenalty = -bkMoves.length * 30;
-
-    return restriction + checkBonus + mobilityPenalty;
-  }
-
-  function search(
-    board: Chess,
-    depth: number,
-    alpha: number,
-    beta: number,
-    isMaximizing: boolean,
-  ): number {
-    if (depth === 0 || board.isCheckmate() || board.isStalemate() || board.isDraw()) {
-      return evaluateMate(board);
-    }
-
-    const moves = board.moves({ verbose: true });
-    if (isMaximizing) {
-      let maxEval = -Infinity;
-      for (const move of moves) {
-        const test = new Chess(board.fen());
-        test.move({ from: move.from, to: move.to, promotion: move.promotion });
-        const eval_ = search(test, depth - 1, alpha, beta, false);
-        maxEval = Math.max(maxEval, eval_);
-        alpha = Math.max(alpha, eval_);
-        if (beta <= alpha) break;
-      }
-      return maxEval;
-    } else {
-      let minEval = Infinity;
-      for (const move of moves) {
-        const test = new Chess(board.fen());
-        test.move({ from: move.from, to: move.to, promotion: move.promotion });
-        const eval_ = search(test, depth - 1, alpha, beta, true);
-        minEval = Math.min(minEval, eval_);
-        beta = Math.min(beta, eval_);
-        if (beta <= alpha) break;
-      }
-      return minEval;
-    }
-  }
-
-  const computeBestMateMove = (board: Chess, exercise: Exercise): { from: string; to: string } | null => {
-    for (const move of exercise.demoMoves) {
+    // Fallback to demo moves if Stockfish unavailable
+    for (const move of currentEx.demoMoves) {
       try {
         const test = new Chess(board.fen());
         test.move({ from: move.from, to: move.to });
         const piece = board.get(move.from as any);
         if (piece?.color === 'w') {
-          return { from: move.from, to: move.to };
+          setHintArrows([{ from: move.from, to: move.to }]);
+          setShowHint(true);
+          return;
         }
-      } catch {
-        // not legal, skip
-      }
+      } catch {}
     }
-    return null;
-  };
+  }, [currentEx]);
 
   const earned = exerciseStars[currentExercise] || 0;
   const turnText = game ? (game.turn() === 'w' ? 'Ваш ход (белые)' : 'Ход чёрных...') : '';
@@ -961,12 +920,8 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
                 setShowHint(false);
                 setHintArrows([]);
               } else {
-                if (game) {
-                  const bestMove = computeBestMateMove(game, currentEx);
-                  if (bestMove) {
-                    setHintArrows([bestMove]);
-                    setShowHint(true);
-                  }
+                if (game && game.turn() === 'w' && !demoMode) {
+                  computeHintMove(game);
                 }
               }
             }}
@@ -1013,31 +968,6 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
         )}
 
         {/* Demo comment */}
-        {/* Stalemate / fail banner */}
-        {isStalemate && (
-          <div className="w-full max-w-sm">
-            <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
-              <p className="text-white font-bold text-lg">{message || 'Пат. Провалено.'}</p>
-              <button
-                onClick={reset}
-                className="bg-white text-[#c62828] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
-              >
-                ЕЩЁ РАЗ
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Success message */}
-        {message && !isStalemate && (
-          <div className={`px-6 py-3 rounded-xl text-center font-bold text-white ${
-            message.includes('Мат') ? 'bg-green-500' : 'bg-yellow-500'
-          }`}>
-            {message.includes('Мат') && <Trophy className="w-5 h-5 inline-block mr-2" />}
-            {message}
-          </div>
-        )}
-
         {/* Board */}
         <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
           <div className="relative" style={{ width: 8 * sqSize + 6, height: 8 * sqSize + 6 }}>
@@ -1113,6 +1043,44 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
           </svg>
           </div>
           </div>
+
+        {/* Fail banner — under board, like CaptureBoard */}
+        {isStalemate && (
+          <div className="w-full max-w-sm">
+            <div className="bg-[#A63838] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
+              <p className="text-white font-bold text-lg">Попробуйте снова</p>
+              <button
+                onClick={reset}
+                className="bg-white text-[#2C241B] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
+              >
+                ЕЩЁ РАЗ
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Success banner — under board, like CaptureBoard */}
+        {isComplete && !isStalemate && (
+          <div className="w-full max-w-sm">
+            <div className="bg-[#4A7A3A] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
+              <p className="text-white font-bold text-lg">Мат чёрному королю!</p>
+              <div className="flex justify-center gap-1">
+                {Array.from({ length: currentEarned }, (_, i) => (
+                  <svg
+                    key={i}
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="#FFFFFF"
+                  >
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
           {/* Mobile exercise pills */}
         <div className="flex lg:hidden w-full items-stretch gap-[1px]">
           {EXERCISES.map((ex) => {
@@ -1207,12 +1175,8 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
                 setShowHint(false);
                 setHintArrows([]);
               } else {
-                if (game) {
-                  const bestMove = computeBestMateMove(game, currentEx);
-                  if (bestMove) {
-                    setHintArrows([bestMove]);
-                    setShowHint(true);
-                  }
+                if (game && game.turn() === 'w' && !demoMode) {
+                  computeHintMove(game);
                 }
               }
             }}

@@ -162,7 +162,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
     } catch {
       return [];
     }
-  }, [selectedSquare, game?.fen()]);
+  }, [selectedSquare]);
 
   // Synchronous wrapper so gameRef always matches the latest game state
   const setGame = useCallback((newGame: Chess) => {
@@ -347,7 +347,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
       if (mode === 'king') {
         // King chase: auto-promote to queen, then USER must move black king to capture
         try {
-          g.move({ from: ps, to: `${ps[0]}8` });
+          g.move({ from: ps, to: `${ps[0]}8`, promotion: 'q' });
           setLastMove({ from: ps, to: `${ps[0]}8` });
           setGame(new Chess(g.fen()));
 
@@ -1303,7 +1303,9 @@ if (!skipAnimation) {
             </div>
             <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2.5 shadow-sm border border-[rgba(92,64,51,0.06)]">
               <p className="text-sm text-[var(--text-primary)] leading-snug">
-                Квадрат от пешки до последней горизонтали. Король внутри — догонит, снаружи — пешка проходит.
+                {exercise === 1 && !showSquare && !demoMode
+                  ? 'Правило квадрата. Нажмите на квадрат, затем посмотрите пример.'
+                  : 'Квадрат от пешки до последней горизонтали. Король внутри — догонит, снаружи — пешка проходит.'}
               </p>
             </div>
           </div>
@@ -1364,19 +1366,39 @@ if (!skipAnimation) {
           </div>
 
           {/* Sidebar action buttons */}
-          {exercise === 1 && !demoMode && !isComplete && !isFail && (
+          {exercise === 1 && (
             <>
               <button
                 onClick={handleShowSquare}
-                className={`flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border text-xs font-medium transition-all w-full ${showSquare ? 'border-[rgba(92,64,51,0.25)] bg-[rgba(92,64,51,0.08)] text-[#5A4A3A]' : 'border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}
+                className={`flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border text-xs font-medium transition-all w-full ${
+                  showSquare && !demoMode
+                    ? 'bg-[rgba(201,168,76,0.15)] border-[rgba(201,168,76,0.5)] text-[#C9A84C]'
+                    : 'border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'
+                }`}
               >
-                <Eye size={14} /> {showSquare ? 'Скрыть квадрат' : 'Показать квадрат'}
+                <Eye size={14} /> {showSquare && !demoMode ? 'Скрыть квадрат' : 'Показать квадрат'}
               </button>
               <button
-                onClick={startDemo}
-                className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all w-full"
+                onClick={() => {
+                  if (demoMode) {
+                    clearTimers();
+                    setDemoMode(false);
+                    setDemoPhase(0);
+                    setShowSquare(false);
+                    setMessage('');
+                    setGame(new Chess(START_FEN_1));
+                    setLastMove(null);
+                  } else {
+                    startDemo();
+                  }
+                }}
+                className={`flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border text-xs font-medium transition-all w-full ${
+                  demoMode
+                    ? 'bg-[rgba(201,168,76,0.15)] border-[rgba(201,168,76,0.5)] text-[#C9A84C]'
+                    : 'border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'
+                }`}
               >
-                <Eye size={14} /> Сыграть a5
+                <Eye size={14} /> {demoMode ? 'Скрыть' : 'Пример'}
               </button>
             </>
           )}
@@ -1447,13 +1469,17 @@ if (!skipAnimation) {
               </div>
               <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
                 <p className="text-sm text-[var(--text-primary)] leading-snug line-clamp-3">
-                  Квадрат от пешки до последней горизонтали. Король внутри — догонит, снаружи — пешка проходит.
+                  {exercise === 1 && !showSquare && !demoMode
+                    ? 'Правило квадрата. Нажмите на квадрат, затем посмотрите пример.'
+                    : 'Квадрат от пешки до последней горизонтали. Король внутри — догонит, снаружи — пешка проходит.'}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="text-center font-bold text-slate-700 text-lg">{turnText}</div>
+          {exercise !== 1 && (
+            <div className="text-center font-bold text-slate-700 text-lg">{turnText}</div>
+          )}
 
           {isComplete && exercise === 1 && (
             <div className="flex flex-col items-center gap-3">
@@ -1535,7 +1561,7 @@ if (!skipAnimation) {
                 fen={gameRef.current?.fen() || game?.fen() || ''}
                 selectedSquare={selectedSquare}
                 lastMove={lastMove}
-                autoValidMoves={true}
+                autoValidMoves={false}
                 validMoves={validMoves}
                 customOverlays={(() => {
                   if (!showSquare || exercise !== 1) return [];
@@ -1551,16 +1577,32 @@ if (!skipAnimation) {
                   }));
                 })()}
                 onMove={(from, to) => {
+                  const fromPiece = gameRef.current.get(from as any);
                   if (exercise === 2 && ex2Mode === 'pawn') processWhiteMoveEx2(from, to, true);
-                  else if (exercise === 2 && ex2Mode === 'king') processBlackMoveEx2(from, to, true);
+                  else if (exercise === 2 && ex2Mode === 'king') {
+                    if (!fromPiece || fromPiece.color !== 'b' || fromPiece.type !== 'k') return;
+                    processBlackMoveEx2(from, to, true);
+                  }
                   else if (exercise === 3 && ex3Mode === 'pawn') processWhiteMoveEx3(from, to, true);
-                  else if (exercise === 3 && ex3Mode === 'king') processBlackMoveEx3(from, to, true);
+                  else if (exercise === 3 && ex3Mode === 'king') {
+                    if (!fromPiece || fromPiece.color !== 'b' || fromPiece.type !== 'k') return;
+                    processBlackMoveEx3(from, to, true);
+                  }
                   else if (exercise === 4 && ex4Mode === 'pawn') processWhiteMoveEx4(from, to, true);
-                  else if (exercise === 4 && ex4Mode === 'king') processBlackMoveEx4(from, to, true);
+                  else if (exercise === 4 && ex4Mode === 'king') {
+                    if (!fromPiece || fromPiece.color !== 'b' || fromPiece.type !== 'k') return;
+                    processBlackMoveEx4(from, to, true);
+                  }
                   else if (exercise === 5 && ex5Mode === 'pawn') processWhiteMoveEx5(from, to, true);
-                  else if (exercise === 5 && ex5Mode === 'king') processBlackMoveEx5(from, to, true);
+                  else if (exercise === 5 && ex5Mode === 'king') {
+                    if (!fromPiece || fromPiece.color !== 'b' || fromPiece.type !== 'k') return;
+                    processBlackMoveEx5(from, to, true);
+                  }
                   else if (exercise === 6 && ex6Mode === 'pawn') processWhiteMoveEx6(from, to, true);
-                  else if (exercise === 6 && ex6Mode === 'king') processBlackMoveEx6(from, to, true);
+                  else if (exercise === 6 && ex6Mode === 'king') {
+                    if (!fromPiece || fromPiece.color !== 'b' || fromPiece.type !== 'k') return;
+                    processBlackMoveEx6(from, to, true);
+                  }
                 }}
                 onPromotionPending={(from, to) => {
                   setPromotionPending({ mode: 'pawn', from, to, afterGameFen: gameRef.current.fen() });
@@ -1568,7 +1610,15 @@ if (!skipAnimation) {
                 onSquareClick={handleSquareClick}
                 playerAnimatingMove={playerAnimatingMove}
                 opponentAnimatingMove={opponentAnimatingMove}
-                interactive={!isComplete && !isFail}
+                interactive={
+                  exercise === 1 ? false :
+                  exercise === 2 ? (!isComplete && !isFail && ex2Mode !== null) :
+                  exercise === 3 ? (!isComplete && !isFail && ex3Mode !== null) :
+                  exercise === 4 ? (!isComplete && !isFail && ex4Mode !== null) :
+                  exercise === 5 ? (!isComplete && !isFail && ex5Mode !== null) :
+                  exercise === 6 ? (!isComplete && !isFail && ex6Mode !== null) :
+                  (!isComplete && !isFail)
+                }
                 disableAutoGhost={true}
                 absoluteOverlay={promotionPending ? (
                   <div className="absolute z-[60] pointer-events-auto" style={{
@@ -1675,13 +1725,36 @@ if (!skipAnimation) {
 
           {/* Mobile action buttons row */}
           <div className="flex lg:hidden gap-2 w-full">
-            {exercise === 1 && !demoMode && !isComplete && !isFail && (
+            {exercise === 1 && (
               <>
-                <button onClick={handleShowSquare} className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all ${showSquare ? 'border-[rgba(92,64,51,0.25)] bg-[rgba(92,64,51,0.08)] text-[#5A4A3A]' : 'border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
-                  <Eye size={14} /> {showSquare ? 'Скрыть квадрат' : 'Квадрат'}
+                <button onClick={handleShowSquare} className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all ${
+                  showSquare && !demoMode
+                    ? 'bg-[rgba(201,168,76,0.15)] border-[rgba(201,168,76,0.5)] text-[#C9A84C]'
+                    : 'border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'
+                }`}>
+                  <Eye size={14} /> {showSquare && !demoMode ? 'Скрыть квадрат' : 'Квадрат'}
                 </button>
-                <button onClick={startDemo} className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all">
-                  <Eye size={14} /> Сыграть a5
+                <button
+                  onClick={() => {
+                    if (demoMode) {
+                      clearTimers();
+                      setDemoMode(false);
+                      setDemoPhase(0);
+                      setShowSquare(false);
+                      setMessage('');
+                      setGame(new Chess(START_FEN_1));
+                      setLastMove(null);
+                    } else {
+                      startDemo();
+                    }
+                  }}
+                  className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all ${
+                    demoMode
+                      ? 'bg-[rgba(201,168,76,0.15)] border-[rgba(201,168,76,0.5)] text-[#C9A84C]'
+                      : 'border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'
+                  }`}
+                >
+                  <Eye size={14} /> {demoMode ? 'Скрыть' : 'Пример'}
                 </button>
               </>
             )}

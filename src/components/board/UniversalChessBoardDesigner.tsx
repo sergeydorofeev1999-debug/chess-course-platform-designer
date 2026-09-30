@@ -686,6 +686,12 @@ export default function UniversalChessBoardDesigner({
                   </div>
                 )}
 
+                {overlayMap.has(sq) && (
+                  <div className="absolute inset-0 pointer-events-none z-[5]">
+                    {overlayMap.get(sq)}
+                  </div>
+                )}
+
                 {pieceObj && !hidePiece && (
                   <div className="relative pointer-events-none z-[30]" style={{ width: Math.round(sqSize * 0.85), height: Math.round(sqSize * 0.85) }}>
                     <PieceImg type={pieceObj.type} color={pieceObj.color} theme={pieceTheme} />
@@ -702,12 +708,6 @@ export default function UniversalChessBoardDesigner({
                     }}
                   >
                     <PieceImg type={ghostAnim.piece.type} color={ghostAnim.piece.color} theme={pieceTheme} />
-                  </div>
-                )}
-
-                {overlayMap.has(sq) && (
-                  <div className="absolute inset-0 pointer-events-none z-[35]">
-                    {overlayMap.get(sq)}
                   </div>
                 )}
               </div>
