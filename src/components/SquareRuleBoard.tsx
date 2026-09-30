@@ -1638,6 +1638,13 @@ if (!skipAnimation) {
                 lastMove={lastMove}
                 autoValidMoves={false}
                 validMoves={validMoves}
+                onDragPieceChange={(piece) => {
+                  if (piece) {
+                    setSelectedSquare(piece.square);
+                  } else {
+                    setSelectedSquare(null);
+                  }
+                }}
                 customOverlays={(() => {
                   if (!showSquare || exercise !== 1) return [];
                   const pawnSq = getPawnSquare(game);
