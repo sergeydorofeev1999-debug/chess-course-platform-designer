@@ -345,20 +345,30 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
 
     if (nr === 8) {
       if (mode === 'king') {
-        // King chase: auto-promote to queen, then USER must move black king to capture
+        // King chase: auto-promote to queen with animation
         try {
-          g.move({ from: ps, to: `${ps[0]}8`, promotion: 'q' });
+          // Animate pawn moving to 8th rank first
+          setOpponentAnimatingMove({
+            from: ps,
+            to: `${ps[0]}8`,
+            piece: { type: 'P', color: 'w' },
+          });
           setLastMove({ from: ps, to: `${ps[0]}8` });
-          setGame(new Chess(g.fen()));
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            g.move({ from: ps, to: `${ps[0]}8`, promotion: 'q' });
+            setGame(new Chess(g.fen()));
+            setOpponentAnimatingMove(null);
 
-          // Check if black king CAN capture the new queen
-          const blackMoves = g.moves({ verbose: true });
-          const canCapture = blackMoves.some(m => m.piece === 'k' && m.color === 'b' && m.captured);
-          if (!canCapture) {
-            setIsFail(true);
-            setMessage('Провалено. Король не успел.');
-          }
-          // Otherwise: user's turn — they must capture the queen manually
+            // Check if black king CAN capture the new queen
+            const blackMoves = g.moves({ verbose: true });
+            const canCapture = blackMoves.some(m => m.piece === 'k' && m.color === 'b' && m.captured);
+            if (!canCapture) {
+              setIsFail(true);
+              setMessage('Провалено. Король не успел.');
+            }
+            // Otherwise: user's turn — they must capture the queen manually
+          }, 200);
         } catch {}
       } else {
         // Pawn run: show promotion modal
@@ -369,36 +379,41 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
 
     if (nr > 8) return;
     try {
-      g.move({ from: ps, to: `${ps[0]}${nr}` });
-      setLastMove({ from: ps, to: `${ps[0]}${nr}` });
-      setGame(new Chess(g.fen()));
-
-      // After auto pawn move, check if black king can capture the pawn
+      // Animate white pawn auto-move (king chase mode)
       if (mode === 'king') {
-        const psAfter = getPawnSquare(g);
-        if (!psAfter) {
-          setIsComplete(true);
-          setMessage('Король догнал пешку! Правило квадрата: король внутри — догонит.');
-          saveStars(exercise, 3);
-          onComplete();
-          return;
-        }
-        if (parseInt(psAfter[1]) === 8) {
-          setIsComplete(true);
-          setMessage('Пешка прошла! Король не догнал.');
-          onComplete();
-          return;
-        }
-      }
+        setOpponentAnimatingMove({
+          from: ps,
+          to: `${ps[0]}${nr}`,
+          piece: { type: 'P', color: 'w' },
+        });
+        setLastMove({ from: ps, to: `${ps[0]}${nr}` });
+        setTimeout(() => {
+          if (!mountedRef.current) return;
+          g.move({ from: ps, to: `${ps[0]}${nr}` });
+          setGame(new Chess(g.fen()));
+          setOpponentAnimatingMove(null);
 
-      // In pawn-run mode: check if black king ate the pawn
-      if (mode === 'pawn') {
-        const psAfter = getPawnSquare(g);
-        if (!psAfter) {
-          setIsFail(true);
-          setMessage('Провалено. Король съел пешку.');
-          return;
-        }
+          // After auto pawn move, check if black king can capture the pawn
+          const psAfter = getPawnSquare(g);
+          if (!psAfter) {
+            setIsComplete(true);
+            setMessage('Король догнал пешку! Правило квадрата: король внутри — догонит.');
+            saveStars(exercise, 3);
+            onComplete();
+            return;
+          }
+          if (parseInt(psAfter[1]) === 8) {
+            setIsComplete(true);
+            setMessage('Пешка прошла! Король не догнал.');
+            onComplete();
+            return;
+          }
+        }, 200);
+      } else {
+        // Pawn run: instant move
+        g.move({ from: ps, to: `${ps[0]}${nr}` });
+        setLastMove({ from: ps, to: `${ps[0]}${nr}` });
+        setGame(new Chess(g.fen()));
       }
     } catch {}
   }, [isFail, onComplete, exercise, saveStars]);
