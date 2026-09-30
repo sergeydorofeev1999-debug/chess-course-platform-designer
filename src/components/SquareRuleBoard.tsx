@@ -158,6 +158,16 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
   const validMoves = useMemo(() => {
     if (playerAnimatingMove || !selectedSquare || !gameRef.current) return [];
     try {
+      const piece = gameRef.current.get(selectedSquare as any);
+      if (!piece) return [];
+      const currentTurn = gameRef.current.turn();
+      if (piece.color !== currentTurn) {
+        // In king-chase mode black king moves while it's technically white's turn
+        const fenParts = gameRef.current.fen().split(' ');
+        fenParts[1] = piece.color;
+        const temp = new Chess(fenParts.join(' '));
+        return temp.moves({ verbose: true, square: selectedSquare as any }).map((m: any) => m.to);
+      }
       return gameRef.current.moves({ verbose: true, square: selectedSquare as any }).map((m: any) => m.to);
     } catch {
       return [];
