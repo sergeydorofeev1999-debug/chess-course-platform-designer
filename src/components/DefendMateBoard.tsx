@@ -268,7 +268,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
         return;
       }
 
-      // Wrong move — computer response
+      // Wrong move — computer response (with delay like ForkBoard)
       const afterWhite = new Chess(ng.fen());
       const mateMove = afterWhite.moves({ verbose: true }).find((m: any) => m.san.includes('#'));
       const captureMoves = afterWhite.moves({ verbose: true }).filter((m: any) => m.captured);
@@ -276,46 +276,48 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
       // Block moves immediately via ref (before async animation)
       isFailRef.current = true;
 
-      if (mateMove) {
-        setMessage('Не защитились! Соперник ставит мат.');
-        // Apply move immediately (like PawnRaceBoard), then ghost animate
-        afterWhite.move(mateMove);
-        setGame(new Chess(afterWhite.fen()));
-        const compMovedPiece = afterWhite.get(mateMove.to);
-        setLastMove({ from: mateMove.from, to: mateMove.to });
-        setHintVisible(false);
-        setOpponentAnimatingMove({
-          from: mateMove.from,
-          to: mateMove.to,
-          piece: { type: compMovedPiece?.type.toUpperCase() || '', color: compMovedPiece?.color as 'w' | 'b' || 'b' },
-        });
-        setTimeout(() => {
-          if (!mountedRef.current) return;
-          setOpponentAnimatingMove(null);
-          setIsFail(true); // Show fail UI after animation completes
-        }, 220);
-      } else if (captureMoves.length > 0) {
-        setMessage('Вы потеряли фигуру!');
-        // Apply move immediately (like PawnRaceBoard), then ghost animate
-        afterWhite.move(captureMoves[0]);
-        setGame(new Chess(afterWhite.fen()));
-        const compMovedPiece = afterWhite.get(captureMoves[0].to);
-        setLastMove({ from: captureMoves[0].from, to: captureMoves[0].to });
-        setHintVisible(false);
-        setOpponentAnimatingMove({
-          from: captureMoves[0].from,
-          to: captureMoves[0].to,
-          piece: { type: compMovedPiece?.type.toUpperCase() || '', color: compMovedPiece?.color as 'w' | 'b' || 'b' },
-        });
-        setTimeout(() => {
-          if (!mountedRef.current) return;
-          setOpponentAnimatingMove(null);
-          setIsFail(true); // Show fail UI after animation completes
-        }, 220);
-      } else {
-        setMessage('Не защитились! Соперник ставит мат.');
-        setIsFail(true);
-      }
+      // Delay computer response by 600ms (same as ForkBoard)
+      setTimeout(() => {
+        if (!mountedRef.current) return;
+        if (mateMove) {
+          setMessage('Не защитились! Соперник ставит мат.');
+          afterWhite.move(mateMove);
+          setGame(new Chess(afterWhite.fen()));
+          const compMovedPiece = afterWhite.get(mateMove.to);
+          setLastMove({ from: mateMove.from, to: mateMove.to });
+          setHintVisible(false);
+          setOpponentAnimatingMove({
+            from: mateMove.from,
+            to: mateMove.to,
+            piece: { type: compMovedPiece?.type.toUpperCase() || '', color: compMovedPiece?.color as 'w' | 'b' || 'b' },
+          });
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            setOpponentAnimatingMove(null);
+            setIsFail(true); // Show fail UI after animation completes
+          }, 220);
+        } else if (captureMoves.length > 0) {
+          setMessage('Вы потеряли фигуру!');
+          afterWhite.move(captureMoves[0]);
+          setGame(new Chess(afterWhite.fen()));
+          const compMovedPiece = afterWhite.get(captureMoves[0].to);
+          setLastMove({ from: captureMoves[0].from, to: captureMoves[0].to });
+          setHintVisible(false);
+          setOpponentAnimatingMove({
+            from: captureMoves[0].from,
+            to: captureMoves[0].to,
+            piece: { type: compMovedPiece?.type.toUpperCase() || '', color: compMovedPiece?.color as 'w' | 'b' || 'b' },
+          });
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            setOpponentAnimatingMove(null);
+            setIsFail(true); // Show fail UI after animation completes
+          }, 220);
+        } else {
+          setMessage('Не защитились! Соперник ставит мат.');
+          setIsFail(true);
+        }
+      }, 600);
     } catch {
       // invalid move
     }
