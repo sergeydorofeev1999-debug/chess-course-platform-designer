@@ -355,6 +355,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
                     setIsComplete(true);
                     saveStars(1, 3);
                     setMessage('Король съел ферзя на a8! Правило квадрата: король внутри квадрата — догнал.');
+                    schedule(() => { switchExercise(2); }, 2000);
                   }, 1000);
                 }, 1500);
               }, 1500);
@@ -363,7 +364,7 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
         }, 1500);
       }, 1000);
     }, 1500);
-  }, [schedule]);
+  }, [schedule, switchExercise]);
 
   useEffect(() => () => clearTimers(), [clearTimers]);
 
@@ -571,6 +572,7 @@ if (!skipAnimation) {
           saveStars(2, 3);
           setMessage('Король съел ферзя! Правило квадрата: король внутри квадрата — догнал.');
           onComplete();
+          setTimeout(() => { if (mountedRef.current) switchExercise(3); }, 2000);
           return;
         }
 
@@ -582,7 +584,7 @@ if (!skipAnimation) {
         timersRef.current.push(t);
       }, skipAnimation ? 0 : 200);
     } catch {}
-  }, [isFail, promotionPending, doAutoWhitePawnMove, onComplete, ex2Mode, saveStars]);
+  }, [isFail, promotionPending, doAutoWhitePawnMove, onComplete, ex2Mode, saveStars, switchExercise]);
 
   // ═══════════════════════════════════════════════════════════════
   // EXERCISE 2: PAWN RUN MODE (user white pawn, auto black king)
@@ -626,6 +628,7 @@ if (!skipAnimation) {
           saveStars(2, 3);
           setMessage('Пешка прошла! Король не догнал.');
           onComplete();
+          setTimeout(() => { if (mountedRef.current) switchExercise(3); }, 2000);
           return;
         }
 
@@ -658,7 +661,7 @@ if (!skipAnimation) {
         }, 500);
       }, 200);
     } catch {}
-  }, [isFail, promotionPending, onComplete, saveStars]);
+  }, [isFail, promotionPending, onComplete, saveStars, switchExercise]);
 
   // ═══════════════════════════════════════════════════════════════
   // EXERCISE 3: KING CHASE MODE (auto white pawn, user black king)
@@ -713,6 +716,7 @@ if (!skipAnimation) {
           saveStars(3, 3);
           setMessage('Король съел ферзя! Правило квадрата: король внутри квадрата — догнал.');
           onComplete();
+          setTimeout(() => { if (mountedRef.current) switchExercise(4); }, 2000);
           return;
         }
 
@@ -723,7 +727,7 @@ if (!skipAnimation) {
         timersRef.current.push(t);
       }, skipAnimation ? 0 : 200);
     } catch {}
-  }, [isFail, promotionPending, doAutoWhitePawnMove, onComplete, ex3Mode, saveStars]);
+  }, [isFail, promotionPending, doAutoWhitePawnMove, onComplete, ex3Mode, saveStars, switchExercise]);
 
   // ═══════════════════════════════════════════════════════════════
   // EXERCISE 3: PAWN RUN MODE (user white pawn, auto black king)
@@ -767,6 +771,7 @@ if (!skipAnimation) {
           saveStars(3, 3);
           setMessage('Пешка прошла! Король не догнал.');
           onComplete();
+          setTimeout(() => { if (mountedRef.current) switchExercise(4); }, 2000);
           return;
         }
 
@@ -799,7 +804,7 @@ if (!skipAnimation) {
         }, 500);
       }, 200);
     } catch {}
-  }, [isFail, promotionPending, onComplete, saveStars]);
+  }, [isFail, promotionPending, onComplete, saveStars, switchExercise]);
 
   // ═══════════════════════════════════════════════════════════════
   // EXERCISE 4: KING CHASE MODE (auto white pawn, user black king)
@@ -851,6 +856,7 @@ if (!skipAnimation) {
           saveStars(4, 3);
           setMessage('Король съел ферзя! Правило квадрата: король внутри квадрата — догнал.');
           onComplete();
+          setTimeout(() => { if (mountedRef.current) switchExercise(5); }, 2000);
           return;
         }
         const t = setTimeout(() => {
@@ -860,7 +866,7 @@ if (!skipAnimation) {
         timersRef.current.push(t);
       }, skipAnimation ? 0 : 200);
     } catch {}
-  }, [isFail, promotionPending, doAutoWhitePawnMove, onComplete, ex4Mode, saveStars]);
+  }, [isFail, promotionPending, doAutoWhitePawnMove, onComplete, ex4Mode, saveStars, switchExercise]);
 
   // ═══════════════════════════════════════════════════════════════
   // EXERCISE 4: PAWN RUN MODE (user white pawn, auto black king)
@@ -902,6 +908,7 @@ if (!skipAnimation) {
           saveStars(4, 3);
           setMessage('Пешка прошла! Король не догнал.');
           onComplete();
+          setTimeout(() => { if (mountedRef.current) switchExercise(5); }, 2000);
           return;
         }
         setTimeout(() => {
@@ -933,7 +940,7 @@ if (!skipAnimation) {
         }, 500);
       }, 200);
     } catch {}
-  }, [isFail, promotionPending, onComplete, saveStars]);
+  }, [isFail, promotionPending, onComplete, saveStars, switchExercise]);
 
   // ═══════════════════════════════════════════════════════════════
   // EXERCISE 5: KING CHASE MODE (auto white pawn, user black king)
@@ -985,6 +992,7 @@ if (!skipAnimation) {
           saveStars(5, 3);
           setMessage('Король съел ферзя! Правило квадрата: король внутри квадрата — догнал.');
           onComplete();
+          setTimeout(() => { if (mountedRef.current) switchExercise(6); }, 2000);
           return;
         }
         const t = setTimeout(() => {
@@ -994,7 +1002,7 @@ if (!skipAnimation) {
         timersRef.current.push(t);
       }, skipAnimation ? 0 : 200);
     } catch {}
-  }, [isFail, promotionPending, doAutoWhitePawnMove, onComplete, ex5Mode, saveStars]);
+  }, [isFail, promotionPending, doAutoWhitePawnMove, onComplete, ex5Mode, saveStars, switchExercise]);
 
   // ═══════════════════════════════════════════════════════════════
   // EXERCISE 5: PAWN RUN MODE (user white pawn, auto black king)
@@ -1036,6 +1044,7 @@ if (!skipAnimation) {
           saveStars(5, 3);
           setMessage('Пешка прошла! Король не догнал.');
           onComplete();
+          setTimeout(() => { if (mountedRef.current) switchExercise(6); }, 2000);
           return;
         }
         setTimeout(() => {
@@ -1067,7 +1076,7 @@ if (!skipAnimation) {
         }, 500);
       }, 200);
     } catch {}
-  }, [isFail, promotionPending, onComplete, saveStars]);
+  }, [isFail, promotionPending, onComplete, saveStars, switchExercise]);
 
   // ═══════════════════════════════════════════════════════════════
   // EXERCISE 6: KING CHASE MODE (auto white pawn, user black king)
@@ -1128,7 +1137,7 @@ if (!skipAnimation) {
         timersRef.current.push(t);
       }, skipAnimation ? 0 : 200);
     } catch {}
-  }, [isFail, promotionPending, doAutoWhitePawnMove, onComplete, ex6Mode, saveStars]);
+  }, [isFail, promotionPending, doAutoWhitePawnMove, onComplete, ex6Mode, saveStars, switchExercise]);
 
   // ═══════════════════════════════════════════════════════════════
   // EXERCISE 6: PAWN RUN MODE (user white pawn, auto black king)
@@ -1201,7 +1210,7 @@ if (!skipAnimation) {
         }, 500);
       }, 200);
     } catch {}
-  }, [isFail, promotionPending, onComplete, saveStars]);
+  }, [isFail, promotionPending, onComplete, saveStars, switchExercise]);
 
   // ═══════════════════════════════════════════════════════════════
   // INTERACTION HANDLERS
