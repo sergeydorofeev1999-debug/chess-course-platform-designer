@@ -159,17 +159,24 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
   }, []);
 
   useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout>;
     const update = () => {
-      const isMobile = window.innerWidth < 1024;
-      if (isMobile) {
-        setSqSize(Math.min(64, Math.max(36, Math.floor((window.innerWidth - 24) / 8))));
-      } else {
-        setSqSize(Math.min(64, Math.max(48, Math.floor((window.innerWidth - 340) / 8))));
-      }
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        const isMobile = window.innerWidth < 1024;
+        if (isMobile) {
+          setSqSize(Math.min(64, Math.max(36, Math.floor((window.innerWidth - 24) / 8))));
+        } else {
+          setSqSize(Math.min(64, Math.max(48, Math.floor((window.innerWidth - 340) / 8))));
+        }
+      }, 150);
     };
     update();
     window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
+    return () => {
+      window.removeEventListener('resize', update);
+      clearTimeout(timeout);
+    };
   }, []);
 
   const reset = useCallback(() => {
