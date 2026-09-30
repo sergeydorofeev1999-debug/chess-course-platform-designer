@@ -1571,79 +1571,6 @@ if (!skipAnimation) {
 
           {/* Убран turnText над доской */}
 
-          {isComplete && exercise === 1 && (
-            <div className="flex flex-col items-center gap-3">
-              <div className="px-6 py-3 rounded-xl text-center font-bold text-white bg-green-500">
-                <Trophy className="w-5 h-5 inline-block mr-2" />
-                {message || 'Правило квадрата сработало!'}
-              </div>
-              <button onClick={() => switchExercise(2)} className="px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-bold transition-colors shadow">
-                Перейти к Упражнению 2 →
-              </button>
-            </div>
-          )}
-          {isComplete && exercise === 2 && (
-            <div className="flex flex-col items-center gap-3">
-              <div className="px-6 py-3 rounded-xl text-center font-bold text-white bg-green-500">
-                <Trophy className="w-5 h-5 inline-block mr-2" />
-                {message || 'Правило квадрата сработало!'}
-              </div>
-              <button onClick={() => switchExercise(3)} className="px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-bold transition-colors shadow">
-                Перейти к Упражнению 3 →
-              </button>
-            </div>
-          )}
-          {isComplete && exercise === 3 && (
-            <div className="flex flex-col items-center gap-3">
-              <div className="px-6 py-3 rounded-xl text-center font-bold text-white bg-green-500">
-                <Trophy className="w-5 h-5 inline-block mr-2" />
-                {message || 'Правило квадрата сработало!'}
-              </div>
-              <button onClick={() => switchExercise(4)} className="px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-bold transition-colors shadow">
-                Перейти к Упражнению 4 →
-              </button>
-            </div>
-          )}
-          {isComplete && exercise === 4 && (
-            <div className="flex flex-col items-center gap-3">
-              <div className="px-6 py-3 rounded-xl text-center font-bold text-white bg-green-500">
-                <Trophy className="w-5 h-5 inline-block mr-2" />
-                {message || 'Правило квадрата сработало!'}
-              </div>
-              <button onClick={() => switchExercise(5)} className="px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-bold transition-colors shadow">
-                Перейти к Упражнению 5 →
-              </button>
-            </div>
-          )}
-          {isComplete && exercise === 5 && (
-            <div className="flex flex-col items-center gap-3">
-              <div className="px-6 py-3 rounded-xl text-center font-bold text-white bg-green-500">
-                <Trophy className="w-5 h-5 inline-block mr-2" />
-                {message || 'Правило квадрата сработало!'}
-              </div>
-              <button onClick={() => switchExercise(6)} className="px-6 py-2.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-bold transition-colors shadow">
-                Перейти к Упражнению 6 →
-              </button>
-            </div>
-          )}
-          {isComplete && exercise === 6 && (
-            <div className="px-6 py-3 rounded-xl text-center font-bold text-white bg-green-500">
-              <Trophy className="w-5 h-5 inline-block mr-2" />
-              {message || 'Правило квадрата сработало!'}
-            </div>
-          )}
-
-          {isFail && (
-            <div className="w-full max-w-sm">
-              <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
-                <p className="text-white font-bold text-lg">{message || 'Провалено'}</p>
-                <button onClick={reset} className="bg-white text-[#c62828] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition">
-                  ЕЩЁ РАЗ
-                </button>
-              </div>
-            </div>
-          )}
-
           {/* Board */}
           <div className="flex justify-center w-full" style={{ minHeight: 8 * sqSize }}>
             <div className="relative inline-block">
@@ -1804,6 +1731,16 @@ if (!skipAnimation) {
               />
             </div>
           </div>
+          {isFail && (
+            <div className="w-full">
+              <div className="bg-[#A63838] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
+                <p className="text-white font-bold text-lg">{message || 'Задание провалено!'}</p>
+                <button onClick={reset} className="bg-white text-[#2C241B] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition">
+                  ЕЩЁ РАЗ
+                </button>
+              </div>
+            </div>
+          )}
           {/* Mobile exercise pills */}
           <div className="flex lg:hidden w-full items-stretch gap-[1px]">
             {[1,2,3,4,5,6].map((exId) => {
