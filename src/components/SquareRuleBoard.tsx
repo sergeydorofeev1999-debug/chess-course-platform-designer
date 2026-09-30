@@ -1731,7 +1731,7 @@ if (!skipAnimation) {
               />
             </div>
           </div>
-          {isFail && (
+          {isFail && !isComplete && (
             <div className="w-full">
               <div className="bg-[#A63838] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
                 <p className="text-white font-bold text-lg">Попробуйте снова</p>
@@ -1741,7 +1741,7 @@ if (!skipAnimation) {
               </div>
             </div>
           )}
-          {isComplete && (
+          {isComplete && !isFail && (
             <div className="w-full">
               <div className="bg-[#4A7A3A] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
                 <p className="text-white font-bold text-lg">Верно!</p>
