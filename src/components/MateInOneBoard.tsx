@@ -251,10 +251,13 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
           setLastMove({ from, to });
           setSelectedSquare(null);
           setHintVisible(false);
-          setIsComplete(true);
           setMessage('Отлично! Мат в 1 ход!');
-          saveStars(exercise, 3);
-          if (exercise === 8) onComplete();
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            setIsComplete(true);
+            saveStars(exercise, 3);
+            if (exercise === 8) onComplete();
+          }, 500);
         } else {
           // Ghost animation for click (like MateInTwoBoard)
           setPlayerAnimatingMove({
@@ -265,15 +268,17 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
           setLastMove({ from, to });
           setSelectedSquare(null);
           setHintVisible(false);
-          setIsComplete(true);
           setMessage('Отлично! Мат в 1 ход!');
-          saveStars(exercise, 3);
-          if (exercise === 8) onComplete();
-
           setTimeout(() => {
             setGame(new Chess(g.fen()));
             setPlayerAnimatingMove(null);
           }, 200);
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            setIsComplete(true);
+            saveStars(exercise, 3);
+            if (exercise === 8) onComplete();
+          }, 500);
         }
         return;
       }
