@@ -1141,23 +1141,6 @@ const getExerciseGoal = (ex: number) => {
           </div>
         </div>
 
-        {/* Fail banner */}
-        {isFail && (
-          <div className="w-full max-w-sm">
-            <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
-              <p className="text-white font-bold text-lg">{message || 'Провалено'}</p>
-              <button
-                onClick={reset}
-                className="bg-white text-[#c62828] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
-              >
-                ЕЩЁ РАЗ
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Success message */}
-
         {/* Board */}
         <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
           <div className="relative" style={{ width: 8 * sqSize + 6, height: 8 * sqSize + 6 }}>
