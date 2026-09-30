@@ -344,6 +344,19 @@ setLastMove({ from: 'e2', to: 'e4' });
     reset();
   }, [reset]);
 
+  useEffect(() => {
+    if (isComplete) {
+      if (exercise < 6) {
+        const timer = setTimeout(() => switchExercise((exercise + 1) as 1 | 2 | 3 | 4 | 5 | 6), 2000);
+        return () => clearTimeout(timer);
+      } else if (exercise === 6 && (exerciseStars[6] || 0) >= 3) {
+        const timer = setTimeout(() => onComplete?.(), 2000);
+        return () => clearTimeout(timer);
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isComplete, exercise, exerciseStars, onComplete]);
+
   const saveStars = useCallback((ex: number, stars: number) => {
     setExerciseStars(prev => {
       const next = { ...prev, [ex]: Math.max(prev[ex] || 0, stars) };
@@ -2800,31 +2813,6 @@ setLastMove({ from: 'd1', to: 'f3' });
           {exercise === 1 || exercise === 5 ? hintText : postMoveHint || 'Повторите партию за чёрных!'}
         </div>
 
-        {/* Fail banner */}
-        {isFail && (
-          <div className="w-full max-w-sm">
-            <div className="bg-[#c62828] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
-              <p className="text-white font-bold text-lg">{message || 'Провалено'}</p>
-              <button
-                onClick={reset}
-                className="bg-white text-[#c62828] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
-              >
-                ЕЩЁ РАЗ
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Success message */}
-        {message && !isFail && (
-          <div className={`px-6 py-3 rounded-xl text-center font-bold text-white ${
-            message.includes('Отлично') ? 'bg-green-500' : 'bg-yellow-500'
-          }`}>
-            {message.includes('Отлично') && <Trophy className="w-5 h-5 inline-block mr-2" />}
-            {message}
-          </div>
-        )}
-
         {/* Board */}
         <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
           <div className="relative" style={{ width: 8 * sqSize + 6, height: 8 * sqSize + 6 }}>
@@ -2949,6 +2937,36 @@ setLastMove({ from: 'd1', to: 'f3' });
             )}
           </div>
         </div>
+
+        {/* Fail banner */}
+        {isFail && (
+          <div className="w-full">
+            <div className="bg-[#A63838] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
+              <p className="text-white font-bold text-lg">Попробуйте снова</p>
+              <button
+                onClick={reset}
+                className="bg-white text-[#2C241B] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
+              >
+                ЕЩЁ РАЗ
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Success banner */}
+        {isComplete && (
+          <div className="w-full">
+            <div className="bg-[#4A7A3A] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
+              <p className="text-white font-bold text-lg">Верно!</p>
+              <div className="flex justify-center gap-1">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Mobile exercise pills */}
         <div className="flex lg:hidden gap-[1px] w-full">
           {[1,2,3,4,5,6].map((num) => {
@@ -3005,69 +3023,12 @@ setLastMove({ from: 'd1', to: 'f3' });
             <button onClick={handleHint} className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all duration-200 ${hintVisible ? 'border-[#c9a84c]/40 text-[#8a6a3a] bg-[#c9a84c]/10' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
               <Eye size={14} /> Подсказка
             </button>
-            <button onClick={reset} className={`flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all duration-200 ${isFail ? 'border-[#B04A3A] text-[#B04A3A]' : 'border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]'}`}>
+            <button onClick={reset} className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border text-xs font-medium transition-all duration-200 border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]">
               <RotateCcw size={14} /> Заново
             </button>
           </div>
         </div>
 
-        {/* Completion banner */}
-        {isComplete && (
-          <div className="flex flex-col items-center gap-3 mt-2">
-            <div className="flex items-center gap-2 text-[#C9A84C] font-bold text-lg">
-              <Trophy className="w-6 h-6" />
-              <span>Упражнение {exercise} пройдено!</span>
-            </div>
-            {exercise === 1 && (
-              <button
-                onClick={() => switchExercise(2)}
-                className="bg-[#C9A84C] text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-[#B8983C] transition"
-              >
-                Перейти к Упражнению 2 →
-              </button>
-            )}
-            {exercise === 2 && (
-              <button
-                onClick={() => switchExercise(3)}
-                className="bg-[#C9A84C] text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-[#B8983C] transition"
-              >
-                Перейти к Упражнению 3 →
-              </button>
-            )}
-            {exercise === 3 && (
-              <button
-                onClick={() => switchExercise(4)}
-                className="bg-[#C9A84C] text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-[#B8983C] transition"
-              >
-                Перейти к Упражнению 4 →
-              </button>
-            )}
-            {exercise === 4 && (
-              <button
-                onClick={() => switchExercise(5)}
-                className="bg-[#C9A84C] text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-[#B8983C] transition"
-              >
-                Перейти к Упражнению 5 →
-              </button>
-            )}
-            {exercise === 5 && (
-              <button
-                onClick={() => switchExercise(6)}
-                className="bg-[#C9A84C] text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-[#B8983C] transition"
-              >
-                Перейти к Упражнению 6 →
-              </button>
-            )}
-            {exercise === 6 && (
-              <button
-                onClick={onComplete}
-                className="bg-[#2C241B] text-white font-bold text-base px-6 py-2 rounded shadow hover:bg-[#3A2E1F] transition"
-              >
-                Урок завершён ✓
-              </button>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
