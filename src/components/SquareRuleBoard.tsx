@@ -1501,9 +1501,7 @@ if (!skipAnimation) {
             </div>
           </div>
 
-          {exercise !== 1 && (
-            <div className="text-center font-bold text-slate-700 text-lg">{turnText}</div>
-          )}
+          {/* Убран turnText над доской */}
 
           {isComplete && exercise === 1 && (
             <div className="flex flex-col items-center gap-3">
