@@ -708,7 +708,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
   const ranks = isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS;
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
+    <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px] mt-3">
       {/* LEFT COLUMN */}
       <div className="w-full lg:w-[300px] flex-shrink-0 space-y-2">
         <div className="hidden lg:flex flex-col gap-2">
