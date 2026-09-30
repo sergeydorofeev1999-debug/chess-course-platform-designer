@@ -681,6 +681,7 @@ if (!skipAnimation) {
     try {
       const move = g1.move({ from, to });
       if (!move) return;
+      setLastMove({ from, to });
 
       if (ex3Mode === 'king') {
         const pawnStillOnBoard = getPawnSquare(g1) !== null;
@@ -820,6 +821,7 @@ if (!skipAnimation) {
     try {
       const move = g1.move({ from, to });
       if (!move) return;
+      setLastMove({ from, to });
       if (ex4Mode === 'king') {
         const pawnStillOnBoard = getPawnSquare(g1) !== null;
         if (!pawnStillOnBoard && !move.captured) {
@@ -953,6 +955,7 @@ if (!skipAnimation) {
     try {
       const move = g1.move({ from, to });
       if (!move) return;
+      setLastMove({ from, to });
       if (ex5Mode === 'king') {
         const pawnStillOnBoard = getPawnSquare(g1) !== null;
         if (!pawnStillOnBoard && !move.captured) {
@@ -1086,6 +1089,7 @@ if (!skipAnimation) {
     try {
       const move = g1.move({ from, to });
       if (!move) return;
+      setLastMove({ from, to });
       if (ex6Mode === 'king') {
         const pawnStillOnBoard = getPawnSquare(g1) !== null;
         if (!pawnStillOnBoard && !move.captured) {
