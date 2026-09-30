@@ -267,49 +267,87 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
     setMessage('');
     const g1 = new Chess(START_FEN_1);
 
+    // Step 1: white pawn a4→a5
     schedule(() => {
       setMessage(''); setShowSquare(false);
-      g1.move({ from: 'a4', to: 'a5' });
+      setPlayerAnimatingMove({ from: 'a4', to: 'a5' });
       setLastMove({ from: 'a4', to: 'a5' });
+      g1.move({ from: 'a4', to: 'a5' });
       setGame(new Chess(g1.fen())); setDemoPhase(1);
+      schedule(() => { setPlayerAnimatingMove(null); }, 600);
+      // Step 2: black king
       schedule(() => {
         const bk = getBlackKingMoveTowards(g1, 'a5');
-        if (bk) { g1.move({ from: bk.from, to: bk.to }); setLastMove({ from: bk.from, to: bk.to }); }
+        if (bk) {
+          setOpponentAnimatingMove({ from: bk.from, to: bk.to });
+          setLastMove({ from: bk.from, to: bk.to });
+          g1.move({ from: bk.from, to: bk.to });
+        }
         setGame(new Chess(g1.fen())); setDemoPhase(2);
+        schedule(() => { setOpponentAnimatingMove(null); }, 600);
         schedule(() => { setShowSquare(true); setMessage('Квадрат сузился. Король внутри, но пешка убегает…'); }, 500);
+        // Step 3: white pawn a5→a6
         schedule(() => {
           setMessage(''); setShowSquare(false);
-          g1.move({ from: 'a5', to: 'a6' });
+          setPlayerAnimatingMove({ from: 'a5', to: 'a6' });
           setLastMove({ from: 'a5', to: 'a6' });
+          g1.move({ from: 'a5', to: 'a6' });
           setGame(new Chess(g1.fen())); setDemoPhase(3);
+          schedule(() => { setPlayerAnimatingMove(null); }, 600);
+          // Step 4: black king
           schedule(() => {
             const bk2 = getBlackKingMoveTowards(g1, 'a6');
-            if (bk2) { g1.move({ from: bk2.from, to: bk2.to }); setLastMove({ from: bk2.from, to: bk2.to }); }
+            if (bk2) {
+              setOpponentAnimatingMove({ from: bk2.from, to: bk2.to });
+              setLastMove({ from: bk2.from, to: bk2.to });
+              g1.move({ from: bk2.from, to: bk2.to });
+            }
             setGame(new Chess(g1.fen())); setDemoPhase(4);
+            schedule(() => { setOpponentAnimatingMove(null); }, 600);
             schedule(() => { setShowSquare(true); setMessage('Король на c6. Пешка всё ближе к ферзю…'); }, 500);
+            // Step 5: white pawn a6→a7
             schedule(() => {
               setMessage(''); setShowSquare(false);
+              setPlayerAnimatingMove({ from: 'a6', to: 'a7' });
+              setLastMove({ from: 'a6', to: 'a7' });
               g1.move({ from: 'a6', to: 'a7' });
               setGame(new Chess(g1.fen())); setDemoPhase(5);
+              schedule(() => { setPlayerAnimatingMove(null); }, 600);
+              // Step 6: black king
               schedule(() => {
                 const bk3 = getBlackKingMoveTowards(g1, 'a7');
-                if (bk3) { g1.move({ from: bk3.from, to: bk3.to }); setLastMove({ from: bk3.from, to: bk3.to }); }
+                if (bk3) {
+                  setOpponentAnimatingMove({ from: bk3.from, to: bk3.to });
+                  setLastMove({ from: bk3.from, to: bk3.to });
+                  g1.move({ from: bk3.from, to: bk3.to });
+                }
                 setGame(new Chess(g1.fen())); setDemoPhase(6);
+                schedule(() => { setOpponentAnimatingMove(null); }, 600);
                 schedule(() => { setShowSquare(true); setMessage('Король на b7. Пешка на a7 — один шаг до ферзя!'); }, 500);
+                // Step 7: white pawn a7→a8=Q
                 schedule(() => {
                   setMessage(''); setShowSquare(false);
+                  setPlayerAnimatingMove({ from: 'a7', to: 'a8' });
+                  setLastMove({ from: 'a7', to: 'a8' });
                   g1.move({ from: 'a7', to: 'a8', promotion: 'q' });
                   setGame(new Chess(g1.fen())); setDemoPhase(7);
+                  schedule(() => { setPlayerAnimatingMove(null); }, 600);
+                  // Step 8: black king captures queen
                   schedule(() => {
                     const bk4 = getBlackKingMoveTowards(g1, 'a8');
-                    if (bk4) { g1.move({ from: bk4.from, to: bk4.to }); setLastMove({ from: bk4.from, to: bk4.to }); }
+                    if (bk4) {
+                      setOpponentAnimatingMove({ from: bk4.from, to: bk4.to });
+                      setLastMove({ from: bk4.from, to: bk4.to });
+                      g1.move({ from: bk4.from, to: bk4.to });
+                    }
                     setGame(new Chess(g1.fen())); setDemoPhase(8);
+                    schedule(() => { setOpponentAnimatingMove(null); }, 600);
                     setIsComplete(true);
                     saveStars(1, 3);
                     setMessage('Король съел ферзя на a8! Правило квадрата: король внутри квадрата — догнал.');
                   }, 1000);
                 }, 1500);
-              }, 1000);
+              }, 1500);
             }, 1500);
           }, 1000);
         }, 1500);
