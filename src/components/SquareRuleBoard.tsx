@@ -475,7 +475,6 @@ export default function SquareRuleBoard({ onComplete, lessonId }: { onComplete: 
     const g = new Chess(afterGameFen);
     try {
       g.move({ from, to, promotion: pieceCode });
-      setLastMove({ from, to });
       setGame(new Chess(g.fen()));
       setPromotionPending(null);
 
