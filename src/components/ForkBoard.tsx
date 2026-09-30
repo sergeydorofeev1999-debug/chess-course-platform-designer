@@ -1211,35 +1211,12 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
 
         {/* Feedback Banner */}
         {isFail && (
-          <div className="w-full lg:max-w-sm mt-2 animate-slide-down">
-            <div
-              className="rounded-2xl flex flex-col items-center"
-              style={{
-                backgroundColor: '#A63838',
-                boxShadow: '0 4px 16px rgba(166, 56, 56, 0.3)',
-                padding: '20px 24px',
-                borderRadius: '16px',
-              }}
-            >
-              <p className="text-white font-bold text-center" style={{ fontSize: '18px' }}>
-                Попробуйте снова
-              </p>
+          <div className="w-full">
+            <div className="bg-[#A63838] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
+              <p className="text-white font-bold text-lg">Попробуйте снова</p>
               <button
                 onClick={reset}
-                className="font-bold hover:brightness-110 transition mx-auto"
-                style={{
-                  backgroundColor: '#FFFFFF',
-                  color: '#2C241B',
-                  fontSize: '16px',
-                  fontWeight: 700,
-                  borderRadius: '12px',
-                  height: '48px',
-                  lineHeight: '48px',
-                  textAlign: 'center',
-                  border: 'none',
-                  padding: '0 32px',
-                  textTransform: 'uppercase',
-                }}
+                className="bg-white text-[#2C241B] font-bold text-base px-6 py-2 rounded shadow hover:bg-gray-100 transition"
               >
                 ЕЩЁ РАЗ
               </button>
@@ -1247,21 +1224,13 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
           </div>
         )}
         {isComplete && (
-          <div className="w-full lg:max-w-sm mt-2">
-            <div
-              className="rounded-2xl flex flex-col items-center"
-              style={{
-                backgroundColor: '#4A7A3A',
-                boxShadow: '0 4px 16px rgba(74, 122, 58, 0.3)',
-                padding: '20px 24px',
-                borderRadius: '16px',
-              }}
-            >
-              <p className="text-white font-bold text-center" style={{ fontSize: '18px' }}>Верно!</p>
+          <div className="w-full">
+            <div className="bg-[#4A7A3A] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
+              <p className="text-white font-bold text-lg">Верно!</p>
               <div className="flex justify-center gap-1">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
               </div>
             </div>
           </div>
