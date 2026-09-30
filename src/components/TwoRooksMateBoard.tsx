@@ -808,122 +808,20 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
     }
   }
 
-  const computeBestMateMove = (board: Chess): { from: string; to: string } | null => {
-    // Fast alpha-beta search with move ordering
-    const MAX_DEPTH = 6;
-    const MATE_SCORE = 100000;
-
-    function evaluate(board: Chess): number {
-      if (board.isCheckmate()) return board.turn() === 'b' ? MATE_SCORE : -MATE_SCORE;
-      if (board.isStalemate()) return -MATE_SCORE;
-      if (board.isDraw()) return -1000;
-
-      // Find black king
-      let bkSquare = '';
-      for (let f = 0; f < 8; f++) {
-        for (let r = 0; r < 8; r++) {
-          const sq = FILES[f] + RANKS[r];
-          const p = board.get(sq as any);
-          if (p?.type === 'k' && p?.color === 'b') { bkSquare = sq; break; }
+  const computeBestMateMove = (board: Chess, exercise: Exercise): { from: string; to: string } | null => {
+    for (const move of exercise.demoMoves) {
+      try {
+        const test = new Chess(board.fen());
+        test.move({ from: move.from, to: move.to });
+        const piece = board.get(move.from as any);
+        if (piece?.color === 'w') {
+          return { from: move.from, to: move.to };
         }
-        if (bkSquare) break;
-      }
-      if (!bkSquare) return 0;
-      const bkFile = FILES.indexOf(bkSquare[0]);
-      const bkRank = RANKS.indexOf(bkSquare[1]);
-
-      // Rook restriction score
-      let restriction = 0;
-      const dirs = [[0,1],[0,-1],[1,0],[-1,0]];
-      for (const [df, dr] of dirs) {
-        let nf = bkFile + df, nr = bkRank + dr;
-        while (nf >= 0 && nf < 8 && nr >= 0 && nr < 8) {
-          const sq = FILES[nf] + RANKS[nr];
-          const p = board.get(sq as any);
-          if (p?.type === 'r' && p?.color === 'w') { restriction += 100; break; }
-          if (p) break;
-          nf += df; nr += dr;
-        }
-      }
-
-      // Check bonus
-      const checkBonus = board.isCheck() ? 500 : 0;
-
-      // King mobility penalty (fewer moves = better)
-      const bkMoves = board.moves({ square: bkSquare as any, verbose: true }).filter((m: any) => m.color === 'b');
-      const mobility = -bkMoves.length * 50;
-
-      // Prefer moves that push king to edge
-      const edgeDist = Math.min(bkFile, 7 - bkFile) + Math.min(bkRank, 7 - bkRank);
-      const edgeBonus = (8 - edgeDist) * 20;
-
-      return restriction + checkBonus + mobility + edgeBonus;
-    }
-
-    function search(
-      b: Chess,
-      depth: number,
-      alpha: number,
-      beta: number,
-      isMaximizing: boolean,
-    ): number {
-      if (depth === 0 || b.isCheckmate() || b.isStalemate() || b.isDraw()) {
-        return evaluate(b);
-      }
-
-      const moves = b.moves({ verbose: true });
-      if (isMaximizing) {
-        let maxEval = -Infinity;
-        for (const move of moves) {
-          const test = new Chess(b.fen());
-          test.move({ from: move.from, to: move.to, promotion: move.promotion });
-          const eval_ = search(test, depth - 1, alpha, beta, false);
-          maxEval = Math.max(maxEval, eval_);
-          alpha = Math.max(alpha, eval_);
-          if (beta <= alpha) break;
-        }
-        return maxEval;
-      } else {
-        let minEval = Infinity;
-        for (const move of moves) {
-          const test = new Chess(b.fen());
-          test.move({ from: move.from, to: move.to, promotion: move.promotion });
-          const eval_ = search(test, depth - 1, alpha, beta, true);
-          minEval = Math.min(minEval, eval_);
-          beta = Math.min(beta, eval_);
-          if (beta <= alpha) break;
-        }
-        return minEval;
+      } catch {
+        // not legal, skip
       }
     }
-
-    const moves = board.moves({ verbose: true }).filter((m: any) => m.color === 'w');
-    if (moves.length === 0) return null;
-
-    // Sort: checks first, then by heuristic score
-    const scored = moves.map((move: any) => {
-      const test = new Chess(board.fen());
-      test.move({ from: move.from, to: move.to, promotion: move.promotion });
-      let score = evaluate(test);
-      if (test.isCheckmate()) score = MATE_SCORE;
-      return { move, score };
-    });
-    scored.sort((a: any, b: any) => b.score - a.score);
-
-    let best = scored[0];
-    for (const { move } of scored) {
-      const test = new Chess(board.fen());
-      test.move({ from: move.from, to: move.to, promotion: move.promotion });
-      if (test.isCheckmate()) {
-        return { from: move.from, to: move.to };
-      }
-      const score = search(test, MAX_DEPTH - 1, -Infinity, Infinity, false);
-      if (score > best.score) {
-        best = { move, score };
-      }
-    }
-
-    return { from: best.move.from, to: best.move.to };
+    return null;
   };
 
   const earned = exerciseStars[currentExercise] || 0;
@@ -1064,7 +962,7 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
                 setHintArrows([]);
               } else {
                 if (game) {
-                  const bestMove = computeBestMateMove(game);
+                  const bestMove = computeBestMateMove(game, currentEx);
                   if (bestMove) {
                     setHintArrows([bestMove]);
                     setShowHint(true);
@@ -1310,7 +1208,7 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
                 setHintArrows([]);
               } else {
                 if (game) {
-                  const bestMove = computeBestMateMove(game);
+                  const bestMove = computeBestMateMove(game, currentEx);
                   if (bestMove) {
                     setHintArrows([bestMove]);
                     setShowHint(true);
