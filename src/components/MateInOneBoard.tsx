@@ -278,13 +278,38 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
         return;
       }
 
-      // Wrong move — instant fail for both click and drag
-      setGame(new Chess(g.fen()));
-      setLastMove({ from, to });
-      setSelectedSquare(null);
-      setHintVisible(false);
-      setIsFail(true);
-      setMessage('Это не мат. Попробуйте найти мат в 1 ход!');
+      // Wrong move — ghost animation then fail with delay
+      if (!skipAnimation) {
+        setPlayerAnimatingMove({
+          from,
+          to,
+          piece: { type: piece?.type.toUpperCase() || '', color: piece?.color as 'w' | 'b' || 'w' },
+        });
+        setLastMove({ from, to });
+        setSelectedSquare(null);
+        setHintVisible(false);
+        setTimeout(() => {
+          if (!mountedRef.current) return;
+          setGame(new Chess(g.fen()));
+          setPlayerAnimatingMove(null);
+        }, 200);
+        setTimeout(() => {
+          if (!mountedRef.current) return;
+          setIsFail(true);
+          setMessage('Это не мат. Попробуйте найти мат в 1 ход!');
+        }, 500);
+      } else {
+        // Instant for drag
+        setGame(new Chess(g.fen()));
+        setLastMove({ from, to });
+        setSelectedSquare(null);
+        setHintVisible(false);
+        setTimeout(() => {
+          if (!mountedRef.current) return;
+          setIsFail(true);
+          setMessage('Это не мат. Попробуйте найти мат в 1 ход!');
+        }, 500);
+      }
     } catch {
       // invalid move
     }
