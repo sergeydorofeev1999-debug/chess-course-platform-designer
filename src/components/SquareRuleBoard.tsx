@@ -1578,27 +1578,42 @@ if (!skipAnimation) {
                 })()}
                 onMove={(from, to) => {
                   const fromPiece = gameRef.current.get(from as any);
-                  if (exercise === 2 && ex2Mode === 'pawn') processWhiteMoveEx2(from, to, true);
+                  if (exercise === 2 && ex2Mode === 'pawn') {
+                    if (!fromPiece || fromPiece.color !== 'w' || fromPiece.type !== 'p') return;
+                    processWhiteMoveEx2(from, to, true);
+                  }
                   else if (exercise === 2 && ex2Mode === 'king') {
                     if (!fromPiece || fromPiece.color !== 'b' || fromPiece.type !== 'k') return;
                     processBlackMoveEx2(from, to, true);
                   }
-                  else if (exercise === 3 && ex3Mode === 'pawn') processWhiteMoveEx3(from, to, true);
+                  else if (exercise === 3 && ex3Mode === 'pawn') {
+                    if (!fromPiece || fromPiece.color !== 'w' || fromPiece.type !== 'p') return;
+                    processWhiteMoveEx3(from, to, true);
+                  }
                   else if (exercise === 3 && ex3Mode === 'king') {
                     if (!fromPiece || fromPiece.color !== 'b' || fromPiece.type !== 'k') return;
                     processBlackMoveEx3(from, to, true);
                   }
-                  else if (exercise === 4 && ex4Mode === 'pawn') processWhiteMoveEx4(from, to, true);
+                  else if (exercise === 4 && ex4Mode === 'pawn') {
+                    if (!fromPiece || fromPiece.color !== 'w' || fromPiece.type !== 'p') return;
+                    processWhiteMoveEx4(from, to, true);
+                  }
                   else if (exercise === 4 && ex4Mode === 'king') {
                     if (!fromPiece || fromPiece.color !== 'b' || fromPiece.type !== 'k') return;
                     processBlackMoveEx4(from, to, true);
                   }
-                  else if (exercise === 5 && ex5Mode === 'pawn') processWhiteMoveEx5(from, to, true);
+                  else if (exercise === 5 && ex5Mode === 'pawn') {
+                    if (!fromPiece || fromPiece.color !== 'w' || fromPiece.type !== 'p') return;
+                    processWhiteMoveEx5(from, to, true);
+                  }
                   else if (exercise === 5 && ex5Mode === 'king') {
                     if (!fromPiece || fromPiece.color !== 'b' || fromPiece.type !== 'k') return;
                     processBlackMoveEx5(from, to, true);
                   }
-                  else if (exercise === 6 && ex6Mode === 'pawn') processWhiteMoveEx6(from, to, true);
+                  else if (exercise === 6 && ex6Mode === 'pawn') {
+                    if (!fromPiece || fromPiece.color !== 'w' || fromPiece.type !== 'p') return;
+                    processWhiteMoveEx6(from, to, true);
+                  }
                   else if (exercise === 6 && ex6Mode === 'king') {
                     if (!fromPiece || fromPiece.color !== 'b' || fromPiece.type !== 'k') return;
                     processBlackMoveEx6(from, to, true);
