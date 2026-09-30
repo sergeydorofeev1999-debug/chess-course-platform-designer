@@ -708,7 +708,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
   const ranks = isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS;
 
   return (
-    <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px] mt-3">
+    <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
       {/* LEFT COLUMN */}
       <div className="w-full lg:w-[300px] flex-shrink-0 space-y-2">
         <div className="hidden lg:flex flex-col gap-2">
@@ -787,7 +787,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
         )}
 
         {/* Avatar + speech bubble */}
-        <div className="w-full flex flex-col gap-2 max-w-sm lg:hidden">
+        <div className="w-full flex flex-col gap-2 max-w-sm lg:hidden mt-3">
           <div className="flex items-start gap-3">
             <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
               <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
