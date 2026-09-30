@@ -164,6 +164,7 @@ export interface UniversalChessBoardDesignerProps {
   clickGhost?: boolean;
   userColor?: 'w' | 'b';
   opponentDelay?: number;
+  draggablePieces?: string[];
 }
 
 interface DragState {
@@ -212,6 +213,7 @@ export default function UniversalChessBoardDesigner({
   clickGhost = false,
   userColor,
   opponentDelay = 600,
+  draggablePieces,
 }: UniversalChessBoardDesignerProps) {
 
   // Internal fen for instant drag feedback
@@ -478,6 +480,8 @@ export default function UniversalChessBoardDesigner({
     if (!piece) return;
     // Only allow dragging pieces of the side to move
     if (piece.color !== (turn || game.turn())) return;
+    // If draggablePieces filter is set, only allow those specific pieces
+    if (draggablePieces && !draggablePieces.includes(piece.type.toUpperCase())) return;
     if (e.pointerType === 'touch' && !(e as any).isPrimary) return;
 
     pointerStartRef.current = {
@@ -489,7 +493,7 @@ export default function UniversalChessBoardDesigner({
       pieceType: piece.type,
       pieceColor: piece.color,
     };
-  }, [interactive, onMove, getPieceAt, game]);
+  }, [interactive, onMove, getPieceAt, game, draggablePieces]);
 
   useEffect(() => {
     if (!interactive || !onMove) return;
@@ -572,7 +576,7 @@ export default function UniversalChessBoardDesigner({
       window.removeEventListener('pointerup', handleGlobalUp);
       window.removeEventListener('pointercancel', handleGlobalCancel);
     };
-  }, [interactive, onMove, getPieceAt, game]);
+  }, [interactive, onMove, getPieceAt, game, draggablePieces]);
 
   const getSquareCenter = (square: string) => {
     const file = square[0];

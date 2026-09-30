@@ -1635,6 +1635,19 @@ if (!skipAnimation) {
                   (!isComplete && !isFail)
                 }
                 disableAutoGhost={true}
+                draggablePieces={
+                  exercise === 2 && ex2Mode === 'pawn' ? ['P'] :
+                  exercise === 2 && ex2Mode === 'king' ? ['K'] :
+                  exercise === 3 && ex3Mode === 'pawn' ? ['P'] :
+                  exercise === 3 && ex3Mode === 'king' ? ['K'] :
+                  exercise === 4 && ex4Mode === 'pawn' ? ['P'] :
+                  exercise === 4 && ex4Mode === 'king' ? ['K'] :
+                  exercise === 5 && ex5Mode === 'pawn' ? ['P'] :
+                  exercise === 5 && ex5Mode === 'king' ? ['K'] :
+                  exercise === 6 && ex6Mode === 'pawn' ? ['P'] :
+                  exercise === 6 && ex6Mode === 'king' ? ['K'] :
+                  undefined
+                }
                 absoluteOverlay={promotionPending ? (
                   <div className="absolute z-[60] pointer-events-auto" style={{
                     left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
