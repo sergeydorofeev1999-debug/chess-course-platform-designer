@@ -239,8 +239,11 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
           wasDragRef.current = false;
           setGame(ng);
           setSelectedSquare(null);
-          setIsComplete(true);
-          saveStars(exercise, 3);
+          setTimeout(() => {
+            if (!mountedRef.current) return;
+            setIsComplete(true);
+            saveStars(exercise, 3);
+          }, 600);
           return;
         }
         // Wrong move in sequence — fall through to fail logic
@@ -263,8 +266,11 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
       setSelectedSquare(null);
 
       if (validMoves.has(`${from},${to}`)) {
-        setIsComplete(true);
-        saveStars(exercise, 3);
+        setTimeout(() => {
+          if (!mountedRef.current) return;
+          setIsComplete(true);
+          saveStars(exercise, 3);
+        }, 600);
         return;
       }
 
