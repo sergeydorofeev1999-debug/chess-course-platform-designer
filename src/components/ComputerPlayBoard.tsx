@@ -710,7 +710,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
   return (
     <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
       {/* LEFT COLUMN */}
-      <div className="w-full lg:w-[300px] flex-shrink-0 space-y-2">
+      <div className="hidden lg:flex w-full lg:w-[300px] flex-shrink-0 flex-col gap-2">
         <div className="hidden lg:flex flex-col gap-2">
           <button
             onClick={() => {
