@@ -610,9 +610,11 @@ function InlineChessBoard({
   const forbiddenSquaresRef = useRef(forbiddenSquares);
   const clickRef = useRef<((square: string) => void) | null>(null);
   const handledByPointerUpRef = useRef(false);
+  const waitingForOpponentRef = useRef(waitingForOpponent);
 
   useEffect(() => { fenRef.current = fen; }, [fen]);
   useEffect(() => { forbiddenSquaresRef.current = forbiddenSquares; }, [forbiddenSquares]);
+  useEffect(() => { waitingForOpponentRef.current = waitingForOpponent; }, [waitingForOpponent]);
 
   useEffect(() => {
     const update = () => {
@@ -674,7 +676,7 @@ function InlineChessBoard({
 
   const click = useCallback(
     (square: string) => {
-      if (waitingForOpponent) return;
+      if (waitingForOpponentRef.current) return;
       if (gameOver || failed) return;
       if (promotionPending) return;
       if (justDraggedRef.current) { justDraggedRef.current = false; return; }
@@ -749,7 +751,7 @@ function InlineChessBoard({
         }
       }
     },
-    [setMsg, promotionPending, waitingForOpponent],
+    [setMsg, promotionPending, gameOver, failed],
   );
 
   useEffect(() => {
