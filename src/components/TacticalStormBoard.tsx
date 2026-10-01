@@ -346,6 +346,17 @@ export default function TacticalStormBoard({ onComplete }: Props) {
     if (!game || !currentPuzzleRef.current) return;
 
     const testGame = new Chess(game.fen());
+    // Check if pawn promotion needed (must be BEFORE testGame.move() empties 'from' square)
+    const piece = testGame.get(from as any);
+    if (piece?.type === 'p' && !to.includes('=') && !promotion) {
+      const lastRank = piece.color === 'w' ? '8' : '1';
+      if (to[1] === lastRank) {
+        setPromotionPending({ from, to });
+        setSelectedSquare(null);
+        setDragPiece(null);
+        return;
+      }
+    }
     let move;
     try {
       move = testGame.move({ from, to, promotion });
@@ -358,21 +369,9 @@ export default function TacticalStormBoard({ onComplete }: Props) {
       return;
     }
 
-    // Check if pawn promotion needed
-    const piece = testGame.get(from as any);
-    if (piece?.type === 'p' && !to.includes('=')) {
-      const lastRank = piece.color === 'w' ? '8' : '1';
-      if (to[1] === lastRank) {
-        setPromotionPending({ from, to });
-        setSelectedSquare(null);
-        setDragPiece(null);
-        return;
-      }
-    }
-
     // Apply the move to the actual game state so the piece stays on target square
     const newGame = new Chess(game.fen());
-    newGame.move({ from, to });
+    newGame.move({ from, to, promotion });
     setSelectedSquare(null);
     setDragPiece(null);
     setLastMove({ from, to });
