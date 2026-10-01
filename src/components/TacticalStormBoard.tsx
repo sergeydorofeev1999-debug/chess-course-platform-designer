@@ -916,7 +916,7 @@ export default function TacticalStormBoard({ onComplete }: Props) {
 
       {/* Board */}
       <div className="flex justify-center w-full" style={{ minHeight: 8 * sqSize }}>
-        <div className="relative">
+        <div className="relative" style={{ width: 8 * sqSize, height: 8 * sqSize }}>
           <UniversalChessBoardDesigner
             fen={game?.fen() || ''}
             isReversed={isBlack}
