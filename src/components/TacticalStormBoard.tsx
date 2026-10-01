@@ -939,7 +939,7 @@ export default function TacticalStormBoard({ onComplete }: Props) {
           interactive={phase === 'playing' && !promotionPending}
           sqSize={sqSize}
         />
-        <!-- Removed custom promotion popup - using UniversalChessBoardDesigner built-in popup instead -->
+        {/* Removed custom promotion popup - using UniversalChessBoardDesigner built-in popup instead */}
         {promotionPending && (
           <div className="absolute z-50 pointer-events-auto" style={{
             left: `${(isBlack ? REVERSED_FILES.indexOf(promotionPending.to[0]) : FILES.indexOf(promotionPending.to[0])) * sqSize}px`,
