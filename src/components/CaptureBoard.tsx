@@ -1465,13 +1465,16 @@ export default function CaptureBoard({
       onAnyMove?.();
       onPositionChange?.(newFen);
 
-      // ── Lesson 14 (en passant): any non-target move is an immediate fail ──
+      // ── Lesson 14 (en passant): only diagonal pawn captures to target squares are valid ──
       const isEnPassantLesson = lessonId === '14' || lessonId === 'b244d9da-23d9-438f-a81d-64b050b3b32e';
-      if (isEnPassantLesson && !stars.includes(to)) {
-        setFailed(true);
-        setGameOver(true);
-        if (onFail) onFail();
-        return false;
+      if (isEnPassantLesson) {
+        const isDiagonalPawnMove = fromType === 'p' && from[0] !== to[0];
+        if (!isDiagonalPawnMove || !stars.includes(to)) {
+          setFailed(true);
+          setGameOver(true);
+          if (onFail) onFail();
+          return false;
+        }
       }
 
       // Trigger auto moves after white makes any move (e.g. en passant exercise progression)
