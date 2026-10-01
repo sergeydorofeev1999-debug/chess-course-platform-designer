@@ -788,7 +788,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
         )}
 
         {/* Avatar + speech bubble */}
-        <div className="w-full flex flex-col gap-2 max-w-sm lg:hidden mt-1">
+        <div className="w-full flex flex-col gap-2 max-w-sm lg:hidden">
           <div className="flex items-start gap-3">
             <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
               <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
