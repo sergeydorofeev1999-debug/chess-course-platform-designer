@@ -773,12 +773,12 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
       {/* CENTER COLUMN */}
       <div className="flex-1 flex flex-col items-center gap-3 px-2">
         {/* Thinking indicator */}
-        <div className="w-full h-1.5 bg-[#F5F0E8] rounded-full overflow-hidden mb-2">
+        <div className="w-full h-1.5 bg-[#F5F0E8] rounded-full overflow-hidden">
           <div className={`h-full bg-[#C9A84C] rounded-full w-full transition-opacity duration-300 ${thinking ? 'opacity-100' : 'opacity-0'}`} />
         </div>
 
         {message && (
-          <div className={`px-6 py-3 rounded-xl text-center font-bold text-white w-full mb-2 flex items-center justify-center gap-2 ${
+          <div className={`px-6 py-3 rounded-xl text-center font-bold text-white w-full flex items-center justify-center gap-2 ${
             message.includes('Победа') ? 'bg-[#C9A84C]' : message.includes('Поражение') ? 'bg-[#B04A3A]' : 'bg-[#8B7355]'
           }`}>
             {message.includes('Победа') && <Trophy className="w-5 h-5 text-white" />}
