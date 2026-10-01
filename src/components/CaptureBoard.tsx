@@ -2021,6 +2021,7 @@ export default function CaptureBoard({
   const resetLevel = () => {
     clearSuccessTimers();
     setOpponentAnimatingMove(null); // Prevent ghost dupe on reset
+    setWaitingForOpponent(false); // UNBLOCK clicks after reset
     const lvl = levels[currentLevel];
     setPosition(lvl.initialFen);
     setCollected([]);
