@@ -941,8 +941,8 @@ export default function TacticalStormBoard({ onComplete }: Props) {
         />
         {promotionPending && (
           <div className="absolute z-50 pointer-events-auto" style={{
-            left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
-            top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
+            left: `${(isBlack ? REVERSED_FILES.indexOf(promotionPending.to[0]) : FILES.indexOf(promotionPending.to[0])) * sqSize}px`,
+            top: (isBlack === (promotionPending.from[1] === '2')) ? 0 : 4 * sqSize,
             width: sqSize,
             height: 4 * sqSize,
             backgroundColor: '#2C241B',
@@ -980,7 +980,7 @@ export default function TacticalStormBoard({ onComplete }: Props) {
                 title={name}
               >
                 <img
-                  src={`/pieces/cburnett/${promotionPending.from[1] === '2' ? 'b' : 'w'}${code.toUpperCase()}.svg`}
+                  src={`/pieces/cburnett/${promotionPending.to[1] === '8' ? 'w' : 'b'}${code.toUpperCase()}.svg`}
                   alt={name}
                   draggable={false}
                   style={{ width: '70%', height: '70%', objectFit: 'contain' }}
