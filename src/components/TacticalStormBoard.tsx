@@ -915,10 +915,11 @@ export default function TacticalStormBoard({ onComplete }: Props) {
       </div>
 
       {/* Board */}
-      <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
-        <UniversalChessBoardDesigner
-          fen={game?.fen() || ''}
-          isReversed={isBlack}
+      <div className="flex justify-center w-full" style={{ minHeight: 8 * sqSize }}>
+        <div className="relative">
+          <UniversalChessBoardDesigner
+            fen={game?.fen() || ''}
+            isReversed={isBlack}
           selectedSquare={selectedSquare}
           lastMove={lastMove}
           validMoves={validMoves}
@@ -988,6 +989,7 @@ export default function TacticalStormBoard({ onComplete }: Props) {
             ))}
           </div>
         )}
+        </div>
       </div>
       {/* Error indicators + Difficulty */}
       <div className="flex w-full justify-between items-center mt-1">
