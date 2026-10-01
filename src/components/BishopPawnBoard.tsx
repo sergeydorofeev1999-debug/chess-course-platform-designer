@@ -216,7 +216,7 @@ function hasPawnOnBackRank(squares: Record<string, Piece>, color: 'w' | 'b'): bo
   const backRank = color === 'w' ? '8' : '1';
   for (const sq in squares) {
     const p = squares[sq];
-    if (p.color === color && p.type === 'p' && sq[1] === backRank) return true;
+    if (p.color === color && sq[1] === backRank && (p.type === 'p' || p.type === 'q')) return true;
   }
   return false;
 }

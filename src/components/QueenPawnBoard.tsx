@@ -151,10 +151,10 @@ function makeMove(squares: Record<string, Piece>, enPassant: string | null, from
   squares: Record<string, Piece>;
   enPassant: string | null;
   captured: Piece | null;
-  promoted: boolean;
+  promotedColor: 'w' | 'b' | null;
 } {
   const p = squares[from];
-  if (!p) return { squares, enPassant: null, captured: null, promoted: false };
+  if (!p) return { squares, enPassant: null, captured: null, promotedColor: null };
 
   const next: Record<string, Piece> = { ...squares };
   delete next[from];
@@ -193,7 +193,7 @@ function makeMove(squares: Record<string, Piece>, enPassant: string | null, from
     }
   }
 
-  return { squares: next, enPassant: newEnPassant, captured, promoted: p.type === 'p' && (rank === '8' || rank === '1') };
+  return { squares: next, enPassant: newEnPassant, captured, promotedColor: p.type === 'p' && (rank === '8' || rank === '1') ? p.color : null };
 }
 
 /* ═════════════════════════════════════════════════════════════════
@@ -495,10 +495,10 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
     reset();
   }, [reset]);
 
-  const checkGameOver = useCallback((sqs: Record<string, Piece>, ep: string | null, currentTurn: 'w' | 'b', justPromoted: boolean = false): string | null => {
+  const checkGameOver = useCallback((sqs: Record<string, Piece>, ep: string | null, currentTurn: 'w' | 'b', promotedColor: 'w' | 'b' | null = null): string | null => {
     // Win by capturing all opponent pieces OR promotion (new queen from pawn)
-    if (!hasPieces(sqs, 'b') || justPromoted) return 'Белые победили!';
-    if (!hasPieces(sqs, 'w')) return 'Чёрные победили!';
+    if (!hasPieces(sqs, 'b') || promotedColor === 'w') return 'Белые победили!';
+    if (!hasPieces(sqs, 'w') || promotedColor === 'b') return 'Чёрные победили!';
     if (hasNoMoves(sqs, currentTurn, ep)) return 'Ничья';
     return null;
   }, []);
@@ -526,7 +526,7 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
       const movingPiece = sqs[chosen.from];
       setLastMove({ from: chosen.from, to: chosen.to });
 
-      const win = checkGameOver(result.squares, result.enPassant, 'w', result.promoted);
+      const win = checkGameOver(result.squares, result.enPassant, 'w', result.promotedColor);
       if (win) {
         setWinner(win);
         setOpponentAnimatingMove({ from: chosen.from, to: chosen.to, piece: movingPiece! });
@@ -596,7 +596,7 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
     }
 
     // Check win after promotion
-    const win = checkGameOver(promotedSquares, result.enPassant, 'b', true);
+    const win = checkGameOver(promotedSquares, result.enPassant, 'b', 'w');
     if (win) {
       setWinner(win);
       if (win === 'Белые победили!' && difficultyRef.current) {
@@ -664,7 +664,7 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
         const result = makeMove(sqs, enPassantRef.current, sel, square);
 
         setLastMove({ from: sel, to: square });
-        const win = checkGameOver(result.squares, result.enPassant, 'b', result.promoted);
+        const win = checkGameOver(result.squares, result.enPassant, 'b', result.promotedColor);
         if (win) {
           setWinner(win);
           setPlayerAnimatingMove({ from: sel, to: square, piece: movingPiece! });
@@ -792,7 +792,7 @@ export default function QueenPawnBoard({ onComplete, lessonId, lessonTitle }: { 
             }
 
             const result = makeMove(squaresRef.current, enPassantRef.current, start.square, targetSquare);
-            const win = checkGameOver(result.squares, result.enPassant, 'b', result.promoted);
+            const win = checkGameOver(result.squares, result.enPassant, 'b', result.promotedColor);
             setLastMove({ from: start.square, to: targetSquare });
             if (win) {
               setWinner(win);
