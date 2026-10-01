@@ -932,7 +932,7 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
           </div>
           <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
             <p className="text-sm text-[var(--text-primary)] leading-snug">
-              Съешь все фигуры соперника или проведи пешку до последней линии.
+              Для победы съешьте все фигуры соперника или проведите пешку до последней линии.
             </p>
           </div>
         </div>
