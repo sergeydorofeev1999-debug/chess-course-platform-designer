@@ -595,7 +595,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
         ) : (
           <>
             <div
-              className="rounded-2xl py-7 px-6 w-full text-center relative overflow-hidden mb-4"
+              className="rounded-2xl py-7 px-6 w-full text-center relative overflow-hidden"
               style={{
                 background: 'linear-gradient(135deg, #2C241B 0%, #3A2E1F 50%, #2C241B 100%)',
               }}
