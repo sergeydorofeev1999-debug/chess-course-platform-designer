@@ -588,7 +588,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
     return (
       <div className="flex flex-col items-center gap-5 w-full max-w-sm mx-auto px-4 py-6">
         {lessonTitle ? (
-          <div className="text-center w-full mb-1">
+          <div className="text-center w-full">
             <h2 className="text-[20px] font-bold text-[#2C241B]">{lessonTitle}</h2>
             <p className="text-[14px] font-medium text-[#8B7355] mt-1">Выберите уровень сложности</p>
           </div>
