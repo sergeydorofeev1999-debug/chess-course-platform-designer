@@ -829,8 +829,8 @@ export default function UniversalChessBoardDesigner({
       {promotionPending && (
         <div className="absolute z-[60] bg-[#1a1a1a] border border-[#C9A84C] rounded-lg p-2 shadow-lg flex flex-col gap-1"
           style={{
-            left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
-            top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
+            left: `${files.indexOf(promotionPending.to[0]) * sqSize}px`,
+            top: (isReversed === (promotionPending.from[1] === '2')) ? 0 : 4 * sqSize,
           }}
         >
           {PROMOTION_PIECES.map(({ code }) => (

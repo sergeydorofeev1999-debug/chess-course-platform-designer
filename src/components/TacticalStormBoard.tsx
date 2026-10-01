@@ -939,56 +939,7 @@ export default function TacticalStormBoard({ onComplete }: Props) {
           interactive={phase === 'playing' && !promotionPending}
           sqSize={sqSize}
         />
-        {promotionPending && (
-          <div className="absolute z-50 pointer-events-auto" style={{
-            left: `${(isBlack ? REVERSED_FILES.indexOf(promotionPending.to[0]) : FILES.indexOf(promotionPending.to[0])) * sqSize}px`,
-            top: (isBlack === (promotionPending.from[1] === '2')) ? 0 : 4 * sqSize,
-            width: sqSize,
-            height: 4 * sqSize,
-            backgroundColor: '#2C241B',
-            borderRadius: '0px',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-          }}>
-            {[
-              { code: 'q', name: 'Ферзь' },
-              { code: 'r', name: 'Ладья' },
-              { code: 'b', name: 'Слон' },
-              { code: 'n', name: 'Конь' },
-            ].map(({ code, name }) => (
-              <button
-                key={code}
-                onClick={() => { processMove(promotionPending.from, promotionPending.to, code); setPromotionPending(null); }}
-                className="w-full aspect-square flex items-center justify-center transition-all duration-150"
-                style={{
-                  backgroundColor: 'transparent',
-                  border: '2px solid transparent',
-                  borderRadius: '0px',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(201, 168, 76, 0.15)';
-                  e.currentTarget.style.borderColor = '#C9A84C';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'transparent';
-                  e.currentTarget.style.borderColor = 'transparent';
-                }}
-                title={name}
-              >
-                <img
-                  src={`/pieces/cburnett/${promotionPending.to[1] === '8' ? 'w' : 'b'}${code.toUpperCase()}.svg`}
-                  alt={name}
-                  draggable={false}
-                  style={{ width: '70%', height: '70%', objectFit: 'contain' }}
-                />
-              </button>
-            ))}
-          </div>
-        )}
+        {/* Removed custom promotion popup - using UniversalChessBoardDesigner built-in popup instead */}
         </div>
       </div>
       {/* Error indicators + Difficulty */}
