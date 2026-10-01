@@ -1424,6 +1424,15 @@ export default function CaptureBoard({
         }
       }
 
+      // ── Lesson 14 (en passant): any non-target move is an immediate fail ──
+      const isEnPassantLesson = lessonId === '14' || lessonId === 'b244d9da-23d9-438f-a81d-64b050b3b32e';
+      if (isEnPassantLesson && !stars.includes(to)) {
+        setFailed(true);
+        setGameOver(true);
+        if (onFail) onFail();
+        return false;
+      }
+
       // Only reject obviously illegal moves (wrong piece mechanics, self-capture)
       if (!isValidMove(fromType, from, to, parsed.squares, 'w', [], false, parsed.enPassant)) return false;
 
@@ -1464,15 +1473,6 @@ export default function CaptureBoard({
       setLastMove({ from, to });
       onAnyMove?.();
       onPositionChange?.(newFen);
-
-      // ── Lesson 14 (en passant): any non-target move is an immediate fail ──
-      const isEnPassantLesson = lessonId === '14' || lessonId === 'b244d9da-23d9-438f-a81d-64b050b3b32e';
-      if (isEnPassantLesson && !stars.includes(to)) {
-        setFailed(true);
-        setGameOver(true);
-        if (onFail) onFail();
-        return false;
-      }
 
       // Trigger auto moves after white makes any move (e.g. en passant exercise progression)
       if (level.triggerAutoMove && level.triggerAutoMove.length > 0) {
