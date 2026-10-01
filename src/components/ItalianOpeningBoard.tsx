@@ -2658,7 +2658,7 @@ const handleSquareClick = useCallback((square: string) => {
   return (
     <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
       {/* LEFT COLUMN */}
-      <div className="w-full lg:w-[300px] flex-shrink-0 space-y-2">
+      <div className="hidden lg:flex w-full lg:w-[300px] flex-shrink-0 flex-col gap-2">
         {/* Desktop: Avatar + speech bubble */}
         <div className="hidden lg:flex items-start gap-2">
           <div className="w-10 h-10 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
