@@ -1407,9 +1407,14 @@ export default function CaptureBoard({
           positionRef.current = newFen;
           setPosition(newFen);
           setLastMove({ from, to });
-          setOpponentAnimatingMove(null);
-          setWaitingForOpponent(false);
           onPositionChange?.(newFen); // Notify parent about en passant field update
+          // Wait for React to flush squares update before removing ghost
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              setOpponentAnimatingMove(null);
+              setWaitingForOpponent(false);
+            });
+          });
         }, 220);
         successTimersRef.current.push(animTimer);
       }, delayMs);
@@ -1529,10 +1534,15 @@ export default function CaptureBoard({
                 positionRef.current = newFen2;
                 setPosition(newFen2);
                 setLastMove({ from: trigger.from, to: trigger.to });
-                setOpponentAnimatingMove(null);
                 onPositionChange?.(newFen2);
-                nextTriggerIdxRef.current = idx + 1;
-                setWaitingForOpponent(false);
+                // Wait for React to flush squares update before removing ghost
+                requestAnimationFrame(() => {
+                  requestAnimationFrame(() => {
+                    setOpponentAnimatingMove(null);
+                    nextTriggerIdxRef.current = idx + 1;
+                    setWaitingForOpponent(false);
+                  });
+                });
               }, 220);
               successTimersRef.current.push(animTimer);
             } else {
