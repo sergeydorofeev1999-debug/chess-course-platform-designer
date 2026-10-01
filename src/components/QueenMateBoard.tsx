@@ -28,6 +28,7 @@ interface Exercise {
   minMoves2: number;
   matIn1?: boolean;
   timeLimit?: number; // seconds, timer starts after first white move
+  bubbleText?: string;
 }
 
 const EXERCISES: Exercise[] = [
@@ -198,6 +199,7 @@ const EXERCISES: Exercise[] = [
     minMoves3: 10,
     minMoves2: 12,
     timeLimit: 60,
+    bubbleText: 'Поставьте мат чёрному королю за 1 минуту.',
   },
 ];
 
@@ -875,7 +877,7 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
           </div>
           <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2.5 shadow-sm border border-[rgba(92,64,51,0.06)]">
             <p className="text-sm text-[var(--text-primary)] leading-snug">
-              {ex.matIn1 ? 'Поставьте мат в 1 ход' : 'Используйте ферзя для ограничения пространства и короля для поддержки.'}
+              {ex.bubbleText || (ex.matIn1 ? 'Поставьте мат чёрному королю за 1 минуту.' : 'Используйте ферзя для ограничения пространства и короля для поддержки.')}
             </p>
           </div>
         </div>
@@ -994,7 +996,7 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
             </div>
             <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
               <p className="text-sm text-[var(--text-primary)] leading-snug line-clamp-3">
-                {ex.matIn1 ? 'Поставьте мат в 1 ход' : 'Используйте ферзя для ограничения пространства и короля для поддержки.'}
+                {ex.bubbleText || (ex.matIn1 ? 'Поставьте мат чёрному королю за 1 минуту.' : 'Используйте ферзя для ограничения пространства и короля для поддержки.')}
               </p>
             </div>
           </div>
