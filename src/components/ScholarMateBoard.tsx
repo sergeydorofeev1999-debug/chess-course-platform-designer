@@ -1234,7 +1234,7 @@ const handleSquareClick = useCallback((square: string) => {
   return (
     <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
       {/* LEFT COLUMN */}
-      <div className="w-full lg:w-[300px] flex-shrink-0 space-y-2">
+      <div className="hidden lg:flex w-full lg:w-[300px] flex-shrink-0 flex-col gap-2">
         <div className="hidden lg:grid grid-cols-8 gap-1 rounded p-1 border border-gray-200">
           {[1, 2, 3, 4, 5, 6, 7, 8].map((num) => {
             const earnedStars = exerciseStars[num] || 0;

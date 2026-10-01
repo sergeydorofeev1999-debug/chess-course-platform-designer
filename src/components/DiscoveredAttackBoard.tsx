@@ -1043,7 +1043,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
   return (
     <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
       {/* LEFT COLUMN */}
-      <div className="w-full lg:w-[300px] flex-shrink-0 space-y-2">
+      <div className="hidden lg:flex w-full lg:w-[300px] flex-shrink-0 flex-col gap-2">
         <div className="hidden lg:grid grid-cols-6 gap-1 rounded p-1 border border-[rgba(92,64,51,0.08)]">
           {[1, 2, 3, 4, 5, 6].map((num) => {
             const earnedStars = exerciseStars[num] || 0;
