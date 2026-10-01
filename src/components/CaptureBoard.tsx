@@ -1382,25 +1382,35 @@ export default function CaptureBoard({
         const parsed = parseFen(positionRef.current);
         const piece = parsed.squares[from];
         if (!piece) return;
-        const newSquares = { ...parsed.squares };
-        delete newSquares[from];
-        newSquares[to] = piece;
-        // If pawn moved two squares, set en passant target
-        let nextEnPassant: string | null = null;
-        if (piece.type === 'p' && from[1] === '7' && to[1] === '5') {
-          nextEnPassant = `${from[0]}6`;
-        }
-        let newFen = squaresToFen(newSquares, 'w');
-        if (nextEnPassant) {
-          const fenParts = newFen.split(' ');
-          fenParts[3] = nextEnPassant;
-          newFen = fenParts.join(' ');
-        }
-        positionRef.current = newFen;
-        setPosition(newFen);
-        setLastMove({ from, to });
-        setWaitingForOpponent(false);
-        onPositionChange?.(newFen); // Notify parent about en passant field update
+        // Animate opponent move with ghost piece
+        setOpponentAnimatingMove({
+          from,
+          to,
+          piece: { type: piece.type, color: piece.color },
+        });
+        const animTimer = setTimeout(() => {
+          const newSquares = { ...parsed.squares };
+          delete newSquares[from];
+          newSquares[to] = piece;
+          // If pawn moved two squares, set en passant target
+          let nextEnPassant: string | null = null;
+          if (piece.type === 'p' && from[1] === '7' && to[1] === '5') {
+            nextEnPassant = `${from[0]}6`;
+          }
+          let newFen = squaresToFen(newSquares, 'w');
+          if (nextEnPassant) {
+            const fenParts = newFen.split(' ');
+            fenParts[3] = nextEnPassant;
+            newFen = fenParts.join(' ');
+          }
+          positionRef.current = newFen;
+          setPosition(newFen);
+          setLastMove({ from, to });
+          setOpponentAnimatingMove(null);
+          setWaitingForOpponent(false);
+          onPositionChange?.(newFen); // Notify parent about en passant field update
+        }, 220);
+        successTimersRef.current.push(animTimer);
       }, delayMs);
       timers.push(timer);
     });
@@ -1492,26 +1502,39 @@ export default function CaptureBoard({
             const parsedAfter = parseFen(positionRef.current);
             const piece = parsedAfter.squares[trigger.from];
             if (piece) {
-              const newSquares2 = { ...parsedAfter.squares };
-              delete newSquares2[trigger.from];
-              newSquares2[trigger.to] = piece;
-              let nextEp: string | null = null;
-              if (piece.type === 'p' && trigger.from[1] === '7' && trigger.to[1] === '5') {
-                nextEp = `${trigger.from[0]}6`;
-              }
-              let newFen2 = squaresToFen(newSquares2, 'w');
-              if (nextEp) {
-                const fp = newFen2.split(' ');
-                fp[3] = nextEp;
-                newFen2 = fp.join(' ');
-              }
-              positionRef.current = newFen2;
-              setPosition(newFen2);
-              setLastMove({ from: trigger.from, to: trigger.to });
-              onPositionChange?.(newFen2);
+              // Animate opponent move with ghost piece
+              setOpponentAnimatingMove({
+                from: trigger.from,
+                to: trigger.to,
+                piece: { type: piece.type, color: piece.color },
+              });
+              const animTimer = setTimeout(() => {
+                const newSquares2 = { ...parsedAfter.squares };
+                delete newSquares2[trigger.from];
+                newSquares2[trigger.to] = piece;
+                let nextEp: string | null = null;
+                if (piece.type === 'p' && trigger.from[1] === '7' && trigger.to[1] === '5') {
+                  nextEp = `${trigger.from[0]}6`;
+                }
+                let newFen2 = squaresToFen(newSquares2, 'w');
+                if (nextEp) {
+                  const fp = newFen2.split(' ');
+                  fp[3] = nextEp;
+                  newFen2 = fp.join(' ');
+                }
+                positionRef.current = newFen2;
+                setPosition(newFen2);
+                setLastMove({ from: trigger.from, to: trigger.to });
+                setOpponentAnimatingMove(null);
+                onPositionChange?.(newFen2);
+                nextTriggerIdxRef.current = idx + 1;
+                setWaitingForOpponent(false);
+              }, 220);
+              successTimersRef.current.push(animTimer);
+            } else {
+              nextTriggerIdxRef.current = idx + 1;
+              setWaitingForOpponent(false);
             }
-            nextTriggerIdxRef.current = idx + 1;
-            setWaitingForOpponent(false);
           }, delayMs);
           successTimersRef.current.push(timer);
         }
