@@ -1369,6 +1369,7 @@ export default function CaptureBoard({
 
   // Auto black move (e.g. pawn g7→g5) after delay on level start
   useEffect(() => {
+    setOpponentAnimatingMove(null); // Prevent ghost dupe on level switch
     const lvl = levels[currentLevel];
     if (!lvl.autoMove) return;
     const moves: { from: string; to: string; delayMs: number }[] = Array.isArray(lvl.autoMove) ? lvl.autoMove : [lvl.autoMove];
@@ -1415,7 +1416,10 @@ export default function CaptureBoard({
       timers.push(timer);
     });
 
-    return () => timers.forEach(clearTimeout);
+    return () => {
+      timers.forEach(clearTimeout);
+      setOpponentAnimatingMove(null);
+    };
   }, [currentLevel, levels, gameOver, resetTrigger]);
 
   const handleMove = useCallback(
@@ -2006,6 +2010,7 @@ export default function CaptureBoard({
 
   const resetLevel = () => {
     clearSuccessTimers();
+    setOpponentAnimatingMove(null); // Prevent ghost dupe on reset
     const lvl = levels[currentLevel];
     setPosition(lvl.initialFen);
     setCollected([]);
