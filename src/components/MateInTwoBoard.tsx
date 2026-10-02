@@ -1,5 +1,6 @@
 'use client';
 
+import AvatarBubble from './AvatarBubble';
 import { useState, useCallback, useEffect, useRef, useLayoutEffect } from 'react';
 import { Chess } from 'chess.js';
 import { RotateCcw, Trophy, Eye } from 'lucide-react';
@@ -480,11 +481,11 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
           <div className="w-10 h-10 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
             <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
           </div>
-          <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2.5 shadow-sm border border-[rgba(92,64,51,0.06)]">
+          <AvatarBubble className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2.5 shadow-sm border border-[rgba(92,64,51,0.06)]">
             <p className="text-sm text-[var(--text-primary)] leading-snug">
               Поставьте мат в 2 хода!
             </p>
-          </div>
+          </AvatarBubble>
         </div>
 
         {/* Exercise pills */}
@@ -558,11 +559,11 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
             <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
               <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
             </div>
-            <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
+            <AvatarBubble className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
               <p className="text-sm text-[var(--text-primary)] leading-snug line-clamp-3">
                 Поставьте мат в 2 хода!
               </p>
-            </div>
+            </AvatarBubble>
           </div>
         </div>
 

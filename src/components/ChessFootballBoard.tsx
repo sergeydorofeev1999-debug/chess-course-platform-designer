@@ -1,5 +1,6 @@
 'use client';
 
+import AvatarBubble from './AvatarBubble';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { RotateCcw, Star, Trophy, ChevronRight, Lightbulb, Undo2 } from 'lucide-react';
 
@@ -854,11 +855,11 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
           <div className="w-10 h-10 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
             <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
           </div>
-          <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2.5 shadow-sm border border-[rgba(92,64,51,0.06)]">
+          <AvatarBubble className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2.5 shadow-sm border border-[rgba(92,64,51,0.06)]">
             <p className="text-sm text-[var(--text-primary)] leading-snug">
               Доведите белого короля до 8 ряда — это гол чёрным! Игра до 3 голов. Короли не могут стоять рядом.
             </p>
-          </div>
+          </AvatarBubble>
         </div>
         {/* Sidebar action buttons */}
         <button
@@ -903,11 +904,11 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
             <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
               <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
             </div>
-            <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
+            <AvatarBubble className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
               <p className="text-sm text-[var(--text-primary)] leading-snug line-clamp-3">
                 Доведите белого короля до 8 ряда — это гол чёрным! Игра до 3 голов. Короли не могут стоять рядом.
               </p>
-            </div>
+            </AvatarBubble>
           </div>
         </div>
 

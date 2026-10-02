@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "rm -rf .next && next build",
     "start": "next start",
-    "lint": "NODE_OPTIONS=--max-old-space-size=4096 eslint"
+    "lint": "NODE_OPTIONS=--max-old-space-size=4096 eslint",
+    "test": "node --test tests/*.test.cjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.0",

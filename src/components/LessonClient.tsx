@@ -1,5 +1,6 @@
 'use client';
 
+import AvatarBubble from './AvatarBubble';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -2802,14 +2803,14 @@ function MultiLevelStarBoard({
             <div className="w-14 h-14 flex-shrink-0">
               <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
             </div>
-            <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
+            <AvatarBubble className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
               <p className="text-sm text-[var(--text-primary)] leading-snug line-clamp-3">
                 {phase === 'intro' && (lessonTitle || lessonContent || pieceDesc)}
                 {phase === 'playing' && (level.instructions || 'Выполните задание')}
                 {phase === 'success' && 'Отлично! Задание выполнено!'}
                 {phase === 'fail' && 'Подумай ещё раз...'}
               </p>
-            </div>
+            </AvatarBubble>
           </div>
         </div>
 

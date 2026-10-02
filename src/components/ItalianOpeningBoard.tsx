@@ -1,5 +1,6 @@
 'use client';
 
+import AvatarBubble from './AvatarBubble';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
 import { RotateCcw, Trophy, Eye } from 'lucide-react';
@@ -2664,7 +2665,7 @@ const handleSquareClick = useCallback((square: string) => {
           <div className="w-10 h-10 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
             <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
           </div>
-          <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2.5 shadow-sm border border-[rgba(92,64,51,0.06)]">
+          <AvatarBubble className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2.5 shadow-sm border border-[rgba(92,64,51,0.06)]">
             <p className="text-sm text-[var(--text-primary)] leading-snug">
               {exercise === 1 && whiteMoves === 0 ? 'Сыграйте e2-e4 — захватите центр пешкой.' :
                exercise === 1 && whiteMoves === 1 ? 'Конь выходит на f3 — ближе к центру и нападает на чёрную пешку e5.' :
@@ -2749,7 +2750,7 @@ const handleSquareClick = useCallback((square: string) => {
                exercise === 6 && whiteMoves === 17 ? 'hxg4 — пешечный штурм завершён!' :
                exercise === 6 ? 'Пешечный штурм завершён!' : ''}
             </p>
-          </div>
+          </AvatarBubble>
         </div>
 
         <div className="hidden lg:grid grid-cols-6 gap-1 rounded p-1 border border-[rgba(92,64,51,0.08)]">
@@ -2795,7 +2796,7 @@ const handleSquareClick = useCallback((square: string) => {
           <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
             <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
           </div>
-          <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
+          <AvatarBubble className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
             <p className="text-sm text-[var(--text-primary)] leading-snug">
               {exercise === 1 && whiteMoves === 0 ? 'Сыграйте e2-e4 — захватите центр пешкой.' :
                exercise === 1 && whiteMoves === 1 ? 'Конь выходит на f3 — ближе к центру и нападает на чёрную пешку e5.' :
@@ -2880,7 +2881,7 @@ const handleSquareClick = useCallback((square: string) => {
                exercise === 6 && whiteMoves === 17 ? 'hxg4 — пешечный штурм завершён!' :
                exercise === 6 ? 'Пешечный штурм завершён!' : ''}
             </p>
-          </div>
+          </AvatarBubble>
         </div>
 
         {/* Desktop: simple text */}

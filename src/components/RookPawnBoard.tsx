@@ -1,5 +1,6 @@
 'use client';
 
+import AvatarBubble from './AvatarBubble';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { RotateCcw, ChevronRight, Star, Trophy, Eye, ArrowLeft } from 'lucide-react';
 
@@ -930,11 +931,11 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
           <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
             <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
           </div>
-          <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
+          <AvatarBubble className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
             <p className="text-sm text-[var(--text-primary)] leading-snug">
               Для победы съешьте все фигуры соперника или проведите пешку до последней линии.
             </p>
-          </div>
+          </AvatarBubble>
         </div>
       </div>
 

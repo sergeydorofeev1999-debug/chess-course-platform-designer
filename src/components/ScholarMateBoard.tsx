@@ -1,5 +1,6 @@
 'use client';
 
+import AvatarBubble from './AvatarBubble';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
 import { RotateCcw, Eye, Trophy } from 'lucide-react';
@@ -1278,7 +1279,7 @@ const handleSquareClick = useCallback((square: string) => {
           <div className="w-14 h-14 flex-shrink-0 rounded-full overflow-hidden bg-[var(--bg-secondary)]">
             <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
           </div>
-          <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
+          <AvatarBubble className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
             <p className="text-sm text-[var(--text-primary)] leading-snug">
               {exercise === 1 && whiteMoves === 0 ? 'Сыграйте e2-e4 — захватите центр пешкой.' :
                exercise === 1 && whiteMoves === 1 ? 'Сыграйте Bf1-c4 — направьте слона на поле f7.' :
@@ -1296,7 +1297,7 @@ const handleSquareClick = useCallback((square: string) => {
                  exercise >= 5 ? 'Цель: защититесь от детского мата.' : ''}
               </p>
             )}
-          </div>
+          </AvatarBubble>
         </div>
 
         {/* Desktop hint banner */}

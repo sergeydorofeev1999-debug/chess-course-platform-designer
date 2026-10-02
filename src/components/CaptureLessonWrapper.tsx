@@ -1,5 +1,6 @@
 'use client';
 
+import AvatarBubble from './AvatarBubble';
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { RotateCcw, Lightbulb } from 'lucide-react';
 import dynamic from 'next/dynamic';
@@ -808,11 +809,11 @@ function parseFenSimple(fen: string) {
             draggable={false}
           />
         </div>
-        <div className="flex-1 bg-white rounded-xl rounded-tl-none px-4 py-3 shadow-sm border border-[rgba(92,64,51,0.06)]">
+        <AvatarBubble className="flex-1 bg-white rounded-xl rounded-tl-none px-4 py-3 shadow-sm border border-[rgba(92,64,51,0.06)]">
           <p className="text-sm text-[var(--text-primary)] leading-snug">
             {level?.instructions || lesson?.content || 'Выполните задание'}
           </p>
-        </div>
+        </AvatarBubble>
       </div>
 
       {/* ── Board ── */}
