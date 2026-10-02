@@ -925,7 +925,9 @@ export default function RookMateBoard({ onComplete, lessonId }: { onComplete: ()
           </div>
           <AvatarBubble className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2.5 shadow-sm border border-[rgba(92,64,51,0.06)]">
             <p className="text-sm text-[var(--text-primary)] leading-snug">
-              {currentEx.matIn1 ? 'Поставьте мат в 1 ход' : currentEx.matIn2 ? 'Поставьте мат в 2 хода' : 'Используйте ладью для ограничения пространства и короля для поддержки.'}
+              {currentExercise === 7
+                ? 'Поставьте мат чёрному королю за 1 минуту.'
+                : currentEx.matIn1 ? 'Поставьте мат в 1 ход' : currentEx.matIn2 ? 'Поставьте мат в 2 хода' : 'Используйте ладью для ограничения пространства и короля для поддержки.'}
             </p>
           </AvatarBubble>
         </div>
@@ -1058,7 +1060,9 @@ export default function RookMateBoard({ onComplete, lessonId }: { onComplete: ()
             </div>
             <AvatarBubble className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
               <p className="text-sm text-[var(--text-primary)] leading-snug line-clamp-3">
-                {currentEx.matIn1 ? 'Поставьте мат в 1 ход' : currentEx.matIn2 ? 'Поставьте мат в 2 хода' : 'Используйте ладью для ограничения пространства и короля для поддержки.'}
+                {currentExercise === 7
+                ? 'Поставьте мат чёрному королю за 1 минуту.'
+                : currentEx.matIn1 ? 'Поставьте мат в 1 ход' : currentEx.matIn2 ? 'Поставьте мат в 2 хода' : 'Используйте ладью для ограничения пространства и короля для поддержки.'}
               </p>
             </AvatarBubble>
           </div>
