@@ -2797,14 +2797,14 @@ setLastMove({ from: 'd1', to: 'f3' });
           </div>
           <AvatarBubble className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
             <p className="text-sm text-[var(--text-primary)] leading-snug">
-              {exercise === 1 || exercise === 5 ? hintText : postMoveHint || 'Повторите партию за чёрных!'}
+              {exercise === 1 || exercise === 3 || exercise === 5 ? hintText : postMoveHint || 'Повторите партию за чёрных!'}
             </p>
           </AvatarBubble>
         </div>
 
         {/* Desktop hint banner */}
         <div className="hidden lg:block px-6 py-3 rounded-xl text-center font-bold text-white bg-[#C9A84C] mb-2 w-full">
-          {exercise === 1 || exercise === 5 ? hintText : postMoveHint || 'Повторите партию за чёрных!'}
+          {exercise === 1 || exercise === 3 || exercise === 5 ? hintText : postMoveHint || 'Повторите партию за чёрных!'}
         </div>
 
         {/* Board */}
