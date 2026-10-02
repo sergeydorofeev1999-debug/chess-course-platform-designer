@@ -358,7 +358,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
       const nextWhiteMoves = whiteMoves + 1;
 
       if (exercise === 1) {
-        // Сценарий: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.d3 Nf6 5.Bg5 0-0 6.Nc3 d6 7.0-0
+        // Сценарий: 1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5 4.d3 Nf6 5.Nc3 O-O 6.Bg5 d6 7.O-O
         if (whiteMoves === 0) {
           if (from === 'e2' && to === 'e4' && move.piece === 'p') {
             setGame(new Chess(g.fen()));
@@ -472,7 +472,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
           }
         }
         if (whiteMoves === 4) {
-          if (from === 'c1' && to === 'g5' && move.piece === 'b') {
+          if (from === 'b1' && to === 'c3' && move.piece === 'n') {
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
@@ -499,7 +499,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
           }
         }
         if (whiteMoves === 5) {
-          if (from === 'b1' && to === 'c3' && move.piece === 'n') {
+          if (from === 'c1' && to === 'g5' && move.piece === 'b') {
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
@@ -2671,8 +2671,8 @@ const handleSquareClick = useCallback((square: string) => {
                exercise === 1 && whiteMoves === 1 ? 'Конь выходит на f3 — ближе к центру и нападает на чёрную пешку e5.' :
                exercise === 1 && whiteMoves === 2 ? 'Сыграйте слоном с f1 на c4 — так начинается итальянская партия.' :
                exercise === 1 && whiteMoves === 3 ? 'Сыграйте d2-d3 — откройте дорогу слону c1.' :
-               exercise === 1 && whiteMoves === 4 ? 'Сыграйте Bc1-g5 — свяжите коня f6.' :
-               exercise === 1 && whiteMoves === 5 ? 'Сыграйте Nb1-c3 — развейте второго коня.' :
+               exercise === 1 && whiteMoves === 4 ? 'Сыграйте Nb1-c3 — развейте второго коня.' :
+               exercise === 1 && whiteMoves === 5 ? 'Сыграйте Bc1-g5 — свяжите коня f6.' :
                exercise === 1 && whiteMoves === 6 ? 'Сделайте рокировку — уберите короля в безопасность.' :
                exercise === 2 && whiteMoves < 7 ? 'Захватите центр пешками, развейте коней и слонов и сделайте рокировку.' :
                exercise === 2 ? 'Отлично! Итальянская партия разыграна!' :
@@ -2799,8 +2799,8 @@ const handleSquareClick = useCallback((square: string) => {
                exercise === 1 && whiteMoves === 1 ? 'Конь выходит на f3 — ближе к центру и нападает на чёрную пешку e5.' :
                exercise === 1 && whiteMoves === 2 ? 'Сыграйте слоном с f1 на c4 — так начинается итальянская партия.' :
                exercise === 1 && whiteMoves === 3 ? 'Сыграйте d2-d3 — откройте дорогу слону c1.' :
-               exercise === 1 && whiteMoves === 4 ? 'Сыграйте Bc1-g5 — свяжите коня f6.' :
-               exercise === 1 && whiteMoves === 5 ? 'Сыграйте Nb1-c3 — развейте второго коня.' :
+               exercise === 1 && whiteMoves === 4 ? 'Сыграйте Nb1-c3 — развейте второго коня.' :
+               exercise === 1 && whiteMoves === 5 ? 'Сыграйте Bc1-g5 — свяжите коня f6.' :
                exercise === 1 && whiteMoves === 6 ? 'Сделайте рокировку — уберите короля в безопасность.' :
                exercise === 2 && whiteMoves < 7 ? 'Захватите центр пешками, развейте коней и слонов и сделайте рокировку.' :
                exercise === 2 ? 'Отлично! Итальянская партия разыграна!' :
