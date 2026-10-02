@@ -797,7 +797,9 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
           </div>
           <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2.5 shadow-sm border border-[rgba(92,64,51,0.06)]">
             <p className="text-sm text-[var(--text-primary)] leading-snug">
-              Используйте одну ладью для ограничения пространства, вторую — для шаха и мата.
+              {currentExercise === 5
+                ? 'Поставьте мат чёрному королю за 1 минуту.'
+                : 'Используйте одну ладью для ограничения пространства, вторую — для шаха и мата.'}
             </p>
           </div>
         </div>
@@ -952,7 +954,9 @@ export default function TwoRooksMateBoard({ onComplete, lessonId }: { onComplete
             </div>
             <div className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
               <p className="text-sm text-[var(--text-primary)] leading-snug line-clamp-3">
-                Используйте одну ладью для ограничения пространства, вторую — для шаха и мата.
+                {currentExercise === 5
+                  ? 'Поставьте мат чёрному королю за 1 минуту.'
+                  : 'Используйте одну ладью для ограничения пространства, вторую — для шаха и мата.'}
               </p>
             </div>
           </div>
