@@ -860,7 +860,7 @@ setLastMove({ from: 'g1', to: 'f3' });
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setBlackMoves(nextBlackMoves);
-            setPostMoveHint('Разведите слона на c4 — классическая итальянская партия. Сделайте Bc4!');
+            setPostMoveHint('Конь выходит на c6 — ближе к центру и защищает пешку e5.');
             setTimeout(() => {
               if (!mountedRef.current) return;
               const g = game!;
@@ -2725,7 +2725,7 @@ setLastMove({ from: 'd1', to: 'f3' });
 
   const hintText = exercise === 1
     ? (blackMoves === 0 ? 'Сыграйте e7-e5 — захватите центр пешкой.' :
-       blackMoves === 1 ? 'Конь выходит на c6 — ближе к центру. Сделайте Nc6!' :
+       blackMoves === 1 ? 'Конь выходит на c6 — ближе к центру и защищает пешку e5. Сделайте Nc6!' :
        blackMoves === 2 ? 'Сыграйте Bf8-c5 — направьте слона на поле f2.' :
        blackMoves === 3 ? 'Сыграйте d7-d6 — защитите пешку e5.' :
        blackMoves === 4 ? 'Сыграйте Kg8-f6 — развейте коня.' :
@@ -2734,7 +2734,7 @@ setLastMove({ from: 'd1', to: 'f3' });
        'Смотрите, как завершается партия.')
     : exercise === 3
     ? (blackMoves === 0 ? 'Сделайте e7-e5 — захватите центр пешкой.' :
-       blackMoves === 1 ? 'Конь выходит на c6. Сделайте Nc6!' :
+       blackMoves === 1 ? 'Конь выходит на c6 — ближе к центру и защищает пешку e5. Сделайте Nc6!' :
        blackMoves === 2 ? 'Сыграйте Bf8-c5.' :
        blackMoves === 3 ? 'Сыграйте d7-d6.' :
        blackMoves === 4 ? 'Сыграйте Kg8-f6.' :
@@ -2751,7 +2751,7 @@ setLastMove({ from: 'd1', to: 'f3' });
        'Смотрите, как завершается партия.')
     : exercise === 5
     ? (blackMoves === 0 ? 'В дебюте главное — захватить центр. Чёрные начинают с e5.' :
-       blackMoves === 1 ? 'Конь выходит на c6 — защищает пешку e5 и готовит развитие.' :
+       blackMoves === 1 ? 'Конь выходит на c6 — ближе к центру и защищает пешку e5.' :
        blackMoves === 2 ? 'Слон выходит на c5 — классическая итальянская партия.' :
        blackMoves === 3 ? 'Пешка d6 — защищаем пешку e5.' :
        blackMoves === 4 ? 'Конь выходит на f6 — развиваем фигуры.' :
