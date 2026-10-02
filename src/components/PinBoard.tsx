@@ -1408,7 +1408,9 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
           </div>
           <AvatarBubble className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2.5 shadow-sm border border-[rgba(92,64,51,0.06)]">
             <p className="text-sm text-[var(--text-primary)] leading-snug">
-              Используйте связку, чтобы выиграть фигуру соперника.
+              {exercise >= 4 && exercise <= 8
+                ? 'Используйте связку и нажим, чтобы выиграть фигуру соперника.'
+                : 'Используйте связку, чтобы выиграть фигуру соперника.'}
             </p>
           </AvatarBubble>
         </div>
@@ -1487,7 +1489,9 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
             </div>
             <AvatarBubble className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
               <p className="text-sm text-[var(--text-primary)] leading-snug line-clamp-3">
-                Используйте связку, чтобы выиграть фигуру соперника.
+                {exercise >= 4 && exercise <= 8
+                  ? 'Используйте связку и нажим, чтобы выиграть фигуру соперника.'
+                  : 'Используйте связку, чтобы выиграть фигуру соперника.'}
               </p>
             </AvatarBubble>
           </div>
