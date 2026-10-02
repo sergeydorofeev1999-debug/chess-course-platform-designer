@@ -2799,13 +2799,6 @@ setLastMove({ from: 'd1', to: 'f3' });
             <p className="text-sm text-[var(--text-primary)] leading-snug">
               {exercise === 1 || exercise === 5 ? hintText : postMoveHint || 'Повторите партию за чёрных!'}
             </p>
-            {blackMoves === 0 && (
-              <p className="text-xs text-[var(--text-secondary)] mt-1.5 leading-snug">
-                {exercise === 1 || exercise === 2 ? 'Цель: захватите центр пешкой, выведите коней и слонов и сделайте рокировку.' :
-                 exercise === 3 || exercise === 4 ? 'Цель: используйте дырокол, чтобы разрушить рокировку соперника.' :
-                 exercise === 5 || exercise === 6 ? 'Цель: пешечный штурм — захватите центр, выведите коней и слонов и атакуйте рокировку соперника!' : ''}
-              </p>
-            )}
           </AvatarBubble>
         </div>
 
