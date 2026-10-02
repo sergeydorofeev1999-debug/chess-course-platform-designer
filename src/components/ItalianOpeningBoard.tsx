@@ -30,8 +30,8 @@ const HINTS: Record<number, { from: string; to: string; phase: number }[]> = {
     { from: 'g1', to: 'f3', phase: 1 },
     { from: 'f1', to: 'c4', phase: 2 },
     { from: 'd2', to: 'd3', phase: 3 },
-    { from: 'c1', to: 'g5', phase: 4 },
-    { from: 'b1', to: 'c3', phase: 5 },
+    { from: 'b1', to: 'c3', phase: 4 },
+    { from: 'c1', to: 'g5', phase: 5 },
     { from: 'e1', to: 'g1', phase: 6 },
   ],
   2: [
