@@ -117,18 +117,23 @@ const HINTS: Record<number, { from: string; to: string; phase: number }[]> = {
   ],
 };
 
-function getFreePlayHintArrow(game: Chess): { from: string; to: string; phase: number }[] {
+function getFreePlayHintArrow(game: Chess, exercise: number): { from: string; to: string; phase: number }[] {
   const pieceAt = (square: string, type: string) => {
     const piece = game.get(square as any);
     return piece?.color === 'w' && piece.type === type;
   };
   const legalMoves = game.moves({ verbose: true });
-  const remainingMoves = [
-    { from: 'd2', to: 'd3', complete: !pieceAt('d2', 'p') },
-    { from: 'b1', to: 'c3', complete: !pieceAt('b1', 'n') },
-    { from: 'c1', to: 'g5', complete: !pieceAt('c1', 'b') },
-    { from: 'e1', to: 'g1', complete: !pieceAt('e1', 'k') },
-  ];
+  const remainingMoves = exercise === 6
+    ? [
+        { from: 'd2', to: 'd3', complete: !pieceAt('d2', 'p') },
+        { from: 'b1', to: 'c3', complete: !pieceAt('b1', 'n') },
+      ]
+    : [
+        { from: 'd2', to: 'd3', complete: !pieceAt('d2', 'p') },
+        { from: 'b1', to: 'c3', complete: !pieceAt('b1', 'n') },
+        { from: 'c1', to: 'g5', complete: !pieceAt('c1', 'b') },
+        { from: 'e1', to: 'g1', complete: !pieceAt('e1', 'k') },
+      ];
 
   const nextMove = remainingMoves.find(move =>
     !move.complete && legalMoves.some(legal => legal.from === move.from && legal.to === move.to)
@@ -2905,13 +2910,16 @@ const handleSquareClick = useCallback((square: string) => {
           {hintVisible && !isFail && !isComplete && !selectedSquare && (
             (() => {
               const arrows = HINTS[exercise] || [];
-              const phaseArrows = exercise === 2 && game && whiteMoves >= 3 && whiteMoves < 7
-                ? getFreePlayHintArrow(game)
+              const phaseArrows = game && ((exercise === 2 && whiteMoves >= 3 && whiteMoves < 7) || (exercise === 6 && whiteMoves >= 3 && whiteMoves < 5))
+                ? getFreePlayHintArrow(game, exercise)
                 : arrows.filter(a => a.phase === whiteMoves);
-              if (phaseArrows.length === 0) return null;
+              const displayedArrows = (exercise === 5 || exercise === 6) && (whiteMoves === 13 || whiteMoves === 14) && game
+                ? phaseArrows.filter(arrow => game.moves({ square: arrow.from as any, verbose: true }).some(move => move.to === arrow.to)).slice(0, 1)
+                : phaseArrows;
+              if (displayedArrows.length === 0) return null;
               return (
                 <svg className="absolute pointer-events-none z-[35]" style={{ top: 3, left: 3, width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
-                  {phaseArrows.map((arrow, i) => {
+                  {displayedArrows.map((arrow, i) => {
                     const fromF = FILES.indexOf(arrow.from[0]);
                     const fromR = RANKS.indexOf(arrow.from[1]);
                     const toF = FILES.indexOf(arrow.to[0]);
