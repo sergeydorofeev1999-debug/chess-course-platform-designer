@@ -2732,25 +2732,7 @@ const handleSquareClick = useCallback((square: string) => {
                exercise === 5 && whiteMoves === 16 ? 'Rxg4 — забираем пешку!' :
                exercise === 5 && whiteMoves === 17 ? 'hxg4 — пешечный штурм завершён!' :
                exercise === 5 ? 'Пешечный штурм завершён!' :
-               exercise === 6 && whiteMoves === 0 ? 'Сыграйте e2-e4 — захватите центр пешкой.' :
-               exercise === 6 && whiteMoves === 1 ? 'Конь выходит на f3 — ближе к центру и нападает на чёрную пешку e5.' :
-               exercise === 6 && whiteMoves === 2 ? 'Сыграйте Bf1-c4 — классическая итальянская.' :
-               exercise === 6 && whiteMoves === 3 ? 'Сыграйте пешкой d2-d3 — откройте дорогу слону c1.' :
-               exercise === 6 && whiteMoves === 4 ? 'Сыграйте Nb1-c3 — развейте второго коня.' :
-               exercise === 6 && whiteMoves === 5 ? 'h3 — не даём слону чёрных выйти на g4.' :
-               exercise === 6 && whiteMoves === 6 ? 'g4 — начинаем пешечный штурм!' :
-               exercise === 6 && whiteMoves === 7 ? 'g5 — продолжаем штурм!' :
-               exercise === 6 && whiteMoves === 8 ? 'Bxg5 — размен слона на пешку.' :
-               exercise === 6 && whiteMoves === 9 ? 'Qd2 — ферзь готовится к атаке.' :
-               exercise === 6 && whiteMoves === 10 ? 'O-O-O — длинная рокировка!' :
-               exercise === 6 && whiteMoves === 11 ? 'Bxf6 — разрушаем защиту короля!' :
-               exercise === 6 && whiteMoves === 12 ? 'Qh6 — ферзь атакует!' :
-               exercise === 6 && whiteMoves === 13 ? 'Ладья d1 — удваиваем ладьи.' :
-               exercise === 6 && whiteMoves === 14 ? 'Ладья g1 — атака на королевском фланге!' :
-               exercise === 6 && whiteMoves === 15 ? 'Rxg1 — забираем ладью.' :
-               exercise === 6 && whiteMoves === 16 ? 'Rxg4 — забираем пешку!' :
-               exercise === 6 && whiteMoves === 17 ? 'hxg4 — пешечный штурм завершён!' :
-               exercise === 6 ? 'Пешечный штурм завершён!' : ''}
+               exercise === 6 ? 'Пешечный штурм — захватите центр, выведите коней и слонов и атакуйте рокировку соперника!' : ''}
             </p>
           </AvatarBubble>
         </div>
@@ -2846,25 +2828,7 @@ const handleSquareClick = useCallback((square: string) => {
                exercise === 5 && whiteMoves === 16 ? 'Rxg4 — забираем пешку!' :
                exercise === 5 && whiteMoves === 17 ? 'hxg4 — пешечный штурм завершён!' :
                exercise === 5 ? 'Пешечный штурм завершён!' :
-               exercise === 6 && whiteMoves === 0 ? 'Сыграйте e2-e4 — захватите центр пешкой.' :
-               exercise === 6 && whiteMoves === 1 ? 'Конь выходит на f3 — ближе к центру и нападает на чёрную пешку e5.' :
-               exercise === 6 && whiteMoves === 2 ? 'Сыграйте Bf1-c4 — классическая итальянская.' :
-               exercise === 6 && whiteMoves === 3 ? 'Сыграйте пешкой d2-d3 — откройте дорогу слону c1.' :
-               exercise === 6 && whiteMoves === 4 ? 'Сыграйте Nb1-c3 — развейте второго коня.' :
-               exercise === 6 && whiteMoves === 5 ? 'h3 — не даём слону чёрных выйти на g4.' :
-               exercise === 6 && whiteMoves === 6 ? 'g4 — начинаем пешечный штурм!' :
-               exercise === 6 && whiteMoves === 7 ? 'g5 — продолжаем штурм!' :
-               exercise === 6 && whiteMoves === 8 ? 'Bxg5 — размен слона на пешку.' :
-               exercise === 6 && whiteMoves === 9 ? 'Qd2 — ферзь готовится к атаке.' :
-               exercise === 6 && whiteMoves === 10 ? 'O-O-O — длинная рокировка!' :
-               exercise === 6 && whiteMoves === 11 ? 'Bxf6 — разрушаем защиту короля!' :
-               exercise === 6 && whiteMoves === 12 ? 'Qh6 — ферзь атакует!' :
-               exercise === 6 && whiteMoves === 13 ? 'Ладья d1 — удваиваем ладьи.' :
-               exercise === 6 && whiteMoves === 14 ? 'Ладья g1 — атака на королевском фланге!' :
-               exercise === 6 && whiteMoves === 15 ? 'Rxg1 — забираем ладью.' :
-               exercise === 6 && whiteMoves === 16 ? 'Rxg4 — забираем пешку!' :
-               exercise === 6 && whiteMoves === 17 ? 'hxg4 — пешечный штурм завершён!' :
-               exercise === 6 ? 'Пешечный штурм завершён!' : ''}
+               exercise === 6 ? 'Пешечный штурм — захватите центр, выведите коней и слонов и атакуйте рокировку соперника!' : ''}
             </p>
           </AvatarBubble>
         </div>
@@ -2917,25 +2881,7 @@ const handleSquareClick = useCallback((square: string) => {
                exercise === 5 && whiteMoves === 16 ? 'Rxg4 — забираем пешку!' :
                exercise === 5 && whiteMoves === 17 ? 'hxg4 — пешечный штурм завершён!' :
                exercise === 5 ? 'Пешечный штурм завершён!' :
-           exercise === 6 && whiteMoves === 0 ? 'Сыграйте e2-e4 — захватите центр пешкой.' :
-               exercise === 6 && whiteMoves === 1 ? 'Конь выходит на f3 — ближе к центру и нападает на чёрную пешку e5.' :
-               exercise === 6 && whiteMoves === 2 ? 'Сыграйте Bf1-c4 — классическая итальянская.' :
-               exercise === 6 && whiteMoves === 3 ? 'Сыграйте пешкой d2-d3 — откройте дорогу слону c1.' :
-               exercise === 6 && whiteMoves === 4 ? 'Сыграйте Nb1-c3 — развейте второго коня.' :
-               exercise === 6 && whiteMoves === 5 ? 'h3 — не даём слону чёрных выйти на g4.' :
-               exercise === 6 && whiteMoves === 6 ? 'g4 — начинаем пешечный штурм!' :
-               exercise === 6 && whiteMoves === 7 ? 'g5 — продолжаем штурм!' :
-               exercise === 6 && whiteMoves === 8 ? 'Bxg5 — размен слона на пешку.' :
-               exercise === 6 && whiteMoves === 9 ? 'Qd2 — ферзь готовится к атаке.' :
-               exercise === 6 && whiteMoves === 10 ? 'O-O-O — длинная рокировка!' :
-               exercise === 6 && whiteMoves === 11 ? 'Bxf6 — разрушаем защиту короля!' :
-               exercise === 6 && whiteMoves === 12 ? 'Qh6 — ферзь атакует!' :
-               exercise === 6 && whiteMoves === 13 ? 'Ладья d1 — удваиваем ладьи.' :
-               exercise === 6 && whiteMoves === 14 ? 'Ладья g1 — атака на королевском фланге!' :
-               exercise === 6 && whiteMoves === 15 ? 'Rxg1 — забираем ладью.' :
-               exercise === 6 && whiteMoves === 16 ? 'Rxg4 — забираем пешку!' :
-               exercise === 6 && whiteMoves === 17 ? 'hxg4 — пешечный штурм завершён!' :
-               exercise === 6 ? 'Пешечный штурм завершён!' : ''}
+           exercise === 6 ? 'Пешечный штурм — захватите центр, выведите коней и слонов и атакуйте рокировку соперника!' : ''}
         </div>
 
         {/* Board */}
