@@ -115,6 +115,24 @@ const HINTS: Record<number, { from: string; to: string; phase: number }[]> = {
   ],
 };
 
+function getFreePlayHintArrows(game: Chess): { from: string; to: string; phase: number }[] {
+  const pieceAt = (square: string, type: string) => {
+    const piece = game.get(square as any);
+    return piece?.color === 'w' && piece.type === type;
+  };
+  const legalMoves = game.moves({ verbose: true });
+  const remainingMoves = [
+    { from: 'd2', to: 'd3', complete: !pieceAt('d2', 'p') },
+    { from: 'b1', to: 'c3', complete: !pieceAt('b1', 'n') },
+    { from: 'c1', to: 'g5', complete: !pieceAt('c1', 'b') },
+    { from: 'e1', to: 'g1', complete: !pieceAt('e1', 'k') },
+  ];
+
+  return remainingMoves
+    .filter(move => !move.complete && legalMoves.some(legal => legal.from === move.from && legal.to === move.to))
+    .map(move => ({ from: move.from, to: move.to, phase: 0 }));
+}
+
 // Find a black capture that leaves the black piece safe (no white recapture)
 function findSafeBlackCapture(currentGame: Chess): { from: string; to: string } | null {
   const blackMoves = currentGame.moves({ verbose: true });
@@ -2983,7 +3001,9 @@ const handleSquareClick = useCallback((square: string) => {
           {hintVisible && !isFail && !isComplete && !selectedSquare && (
             (() => {
               const arrows = HINTS[exercise] || [];
-              const phaseArrows = arrows.filter(a => a.phase === whiteMoves);
+              const phaseArrows = exercise === 2 && game && whiteMoves >= 3 && whiteMoves < 7
+                ? getFreePlayHintArrows(game)
+                : arrows.filter(a => a.phase === whiteMoves);
               if (phaseArrows.length === 0) return null;
               return (
                 <svg className="absolute pointer-events-none z-[35]" style={{ top: 3, left: 3, width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
