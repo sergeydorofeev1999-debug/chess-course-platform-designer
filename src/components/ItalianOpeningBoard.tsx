@@ -2711,22 +2711,8 @@ const handleSquareClick = useCallback((square: string) => {
                exercise === 3 && whiteMoves === 13 ? 'Bxf6+ — шах с разрушением рокировки!' :
                exercise === 3 && whiteMoves === 14 ? 'Слон забирает ферзя на d8! Дырокол выполнен!' :
                exercise === 3 ? 'Дырокол выполнен!' :
-               exercise === 4 && whiteMoves === 0 ? 'Сыграйте e2-e4 — захватите центр пешкой.' :
-               exercise === 4 && whiteMoves === 1 ? 'Конь выходит на f3 — ближе к центру и нападает на чёрную пешку e5.' :
-               exercise === 4 && whiteMoves === 2 ? 'Сыграйте Bf1-c4 — классическая итальянская партия.' :
-               exercise === 4 && whiteMoves === 3 ? 'Сыграйте d2-d3 — тихая итальянская.' :
-               exercise === 4 && whiteMoves === 4 ? 'Сыграйте Nb1-c3 — развейте второго коня.' :
-               exercise === 4 && whiteMoves === 5 ? 'Сыграйте Bc1-g5 — свяжите коня f6.' :
-               exercise === 4 && whiteMoves === 6 ? 'Конь d5 — форк на коня и пешку!' :
-               exercise === 4 && whiteMoves === 7 ? 'Конь забирает на f6 — размен!' :
-               exercise === 4 && whiteMoves === 8 ? 'Слон h6 — атакуем ладью!' :
-               exercise === 4 && whiteMoves === 9 ? 'h3 — не даём слону чёрных выйти.' :
-               exercise === 4 && whiteMoves === 10 ? 'gxf3 — открываем линию f!' :
-               exercise === 4 && whiteMoves === 11 ? 'Ладья g1 — защищаем пешку.' :
-               exercise === 4 && whiteMoves === 12 ? 'Слон g7+ — шах!' :
-               exercise === 4 && whiteMoves === 13 ? 'Bxf6+ — шах с разрушением рокировки!' :
-               exercise === 4 && whiteMoves === 14 ? 'Слон забирает ферзя на d8! Дырокол выполнен!' :
-               exercise === 4 ? 'Дырокол выполнен!' :
+               exercise === 4 && isComplete ? 'Дырокол выполнен!' :
+               exercise === 4 ? 'Используйте дырокол, чтобы разрушить рокировку соперника.' :
                exercise === 5 && whiteMoves === 0 ? 'Сыграйте e2-e4 — захватите центр пешкой.' :
                exercise === 5 && whiteMoves === 1 ? 'Конь выходит на f3 — ближе к центру и нападает на чёрную пешку e5.' :
                exercise === 5 && whiteMoves === 2 ? 'Сыграйте слоном с f1 на c4 — так начинается итальянская партия.' :
@@ -2839,22 +2825,8 @@ const handleSquareClick = useCallback((square: string) => {
                exercise === 3 && whiteMoves === 13 ? 'Bxf6+ — шах с разрушением рокировки!' :
                exercise === 3 && whiteMoves === 14 ? 'Слон забирает ферзя на d8! Дырокол выполнен!' :
                exercise === 3 ? 'Дырокол выполнен!' :
-               exercise === 4 && whiteMoves === 0 ? 'Сыграйте e2-e4 — захватите центр пешкой.' :
-               exercise === 4 && whiteMoves === 1 ? 'Конь выходит на f3 — ближе к центру и нападает на чёрную пешку e5.' :
-               exercise === 4 && whiteMoves === 2 ? 'Сыграйте Bf1-c4 — классическая итальянская партия.' :
-               exercise === 4 && whiteMoves === 3 ? 'Сыграйте d2-d3 — тихая итальянская.' :
-               exercise === 4 && whiteMoves === 4 ? 'Сыграйте Nb1-c3 — развейте второго коня.' :
-               exercise === 4 && whiteMoves === 5 ? 'Сыграйте Bc1-g5 — свяжите коня f6.' :
-               exercise === 4 && whiteMoves === 6 ? 'Конь d5 — форк на коня и пешку!' :
-               exercise === 4 && whiteMoves === 7 ? 'Конь забирает на f6 — размен!' :
-               exercise === 4 && whiteMoves === 8 ? 'Слон h6 — атакуем ладью!' :
-               exercise === 4 && whiteMoves === 9 ? 'h3 — не даём слону чёрных выйти.' :
-               exercise === 4 && whiteMoves === 10 ? 'gxf3 — открываем линию f!' :
-               exercise === 4 && whiteMoves === 11 ? 'Ладья g1 — защищаем пешку.' :
-               exercise === 4 && whiteMoves === 12 ? 'Слон g7+ — шах!' :
-               exercise === 4 && whiteMoves === 13 ? 'Bxf6+ — шах с разрушением рокировки!' :
-               exercise === 4 && whiteMoves === 14 ? 'Слон забирает ферзя на d8! Дырокол выполнен!' :
-               exercise === 4 ? 'Дырокол выполнен!' :
+               exercise === 4 && isComplete ? 'Дырокол выполнен!' :
+               exercise === 4 ? 'Используйте дырокол, чтобы разрушить рокировку соперника.' :
                exercise === 5 && whiteMoves === 0 ? 'Сыграйте e2-e4 — захватите центр пешкой.' :
                exercise === 5 && whiteMoves === 1 ? 'Конь выходит на f3 — ближе к центру и нападает на чёрную пешку e5.' :
                exercise === 5 && whiteMoves === 2 ? 'Сыграйте слоном с f1 на c4 — так начинается итальянская партия.' :
@@ -2924,22 +2896,8 @@ const handleSquareClick = useCallback((square: string) => {
                exercise === 3 && whiteMoves === 13 ? 'Bxf6+ — шах с разрушением рокировки!' :
                exercise === 3 && whiteMoves === 14 ? 'Слон забирает ферзя на d8! Дырокол выполнен!' :
                exercise === 3 ? 'Дырокол выполнен!' :
-           exercise === 4 && whiteMoves === 0 ? 'Сыграйте e2-e4 — захватите центр пешкой.' :
-               exercise === 4 && whiteMoves === 1 ? 'Конь выходит на f3 — ближе к центру и нападает на чёрную пешку e5.' :
-               exercise === 4 && whiteMoves === 2 ? 'Сыграйте Bf1-c4 — классическая итальянская партия.' :
-               exercise === 4 && whiteMoves === 3 ? 'Сыграйте d2-d3 — тихая итальянская.' :
-               exercise === 4 && whiteMoves === 4 ? 'Сыграйте Nb1-c3 — развейте второго коня.' :
-               exercise === 4 && whiteMoves === 5 ? 'Сыграйте Bc1-g5 — свяжите коня f6.' :
-               exercise === 4 && whiteMoves === 6 ? 'Конь d5 — форк на коня и пешку!' :
-               exercise === 4 && whiteMoves === 7 ? 'Конь забирает на f6 — размен!' :
-               exercise === 4 && whiteMoves === 8 ? 'Слон h6 — атакуем ладью!' :
-               exercise === 4 && whiteMoves === 9 ? 'h3 — не даём слону чёрных выйти.' :
-               exercise === 4 && whiteMoves === 10 ? 'gxf3 — открываем линию f!' :
-               exercise === 4 && whiteMoves === 11 ? 'Ладья g1 — защищаем пешку.' :
-               exercise === 4 && whiteMoves === 12 ? 'Слон g7+ — шах!' :
-               exercise === 4 && whiteMoves === 13 ? 'Bxf6+ — шах с разрушением рокировки!' :
-               exercise === 4 && whiteMoves === 14 ? 'Слон забирает ферзя на d8! Дырокол выполнен!' :
-               exercise === 4 ? 'Дырокол выполнен!' :
+           exercise === 4 && isComplete ? 'Дырокол выполнен!' :
+           exercise === 4 ? 'Используйте дырокол, чтобы разрушить рокировку соперника.' :
            exercise === 5 && whiteMoves === 0 ? 'Сыграйте e2-e4 — захватите центр пешкой.' :
                exercise === 5 && whiteMoves === 1 ? 'Конь выходит на f3 — ближе к центру и нападает на чёрную пешку e5.' :
                exercise === 5 && whiteMoves === 2 ? 'Сыграйте слоном с f1 на c4 — так начинается итальянская партия.' :
