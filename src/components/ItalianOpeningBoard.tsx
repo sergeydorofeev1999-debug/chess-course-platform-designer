@@ -87,11 +87,12 @@ const HINTS: Record<number, { from: string; to: string; phase: number }[]> = {
     { from: 'e1', to: 'c1', phase: 10 },
     { from: 'c1', to: 'f6', phase: 11 },
     { from: 'd2', to: 'h6', phase: 12 },
-    { from: 'a1', to: 'd1', phase: 13 },
+    { from: 'd1', to: 'g1', phase: 13 },
+    { from: 'h1', to: 'g1', phase: 13 },
     { from: 'd1', to: 'g1', phase: 14 },
-    { from: 'h1', to: 'g1', phase: 15 },
-    { from: 'g1', to: 'g4', phase: 16 },
-    { from: 'h3', to: 'g4', phase: 17 },
+    { from: 'h1', to: 'g1', phase: 14 },
+    { from: 'g1', to: 'g4', phase: 15 },
+    { from: 'h3', to: 'g4', phase: 16 },
   ],
   6: [
     { from: 'e2', to: 'e4', phase: 0 },
@@ -107,11 +108,12 @@ const HINTS: Record<number, { from: string; to: string; phase: number }[]> = {
     { from: 'e1', to: 'c1', phase: 10 },
     { from: 'c1', to: 'f6', phase: 11 },
     { from: 'd2', to: 'h6', phase: 12 },
-    { from: 'a1', to: 'd1', phase: 13 },
+    { from: 'd1', to: 'g1', phase: 13 },
+    { from: 'h1', to: 'g1', phase: 13 },
     { from: 'd1', to: 'g1', phase: 14 },
-    { from: 'h1', to: 'g1', phase: 15 },
-    { from: 'g1', to: 'g4', phase: 16 },
-    { from: 'h3', to: 'g4', phase: 17 },
+    { from: 'h1', to: 'g1', phase: 14 },
+    { from: 'g1', to: 'g4', phase: 15 },
+    { from: 'h3', to: 'g4', phase: 16 },
   ],
 };
 
@@ -2007,9 +2009,9 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             return;
           }
         }
-        // Move 13: Rdg1
+        // Move 13: either rook may move to g1
         if (whiteMoves === 13) {
-          if (from === 'd1' && to === 'g1' && move.piece === 'r') {
+          if ((from === 'd1' || from === 'h1') && to === 'g1' && move.piece === 'r') {
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
@@ -2037,9 +2039,9 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             return;
           }
         }
-        // Move 14: Rxg1 (from h1)
+        // Move 14: either rook captures the bishop on g1
         if (whiteMoves === 14) {
-          if (from === 'h1' && to === 'g1' && move.piece === 'r' && move.captured === 'b') {
+          if ((from === 'd1' || from === 'h1') && to === 'g1' && move.piece === 'r' && move.captured === 'b') {
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
@@ -2512,9 +2514,9 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             return;
           }
         }
-        // Move 13: Rdg1
+        // Move 13: either rook may move to g1
         if (whiteMoves === 13) {
-          if (from === 'd1' && to === 'g1' && move.piece === 'r') {
+          if ((from === 'd1' || from === 'h1') && to === 'g1' && move.piece === 'r') {
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
@@ -2542,9 +2544,9 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             return;
           }
         }
-        // Move 14: Rxg1
+        // Move 14: either rook captures the bishop on g1
         if (whiteMoves === 14) {
-          if (from === 'h1' && to === 'g1' && move.piece === 'r' && move.captured === 'b') {
+          if ((from === 'd1' || from === 'h1') && to === 'g1' && move.piece === 'r' && move.captured === 'b') {
             setGame(new Chess(g.fen()));
             setSelectedSquare(null);
             setWhiteMoves(nextWhiteMoves);
