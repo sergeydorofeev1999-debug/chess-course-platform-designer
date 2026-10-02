@@ -115,7 +115,7 @@ const HINTS: Record<number, { from: string; to: string; phase: number }[]> = {
   ],
 };
 
-function getFreePlayHintArrows(game: Chess): { from: string; to: string; phase: number }[] {
+function getFreePlayHintArrow(game: Chess): { from: string; to: string; phase: number }[] {
   const pieceAt = (square: string, type: string) => {
     const piece = game.get(square as any);
     return piece?.color === 'w' && piece.type === type;
@@ -128,9 +128,10 @@ function getFreePlayHintArrows(game: Chess): { from: string; to: string; phase: 
     { from: 'e1', to: 'g1', complete: !pieceAt('e1', 'k') },
   ];
 
-  return remainingMoves
-    .filter(move => !move.complete && legalMoves.some(legal => legal.from === move.from && legal.to === move.to))
-    .map(move => ({ from: move.from, to: move.to, phase: 0 }));
+  const nextMove = remainingMoves.find(move =>
+    !move.complete && legalMoves.some(legal => legal.from === move.from && legal.to === move.to)
+  );
+  return nextMove ? [{ from: nextMove.from, to: nextMove.to, phase: 0 }] : [];
 }
 
 // Find a black capture that leaves the black piece safe (no white recapture)
@@ -3002,7 +3003,7 @@ const handleSquareClick = useCallback((square: string) => {
             (() => {
               const arrows = HINTS[exercise] || [];
               const phaseArrows = exercise === 2 && game && whiteMoves >= 3 && whiteMoves < 7
-                ? getFreePlayHintArrows(game)
+                ? getFreePlayHintArrow(game)
                 : arrows.filter(a => a.phase === whiteMoves);
               if (phaseArrows.length === 0) return null;
               return (
