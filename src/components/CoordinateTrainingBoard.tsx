@@ -20,6 +20,10 @@ function PieceImg({ type, color, size }: { type: string; color: 'w' | 'b'; size:
       style={{
         width: Math.round(size * 0.85),
         height: Math.round(size * 0.85),
+        objectFit: 'contain',
+        display: 'block',
+        margin: 'auto',
+        transform: 'translateY(-1px)',
         filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.4))',
       }}
     />
@@ -260,7 +264,7 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
                 : 'bg-[#F5EFE6] border-2 border-[#D4C5B5] hover:border-[#C9A84C] hover:bg-[#EBE4DA]'
             }`}
           >
-            <div className="w-8 h-8"><PieceImg type="k" color="w" size={32} /></div>
+            <div className="w-8 h-8 flex items-center justify-center"><PieceImg type="k" color="w" size={32} /></div>
           </button>
           <button
             onClick={() => setSide('random')}
@@ -270,7 +274,7 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
                 : 'bg-[#F5EFE6] border-2 border-[#D4C5B5] hover:border-[#C9A84C] hover:bg-[#EBE4DA]'
             }`}
           >
-            <div className="flex -space-x-1">
+            <div className="flex items-center justify-center w-5 h-5 -space-x-1">
               <div className="w-5 h-5"><PieceImg type="k" color="b" size={20} /></div>
               <div className="w-5 h-5"><PieceImg type="k" color="w" size={20} /></div>
             </div>
@@ -283,7 +287,7 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
                 : 'bg-[#F5EFE6] border-2 border-[#D4C5B5] hover:border-[#C9A84C] hover:bg-[#EBE4DA]'
             }`}
           >
-            <div className="w-8 h-8"><PieceImg type="k" color="b" size={32} /></div>
+            <div className="w-8 h-8 flex items-center justify-center"><PieceImg type="k" color="b" size={32} /></div>
           </button>
         </div>
 
