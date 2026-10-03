@@ -308,7 +308,7 @@ function InteractiveBoard({ Chessboard, config, onComplete }: Props & { Chessboa
               top: 0,
               width: '12.5%',
               height: '50%',
-              backgroundColor: '#2C241B',
+              backgroundColor: '#F5F0E8',
               borderRadius: '0px',
               boxShadow: '0 4px 16px rgba(0, 0, 0, 0.35)',
               display: 'flex',

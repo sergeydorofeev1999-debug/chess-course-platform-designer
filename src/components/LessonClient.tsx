@@ -931,7 +931,7 @@ function InlineChessBoard({
         {promotionPending && onPromotion && (
         <div className="absolute z-50 pointer-events-auto promotion-panel" style={{
           left: `${(FILES.indexOf(promotionPending.to[0])) * sqSize}px`,
-          top: promotionPending.to[1] === '2' && squares[promotionPending.to]?.color === 'b' ? 4 * sqSize : 0,
+          top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
           width: sqSize,
           height: 4 * sqSize,
           backgroundColor: squares[promotionPending.to]?.color === 'b' ? '#F5F0E8' : '#2C241B',

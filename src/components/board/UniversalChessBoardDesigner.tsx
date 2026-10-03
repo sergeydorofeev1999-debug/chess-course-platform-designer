@@ -827,7 +827,7 @@ export default function UniversalChessBoardDesigner({
 
       {/* Promotion Modal */}
       {promotionPending && (
-        <div className="absolute z-[60] bg-[#1a1a1a] border border-[#C9A84C] rounded-lg p-2 shadow-lg flex flex-col gap-1"
+        <div className="absolute z-[60] bg-[#F5F0E8] border border-[#C9A84C] rounded-lg p-2 shadow-lg flex flex-col gap-1"
           style={{
             left: `${files.indexOf(promotionPending.to[0]) * sqSize}px`,
             top: (isReversed === (promotionPending.from[1] === '2')) ? 0 : 4 * sqSize,

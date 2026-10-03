@@ -2889,7 +2889,7 @@ setLastMove({ from: 'd1', to: 'f3' });
                     top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
                     width: sqSize,
                     height: 4 * sqSize,
-                    backgroundColor: '#2C241B',
+                    backgroundColor: promotionPending.from[1] === '2' ? '#F5F0E8' : '#2C241B',
                     borderRadius: '0px',
                     boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
                     display: 'flex',

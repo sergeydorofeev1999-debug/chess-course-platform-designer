@@ -946,7 +946,7 @@ export default function TacticalStormBoard({ onComplete }: Props) {
             top: (isBlack === (promotionPending.from[1] === '2')) ? 0 : 4 * sqSize,
             width: sqSize,
             height: 4 * sqSize,
-            backgroundColor: '#2C241B',
+            backgroundColor: promotionPending.from[1] === '2' ? '#F5F0E8' : '#2C241B',
             borderRadius: '0px',
             boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
             display: 'flex',

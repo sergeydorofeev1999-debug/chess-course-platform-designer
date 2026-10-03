@@ -1688,7 +1688,7 @@ if (!skipAnimation) {
                     top: 0,
                     width: sqSize,
                     height: 4 * sqSize,
-                    backgroundColor: '#2C241B',
+                    backgroundColor: promotionPending.mode === 'pawn' && promotionPending.afterGameFen.includes('p') ? '#F5F0E8' : '#2C241B',
                     borderRadius: '0px',
                     boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
                     display: 'flex',
