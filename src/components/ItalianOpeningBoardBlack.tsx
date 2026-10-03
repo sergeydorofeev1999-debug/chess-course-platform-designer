@@ -107,7 +107,23 @@ const HINTS: Record<number, { from: string; to: string; phase: number }[]> = {
   ],
 };
 
-// Find a white capture that leaves the white piece safe (no black recapture)
+function getFreePlayHintArrow(game: Chess): { from: string; to: string; phase: number }[] {
+  const pieceAt = (square: string, type: string) => {
+    const piece = game.get(square as any);
+    return piece?.color === 'b' && piece.type === type;
+  };
+  const legalMoves = game.moves({ verbose: true });
+  const remainingMoves = [
+    { from: 'd7', to: 'd6', type: 'p', complete: !pieceAt('d7', 'p') },
+    { from: 'g8', to: 'f6', type: 'n', complete: !pieceAt('g8', 'n') },
+    { from: 'c8', to: 'g4', type: 'b', complete: !pieceAt('c8', 'b') },
+  ];
+  const nextMove = remainingMoves.find(move =>
+    !move.complete && legalMoves.some(legal => legal.from === move.from && legal.to === move.to && legal.piece === move.type)
+  );
+  return nextMove ? [{ from: nextMove.from, to: nextMove.to, phase: 0 }] : [];
+}
+
 function findSafeWhiteCapture(currentGame: Chess): { from: string; to: string } | null {
   const whiteMoves = currentGame.moves({ verbose: true });
   const captures = whiteMoves.filter((m: any) => m.captured);
@@ -2879,10 +2895,13 @@ setLastMove({ from: 'd1', to: 'f3' });
             {/* Hint arrows SVG overlay */}
             {(() => {
               const arrows = HINTS[exercise] || [];
-              const phaseArrows = arrows.filter(a => a.phase === blackMoves);
+              const isFreePlay = exercise === 2 && blackMoves >= 3 && blackMoves <= 5;
+              const phaseArrows = isFreePlay && game
+                ? getFreePlayHintArrow(game)
+                : arrows.filter(a => a.phase === blackMoves);
               const showArrows = hintVisible && !isFail && !isComplete && !selectedSquare;
               return (
-                <svg key={`${exercise}-${blackMoves}`} className="absolute pointer-events-none z-[35]" style={{ top: 3, left: 3, width: 8 * sqSize, height: 8 * sqSize, display: showArrows ? 'block' : 'none' }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
+                <svg key={`${exercise}-${blackMoves}`} className="absolute pointer-events-none z-[35]" style={{ top: 3, left: 3, width: 8 * sqSize, height: 8 * sqSize, display: showArrows && phaseArrows.length > 0 ? 'block' : 'none' }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
                     {phaseArrows.map((arrow, i) => {
                       const fromF = FILES.indexOf(arrow.from[0]);
                       const fromR = 7 - RANKS.indexOf(arrow.from[1]);
