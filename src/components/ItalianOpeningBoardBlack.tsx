@@ -2903,7 +2903,7 @@ setLastMove({ from: 'd1', to: 'f3' });
             {/* Hint arrows SVG overlay */}
             {(() => {
               const arrows = HINTS[exercise] || [];
-              const isFreePlay = exercise === 2 && blackMoves >= 3 && blackMoves <= 5;
+              const isFreePlay = (exercise === 2 || exercise === 4) && blackMoves >= 3 && blackMoves <= 5;
               const phaseArrows = exercise === 2 && blackMoves === 6 && game
                 ? getExerciseTwoCastlingHintArrow(game)
                 : isFreePlay && game
