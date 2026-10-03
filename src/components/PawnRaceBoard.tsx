@@ -334,9 +334,9 @@ function getBestMove(
     if (difficulty === 'easy') {
       score = evaluatePosition(result.squares, wCap, bCap);
     } else if (difficulty === 'medium') {
-      score = minimax(result.squares, result.enPassant, wCap, bCap, 2, aiColor !== 'b', -Infinity, Infinity, aiColor);
+      score = minimax(result.squares, result.enPassant, wCap, bCap, 2, aiColor !== 'b', -Infinity, Infinity, 'b');
     } else {
-      score = minimax(result.squares, result.enPassant, wCap, bCap, 3, aiColor !== 'b', -Infinity, Infinity, aiColor);
+      score = minimax(result.squares, result.enPassant, wCap, bCap, 3, aiColor !== 'b', -Infinity, Infinity, 'b');
     }
 
     // Penalize moves that leave the moved pawn immediately capturable.
