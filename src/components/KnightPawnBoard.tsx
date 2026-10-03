@@ -2,7 +2,7 @@
 
 import AvatarBubble from './AvatarBubble';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { RotateCcw, ChevronRight, Star, Trophy, Eye, Undo2 } from 'lucide-react';
+import { RotateCcw, ChevronRight, Star, Trophy, Layers, Undo2 } from 'lucide-react';
 
 const PROMOTION_PIECES: { code: string; name: string }[] = [
   { code: 'q', name: 'Ферзь' },
@@ -529,6 +529,22 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
     setDifficulty(diff);
     reset();
   }, [reset, selectedColor]);
+
+  const backToLevels = useCallback(() => {
+    setDifficulty(null);
+    setComputerThinking(false);
+    setWinner(null);
+    winnerRef.current = null;
+    setSelectedSquare(null);
+    setValidSquares([]);
+    selectedSquareRef.current = null;
+    validSquaresRef.current = [];
+    setDragPiece(null);
+    pointerStartRef.current = null;
+    setPlayerAnimatingMove(null);
+    setOpponentAnimatingMove(null);
+    setPromotionPending(null);
+  }, []);
 
   const checkGameOver = useCallback((sqs: Record<string, Piece>, ep: string | null, currentTurn: 'w' | 'b'): string | null => {
     if (hasPawnOnBackRank(sqs, 'w') || !hasPieces(sqs, 'b')) return 'Белые победили!';
@@ -1182,11 +1198,11 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
       {/* Hint + restart + undo row */}
       <div className="flex items-center gap-2 w-full max-w-sm px-2">
         <button
-          onClick={() => alert('Подсказка: конь бьёт через фигуры, используй его для внезапных атак.')}
-          className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200"
-        >
-          <Eye size={14} /> Подсказка
-        </button>
+            onClick={backToLevels}
+            className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200"
+          >
+            <Layers size={14} /> Уровни
+          </button>
         <button
           onClick={reset}
           className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200"

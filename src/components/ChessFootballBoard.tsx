@@ -2,7 +2,7 @@
 
 import AvatarBubble from './AvatarBubble';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { RotateCcw, Star, Trophy, ChevronRight, Lightbulb, Undo2 } from 'lucide-react';
+import { RotateCcw, Star, Trophy, ChevronRight, Lightbulb, Undo2, Layers } from 'lucide-react';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const RANKS = ['1','2','3','4','5','6','7','8'];
@@ -417,6 +417,22 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
     drawMessageRef.current = null;
     setComputerThinking(false);
   }, [moveHistory]);
+
+  const backToLevels = useCallback(() => {
+    setDifficulty(null);
+    setComputerThinking(false);
+    setShowHint(false);
+    setSelectedSquare(null);
+    setValidSquares([]);
+    selectedSquareRef.current = null;
+    validSquaresRef.current = [];
+    setDragPiece(null);
+    pointerStartRef.current = null;
+    setPlayerAnimatingMove(null);
+    setOpponentAnimatingMove(null);
+    reset();
+  }, [reset]);
+
 
   const startLevel = useCallback((diff: Difficulty) => {
     setDifficulty(diff);
@@ -863,16 +879,11 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
         </div>
         {/* Sidebar action buttons */}
         <button
-          onClick={() => setShowHint(prev => !prev)}
+          onClick={backToLevels}
           className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all w-full"
         >
-          <Lightbulb size={14} /> {showHint ? 'Скрыть' : 'Подсказка'}
+          <Layers size={14} /> Уровни
         </button>
-        {showHint && (
-          <div className="text-xs text-[#5A4A3A] bg-[#F5EFE6] rounded-lg p-2 border border-[#C9A84C]">
-            Двигайтесь к 8 ряду. Блокируйте путь чёрного короля пешками и создавайте оппозицию.
-          </div>
-        )}
         <button
           onClick={reset}
           className="flex items-center justify-center gap-1.5 h-9 px-3 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all w-full"
@@ -1108,10 +1119,10 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
         {/* Mobile action buttons row */}
         <div className="flex lg:hidden gap-2 w-full">
           <button
-            onClick={() => setShowHint(prev => !prev)}
+            onClick={backToLevels}
             className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[#5A4A3A] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all"
           >
-            <Lightbulb size={14} /> {showHint ? 'Скрыть' : 'Подсказка'}
+            <Layers size={14} /> Уровни
           </button>
           <button
             onClick={reset}

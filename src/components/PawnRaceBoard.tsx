@@ -2,7 +2,7 @@
 
 import AvatarBubble from './AvatarBubble';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { RotateCcw, ChevronRight, Star, Trophy, Eye, Undo2, ArrowLeft, ArrowRight } from 'lucide-react';
+import { RotateCcw, ChevronRight, Star, Trophy, Layers, Undo2, ArrowLeft, ArrowRight } from 'lucide-react';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const RANKS = ['8','7','6','5','4','3','2','1'];
@@ -562,6 +562,22 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
       }, 800);
     }
   }, [reset, selectedColor]);
+
+  const backToLevels = useCallback(() => {
+    setDifficulty(null);
+    setComputerThinking(false);
+    setWinner(null);
+    winnerRef.current = null;
+    setSelectedSquare(null);
+    setValidSquares([]);
+    selectedSquareRef.current = null;
+    validSquaresRef.current = [];
+    setDragPiece(null);
+    pointerStartRef.current = null;
+    setPlayerAnimatingMove(null);
+    setOpponentAnimatingMove(null);
+    setPromotionPending(null);
+  }, []);
 
   const opponentColor = useCallback((color: 'w' | 'b') => color === 'w' ? 'b' : 'w', []);
 
@@ -1235,10 +1251,10 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
       <div className="flex flex-col gap-2 w-full max-w-sm">
         <div className="flex gap-2 w-full">
           <button
-            onClick={() => alert('Подсказка: направьте пешку в центр и используйте двойной ход для продвижения.')}
+            onClick={backToLevels}
             className="flex-1 h-9 flex items-center justify-center gap-1.5 rounded-lg border border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)] text-xs font-medium transition-all duration-200"
           >
-            <Eye size={14} /> Подсказка
+            <Layers size={14} /> Уровни
           </button>
           <button
             onClick={reset}
