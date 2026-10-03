@@ -7,8 +7,6 @@ import { RotateCcw, Trophy, ChevronRight, Star, Eye, Undo2 } from 'lucide-react'
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const DISPLAY_RANKS = ['8','7','6','5','4','3','2','1'];
-const REVERSED_FILES = ['h','g','f','e','d','c','b','a'];
-const REVERSED_DISPLAY_RANKS = ['1','2','3','4','5','6','7','8'];
 
 // Italian Game forced line (1.e4 e5 2.Nf3 Nc6 3.Bc4 Bc5)
 const ITALIAN_LINE = [
@@ -152,7 +150,6 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
     };
   }, []);
 
-  const isReversed = playerColor === 'b';
   useEffect(() => {
     const worker = new Worker('/stockfish.js');
     workerRef.current = worker;
@@ -705,9 +702,6 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
 
   const currentLevel = LEVELS[selectedLevel];
 
-  const files = isReversed ? REVERSED_FILES : FILES;
-  const ranks = isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS;
-
   return (
     <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
       {/* LEFT COLUMN */}
@@ -804,10 +798,6 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
 
         {/* Board */}
         <div className="flex justify-center w-full relative">
-          {(() => {
-            const files = isReversed ? REVERSED_FILES : FILES;
-            const ranks = isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS;
-            return (
           <div
             data-board
             className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none"
@@ -817,8 +807,8 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
               touchAction: 'none',
             }}
           >
-            {ranks.map((rank, ri) => (
-              files.map((file, fi) => {
+            {DISPLAY_RANKS.map((rank, ri) => (
+              FILES.map((file, fi) => {
                 const sq = `${file}${rank}`;
                 const pieceObj = getPieceAt(sq);
                 const light = isLight(fi, ri);
@@ -904,8 +894,8 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
 
             {/* Player move ghost piece */}
             {playerAnimatingMove && (() => {
-              const fArr = isReversed ? REVERSED_FILES : FILES;
-              const rArr = isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS;
+              const fArr = FILES;
+              const rArr = DISPLAY_RANKS;
               const fromF = fArr.indexOf(playerAnimatingMove.from[0]);
               const fromR = rArr.indexOf(playerAnimatingMove.from[1]);
               const toF = fArr.indexOf(playerAnimatingMove.to[0]);
@@ -937,8 +927,8 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
 
             {/* Opponent move ghost piece */}
             {opponentAnimatingMove && (() => {
-              const fArr = isReversed ? REVERSED_FILES : FILES;
-              const rArr = isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS;
+              const fArr = FILES;
+              const rArr = DISPLAY_RANKS;
               const fromF = fArr.indexOf(opponentAnimatingMove.from[0]);
               const fromR = rArr.indexOf(opponentAnimatingMove.from[1]);
               const toF = fArr.indexOf(opponentAnimatingMove.to[0]);
@@ -970,8 +960,8 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
 
             {/* Hint arrow SVG */}
             {hintArrow && (() => {
-              const fArr = isReversed ? REVERSED_FILES : FILES;
-              const rArr = isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS;
+              const fArr = FILES;
+              const rArr = DISPLAY_RANKS;
               const fromF = fArr.indexOf(hintArrow.from[0]);
               const fromR = rArr.indexOf(hintArrow.from[1]);
               const toF = fArr.indexOf(hintArrow.to[0]);
@@ -1009,7 +999,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
 
           {promotionPending && (
             <div className="absolute z-50 pointer-events-auto" style={{
-              left: `${(isReversed ? REVERSED_FILES : FILES).indexOf(promotionPending.to[0]) * sqSize}px`,
+              left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
               top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
               width: sqSize,
               height: 4 * sqSize,
@@ -1059,7 +1049,6 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
             </div>
           )}
         </div>
-        )})()}
         {dragPiece && !playerAnimatingMove && !opponentAnimatingMove && (
             <div
               className="fixed pointer-events-none z-50"
