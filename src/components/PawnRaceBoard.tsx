@@ -518,9 +518,9 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
     setSelectedSquare(null);
     setValidSquares([]);
     setEnPassant(null);
-    const initialTurn: 'w' | 'b' = playerColorRef.current === 'b' ? 'b' : 'w';
-    setTurn(initialTurn);
-    turnRef.current = initialTurn;
+    const nextTurn = playerColorRef.current === 'b' ? 'b' : 'w';
+    setTurn(nextTurn);
+    turnRef.current = nextTurn;
     setLastMove(null);
     setPlayerAnimatingMove(null);
     setOpponentAnimatingMove(null);
@@ -536,6 +536,29 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
     playerColorRef.current = color;
     setDifficulty(diff);
     reset();
+    if (color === 'b') {
+      setTimeout(() => {
+        if (!mountedRef.current) return;
+        const currentSquares = squaresRef.current;
+        const chosen = getBestMove(currentSquares, enPassantRef.current, whiteCapturedRef.current, blackCapturedRef.current, diff, 'w');
+        if (!chosen) return;
+        const movingPiece = currentSquares[chosen.from];
+        const result = makePawnMove(currentSquares, enPassantRef.current, chosen.from, chosen.to);
+        let wCap = whiteCapturedRef.current;
+        if (result.captured?.color === 'w') { wCap++; setWhiteCaptured(wCap); }
+        setSquares(result.squares);
+        squaresRef.current = result.squares;
+        setEnPassant(result.enPassant);
+        enPassantRef.current = result.enPassant;
+        setLastMove({ from: chosen.from, to: chosen.to });
+        setOpponentAnimatingMove({ from: chosen.from, to: chosen.to, piece: movingPiece });
+        const win = checkGameOver(result.squares, wCap, blackCapturedRef.current, result.enPassant, 'b');
+        if (win) setWinner(win);
+        setTurn('b');
+        turnRef.current = 'b';
+        setTimeout(() => setOpponentAnimatingMove(null), 220);
+      }, 800);
+    }
   }, [reset, selectedColor]);
 
   const opponentColor = useCallback((color: 'w' | 'b') => color === 'w' ? 'b' : 'w', []);
