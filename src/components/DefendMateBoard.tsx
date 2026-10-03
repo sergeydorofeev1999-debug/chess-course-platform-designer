@@ -59,6 +59,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [isFail, setIsFail] = useState(false);
+  const [failureAttack, setFailureAttack] = useState<{ from: string; to: string } | null>(null);
   const [isComplete, setIsComplete] = useState(false);
   const [sqSize, setSqSize] = useState(52);
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
@@ -119,6 +120,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
     setLastMove(null);
     setHintVisible(false);
     setIsFail(false);
+    setFailureAttack(null);
     setIsComplete(false);
     setDragPiece(null);
     setSequenceStep(0);
@@ -145,6 +147,7 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
     setMessage('');
     setLastMove(null);
     setIsFail(false);
+    setFailureAttack(null);
     setIsComplete(false);
     setDragPiece(null);
     setSequenceStep(0);
@@ -284,6 +287,20 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
 
       // Wrong move — computer response (with delay like ForkBoard)
       const afterWhite = new Chess(ng.fen());
+      const checkedKing = afterWhite.isCheck() ? (() => {
+        const board = afterWhite.board();
+        for (let rank = 0; rank < 8; rank++) {
+          for (let file = 0; file < 8; file++) {
+            const piece = board[rank][file];
+            if (piece?.type === 'k' && piece.color === 'w') return `${'abcdefgh'[file]}${8 - rank}`;
+          }
+        }
+        return null;
+      })() : null;
+      if (checkedKing) {
+        const attackerSquare = afterWhite.attackers(checkedKing as any, 'b')[0];
+        if (attackerSquare) setFailureAttack({ from: attackerSquare, to: checkedKing });
+      }
       const mateMove = afterWhite.moves({ verbose: true }).find((m: any) => m.san.includes('#'));
       const captureMoves = afterWhite.moves({ verbose: true }).filter((m: any) => m.captured);
 
@@ -480,6 +497,11 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
             interactive={!isComplete && !isFail}
             sqSize={sqSize}
           />
+          {isFail && failureAttack && (
+            <svg className="absolute pointer-events-none z-[40]" style={{ top: 3, left: 3, width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
+              <line x1={(FILES.indexOf(failureAttack.from[0]) + 0.5) * sqSize} y1={(DISPLAY_RANKS.indexOf(failureAttack.from[1]) + 0.5) * sqSize} x2={(FILES.indexOf(failureAttack.to[0]) + 0.5) * sqSize} y2={(DISPLAY_RANKS.indexOf(failureAttack.to[1]) + 0.5) * sqSize} stroke="rgba(190, 35, 35, 0.64)" strokeWidth={Math.max(5, sqSize * 0.14)} strokeLinecap="round" />
+            </svg>
+          )}
           {/* Hint arrows SVG overlay */}
           {hintVisible && !isFail && !isComplete && !selectedSquare && !dragPiece && (
             (() => {

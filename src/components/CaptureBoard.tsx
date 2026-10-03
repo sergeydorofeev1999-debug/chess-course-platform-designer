@@ -318,6 +318,17 @@ function isSquareAttackedBy(square: string, squares: Record<string, any>, attack
   return false;
 }
 
+function getAttackersOfSquare(square: string, squares: Record<string, any>, attackerColor: 'w' | 'b') {
+  return Object.keys(squares).filter(from => {
+    const piece = squares[from];
+    return piece?.color === attackerColor && isValidMove(piece.type, from, square, squares, attackerColor, [], true);
+  }).map(from => ({ from, to: square }));
+}
+
+function findKingSquare(squares: Record<string, any>, color: 'w' | 'b') {
+  return Object.keys(squares).find(square => squares[square]?.type === 'k' && squares[square]?.color === color) || '';
+}
+
 function isCheckmate(squares: Record<string, any>, side: 'w' | 'b') {
   // Find king
   let kingSq = '';
@@ -563,6 +574,7 @@ function InlineChessBoard({
   waitingForOpponent,
   gameOver,
   failed,
+  failCheck,
 }: {
   fen: string;
   onMove: (from: string, to: string) => boolean;
@@ -578,6 +590,7 @@ function InlineChessBoard({
   waitingForOpponent?: boolean;
   gameOver?: boolean;
   failed?: boolean;
+  failCheck?: { kingSquare: string; attackers: { from: string; to: string }[] } | null;
 }) {
   const parsed = parseFen(fen);
   const [squares, setSquares] = useState(parsed.squares);
@@ -1061,6 +1074,18 @@ function InlineChessBoard({
         {opponentAnimatingMove && (
           <GhostOverlay move={opponentAnimatingMove} sqSize={sqSize} isOpponent />
         )}
+        {failCheck && failed && (
+          <svg className="absolute inset-0 pointer-events-none z-[45]" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
+            {failCheck.attackers.map((attack, i) => {
+              const fromF = FILES.indexOf(attack.from[0]);
+              const fromR = RANKS.indexOf(attack.from[1]);
+              const toF = FILES.indexOf(attack.to[0]);
+              const toR = RANKS.indexOf(attack.to[1]);
+              return <line key={i} x1={(fromF + 0.5) * sqSize} y1={(fromR + 0.5) * sqSize} x2={(toF + 0.5) * sqSize} y2={(toR + 0.5) * sqSize} stroke="rgba(190, 35, 35, 0.64)" strokeWidth={Math.max(5, sqSize * 0.14)} strokeLinecap="round" />;
+            })}
+            <circle cx={(FILES.indexOf(failCheck.kingSquare[0]) + 0.5) * sqSize} cy={(RANKS.indexOf(failCheck.kingSquare[1]) + 0.5) * sqSize} r={sqSize * 0.43} fill="rgba(190, 35, 35, 0.28)" />
+          </svg>
+        )}
         {/* Hint arrows SVG - always rendered, high visibility */}
         <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize, display: hintArrows.length > 0 ? 'block' : 'none' }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
           {hintArrows.map((arrow, i) => {
@@ -1162,6 +1187,7 @@ interface CaptureLevel {
   requireMate?: boolean;
   requireStalemate?: boolean;
   requireSafeKing?: boolean;
+  requireEscapeCheck?: boolean;
   autoCaptures?: { blackFrom: string; captureSquare: string }[];
   forbiddenSquares?: string[];
   blackAutoCapture?: boolean; // default true; set false to disable universal black auto-capture
@@ -1219,6 +1245,7 @@ export default function CaptureBoard({
   const [gameOver, setGameOver] = useState(false);
   const [failed, setFailed] = useState(false);
   const failedRef = useRef(false);
+  const [failCheck, setFailCheck] = useState<{ kingSquare: string; attackers: { from: string; to: string }[] } | null>(null);
   useEffect(() => {
     failedRef.current = failed;
   }, [failed]);
@@ -1261,6 +1288,7 @@ export default function CaptureBoard({
       setLastEarned(0);
       setGameOver(false);
       setFailed(false);
+      setFailCheck(null);
       setMsg('');
       setPromotionPending(null);
       setLastMove(null);
@@ -1343,6 +1371,7 @@ export default function CaptureBoard({
     setAllDone(false);
     setGameOver(false);
     setFailed(false);
+    setFailCheck(null);
     setMsg('');
     movesRef.current = 0;
     nextTriggerIdxRef.current = 0;
@@ -1360,6 +1389,7 @@ export default function CaptureBoard({
     setAllDone(false);
     setGameOver(false);
     setFailed(false);
+    setFailCheck(null);
     setMsg('');
     setLastMove(null);
     setWaitingForOpponent(false);
@@ -1556,20 +1586,39 @@ export default function CaptureBoard({
         }
       }
 
-      // Guard: if requireSafeKing and king is in check after move → immediate fail
-      if (level.requireSafeKing) {
-        let whiteKingSq = '';
-        for (const sq in newSquares) {
-          if (newSquares[sq].type === 'k' && newSquares[sq].color === 'w') {
-            whiteKingSq = sq;
-            break;
-          }
-        }
-        if (whiteKingSq && isSquareAttackedBy(whiteKingSq, newSquares, 'b')) {
-          setFailed(true);
-          setGameOver(true);
-          return false;
-        }
+      const initialKingSquare = findKingSquare(parsed.squares, 'w');
+      const wasInCheck = !!initialKingSquare && isSquareAttackedBy(initialKingSquare, parsed.squares, 'b');
+      const whiteKingSq = findKingSquare(newSquares, 'w');
+      const remainingAttackers = whiteKingSq ? getAttackersOfSquare(whiteKingSq, newSquares, 'b') : [];
+      if (level.requireEscapeCheck && !wasInCheck) {
+        const kingSquare = whiteKingSq || initialKingSquare;
+        const attackers = getAttackersOfSquare(kingSquare, parsed.squares, 'b');
+        setFailCheck(null);
+        setLastMove({ from, to });
+        setFailed(true);
+        setGameOver(true);
+        successTimersRef.current.push(setTimeout(() => {
+          setFailCheck({ kingSquare, attackers });
+          onFail?.();
+        }, 500));
+        return false;
+      }
+      if ((level.requireEscapeCheck || wasInCheck) && remainingAttackers.length > 0) {
+        setFailCheck(null);
+        setLastMove({ from, to });
+        setFailed(true);
+        setGameOver(true);
+        successTimersRef.current.push(setTimeout(() => {
+          setFailCheck({ kingSquare: whiteKingSq, attackers: remainingAttackers });
+          onFail?.();
+        }, 500));
+        return false;
+      }
+      if (level.requireSafeKing && remainingAttackers.length > 0) {
+        setFailCheck({ kingSquare: whiteKingSq, attackers: remainingAttackers });
+        setFailed(true);
+        setGameOver(true);
+        return false;
       }
 
       // Auto-capture: specified black pieces eat white pieces that land on certain squares
@@ -2031,6 +2080,7 @@ export default function CaptureBoard({
     setAllDone(false);
     setGameOver(false);
     setFailed(false);
+    setFailCheck(null);
     setPromotionPending(null);
     setLastMove(null);
     setMsg('');
@@ -2075,6 +2125,7 @@ export default function CaptureBoard({
                 setAllDone(false);
                 setGameOver(false);
                 setFailed(false);
+                setFailCheck(null);
                 setPromotionPending(null);
                 setMsg('');
               }, 600);
@@ -2098,6 +2149,7 @@ export default function CaptureBoard({
               setAllDone(false);
               setGameOver(false);
               setFailed(false);
+              setFailCheck(null);
               setPromotionPending(null);
               setMsg('');
             }, 600);
@@ -2118,7 +2170,7 @@ export default function CaptureBoard({
       {embedded ? (
         /* Minimal mode: only the board + fail callback */
         <div className="flex flex-col items-center gap-3">
-          <InlineChessBoard fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} promotionPending={promotionPending} onPromotion={handlePromotion} opponentAnimatingMove={opponentAnimatingMove} lastMove={lastMove} waitingForOpponent={waitingForOpponent} gameOver={gameOver} failed={failed} />
+          <InlineChessBoard fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} promotionPending={promotionPending} onPromotion={handlePromotion} opponentAnimatingMove={opponentAnimatingMove} lastMove={lastMove} waitingForOpponent={waitingForOpponent} gameOver={gameOver} failed={failed} failCheck={failCheck} />
           {failed && onFail && (
             <div className="w-full">
               <div className="bg-[#A63838] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
@@ -2245,7 +2297,7 @@ export default function CaptureBoard({
 
       {/* CENTER COLUMN: Chess board + stats */}
       <div className="flex-1 flex flex-col items-center gap-3">
-        <InlineChessBoard key={currentLevel} fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} opponentAnimatingMove={opponentAnimatingMove} lastMove={lastMove} waitingForOpponent={waitingForOpponent} gameOver={gameOver} failed={failed} />
+        <InlineChessBoard key={currentLevel} fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} opponentAnimatingMove={opponentAnimatingMove} lastMove={lastMove} waitingForOpponent={waitingForOpponent} gameOver={gameOver} failed={failed} failCheck={failCheck} />
 
         {/* Red fail banner */}
         {failed && (
