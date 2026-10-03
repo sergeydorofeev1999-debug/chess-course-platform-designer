@@ -1156,7 +1156,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
             height: 4 * sqSize,
             backgroundColor: squares[promotionPending.to]?.color === 'b' ? '#F5F0E8' : '#2C241B',
             borderRadius: '0px',
-            boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
+            boxShadow: squares[promotionPending.to]?.color === 'b' ? 'none' : '0 4px 16px rgba(0,0,0,0.35)',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
