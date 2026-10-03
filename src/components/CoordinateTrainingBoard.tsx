@@ -205,7 +205,7 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
             className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-150 ease-out flex items-center justify-center gap-2 ${
               mode === 'find'
                 ? 'bg-[#5A4A3A] text-white'
-                : 'bg-white text-[#5A4A3A] border border-[rgba(92,64,51,0.12)] hover:bg-[var(--bg-elevated)] hover:border-[#C9A84C]'
+                : 'bg-[#F5EFE6] text-[#4A3F35] border border-[#D4C5B5] hover:bg-[#EBE4DA] hover:border-[#C9A84C]'
             }`}
           >
             <Target className={`w-5 h-5 ${mode === 'find' ? 'text-white' : 'text-[#8B7355]'}`} />
@@ -216,7 +216,7 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
             className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-150 ease-out flex items-center justify-center gap-2 ${
               mode === 'name'
                 ? 'bg-[#5A4A3A] text-white'
-                : 'bg-white text-[#5A4A3A] border border-[rgba(92,64,51,0.12)] hover:bg-[var(--bg-elevated)] hover:border-[#C9A84C]'
+                : 'bg-[#F5EFE6] text-[#4A3F35] border border-[#D4C5B5] hover:bg-[#EBE4DA] hover:border-[#C9A84C]'
             }`}
           >
             <PenLine className={`w-5 h-5 ${mode === 'name' ? 'text-white' : 'text-[#8B7355]'}`} />
@@ -231,7 +231,7 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
             className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-150 ease-out flex items-center justify-center gap-2 ${
               timeMode === 'unlimited'
                 ? 'bg-[#5A4A3A] text-white'
-                : 'bg-white text-[#5A4A3A] border border-[rgba(92,64,51,0.12)] hover:bg-[var(--bg-elevated)] hover:border-[#C9A84C]'
+                : 'bg-[#F5EFE6] text-[#4A3F35] border border-[#D4C5B5] hover:bg-[#EBE4DA] hover:border-[#C9A84C]'
             }`}
           >
             <Infinity className={`w-5 h-5 ${timeMode === 'unlimited' ? 'text-white' : 'text-[#8B7355]'}`} />
@@ -242,7 +242,7 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
             className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-150 ease-out flex items-center justify-center gap-2 ${
               timeMode === '30'
                 ? 'bg-[#5A4A3A] text-white'
-                : 'bg-white text-[#5A4A3A] border border-[rgba(92,64,51,0.12)] hover:bg-[var(--bg-elevated)] hover:border-[#C9A84C]'
+                : 'bg-[#F5EFE6] text-[#4A3F35] border border-[#D4C5B5] hover:bg-[#EBE4DA] hover:border-[#C9A84C]'
             }`}
           >
             <Timer className={`w-5 h-5 ${timeMode === '30' ? 'text-white' : 'text-[#8B7355]'}`} />
@@ -256,8 +256,8 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
             onClick={() => setSide('white')}
             className={`w-14 h-14 rounded-lg flex items-center justify-center transition-all duration-150 ease-out ${
               side === 'white'
-                ? 'bg-[#5A4A3A] border-2 border-[#5A4A3A] scale-105 shadow-[0_2px_8px_rgba(44,36,27,0.22)]'
-                : 'bg-[var(--bg-elevated)] border-2 border-[rgba(92,64,51,0.12)] hover:border-[#C9A84C] hover:bg-white'
+                ? 'bg-[#5A4A3A] border-2 border-[#C9A84C] scale-105 shadow-[0_2px_8px_rgba(92,64,51,0.28)]'
+                : 'bg-[#F5EFE6] border-2 border-[#D4C5B5] hover:border-[#C9A84C] hover:bg-[#EBE4DA]'
             }`}
           >
             <div className="w-8 h-8"><PieceImg type="k" color="w" size={32} /></div>
@@ -266,8 +266,8 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
             onClick={() => setSide('random')}
             className={`w-14 h-14 rounded-lg flex items-center justify-center transition-all duration-150 ease-out ${
               side === 'random'
-                ? 'bg-[#5A4A3A] border-2 border-[#5A4A3A] scale-105 shadow-[0_2px_8px_rgba(44,36,27,0.22)]'
-                : 'bg-[var(--bg-elevated)] border-2 border-[rgba(92,64,51,0.12)] hover:border-[#C9A84C] hover:bg-white'
+                ? 'bg-[#5A4A3A] border-2 border-[#C9A84C] scale-105 shadow-[0_2px_8px_rgba(92,64,51,0.28)]'
+                : 'bg-[#F5EFE6] border-2 border-[#D4C5B5] hover:border-[#C9A84C] hover:bg-[#EBE4DA]'
             }`}
           >
             <div className="flex -space-x-1">
@@ -279,8 +279,8 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
             onClick={() => setSide('black')}
             className={`w-14 h-14 rounded-lg flex items-center justify-center transition-all duration-150 ease-out ${
               side === 'black'
-                ? 'bg-[#5A4A3A] border-2 border-[#5A4A3A] scale-105 shadow-[0_2px_8px_rgba(44,36,27,0.22)]'
-                : 'bg-[var(--bg-elevated)] border-2 border-[rgba(92,64,51,0.12)] hover:border-[#C9A84C] hover:bg-white'
+                ? 'bg-[#5A4A3A] border-2 border-[#C9A84C] scale-105 shadow-[0_2px_8px_rgba(92,64,51,0.28)]'
+                : 'bg-[#F5EFE6] border-2 border-[#D4C5B5] hover:border-[#C9A84C] hover:bg-[#EBE4DA]'
             }`}
           >
             <div className="w-8 h-8"><PieceImg type="k" color="b" size={32} /></div>
@@ -288,16 +288,16 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
         </div>
 
         {/* Toggles */}
-        <div className="flex flex-col w-full gap-3 bg-[var(--bg-elevated)] rounded-xl p-3 shadow-sm border border-[rgba(92,64,51,0.08)]">
+        <div className="flex flex-col w-full gap-3 bg-[#F5EFE6] rounded-xl p-3 shadow-sm border border-[#D4C5B5]">
           <label className="flex items-center justify-between text-sm">
             <span className="text-[#2C241B] font-medium">Показывать координаты</span>
-            <button onClick={() => setCoords(v => !v)} className={`w-12 h-6 rounded-full transition-all duration-200 ${showCoords ? 'bg-[#C9A84C]' : 'bg-[rgba(92,64,51,0.18)]'}`}>
+            <button onClick={() => setCoords(v => !v)} className={`w-12 h-6 rounded-full transition-all duration-200 ${showCoords ? 'bg-[#C9A84C]' : 'bg-[#D4C5B5]'}`}>
               <span className={`block w-5 h-5 bg-white rounded-full mt-0.5 transition-all duration-200 ${showCoords ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
           </label>
           <label className="flex items-center justify-between text-sm">
             <span className="text-[#2C241B] font-medium">Показывать фигуры</span>
-            <button onClick={() => setPieces(v => !v)} className={`w-12 h-6 rounded-full transition-all duration-200 ${showPieces ? 'bg-[#C9A84C]' : 'bg-[rgba(92,64,51,0.18)]'}`}>
+            <button onClick={() => setPieces(v => !v)} className={`w-12 h-6 rounded-full transition-all duration-200 ${showPieces ? 'bg-[#C9A84C]' : 'bg-[#D4C5B5]'}`}>
               <span className={`block w-5 h-5 bg-white rounded-full mt-0.5 transition-all duration-200 ${showPieces ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
           </label>
