@@ -16,6 +16,7 @@ const RANKS = ['8','7','6','5','4','3','2','1'];
 
 type Piece = { type: string; color: 'w' | 'b' };
 type Difficulty = 'easy' | 'medium' | 'hard';
+type PlayColor = 'w' | 'random' | 'b';
 
 function parseFen(fen: string): Record<string, Piece> {
   const squares: Record<string, Piece> = {};
@@ -146,7 +147,7 @@ function hasNoMoves(squares: Record<string, Piece>, color: 'w' | 'b', enPassant:
    MAKE MOVE
    ═════════════════════════════════════════════════════════════════ */
 
-function makeMove(squares: Record<string, Piece>, enPassant: string | null, from: string, to: string): {
+function makeMove(squares: Record<string, Piece>, enPassant: string | null, from: string, to: string, autoQueenWhite = false): {
   squares: Record<string, Piece>;
   enPassant: string | null;
   captured: Piece | null;
@@ -173,10 +174,10 @@ function makeMove(squares: Record<string, Piece>, enPassant: string | null, from
 
   const rank = to[1];
   if (p.type === 'p' && (rank === '8' || rank === '1')) {
-    if (p.color === 'w' && rank === '8') {
-      next[to] = { type: 'p', color: 'w' }; // white pawn stays until promotion chosen
+    if (p.color === 'w' && rank === '8' && !autoQueenWhite) {
+      next[to] = { type: 'p', color: 'w' }; // Human chooses the promoted piece
     } else {
-      next[to] = { type: 'q', color: p.color }; // black auto-promotes
+      next[to] = { type: 'q', color: p.color }; // AI/search and black promote to queen
     }
   } else {
     next[to] = p;
@@ -281,7 +282,7 @@ function minimax(
   if (isMaximizing) {
     let maxEval = -Infinity;
     for (const move of moves) {
-      const result = makeMove(squares, enPassant, move.from, move.to);
+      const result = makeMove(squares, enPassant, move.from, move.to, true);
       const eval_ = minimax(result.squares, result.enPassant, depth - 1, false, alpha, beta);
       maxEval = Math.max(maxEval, eval_);
       alpha = Math.max(alpha, eval_);
@@ -291,7 +292,7 @@ function minimax(
   } else {
     let minEval = Infinity;
     for (const move of moves) {
-      const result = makeMove(squares, enPassant, move.from, move.to);
+      const result = makeMove(squares, enPassant, move.from, move.to, true);
       const eval_ = minimax(result.squares, result.enPassant, depth - 1, true, alpha, beta);
       minEval = Math.min(minEval, eval_);
       beta = Math.min(beta, eval_);
@@ -304,35 +305,39 @@ function minimax(
 function getBestMove(
   squares: Record<string, Piece>,
   enPassant: string | null,
-  difficulty: Difficulty
+  difficulty: Difficulty,
+  aiColor: 'w' | 'b' = 'b'
 ): { from: string; to: string } | null {
-  const moves = getAllMoves(squares, 'b', enPassant);
+  const moves = getAllMoves(squares, aiColor, enPassant);
   if (moves.length === 0) return null;
 
   const scored = moves.map(move => {
-    const result = makeMove(squares, enPassant, move.from, move.to);
+    const result = makeMove(squares, enPassant, move.from, move.to, true);
+    if (result.squares[move.to]?.type === 'p' && move.to[1] === (aiColor === 'w' ? '8' : '1')) {
+      result.squares[move.to] = { type: 'q', color: aiColor };
+    }
     let score: number;
     if (difficulty === 'easy') {
       score = evaluatePosition(result.squares);
     } else if (difficulty === 'medium') {
-      score = minimax(result.squares, result.enPassant, 2, false, -Infinity, Infinity);
+      score = minimax(result.squares, result.enPassant, 2, aiColor === 'w', -Infinity, Infinity);
     } else {
-      score = minimax(result.squares, result.enPassant, 3, false, -Infinity, Infinity);
+      score = minimax(result.squares, result.enPassant, 3, aiColor === 'w', -Infinity, Infinity);
     }
 
     // Blunder penalty
-    const whiteNextMoves = getAllMoves(result.squares, 'w', result.enPassant);
-    for (const wm of whiteNextMoves) {
+    const opponentNextMoves = getAllMoves(result.squares, aiColor === 'w' ? 'b' : 'w', result.enPassant);
+    for (const wm of opponentNextMoves) {
       const target = result.squares[wm.to];
-      if (target && target.color === 'b' && wm.to === move.to) {
-        score -= 600;
+      if (target && target.color === aiColor && wm.to === move.to) {
+        score += aiColor === 'w' ? 600 : -600;
       }
     }
 
     return { ...move, score };
   });
 
-  scored.sort((a, b) => b.score - a.score);
+  scored.sort((a, b) => aiColor === 'b' ? b.score - a.score : a.score - b.score);
 
   if (difficulty === 'easy') {
     const rand = Math.random();
@@ -364,23 +369,29 @@ function GhostOverlay({
   piece,
   sqSize,
   opponent,
+  isReversed,
 }: {
   from: string;
   to: string;
   piece: { type: string; color: 'w' | 'b' };
   sqSize: number;
   opponent: boolean;
+  isReversed: boolean;
 }) {
   const fromCoords = squareToCoords(from);
   const toCoords = squareToCoords(to);
-  const dx = (toCoords.f - fromCoords.f) * sqSize;
-  const dy = (toCoords.r - fromCoords.r) * sqSize;
+  const fromX = (isReversed ? 7 - fromCoords.f : fromCoords.f) * sqSize;
+  const fromY = (isReversed ? 7 - fromCoords.r : fromCoords.r) * sqSize;
+  const toX = (isReversed ? 7 - toCoords.f : toCoords.f) * sqSize;
+  const toY = (isReversed ? 7 - toCoords.r : toCoords.r) * sqSize;
+  const dx = toX - fromX;
+  const dy = toY - fromY;
   return (
     <div
       className={`absolute pointer-events-none z-40 ${opponent ? 'animate-opponent-move' : 'animate-player-move'}`}
       style={{
-        left: fromCoords.f * sqSize,
-        top: fromCoords.r * sqSize,
+        left: fromX,
+        top: fromY,
         width: sqSize,
         height: sqSize,
         display: 'flex',
@@ -429,6 +440,9 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
   }, [savedKey]);
 
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
+  const [selectedColor, setSelectedColor] = useState<PlayColor>('random');
+  const [playerColor, setPlayerColor] = useState<'w' | 'b'>('w');
+  const playerColorRef = useRef<'w' | 'b'>('w');
   const [completedLevels, setCompletedLevels] = useState<Record<Difficulty, boolean>>(savedProgress);
   const [squares, setSquares] = useState<Record<string, Piece>>(() => parseFen(START_FEN));
   const [winner, setWinner] = useState<string | null>(null);
@@ -498,6 +512,7 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
     setValidSquares([]);
     setEnPassant(null);
     setTurn('w');
+    turnRef.current = 'w';
     setWhiteCaptured(0);
     setBlackCaptured(0);
     setHistory([]);
@@ -508,9 +523,12 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
   }, []);
 
   const startLevel = useCallback((diff: Difficulty) => {
+    const color: 'w' | 'b' = selectedColor === 'random' ? (Math.random() < 0.5 ? 'w' : 'b') : selectedColor;
+    playerColorRef.current = color;
+    setPlayerColor(color);
     setDifficulty(diff);
     reset();
-  }, [reset]);
+  }, [reset, selectedColor]);
 
   const checkGameOver = useCallback((sqs: Record<string, Piece>, ep: string | null, currentTurn: 'w' | 'b'): string | null => {
     if (hasPawnOnBackRank(sqs, 'w') || !hasPieces(sqs, 'b')) return 'Белые победили!';
@@ -521,7 +539,8 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
 
   // Computer move
   useEffect(() => {
-    if (winnerRef.current || turnRef.current !== 'b' || !difficultyRef.current) return;
+    const aiColor = playerColor === 'w' ? 'b' : 'w';
+    if (winnerRef.current || turnRef.current !== aiColor || !difficultyRef.current) return;
     setComputerThinking(true);
 
     const timer = setTimeout(() => {
@@ -529,22 +548,24 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
       const sqs = squaresRef.current;
       const diff = difficultyRef.current!;
 
-      const chosen = getBestMove(sqs, enPassantRef.current, diff);
+      const chosen = getBestMove(sqs, enPassantRef.current, diff, aiColor);
 
       if (!chosen) {
-        const result = checkGameOver(sqs, enPassantRef.current, 'b');
+        const result = checkGameOver(sqs, enPassantRef.current, aiColor);
         setWinner(result || 'Ничья');
         setComputerThinking(false);
         return;
       }
 
-      const result = makeMove(sqs, enPassantRef.current, chosen.from, chosen.to);
-      if (result.captured && result.captured.color === 'w') {
-        setBlackCaptured(prev => prev + 1);
+      const result = makeMove(sqs, enPassantRef.current, chosen.from, chosen.to, true);
+      if (result.squares[chosen.to]?.type === 'p' && chosen.to[1] === (aiColor === 'w' ? '8' : '1')) {
+        result.squares[chosen.to] = { type: 'q', color: aiColor };
       }
-      setHistory(h => [...h, { squares: sqs, whiteCaptured: whiteCapturedRef.current, blackCaptured: blackCapturedRef.current, enPassant: enPassantRef.current!, turn: 'b' }]);
+      if (result.captured && result.captured.color !== aiColor) {
+        if (aiColor === 'w') setWhiteCaptured(prev => prev + 1); else setBlackCaptured(prev => prev + 1);
+      }
 
-      const win = checkGameOver(result.squares, result.enPassant, 'w');
+      const win = checkGameOver(result.squares, result.enPassant, playerColor);
       setOpponentAnimatingMove({ from: chosen.from, to: chosen.to, piece: sqs[chosen.from] });
       setLastMove({ from: chosen.from, to: chosen.to });
 
@@ -556,10 +577,10 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
         if (!mountedRef.current) return;
         setSquares(result.squares);
         setEnPassant(result.enPassant);
-        setTurn('w');
+        setTurn(playerColor);
         setComputerThinking(false);
         setOpponentAnimatingMove(null);
-        if (win && win === 'Белые победили!' && difficultyRef.current) {
+        if (win && win === (playerColor === 'w' ? 'Белые победили!' : 'Чёрные победили!') && difficultyRef.current) {
           const d = difficultyRef.current;
           setCompletedLevels(prev => {
             const next = { ...prev, [d]: true };
@@ -572,14 +593,13 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
     }, 800);
 
     return () => clearTimeout(timer);
-  }, [turn, winner, checkGameOver, onComplete, savedKey]);
-
+  }, [turn, winner, difficulty, checkGameOver, onComplete, savedKey, playerColor]);
   // Click logic
   const click = useCallback((square: string) => {
     if (promotionPending) return;
     if (winnerRef.current) return;
-    if (turnRef.current !== 'w') return; // Wait for opponent's turn
-    if (turnRef.current === 'w' && hasNoMoves(squaresRef.current, 'w', enPassantRef.current)) {
+    if (turnRef.current !== playerColor) return; // Wait for opponent's turn
+    if (turnRef.current === playerColor && hasNoMoves(squaresRef.current, playerColor, enPassantRef.current)) {
       setWinner('Ничья');
       return;
     }
@@ -595,23 +615,23 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
         return;
       }
 
-      if (piece && piece.color === 'w') {
+      if (piece && piece.color === playerColor) {
         selectedSquareRef.current = square;
         setSelectedSquare(square);
-        setValidSquares(getPieceMoves(square, sqs, 'w', enPassantRef.current));
+        setValidSquares(getPieceMoves(square, sqs, playerColor, enPassantRef.current));
         return;
       }
 
       if (validSquaresRef.current.includes(square)) {
         const result = makeMove(sqs, enPassantRef.current, sel, square);
         const movingPiece = sqs[sel];
-        if (result.captured && result.captured.color === 'b') {
-          setWhiteCaptured(prev => prev + 1);
+        if (result.captured && result.captured.color !== playerColor) {
+          if (playerColor === 'w') setWhiteCaptured(prev => prev + 1); else setBlackCaptured(prev => prev + 1);
         }
-        setHistory(h => [...h, { squares: sqs, whiteCaptured: whiteCapturedRef.current, blackCaptured: blackCapturedRef.current, enPassant: enPassantRef.current!, turn: 'w' }]);
+        setHistory(h => [...h, { squares: sqs, whiteCaptured: whiteCapturedRef.current, blackCaptured: blackCapturedRef.current, enPassant: enPassantRef.current!, turn: playerColor }]);
 
         // Check for pawn promotion BEFORE win check
-        if (movingPiece?.type === 'p' && movingPiece.color === 'w' && square[1] === '8') {
+        if (movingPiece?.type === 'p' && square[1] === (playerColor === 'w' ? '8' : '1')) {
           setPromotionPending({ from: sel, to: square });
           setLastMove({ from: sel, to: square });
           setSelectedSquare(null);
@@ -620,7 +640,7 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
           return;
         }
 
-        const win = checkGameOver(result.squares, result.enPassant, 'b');
+        const win = checkGameOver(result.squares, result.enPassant, playerColor === 'w' ? 'b' : 'w');
         setPlayerAnimatingMove({ from: sel, to: square, piece: movingPiece! });
         setLastMove({ from: sel, to: square });
         setSelectedSquare(null);
@@ -634,7 +654,7 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
           setPlayerAnimatingMove(null);
           if (win) {
             setWinner(win);
-            if (win === 'Белые победили!' && difficultyRef.current) {
+            if (win === (playerColor === 'w' ? 'Белые победили!' : 'Чёрные победили!') && difficultyRef.current) {
               const d = difficultyRef.current;
               setCompletedLevels(prev => {
                 const next = { ...prev, [d]: true };
@@ -644,9 +664,9 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
               onComplete();
             }
           } else {
-            setTurn('b');
-          turnRef.current = 'b';
-            if (hasNoMoves(result.squares, 'b', result.enPassant)) {
+            setTurn(playerColor === 'w' ? 'b' : 'w');
+          turnRef.current = playerColor === 'w' ? 'b' : 'w';
+            if (hasNoMoves(result.squares, playerColor === 'w' ? 'b' : 'w', result.enPassant)) {
               setWinner('Ничья');
             }
           }
@@ -654,36 +674,36 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
         return;
       }
 
-      if (piece && piece.color === 'w') {
+      if (piece && piece.color === playerColor) {
         selectedSquareRef.current = square;
         setSelectedSquare(square);
-        setValidSquares(getPieceMoves(square, sqs, 'w', enPassantRef.current));
+        setValidSquares(getPieceMoves(square, sqs, playerColor, enPassantRef.current));
       } else {
         selectedSquareRef.current = null;
         setSelectedSquare(null);
         setValidSquares([]);
       }
     } else {
-      if (piece && piece.color === 'w') {
+      if (piece && piece.color === playerColor) {
         selectedSquareRef.current = square;
         setSelectedSquare(square);
-        setValidSquares(getPieceMoves(square, sqs, 'w', enPassantRef.current));
+        setValidSquares(getPieceMoves(square, sqs, playerColor, enPassantRef.current));
       }
     }
-  }, [checkGameOver, onComplete, savedKey]);
+  }, [checkGameOver, onComplete, savedKey, playerColor]);
 
   const handlePromotion = useCallback((pieceCode: string) => {
     if (!promotionPending) return;
     const { from, to } = promotionPending;
     const sqs = { ...squares };
     delete sqs[from];
-    sqs[to] = { type: pieceCode, color: 'w' };
+    sqs[to] = { type: pieceCode, color: playerColor };
     setSquares(sqs);
     setPromotionPending(null);
 
     // Pawn reached rank 8 — immediate win
-    if (to[1] === '8') {
-      setWinner('Белые победили!');
+    if (to[1] === (playerColor === 'w' ? '8' : '1')) {
+      setWinner(playerColor === 'w' ? 'Белые победили!' : 'Чёрные победили!');
       if (difficultyRef.current) {
         const d = difficultyRef.current;
         setCompletedLevels(prev => {
@@ -696,10 +716,10 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
       return;
     }
 
-    const win = checkGameOver(sqs, enPassant, 'b');
+    const win = checkGameOver(sqs, enPassant, playerColor === 'w' ? 'b' : 'w');
     if (win) {
       setWinner(win);
-      if (win === 'Белые победили!' && difficultyRef.current) {
+      if (win === (playerColor === 'w' ? 'Белые победили!' : 'Чёрные победили!') && difficultyRef.current) {
         const d = difficultyRef.current;
         setCompletedLevels(prev => {
           const next = { ...prev, [d]: true };
@@ -709,13 +729,13 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
         onComplete();
       }
     } else {
-      setTurn('b');
-          turnRef.current = 'b';
-      if (hasNoMoves(sqs, 'b', enPassant)) {
+      setTurn(playerColor === 'w' ? 'b' : 'w');
+          turnRef.current = playerColor === 'w' ? 'b' : 'w';
+      if (hasNoMoves(sqs, playerColor === 'w' ? 'b' : 'w', enPassant)) {
         setWinner('Ничья');
       }
     }
-  }, [promotionPending, squares, enPassant, checkGameOver, onComplete, savedKey]);
+  }, [promotionPending, squares, enPassant, checkGameOver, onComplete, savedKey, playerColor]);
 
   useEffect(() => { clickRef.current = click; }, [click]);
 
@@ -723,8 +743,8 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
   const handlePointerDown = useCallback((e: React.PointerEvent, square: string) => {
     if (promotionPending) return;
     if (winnerRef.current) return;
-    if (turnRef.current !== 'w') return; // Wait for opponent's turn
-    if (turnRef.current === 'w' && hasNoMoves(squaresRef.current, 'w', enPassantRef.current)) {
+    if (turnRef.current !== playerColor) return; // Wait for opponent's turn
+    if (turnRef.current === playerColor && hasNoMoves(squaresRef.current, playerColor, enPassantRef.current)) {
       setWinner('Ничья');
       return;
     }
@@ -733,12 +753,12 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
     e.preventDefault();
     const sqs = squaresRef.current;
     const piece = sqs[square];
-    if (piece && piece.color === 'w') {
+    if (piece && piece.color === playerColor) {
       pointerStartRef.current = { x: e.clientX, y: e.clientY, square, moved: false, pointerId: e.pointerId };
       setSelectedSquare(square);
-      setValidSquares(getPieceMoves(square, sqs, 'w', enPassantRef.current));
+      setValidSquares(getPieceMoves(square, sqs, playerColor, enPassantRef.current));
     }
-  }, []);
+  }, [playerColor]);
 
   useEffect(() => {
     const handleGlobalMove = (e: PointerEvent) => {
@@ -751,7 +771,7 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
         start.moved = true;
         const sqs = squaresRef.current;
         const piece = sqs[start.square];
-        if (piece && piece.color === 'w') {
+        if (piece && piece.color === playerColor) {
           setDragPiece({ square: start.square, type: piece.type, color: piece.color });
           setSelectedSquare(null);
         }
@@ -764,7 +784,7 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
       const start = pointerStartRef.current;
       if (!start) return;
       if (e.pointerId !== start.pointerId) return;
-      if (turnRef.current !== 'w') return; // Block drag during black's turn
+      if (turnRef.current !== playerColor) { pointerStartRef.current = null; setDragPiece(null); return; } // Block drag during opponent's turn
       if (!start.moved) {
         clickRef.current(start.square);
       } else {
@@ -772,18 +792,18 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
         const cell = el?.closest('[data-square]') as HTMLElement | null;
         const targetSquare = cell?.dataset.square || null;
         if (targetSquare && targetSquare !== start.square) {
-          const valid = getPieceMoves(start.square, squaresRef.current, 'w', enPassantRef.current);
+          const valid = getPieceMoves(start.square, squaresRef.current, playerColor, enPassantRef.current);
           if (valid.includes(targetSquare)) {
             setPlayerAnimatingMove(null);
             const result = makeMove(squaresRef.current, enPassantRef.current, start.square, targetSquare);
-            if (result.captured && result.captured.color === 'b') {
-              setWhiteCaptured(prev => prev + 1);
+            if (result.captured && result.captured.color !== playerColor) {
+              if (playerColor === 'w') setWhiteCaptured(prev => prev + 1); else setBlackCaptured(prev => prev + 1);
             }
-            setHistory(h => [...h, { squares: squaresRef.current, whiteCaptured: whiteCapturedRef.current, blackCaptured: blackCapturedRef.current, enPassant: enPassantRef.current!, turn: 'w' }]);
+            setHistory(h => [...h, { squares: squaresRef.current, whiteCaptured: whiteCapturedRef.current, blackCaptured: blackCapturedRef.current, enPassant: enPassantRef.current!, turn: playerColor }]);
 
             // Check for pawn promotion BEFORE win check
             const movingPiece = squaresRef.current[start.square];
-            if (movingPiece?.type === 'p' && movingPiece.color === 'w' && targetSquare[1] === '8') {
+            if (movingPiece?.type === 'p' && targetSquare[1] === (playerColor === 'w' ? '8' : '1')) {
               setPromotionPending({ from: start.square, to: targetSquare });
               setLastMove({ from: start.square, to: targetSquare });
               setSelectedSquare(null);
@@ -794,7 +814,7 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
               return;
             }
 
-            const win = checkGameOver(result.squares, result.enPassant, 'b');
+            const win = checkGameOver(result.squares, result.enPassant, playerColor === 'w' ? 'b' : 'w');
             setLastMove({ from: start.square, to: targetSquare });
             setSelectedSquare(null);
             setValidSquares([]);
@@ -804,7 +824,7 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
               setWinner(win);
               setSquares(result.squares);
               setEnPassant(result.enPassant);
-              if (win === 'Белые победили!' && difficultyRef.current) {
+              if (win === (playerColor === 'w' ? 'Белые победили!' : 'Чёрные победили!') && difficultyRef.current) {
                 const d = difficultyRef.current;
                 setCompletedLevels(prev => {
                   const next = { ...prev, [d]: true };
@@ -816,9 +836,9 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
             } else {
               setSquares(result.squares);
               setEnPassant(result.enPassant);
-              setTurn('b');
-          turnRef.current = 'b';
-              if (hasNoMoves(result.squares, 'b', result.enPassant)) {
+              setTurn(playerColor === 'w' ? 'b' : 'w');
+          turnRef.current = playerColor === 'w' ? 'b' : 'w';
+              if (hasNoMoves(result.squares, playerColor === 'w' ? 'b' : 'w', result.enPassant)) {
                 setWinner('Ничья');
               }
             }
@@ -845,13 +865,17 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
       window.removeEventListener('pointerup', handleGlobalUp);
       window.removeEventListener('pointercancel', handleGlobalCancel);
     };
-  }, [checkGameOver, onComplete, savedKey]);
+  }, [checkGameOver, onComplete, savedKey, playerColor]);
 
   const isLight = (f: number, r: number) => (f + r) % 2 === 0;
+  const isReversed = playerColor === 'b';
+  const displayFiles = isReversed ? [...FILES].reverse() : FILES;
+  const displayRanks = isReversed ? [...RANKS].reverse() : RANKS;
+  const squarePosition = (square: string) => ({ x: (isReversed ? 7 - FILES.indexOf(square[0]) : FILES.indexOf(square[0])) * sqSize, y: (isReversed ? 7 - RANKS.indexOf(square[1]) : RANKS.indexOf(square[1])) * sqSize });
   const validMoves = selectedSquare
-    ? getPieceMoves(selectedSquare, squares, 'w', enPassant)
+    ? getPieceMoves(selectedSquare, squares, playerColor, enPassant)
     : dragPiece
-      ? getPieceMoves(dragPiece.square, squares, 'w', enPassant)
+      ? getPieceMoves(dragPiece.square, squares, playerColor, enPassant)
       : [];
 
   // ═══════════════════════════════════════════════════════════════
@@ -870,6 +894,11 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
           <h3 className="text-[20px] font-bold text-[#2C241B] text-center">Выберите уровень сложности</h3>
         )}
         <div className="flex flex-col gap-3 w-full max-w-sm">
+          <div className="flex gap-2 w-full">
+            <button onClick={() => setSelectedColor('w')} className={`flex-1 flex items-center justify-center gap-1 rounded-xl border px-2 py-2.5 text-xs font-bold ${selectedColor === 'w' ? 'border-[#C9A84C] bg-[#C9A84C]/10 text-[#8A6A3A]' : 'border-[rgba(201,168,76,0.25)] bg-white text-[#8B7355]'}`}><img src="/pieces/cburnett/wP.svg" alt="" className="w-5 h-5" />Белые</button>
+            <button onClick={() => setSelectedColor('random')} className={`flex-1 flex items-center justify-center gap-1 rounded-xl border px-2 py-2.5 text-xs font-bold ${selectedColor === 'random' ? 'border-[#C9A84C] bg-[#C9A84C]/10 text-[#8A6A3A]' : 'border-[rgba(201,168,76,0.25)] bg-white text-[#8B7355]'}`}>↻ Случайно</button>
+            <button onClick={() => setSelectedColor('b')} className={`flex-1 flex items-center justify-center gap-1 rounded-xl border px-2 py-2.5 text-xs font-bold ${selectedColor === 'b' ? 'border-[#C9A84C] bg-[#C9A84C]/10 text-[#8A6A3A]' : 'border-[rgba(201,168,76,0.25)] bg-white text-[#8B7355]'}`}><img src="/pieces/cburnett/bP.svg" alt="" className="w-5 h-5" />Чёрные</button>
+          </div>
           {LEVELS.map(level => {
             const isCompleted = completedLevels[level.id];
             const circleColor = level.color;
@@ -957,8 +986,8 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
             touchAction: 'none',
           }}
         >
-          {RANKS.map((rank, ri) =>
-            FILES.map((file, fi) => {
+          {displayRanks.map((rank, ri) =>
+            displayFiles.map((file, fi) => {
               const sq = `${file}${rank}`;
               const pieceObj = squares[sq];
               const light = isLight(fi, ri);
@@ -979,7 +1008,7 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
                   style={{
                     width: sqSize,
                     height: sqSize,
-                    cursor: pieceObj && pieceObj.color === 'w' ? 'grab' : 'default',
+                    cursor: pieceObj && pieceObj.color === playerColor ? 'grab' : 'default',
                     touchAction: 'none',
                     backgroundColor: light ? 'var(--square-light)' : 'var(--square-dark)',
                   }}
@@ -1024,7 +1053,7 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
                     </div>
                   )}
                   {/* Capture ring — opponent piece can be captured */}
-                  {isValidMove && pieceObj && pieceObj.color !== 'w' && (
+                  {isValidMove && pieceObj && pieceObj.color !== playerColor && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
                       <div
                         style={{
@@ -1056,6 +1085,7 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
               piece={playerAnimatingMove.piece}
               sqSize={sqSize}
               opponent={false}
+              isReversed={isReversed}
             />
           )}
           {opponentAnimatingMove && (
@@ -1065,16 +1095,17 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
               piece={opponentAnimatingMove.piece}
               sqSize={sqSize}
               opponent={true}
+              isReversed={isReversed}
             />
           )}
           {/* Promotion picker */}
           {promotionPending && (
             <div className="absolute z-50 pointer-events-auto" style={{
-              left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
-              top: 0,
+              left: `${squarePosition(promotionPending.to).x}px`,
+              top: `${squarePosition(promotionPending.to).y < 4 * sqSize ? squarePosition(promotionPending.to).y : squarePosition(promotionPending.to).y - 3 * sqSize}px`,
               width: sqSize,
               height: 4 * sqSize,
-              backgroundColor: squares[promotionPending.to]?.color === 'b' ? '#F5F0E8' : '#2C241B',
+              backgroundColor: playerColor === 'b' ? '#F5F0E8' : '#2C241B',
               borderRadius: '0px',
               boxShadow: '0 4px 16px rgba(0,0,0,0.35)',
               display: 'flex',
@@ -1118,7 +1149,7 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
                       justifyContent: 'center',
                     }}
                   >
-                    <PieceImg type={code} color="w" />
+                    <PieceImg type={code} color={playerColor} />
                   </div>
                 </button>
               ))}
@@ -1171,6 +1202,7 @@ export default function KnightPawnBoard({ onComplete, lessonId, lessonTitle }: {
             setBlackCaptured(prev.blackCaptured);
             setEnPassant(prev.enPassant);
             setTurn(prev.turn);
+            turnRef.current = prev.turn;
             setLastMove(null);
             setWinner(null);
             setHistory(h => h.slice(0, -1));
