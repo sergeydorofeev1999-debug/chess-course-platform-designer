@@ -117,32 +117,25 @@ const HINTS: Record<number, { from: string; to: string; phase: number }[]> = {
   ],
 };
 
-function getFreePlayHintArrow(game: Chess, exercise: number): { from: string; to: string; phase: number }[] {
+function getFreePlayHintArrow(game: Chess, exercise: number, moveIndex: number): { from: string; to: string; phase: number }[] {
   const pieceAt = (square: string, type: string) => {
     const piece = game.get(square as any);
     return piece?.color === 'w' && piece.type === type;
   };
   const legalMoves = game.moves({ verbose: true });
+  const developmentMoves = [
+    { from: 'd2', to: 'd3', piece: 'p', complete: !pieceAt('d2', 'p') },
+    { from: 'b1', to: 'c3', piece: 'n', complete: !pieceAt('b1', 'n') },
+    { from: 'c1', to: 'g5', piece: 'b', complete: !pieceAt('c1', 'b') },
+  ];
   const remainingMoves = exercise === 6
-    ? [
-        { from: 'd2', to: 'd3', complete: !pieceAt('d2', 'p') },
-        { from: 'b1', to: 'c3', complete: !pieceAt('b1', 'n') },
-      ]
-    : exercise === 4
-      ? [
-          { from: 'd2', to: 'd3', complete: !pieceAt('d2', 'p') },
-          { from: 'b1', to: 'c3', complete: !pieceAt('b1', 'n') },
-          { from: 'c1', to: 'g5', complete: !pieceAt('c1', 'b') },
-        ]
-      : [
-          { from: 'd2', to: 'd3', complete: !pieceAt('d2', 'p') },
-          { from: 'b1', to: 'c3', complete: !pieceAt('b1', 'n') },
-          { from: 'c1', to: 'g5', complete: !pieceAt('c1', 'b') },
-          { from: 'e1', to: 'g1', complete: !pieceAt('e1', 'k') },
-        ];
+    ? developmentMoves.slice(0, 2)
+    : exercise === 4 && moveIndex >= 4
+      ? [developmentMoves[2], developmentMoves[0], developmentMoves[1]]
+      : [...developmentMoves, ...(exercise === 4 ? [] : [{ from: 'e1', to: 'g1', piece: 'k', complete: !pieceAt('e1', 'k') }])];
 
   const nextMove = remainingMoves.find(move =>
-    !move.complete && legalMoves.some(legal => legal.from === move.from && legal.to === move.to)
+    !move.complete && legalMoves.some(legal => legal.from === move.from && legal.to === move.to && legal.piece === move.piece)
   );
   return nextMove ? [{ from: nextMove.from, to: nextMove.to, phase: 0 }] : [];
 }
@@ -2917,7 +2910,7 @@ const handleSquareClick = useCallback((square: string) => {
             (() => {
               const arrows = HINTS[exercise] || [];
               const phaseArrows = game && ((exercise === 2 && whiteMoves >= 3 && whiteMoves < 7) || (exercise === 4 && whiteMoves >= 3 && whiteMoves <= 5) || (exercise === 6 && whiteMoves >= 3 && whiteMoves < 5))
-                ? getFreePlayHintArrow(game, exercise)
+                ? getFreePlayHintArrow(game, exercise, whiteMoves)
                 : arrows.filter(a => a.phase === whiteMoves);
               const displayedArrows = (exercise === 5 || exercise === 6) && (whiteMoves === 13 || whiteMoves === 14) && game
                 ? phaseArrows.filter(arrow => game.moves({ square: arrow.from as any, verbose: true }).some(move => move.to === arrow.to)).slice(0, 1)

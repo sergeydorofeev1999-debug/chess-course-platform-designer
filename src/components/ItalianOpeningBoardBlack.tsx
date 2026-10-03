@@ -115,12 +115,32 @@ function getFreePlayHintArrow(game: Chess): { from: string; to: string; phase: n
   };
   const legalMoves = game.moves({ verbose: true });
   const remainingMoves = [
-    { from: 'd7', to: 'd6', type: 'p', complete: !pieceAt('d7', 'p') },
-    { from: 'g8', to: 'f6', type: 'n', complete: !pieceAt('g8', 'n') },
-    { from: 'c8', to: 'g4', type: 'b', complete: !pieceAt('c8', 'b') },
+    { from: 'd7', to: 'd6', piece: 'p', complete: !pieceAt('d7', 'p') },
+    { from: 'g8', to: 'f6', piece: 'n', complete: !pieceAt('g8', 'n') },
+    { from: 'c8', to: 'g4', piece: 'b', complete: !pieceAt('c8', 'b') },
   ];
   const nextMove = remainingMoves.find(move =>
-    !move.complete && legalMoves.some(legal => legal.from === move.from && legal.to === move.to && legal.piece === move.type)
+    !move.complete && legalMoves.some(legal => legal.from === move.from && legal.to === move.to && legal.piece === move.piece)
+  );
+  return nextMove ? [{ from: nextMove.from, to: nextMove.to, phase: 0 }] : [];
+}
+
+function getExerciseFourFreePlayHintArrow(game: Chess, moveIndex: number): { from: string; to: string; phase: number }[] {
+  const pieceAt = (square: string, type: string) => {
+    const piece = game.get(square as any);
+    return piece?.color === 'b' && piece.type === type;
+  };
+  const legalMoves = game.moves({ verbose: true });
+  const developmentMoves = [
+    { from: 'd7', to: 'd6', piece: 'p', complete: !pieceAt('d7', 'p') },
+    { from: 'g8', to: 'f6', piece: 'n', complete: !pieceAt('g8', 'n') },
+    { from: 'c8', to: 'g4', piece: 'b', complete: !pieceAt('c8', 'b') },
+  ];
+  const remainingMoves = moveIndex >= 4
+    ? [developmentMoves[2], developmentMoves[0], developmentMoves[1]]
+    : developmentMoves;
+  const nextMove = remainingMoves.find(move =>
+    !move.complete && legalMoves.some(legal => legal.from === move.from && legal.to === move.to && legal.piece === move.piece)
   );
   return nextMove ? [{ from: nextMove.from, to: nextMove.to, phase: 0 }] : [];
 }
@@ -2904,10 +2924,12 @@ setLastMove({ from: 'd1', to: 'f3' });
             {(() => {
               const arrows = HINTS[exercise] || [];
               const isFreePlay = (exercise === 2 || exercise === 4) && blackMoves >= 3 && blackMoves <= 5;
-              const phaseArrows = exercise === 2 && blackMoves === 6 && game
-                ? getExerciseTwoCastlingHintArrow(game)
-                : isFreePlay && game
-                  ? getFreePlayHintArrow(game)
+              const phaseArrows = isFreePlay && game
+                ? exercise === 4
+                  ? getExerciseFourFreePlayHintArrow(game, blackMoves)
+                  : getFreePlayHintArrow(game)
+                : exercise === 2 && blackMoves === 6 && game
+                  ? getExerciseTwoCastlingHintArrow(game)
                   : arrows.filter(a => a.phase === blackMoves);
               const showArrows = hintVisible && !isFail && !isComplete && !selectedSquare;
               return (
