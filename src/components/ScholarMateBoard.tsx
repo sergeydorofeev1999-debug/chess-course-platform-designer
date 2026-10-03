@@ -1291,12 +1291,6 @@ const handleSquareClick = useCallback((square: string) => {
                exercise === 5 ? 'Сыграйте конём на f6 — защитите пункт h5 от детского мата!' :
                exercise === 6 ? 'Самостоятельно: сыграйте e5, Nf6 — защититесь от детского мата!' : ''}
             </p>
-            {whiteMoves === 0 && (
-              <p className="text-xs text-[var(--text-secondary)] mt-1.5 leading-snug">
-                {exercise <= 4 ? 'Цель: поставьте детский мат.' :
-                 exercise >= 5 ? 'Цель: защититесь от детского мата.' : ''}
-              </p>
-            )}
           </AvatarBubble>
         </div>
 
