@@ -125,6 +125,13 @@ function getFreePlayHintArrow(game: Chess): { from: string; to: string; phase: n
   return nextMove ? [{ from: nextMove.from, to: nextMove.to, phase: 0 }] : [];
 }
 
+function getExerciseTwoCastlingHintArrow(game: Chess): { from: string; to: string; phase: number }[] {
+  const king = game.get('e8' as any);
+  const canCastleShort = game.turn() === 'b' && king?.color === 'b' && king.type === 'k'
+    && game.moves({ square: 'e8' as any, verbose: true }).some(move => move.to === 'g8' && move.flags.includes('k'));
+  return canCastleShort ? [{ from: 'e8', to: 'g8', phase: 6 }] : [];
+}
+
 function findSafeWhiteCapture(currentGame: Chess): { from: string; to: string } | null {
   const whiteMoves = currentGame.moves({ verbose: true });
   const captures = whiteMoves.filter((m: any) => m.captured);
@@ -2897,9 +2904,11 @@ setLastMove({ from: 'd1', to: 'f3' });
             {(() => {
               const arrows = HINTS[exercise] || [];
               const isFreePlay = exercise === 2 && blackMoves >= 3 && blackMoves <= 5;
-              const phaseArrows = isFreePlay && game
-                ? getFreePlayHintArrow(game)
-                : arrows.filter(a => a.phase === blackMoves);
+              const phaseArrows = exercise === 2 && blackMoves === 6 && game
+                ? getExerciseTwoCastlingHintArrow(game)
+                : isFreePlay && game
+                  ? getFreePlayHintArrow(game)
+                  : arrows.filter(a => a.phase === blackMoves);
               const showArrows = hintVisible && !isFail && !isComplete && !selectedSquare;
               return (
                 <svg key={`${exercise}-${blackMoves}`} className="absolute pointer-events-none z-[35]" style={{ top: 3, left: 3, width: 8 * sqSize, height: 8 * sqSize, display: showArrows && phaseArrows.length > 0 ? 'block' : 'none' }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
