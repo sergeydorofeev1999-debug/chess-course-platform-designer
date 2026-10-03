@@ -1282,7 +1282,7 @@ const handleSquareClick = useCallback((square: string) => {
           <AvatarBubble className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
             <p className="text-sm text-[var(--text-primary)] leading-snug">
               {exercise === 1 && whiteMoves === 0 ? 'Детский мат. Сыграйте e2-e4 — захватите центр пешкой.' :
-               exercise === 1 && whiteMoves === 1 ? 'Сыграйте Bf1-c4 — направьте слона на поле f7.' :
+               exercise === 1 && whiteMoves === 1 ? 'Сыграйте слоном с f1 на c4 — направьте слона на поле f7.' :
                exercise === 1 && whiteMoves === 2 ? 'Выведите ферзя на h5 — угрожайте матом на f7.' :
                exercise === 1 && whiteMoves === 3 ? 'Заберите пешку на f7 — мат!' :
                exercise === 2 ? 'Повторите детский мат: e4, Bc4, Qh5, Qxf7#' :
@@ -1297,7 +1297,7 @@ const handleSquareClick = useCallback((square: string) => {
         {/* Desktop hint banner */}
         <div className="hidden lg:block px-6 py-3 rounded-xl text-center font-bold text-white bg-[#C9A84C] mb-2 w-full">
           {exercise === 1 && whiteMoves === 0 ? 'Детский мат. Сыграйте e2-e4 — захватите центр пешкой.' :
-           exercise === 1 && whiteMoves === 1 ? 'Сыграйте Bf1-c4 — направьте слона на поле f7.' :
+           exercise === 1 && whiteMoves === 1 ? 'Сыграйте слоном с f1 на c4 — направьте слона на поле f7.' :
            exercise === 1 && whiteMoves === 2 ? 'Выведите ферзя на h5 — угрожайте матом на f7.' :
            exercise === 1 && whiteMoves === 3 ? 'Заберите пешку на f7 — мат!' :
            exercise === 2 ? 'Повторите детский мат: e4, Bc4, Qh5, Qxf7#' :
