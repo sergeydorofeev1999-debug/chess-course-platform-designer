@@ -274,7 +274,7 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
                 : 'bg-[#F5EFE6] border-2 border-[#D4C5B5] hover:border-[#C9A84C] hover:bg-[#EBE4DA]'
             }`}
           >
-            <div className="flex items-center justify-center w-5 h-5 -space-x-1">
+            <div className="flex -space-x-1">
               <div className="w-5 h-5"><PieceImg type="k" color="b" size={20} /></div>
               <div className="w-5 h-5"><PieceImg type="k" color="w" size={20} /></div>
             </div>
