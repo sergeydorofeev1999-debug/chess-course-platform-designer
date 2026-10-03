@@ -176,7 +176,7 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
   /* ═══════════════════════════ SETTINGS ═══════════════════════════ */
   if (phase === 'settings') {
     return (
-      <div className="flex flex-col items-center gap-5 w-full max-w-lg mx-auto px-4 py-6">
+      <div className="flex flex-col items-center gap-5 w-full max-w-lg mx-auto px-4 py-6 text-[var(--text-primary)]">
         {/* Hero card */}
         <div
           className="rounded-2xl py-7 px-6 w-full text-center relative overflow-hidden mb-4"
@@ -205,7 +205,7 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
             className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-150 ease-out flex items-center justify-center gap-2 ${
               mode === 'find'
                 ? 'bg-[#5A4A3A] text-white'
-                : 'bg-[#F9F8F6] text-[#5A4A3A] border border-[#D4C5B5] hover:bg-white hover:border-[#C9A84C]'
+                : 'bg-white text-[#5A4A3A] border border-[rgba(92,64,51,0.12)] hover:bg-[var(--bg-elevated)] hover:border-[#C9A84C]'
             }`}
           >
             <Target className={`w-5 h-5 ${mode === 'find' ? 'text-white' : 'text-[#8B7355]'}`} />
@@ -216,7 +216,7 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
             className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-150 ease-out flex items-center justify-center gap-2 ${
               mode === 'name'
                 ? 'bg-[#5A4A3A] text-white'
-                : 'bg-[#F9F8F6] text-[#5A4A3A] border border-[#D4C5B5] hover:bg-white hover:border-[#C9A84C]'
+                : 'bg-white text-[#5A4A3A] border border-[rgba(92,64,51,0.12)] hover:bg-[var(--bg-elevated)] hover:border-[#C9A84C]'
             }`}
           >
             <PenLine className={`w-5 h-5 ${mode === 'name' ? 'text-white' : 'text-[#8B7355]'}`} />
@@ -231,7 +231,7 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
             className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-150 ease-out flex items-center justify-center gap-2 ${
               timeMode === 'unlimited'
                 ? 'bg-[#5A4A3A] text-white'
-                : 'bg-[#F9F8F6] text-[#5A4A3A] border border-[#D4C5B5] hover:bg-white hover:border-[#C9A84C]'
+                : 'bg-white text-[#5A4A3A] border border-[rgba(92,64,51,0.12)] hover:bg-[var(--bg-elevated)] hover:border-[#C9A84C]'
             }`}
           >
             <Infinity className={`w-5 h-5 ${timeMode === 'unlimited' ? 'text-white' : 'text-[#8B7355]'}`} />
@@ -242,7 +242,7 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
             className={`flex-1 py-3 px-4 rounded-lg font-medium text-sm transition-all duration-150 ease-out flex items-center justify-center gap-2 ${
               timeMode === '30'
                 ? 'bg-[#5A4A3A] text-white'
-                : 'bg-[#F9F8F6] text-[#5A4A3A] border border-[#D4C5B5] hover:bg-white hover:border-[#C9A84C]'
+                : 'bg-white text-[#5A4A3A] border border-[rgba(92,64,51,0.12)] hover:bg-[var(--bg-elevated)] hover:border-[#C9A84C]'
             }`}
           >
             <Timer className={`w-5 h-5 ${timeMode === '30' ? 'text-white' : 'text-[#8B7355]'}`} />
@@ -256,8 +256,8 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
             onClick={() => setSide('white')}
             className={`w-14 h-14 rounded-lg flex items-center justify-center transition-all duration-150 ease-out ${
               side === 'white'
-                ? 'bg-[#5A4A3A] border-2 border-[#5A4A3A] scale-105 shadow-[0_2px_8px_rgba(90,74,58,0.25)]'
-                : 'bg-white border-2 border-[#D4C5B5] hover:border-[#C9A84C] hover:bg-[#F9F8F6]'
+                ? 'bg-[#5A4A3A] border-2 border-[#5A4A3A] scale-105 shadow-[0_2px_8px_rgba(44,36,27,0.22)]'
+                : 'bg-[var(--bg-elevated)] border-2 border-[rgba(92,64,51,0.12)] hover:border-[#C9A84C] hover:bg-white'
             }`}
           >
             <div className="w-8 h-8"><PieceImg type="k" color="w" size={32} /></div>
@@ -266,8 +266,8 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
             onClick={() => setSide('random')}
             className={`w-14 h-14 rounded-lg flex items-center justify-center transition-all duration-150 ease-out ${
               side === 'random'
-                ? 'bg-[#5A4A3A] border-2 border-[#5A4A3A] scale-105 shadow-[0_2px_8px_rgba(90,74,58,0.25)]'
-                : 'bg-white border-2 border-[#D4C5B5] hover:border-[#C9A84C] hover:bg-[#F9F8F6]'
+                ? 'bg-[#5A4A3A] border-2 border-[#5A4A3A] scale-105 shadow-[0_2px_8px_rgba(44,36,27,0.22)]'
+                : 'bg-[var(--bg-elevated)] border-2 border-[rgba(92,64,51,0.12)] hover:border-[#C9A84C] hover:bg-white'
             }`}
           >
             <div className="flex -space-x-1">
@@ -279,8 +279,8 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
             onClick={() => setSide('black')}
             className={`w-14 h-14 rounded-lg flex items-center justify-center transition-all duration-150 ease-out ${
               side === 'black'
-                ? 'bg-[#5A4A3A] border-2 border-[#5A4A3A] scale-105 shadow-[0_2px_8px_rgba(90,74,58,0.25)]'
-                : 'bg-white border-2 border-[#D4C5B5] hover:border-[#C9A84C] hover:bg-[#F9F8F6]'
+                ? 'bg-[#5A4A3A] border-2 border-[#5A4A3A] scale-105 shadow-[0_2px_8px_rgba(44,36,27,0.22)]'
+                : 'bg-[var(--bg-elevated)] border-2 border-[rgba(92,64,51,0.12)] hover:border-[#C9A84C] hover:bg-white'
             }`}
           >
             <div className="w-8 h-8"><PieceImg type="k" color="b" size={32} /></div>
@@ -288,16 +288,16 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
         </div>
 
         {/* Toggles */}
-        <div className="flex flex-col w-full gap-3 bg-white rounded-xl p-3 shadow-sm border border-[#E8E0D5]">
+        <div className="flex flex-col w-full gap-3 bg-[var(--bg-elevated)] rounded-xl p-3 shadow-sm border border-[rgba(92,64,51,0.08)]">
           <label className="flex items-center justify-between text-sm">
             <span className="text-[#2C241B] font-medium">Показывать координаты</span>
-            <button onClick={() => setCoords(v => !v)} className={`w-12 h-6 rounded-full transition-all duration-200 ${showCoords ? 'bg-[#C9A84C]' : 'bg-[#D4C5B5]'}`}>
+            <button onClick={() => setCoords(v => !v)} className={`w-12 h-6 rounded-full transition-all duration-200 ${showCoords ? 'bg-[#C9A84C]' : 'bg-[rgba(92,64,51,0.18)]'}`}>
               <span className={`block w-5 h-5 bg-white rounded-full mt-0.5 transition-all duration-200 ${showCoords ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
           </label>
           <label className="flex items-center justify-between text-sm">
             <span className="text-[#2C241B] font-medium">Показывать фигуры</span>
-            <button onClick={() => setPieces(v => !v)} className={`w-12 h-6 rounded-full transition-all duration-200 ${showPieces ? 'bg-[#C9A84C]' : 'bg-[#D4C5B5]'}`}>
+            <button onClick={() => setPieces(v => !v)} className={`w-12 h-6 rounded-full transition-all duration-200 ${showPieces ? 'bg-[#C9A84C]' : 'bg-[rgba(92,64,51,0.18)]'}`}>
               <span className={`block w-5 h-5 bg-white rounded-full mt-0.5 transition-all duration-200 ${showPieces ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
           </label>
@@ -357,7 +357,7 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
         <div className="flex w-full gap-3">
           <button
             onClick={() => setPhase('settings')}
-            className="flex-1 py-3 px-4 bg-[#4A3A2A] hover:bg-[#5A4A3A] text-white rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition duration-150"
+            className="flex-1 py-3 px-4 bg-[#2C241B] hover:bg-[#3A2E1F] text-white rounded-lg font-medium text-sm flex items-center justify-center gap-2 transition duration-150"
           >
             <ArrowLeft className="w-4 h-4 text-white" /> Настройки
           </button>
@@ -400,7 +400,7 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
     <div className="flex flex-col items-center gap-2 w-full px-2">
       {/* Timer bar */}
       {timeMode === '30' && (
-        <div className="w-full h-1.5 bg-[#E8E0D5] rounded-full overflow-hidden">
+        <div className="w-full h-1.5 bg-[rgba(92,64,51,0.12)] rounded-full overflow-hidden">
           <div
             className="h-full bg-[#C9A84C] rounded-full"
             style={{
@@ -412,7 +412,7 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
       )}
 
       {/* Score / Time bar */}
-      <div className="flex w-full justify-between items-center bg-white rounded-xl p-3 border border-[#E8E0D5] shadow-sm">
+      <div className="flex w-full justify-between items-center bg-[var(--bg-elevated)] rounded-xl p-3 border border-[rgba(92,64,51,0.08)] shadow-sm">
         <div className="flex flex-col">
           <span className="text-[#8B7355] text-xs uppercase">Результат</span>
           <span className="text-[#2C241B] font-bold text-lg">{score}</span>
@@ -428,9 +428,9 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
       {/* Prompt (find mode) */}
       {mode === 'find' && target && (
         <div
-          className="text-center py-4 rounded-xl border border-[#E8E0D5] w-full mb-2"
+          className="text-center py-4 rounded-xl border border-[rgba(92,64,51,0.08)] w-full mb-2"
           style={{
-            background: 'linear-gradient(180deg, #FFFFFF 0%, #F9F8F6 100%)',
+            background: 'var(--card-bg)',
           }}
         >
           <span className="text-5xl font-bold text-[#2C241B]" style={{ textShadow: '0 1px 2px rgba(44,36,27,0.1)' }}>{target}</span>
@@ -511,7 +511,7 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
         <div className="grid grid-cols-2 gap-2 w-full max-w-sm mt-2">
           {nameOpts.map(opt => (
             <button key={opt} onClick={() => handleName(opt)}
-              className="py-3 bg-white border-2 border-[#D4C5B5] rounded-lg font-bold text-lg text-[#2C241B] transition-all duration-150 ease-out hover:bg-[#F9F8F6] hover:border-[#C9A84C] hover:-translate-y-[1px] hover:shadow-[0_2px_8px_rgba(201,168,76,0.15)] active:scale-[0.97] active:bg-[#E8E0D5]"
+              className="py-3 bg-[var(--bg-elevated)] border-2 border-[rgba(92,64,51,0.12)] rounded-lg font-bold text-lg text-[#2C241B] transition-all duration-150 ease-out hover:bg-[var(--bg-elevated)] hover:border-[#C9A84C] hover:-translate-y-[1px] hover:shadow-[0_2px_8px_rgba(201,168,76,0.15)] active:scale-[0.97] active:bg-[rgba(92,64,51,0.12)]"
             >
               {opt}
             </button>
@@ -521,7 +521,7 @@ export default function CoordinateTrainingBoard({ onComplete }: Props) {
 
       {/* Stop */}
       <div className="flex gap-2 mt-2 w-full max-w-sm">
-        <button onClick={stopGame} className="flex-1 py-2.5 bg-[#F5F0E8] text-[#2C241B] border border-[#D4C9B8] rounded-lg text-sm font-medium transition duration-150 hover:bg-[#EBE4DA]">Стоп</button>
+        <button onClick={stopGame} className="flex-1 py-2.5 bg-[#F5F0EB] text-[#2C241B] border border-[rgba(92,64,51,0.12)] rounded-lg text-sm font-medium transition duration-150 hover:bg-[#EDE8E2]">Стоп</button>
       </div>
     </div>
   );
