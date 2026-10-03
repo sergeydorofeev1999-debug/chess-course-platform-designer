@@ -145,6 +145,22 @@ function getExerciseFourFreePlayHintArrow(game: Chess, moveIndex: number): { fro
   return nextMove ? [{ from: nextMove.from, to: nextMove.to, phase: 0 }] : [];
 }
 
+function getExerciseSixFreePlayHintArrow(game: Chess): { from: string; to: string; phase: number }[] {
+  const pieceAt = (square: string, type: string) => {
+    const piece = game.get(square as any);
+    return piece?.color === 'b' && piece.type === type;
+  };
+  const remainingMoves = [
+    { from: 'd7', to: 'd6', piece: 'p', complete: !pieceAt('d7', 'p') },
+    { from: 'g8', to: 'f6', piece: 'n', complete: !pieceAt('g8', 'n') },
+  ];
+  const legalMoves = game.moves({ verbose: true });
+  const nextMove = remainingMoves.find(move =>
+    !move.complete && legalMoves.some(legal => legal.from === move.from && legal.to === move.to && legal.piece === move.piece)
+  );
+  return nextMove ? [{ from: nextMove.from, to: nextMove.to, phase: 0 }] : [];
+}
+
 function getExerciseTwoCastlingHintArrow(game: Chess): { from: string; to: string; phase: number }[] {
   const king = game.get('e8' as any);
   const canCastleShort = game.turn() === 'b' && king?.color === 'b' && king.type === 'k'
@@ -2779,7 +2795,6 @@ setLastMove({ from: 'd1', to: 'f3' });
        blackMoves === 2 ? 'Сыграйте слоном с f8 на c5 — так начинается итальянская партия.' :
        blackMoves === 3 ? 'Сыграйте пешкой d7-d6 — откройте дорогу слону c8.' :
        blackMoves === 4 ? 'Развейте второго коня, переместив его с g8 на f6.' :
-       blackMoves === 5 ? 'Сыграйте слоном с c8 на g4 — свяжите коня f3.' :
        blackMoves === 6 ? 'Конь идёт на d4 и нападает на белого коня f3.' :
        blackMoves === 7 ? 'Конь забирает белого коня на f3.' :
        blackMoves === 8 ? 'Слон идёт на h3 и нападает на ладью.' :
@@ -2790,22 +2805,26 @@ setLastMove({ from: 'd1', to: 'f3' });
        blackMoves === 13 ? 'Слон забирает пешку на f3 — вскрытый шах!' :
        blackMoves === 14 ? 'Ладья забирает слона на g5 — мат! Дырокол выполнен!' :
        'Смотрите, как завершается партия.')
-    : exercise === 5
+    : exercise === 6
     ? (blackMoves === 0 ? 'Пешечный штурм — захватите центр, выведите коней и слонов и атакуйте рокировку соперника!' :
        blackMoves === 1 ? 'Конь выходит на c6 — ближе к центру и защищает пешку e5.' :
        blackMoves === 2 ? 'Сыграйте слоном с f8 на c5 — так начинается итальянская партия.' :
-       blackMoves === 3 ? 'Сыграйте пешкой d7-d6 — откройте дорогу слону c8.' :
-       blackMoves === 4 ? 'Развейте второго коня, переместив его с g8 на f6.' :
-       blackMoves === 5 ? 'Пешка h6 — не даём слону чёрных выйти на g5.' :
-       blackMoves === 6 ? 'Пешка g5 — начинаем пешечный штурм!' :
-       blackMoves === 7 ? 'Пешка g4 — продолжаем штурм!' :
-       blackMoves === 8 ? 'Пешка g3 — идём вперёд!' :
-       blackMoves === 9 ? 'Слон забирает пешку на f2.' :
-       blackMoves === 10 ? 'Конь с f6 на g4 — подключаем коня к атаке.' :
-       blackMoves === 11 ? 'Конь идёт на h2.' :
-       blackMoves === 12 ? 'Ферзь забирает пешку на h4 — готовим удар!' :
-       blackMoves === 13 ? 'Слон забирает коня на g3.' :
-       blackMoves === 14 ? 'Ферзь бьёт коня на h2 — мат! Пешечный штурм выполнен!' :
+       blackMoves >= 3 && blackMoves <= 4 ? (game?.get('d6' as any)?.color === 'b'
+         ? 'Сыграйте конём g8-f6.'
+         : 'Сыграйте пешкой d7-d6 — откройте дорогу слону c8.') :
+       blackMoves === 5 ? (game?.get('f6' as any)?.color === 'b'
+         ? 'Сыграйте пешкой d7-d6.'
+         : 'Развейте коня: g8-f6.') :
+       blackMoves === 6 ? 'Пешка h6 — не даём слону чёрных выйти на g5.' :
+       blackMoves === 7 ? 'Пешка g5 — начинаем пешечный штурм!' :
+       blackMoves === 8 ? 'Пешка g4 — продолжаем штурм!' :
+       blackMoves === 9 ? 'Пешка g3 — идём вперёд!' :
+       blackMoves === 10 ? 'Слон забирает пешку на f2.' :
+       blackMoves === 11 ? 'Конь с f6 на g4 — подключаем коня к атаке.' :
+       blackMoves === 12 ? 'Конь идёт на h2.' :
+       blackMoves === 13 ? 'Ферзь забирает пешку на h4 — готовим удар!' :
+       blackMoves === 14 ? 'Слон забирает коня на g3.' :
+       blackMoves === 15 ? 'Ферзь бьёт коня на h2 — мат! Пешечный штурм выполнен!' :
        'Смотрите, как завершается партия.')
     : '';
 
@@ -2923,11 +2942,14 @@ setLastMove({ from: 'd1', to: 'f3' });
             {/* Hint arrows SVG overlay */}
             {(() => {
               const arrows = HINTS[exercise] || [];
-              const isFreePlay = (exercise === 2 || exercise === 4) && blackMoves >= 3 && blackMoves <= 5;
+              const isFreePlay = ((exercise === 2 || exercise === 4) && blackMoves >= 3 && blackMoves <= 5)
+                || (exercise === 6 && blackMoves >= 3 && blackMoves <= 4);
               const phaseArrows = isFreePlay && game
                 ? exercise === 4
                   ? getExerciseFourFreePlayHintArrow(game, blackMoves)
-                  : getFreePlayHintArrow(game)
+                  : exercise === 6
+                    ? getExerciseSixFreePlayHintArrow(game)
+                    : getFreePlayHintArrow(game)
                 : exercise === 2 && blackMoves === 6 && game
                   ? getExerciseTwoCastlingHintArrow(game)
                   : arrows.filter(a => a.phase === blackMoves);
