@@ -1307,6 +1307,7 @@ const handleSquareClick = useCallback((square: string) => {
                exercise === 7 && whiteMoves === 1 ? 'Сыграйте конём на c6 — защитите пешку на e5.' :
                exercise === 7 && whiteMoves === 2 ? 'Пешка g7-g6 — перекройте дорогу белому ферзю.' :
                exercise === 7 && whiteMoves === 3 ? 'Конь f6 — перекройте дорогу белому ферзю! Вы защитились от мата!' :
+               exercise === 8 ? 'Повторите защиту от детского мата.' :
                exercise === 6 ? 'Повторите защиту от детского мата.' : ''}
             </p>
           </AvatarBubble>
@@ -1340,7 +1341,8 @@ const handleSquareClick = useCallback((square: string) => {
            exercise === 7 && whiteMoves === 1 ? 'Сыграйте конём на c6 — защитите пешку на e5.' :
            exercise === 7 && whiteMoves === 2 ? 'Пешка g7-g6 — перекройте дорогу белому ферзю.' :
            exercise === 7 && whiteMoves === 3 ? 'Конь f6 — перекройте дорогу белому ферзю! Вы защитились от мата!' :
-           exercise === 6 ? 'Повторите защиту от детского мата.' : ''}
+           exercise === 8 ? 'Повторите защиту от детского мата.' :
+               exercise === 6 ? 'Повторите защиту от детского мата.' : ''}
         </div>
 
         {/* Board */}
