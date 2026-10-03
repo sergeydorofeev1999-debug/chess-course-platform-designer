@@ -397,20 +397,22 @@ function GhostOverlay({
   animatingMove,
   sqSize,
   animationClass,
+  isReversed,
 }: {
   animatingMove: { from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null;
   sqSize: number;
   animationClass: string;
+  isReversed: boolean;
 }) {
   if (!animatingMove) return null;
   const fromF = FILES.indexOf(animatingMove.from[0]);
   const fromR = RANKS.indexOf(animatingMove.from[1]);
   const toF = FILES.indexOf(animatingMove.to[0]);
   const toR = RANKS.indexOf(animatingMove.to[1]);
-  const x1 = fromF * sqSize;
-  const y1 = fromR * sqSize;
-  const x2 = toF * sqSize;
-  const y2 = toR * sqSize;
+  const x1 = (isReversed ? 7 - fromF : fromF) * sqSize;
+  const y1 = (isReversed ? 7 - fromR : fromR) * sqSize;
+  const x2 = (isReversed ? 7 - toF : toF) * sqSize;
+  const y2 = (isReversed ? 7 - toR : toR) * sqSize;
   return (
     <div
       className={`absolute pointer-events-none ${animationClass}`}
@@ -907,6 +909,15 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
   const isLight = (f: number, r: number) => (f + r) % 2 === 0;
   const displayFiles = playerColor === 'b' ? [...FILES].reverse() : FILES;
   const displayRanks = playerColor === 'b' ? [...RANKS].reverse() : RANKS;
+  const displaySquarePosition = (square: string) => {
+    const file = FILES.indexOf(square[0]);
+    const rank = RANKS.indexOf(square[1]);
+    return {
+      x: (playerColor === 'b' ? 7 - file : file) * sqSize,
+      y: (playerColor === 'b' ? 7 - rank : rank) * sqSize,
+    };
+  };
+  const promotionPosition = promotionPending ? displaySquarePosition(promotionPending.to) : null;
   const validMoves = selectedSquare
     ? getPawnMoves(selectedSquare, squares, playerColor, enPassant)
     : dragPiece
@@ -1129,12 +1140,12 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
             })
           )}
           {/* Ghost Overlays */}
-          <GhostOverlay animatingMove={playerAnimatingMove} sqSize={sqSize} animationClass="animate-player-move" />
-          <GhostOverlay animatingMove={opponentAnimatingMove} sqSize={sqSize} animationClass="animate-opponent-move" />
+          <GhostOverlay animatingMove={playerAnimatingMove} sqSize={sqSize} animationClass="animate-player-move" isReversed={playerColor === 'b'} />
+          <GhostOverlay animatingMove={opponentAnimatingMove} sqSize={sqSize} animationClass="animate-opponent-move" isReversed={playerColor === 'b'} />
         {promotionPending && (
           <div className="absolute z-50 pointer-events-auto" style={{
-            left: `${FILES.indexOf(promotionPending.to[0]) * sqSize}px`,
-            top: promotionPending.from[1] === '2' ? 4 * sqSize : 0,
+            left: `${promotionPosition?.x ?? 0}px`,
+            top: promotionPosition?.y ?? 0,
             width: sqSize,
             height: 4 * sqSize,
             backgroundColor: '#2C241B',
