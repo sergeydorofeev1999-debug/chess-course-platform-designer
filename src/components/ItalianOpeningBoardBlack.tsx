@@ -2877,13 +2877,12 @@ setLastMove({ from: 'd1', to: 'f3' });
               }
             />
             {/* Hint arrows SVG overlay */}
-            {hintVisible && !isFail && !isComplete && !selectedSquare && (
-              (() => {
-                const arrows = HINTS[exercise] || [];
-                const phaseArrows = arrows.filter(a => a.phase === blackMoves);
-                if (phaseArrows.length === 0) return null;
-                return (
-                  <svg className="absolute pointer-events-none z-[35]" style={{ top: 3, left: 3, width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
+            {(() => {
+              const arrows = HINTS[exercise] || [];
+              const phaseArrows = arrows.filter(a => a.phase === blackMoves);
+              const showArrows = hintVisible && !isFail && !isComplete && !selectedSquare;
+              return (
+                <svg key={`${exercise}-${blackMoves}`} className="absolute pointer-events-none z-[35]" style={{ top: 3, left: 3, width: 8 * sqSize, height: 8 * sqSize, display: showArrows ? 'block' : 'none' }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
                     {phaseArrows.map((arrow, i) => {
                       const fromF = FILES.indexOf(arrow.from[0]);
                       const fromR = 7 - RANKS.indexOf(arrow.from[1]);
@@ -2924,8 +2923,7 @@ setLastMove({ from: 'd1', to: 'f3' });
                     })}
                   </svg>
                 );
-              })()
-            )}
+              })()}
           </div>
         </div>
 
