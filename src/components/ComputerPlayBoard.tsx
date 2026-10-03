@@ -648,7 +648,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
               className={`flex-1 flex items-center justify-center gap-1.5 rounded-xl border px-2 py-2.5 text-xs font-bold transition-all duration-150 ${
                 selectedColor === 'b'
                   ? 'border-[#C9A84C] bg-[#C9A84C]/10 text-[#8A6A3A]'
-                  : 'border-[rgba(201,168,76,0.25)] bg-[#2C241B] text-[#E8D5B5]'
+                  : 'border-[rgba(201,168,76,0.25)] bg-white text-[#8B7355]'
               }`}
             >
               <img src="/pieces/cburnett/bP.svg" alt="" className="w-5 h-5" draggable={false} /> Чёрные
