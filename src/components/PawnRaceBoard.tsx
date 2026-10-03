@@ -607,8 +607,14 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
         setBlackCaptured(bCap);
       }
 
+      if (result.promoted && movingPiece?.color === 'w') {
+        result.squares[chosen.to] = { type: 'q', color: 'w' };
+      }
+
       setSquares(result.squares);
+      squaresRef.current = result.squares;
       setEnPassant(result.enPassant);
+      enPassantRef.current = result.enPassant;
       const nextTurn = opponentColor(aiColor);
       setTurn(nextTurn);
       turnRef.current = nextTurn;
