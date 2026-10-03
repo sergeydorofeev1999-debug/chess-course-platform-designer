@@ -1285,7 +1285,7 @@ const handleSquareClick = useCallback((square: string) => {
                exercise === 1 && whiteMoves === 1 ? 'Сыграйте слоном с f1 на c4 — направьте слона на поле f7.' :
                exercise === 1 && whiteMoves === 2 ? 'Выведите ферзя на h5 — угрожайте матом на f7.' :
                exercise === 1 && whiteMoves === 3 ? 'Заберите ферзем пешку на f7 — мат!' :
-               exercise === 2 ? 'Повторите детский мат: e4, Bc4, Qh5, Qxf7#' :
+               exercise === 2 ? 'Повторите детский мат.' :
                exercise === 3 ? 'Сыграйте: e4, Bc4, Qf3, Qxf7#' :
                exercise === 4 ? 'Самостоятельно: e4, Bc4/Qf3 в любом порядке, Qxf7#' :
                exercise === 5 ? 'Сыграйте конём на f6 — защитите пункт h5 от детского мата!' :
@@ -1300,7 +1300,7 @@ const handleSquareClick = useCallback((square: string) => {
            exercise === 1 && whiteMoves === 1 ? 'Сыграйте слоном с f1 на c4 — направьте слона на поле f7.' :
            exercise === 1 && whiteMoves === 2 ? 'Выведите ферзя на h5 — угрожайте матом на f7.' :
            exercise === 1 && whiteMoves === 3 ? 'Заберите ферзем пешку на f7 — мат!' :
-           exercise === 2 ? 'Повторите детский мат: e4, Bc4, Qh5, Qxf7#' :
+           exercise === 2 ? 'Повторите детский мат.' :
            exercise === 3 ? 'Сыграйте: e4, Bc4, Qf3, Qxf7#' :
            exercise === 4 ? 'Самостоятельно: e4, Bc4/Qf3 в любом порядке, Qxf7#' :
            exercise === 5 ? 'Сыграйте конём на f6 — защитите пункт h5 от детского мата!' :
