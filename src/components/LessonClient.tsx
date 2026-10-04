@@ -2099,6 +2099,18 @@ function MultiLevelStarBoard({
     }
   }, [phase, currentLevel, totalLevels, allDone, onAllComplete]);
 
+  // Auto-advance after the success banner has been visible briefly.
+  useEffect(() => {
+    const isCastlingLesson = currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2';
+    if (isCastlingLesson || phase !== 'success' || allDone || currentLevel + 1 >= totalLevels) return;
+    const timer = setTimeout(() => {
+      setCurrentLevel((l) => l + 1);
+      setPhase('playing');
+      setMsg('');
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [phase, currentLevel, totalLevels, currentLessonId, allDone]);
+
   // Auto-advance to next level in castling lesson (like CaptureBoard)
   useEffect(() => {
     if ((currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2') && phase === 'success' && currentLevel + 1 < totalLevels) {
@@ -2685,45 +2697,6 @@ function MultiLevelStarBoard({
     </div>
   );
 
-  // ═══ SUCCESS OVERLAY — compact, contextual, premium ═══
-  const SuccessOverlay = () => {
-    const earned = levelStars[currentLevel] || 3;
-    const isLast = currentLevel + 1 >= totalLevels;
-    
-    // Auto-advance after brief delay
-    useEffect(() => {
-      const timer = setTimeout(() => {
-        if (!isLast) {
-          setCurrentLevel((l) => l + 1);
-          setPhase('playing');
-          setMsg('');
-        }
-      }, 1200);
-      return () => clearTimeout(timer);
-    }, [isLast]);
-    
-    return (
-      <div className="absolute inset-0 z-40 flex flex-col items-center justify-center pointer-events-none">
-        {/* Quick toast — not covering board */}
-        <div className="bg-[var(--bg-primary)]/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg border border-[#d4c4b0]/30 text-center pointer-events-auto success-bounce">
-          <div className="flex items-center gap-2">
-            {[1, 2, 3].map((s) => (
-              <Star
-                key={s}
-                size={14}
-                className={s <= earned ? 'fill-[#c9a84c] text-[#c9a84c]' : 'text-[#e5dfd8]'}
-                strokeWidth={2.5}
-              />
-            ))}
-            <span className="text-xs font-medium text-[var(--text-secondary)]">
-              {isLast ? 'Урок завершён' : 'Отлично!'}
-            </span>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   // ═══ FAIL OVERLAY — quiet, contextual ═══
   const FailOverlay = () => (
     <div className="absolute inset-0 z-40 flex flex-col items-center justify-end pb-8 pointer-events-none">
@@ -2827,7 +2800,6 @@ function MultiLevelStarBoard({
               <p className="text-sm text-[var(--text-primary)] leading-snug line-clamp-3">
                 {phase === 'intro' && (lessonTitle || lessonContent || pieceDesc)}
                 {phase === 'playing' && (level.instructions || 'Выполните задание')}
-                {phase === 'success' && 'Отлично! Задание выполнено!'}
                 {phase === 'fail' && 'Подумай ещё раз...'}
               </p>
             </AvatarBubble>
@@ -2860,7 +2832,6 @@ function MultiLevelStarBoard({
               playerAnimatingMoves={playerAnimatingMoves}
             />
             {phase === 'intro' && <IntroOverlay />}
-            {!(currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2') && phase === 'success' && <SuccessOverlay />}
             {!(currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2') && phase === 'fail' && <FailOverlay />}
           </div>
         </div>
@@ -2900,6 +2871,20 @@ function MultiLevelStarBoard({
           </div>
         )}
 
+        {phase === 'success' && !(currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2') && (
+          <div className="w-full mt-3">
+            <div className="bg-[#4A7A3A] rounded-lg px-4 py-3 flex flex-col items-center gap-2 shadow-lg">
+              <p className="text-white font-bold text-lg">Верно!</p>
+              <div className="flex justify-center gap-1">
+                {[1, 2, 3].map((star) => (
+                  <svg key={star} width="20" height="20" viewBox="0 0 24 24" fill={star <= (levelStars[currentLevel] || 3) ? '#FFFFFF' : 'rgba(255,255,255,0.35)'}>
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
         {/* Level Pills — under board, mobile + desktop */}
         <div className="mt-3 w-full px-0 self-stretch">
           <LevelPills />
@@ -2952,15 +2937,6 @@ function MultiLevelStarBoard({
                     <RotateCcw size={14} /> Заново
                   </button>
                 </>
-              )}
-              {phase === 'success' && !(currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2') && (
-                <button
-                  onClick={() => setCurrentLevel(l => l + 1)}
-                  className="flex-1 h-10 flex items-center justify-center gap-1 rounded-lg text-sm font-medium transition-all"
-                  style={{ background: 'var(--accent)', color: 'var(--bg-primary)' }}
-                >
-                  Далее <ArrowRight size={14} />
-                </button>
               )}
             </div>
           </div>
