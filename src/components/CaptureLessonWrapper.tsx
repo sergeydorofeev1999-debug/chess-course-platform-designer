@@ -54,12 +54,12 @@ export default function CaptureLessonWrapper({
     }
     setEnPassantArrowReady(false);
 
-    const placement = currentPosition.split(' ')[0];
     const enPassantSquare = currentPosition.split(' ')[3];
+    const positionSquares = currentPosition ? parseFenBoard(currentPosition) : {};
     const isTargetPosition = lesson.id === 'b244d9da-23d9-438f-a81d-64b050b3b32e' && (
-      (currentLevel === 0 && enPassantSquare === 'd6' && /(^|\/)2Pp4(\/|$)/.test(placement)) ||
-      (currentLevel === 1 && enPassantSquare === 'g6' && /(^|\/)2Pp3P1(\/|$)/.test(placement)) ||
-      (currentLevel === 2 && enPassantSquare === 'b6' && /(^|\/)1pP5(\/|$)/.test(placement))
+      (currentLevel === 0 && enPassantSquare === 'd6' && positionSquares.d5?.type === 'p' && positionSquares.d5?.color === 'b' && positionSquares.c5?.type === 'p' && positionSquares.c5?.color === 'w') ||
+      (currentLevel === 1 && enPassantSquare === 'g6' && positionSquares.g5?.type === 'p' && positionSquares.g5?.color === 'b' && positionSquares.d5?.type === 'p' && positionSquares.d5?.color === 'b' && positionSquares.c5?.type === 'p' && positionSquares.c5?.color === 'w' && positionSquares.h5?.type === 'p' && positionSquares.h5?.color === 'w') ||
+      (currentLevel === 2 && enPassantSquare === 'b6' && positionSquares.b5?.type === 'p' && positionSquares.b5?.color === 'b' && positionSquares.a6?.type === 'p' && positionSquares.a6?.color === 'w' && positionSquares.c5?.type === 'p' && positionSquares.c5?.color === 'w')
     );
     if (isTargetPosition) {
       enPassantArrowTimerRef.current = setTimeout(() => {
@@ -114,7 +114,7 @@ function parseFenSimple(fen: string) {
         if (data.levelStars) setLevelStars(data.levelStars);
         if (typeof data.currentLevel === 'number') {
           setCurrentLevel(data.currentLevel);
-          setShowOpeningArrows(data.currentLevel === 0 || (data.currentLevel === 1 && lesson.id === 'acef8edb-9d06-4258-8b33-2ce030b8d28d') || (data.currentLevel === 4 && lesson.id === '81bd8553-2433-4724-b92b-9dd5c383a538'));
+          setShowOpeningArrows(data.currentLevel === 0 || (lesson.id === 'b244d9da-23d9-438f-a81d-64b050b3b32e' && data.currentLevel >= 1 && data.currentLevel <= 2) || (data.currentLevel === 1 && lesson.id === 'acef8edb-9d06-4258-8b33-2ce030b8d28d') || (data.currentLevel === 4 && lesson.id === '81bd8553-2433-4724-b92b-9dd5c383a538'));
           setCurrentPosition(levels[data.currentLevel]?.initialFen || levels[0].initialFen || '');
         }
       }
@@ -149,7 +149,7 @@ function parseFenSimple(fen: string) {
     setCurrentLevel(idx);
     setShowHint(false);
     setHintArrows([]);
-    setShowOpeningArrows(idx === 0 || (idx === 1 && lesson.id === 'acef8edb-9d06-4258-8b33-2ce030b8d28d') || (idx === 4 && lesson.id === '81bd8553-2433-4724-b92b-9dd5c383a538'));
+    setShowOpeningArrows(idx === 0 || (lesson.id === 'b244d9da-23d9-438f-a81d-64b050b3b32e' && idx >= 1 && idx <= 2) || (idx === 1 && lesson.id === 'acef8edb-9d06-4258-8b33-2ce030b8d28d') || (idx === 4 && lesson.id === '81bd8553-2433-4724-b92b-9dd5c383a538'));
     setFailed(false);
     setCurrentPosition(levels[idx]?.initialFen || '');
   };
@@ -860,6 +860,17 @@ function parseFenSimple(fen: string) {
         { from: 'e2', to: 'e4', color: 'green' as const },
       ]
     : [];
+  const visibleOpeningArrows = isEnPassantLesson && currentLevel > 0 && currentLevel <= 2 && enPassantMoveReady
+    ? enPassantOtherArrows
+    : showOpeningArrows
+      ? currentLevel === 0
+        ? firstExerciseArrows
+        : currentLevel === 1 && isCaptureLesson
+          ? exerciseTwoArrows
+          : currentLevel === 4 && isDefenseLesson
+            ? defenseExerciseFiveArrows
+            : []
+      : [];
   const totalLevels = levels.length;
   const earned = levelStars[currentLevel];
 
@@ -897,7 +908,7 @@ function parseFenSimple(fen: string) {
             externalLevelStars={levelStars}
             onExternalStarsChange={setLevelStars}
             hintArrows={hintArrows}
-            openingArrows={showOpeningArrows ? (currentLevel === 0 ? firstExerciseArrows : currentLevel === 1 && isEnPassantLesson ? enPassantOtherArrows : currentLevel === 2 && isEnPassantLesson ? enPassantOtherArrows : currentLevel === 1 && isCaptureLesson ? exerciseTwoArrows : currentLevel === 4 && isDefenseLesson ? defenseExerciseFiveArrows : []) : []}
+            openingArrows={visibleOpeningArrows}
             onBoardInteraction={() => {
               setShowOpeningArrows(false);
               setHintArrows([]);
@@ -906,6 +917,9 @@ function parseFenSimple(fen: string) {
             onAnyMove={() => {
               setHintArrows([]);
               setShowHint(false);
+              if (isEnPassantLesson && (currentLevel === 1 || currentLevel === 2)) {
+                setShowOpeningArrows(true);
+              }
               // DO NOT reset currentPosition here — onPositionChange handles it
             }}
             onPositionChange={setCurrentPosition}
