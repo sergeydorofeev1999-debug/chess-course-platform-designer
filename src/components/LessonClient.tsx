@@ -1143,6 +1143,7 @@ function MultiLevelStarBoard({
   const [movedPieces, setMovedPieces] = useState<Set<string>>(new Set());
 
   const lesson13CastlingArrows: Record<number, { from: string; to: string; color?: 'green' | 'red' }[]> = {
+    0: [{ from: 'e1', to: 'g1' }],
     1: [{ from: 'e1', to: 'c1' }],
     2: [{ from: 'g1', to: 'f3' }, { from: 'e1', to: 'g1' }],
     3: [{ from: 'e1', to: 'g1' }],
