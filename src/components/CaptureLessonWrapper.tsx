@@ -927,6 +927,7 @@ function parseFenSimple(fen: string) {
           onClick={() => {
             console.log('HINT BUTTON CLICKED, current hintArrows:', hintArrows);
             if (hintArrows.length === 0) {
+              setShowOpeningArrows(false);
               const arrows = computeHintArrow();
               console.log('COMPUTED ARROWS:', arrows);
               setHintArrows(arrows);

@@ -1150,11 +1150,11 @@ function MultiLevelStarBoard({
 
   const level = levels[currentLevel];
   const openingArrows = useMemo(() => {
-    if (currentLevel !== 0 || phase !== 'playing' || !showOpeningArrows) return [];
+    if (currentLevel !== 0 || phase !== 'playing' || !showOpeningArrows || showHint) return [];
     const configured = level.openingArrows;
     if (Array.isArray(configured)) return configured;
     return level.guideArrows ?? [];
-  }, [currentLevel, level, phase, showOpeningArrows]);
+  }, [currentLevel, level, phase, showOpeningArrows, showHint]);
   const stars = useMemo(() => level.stars?.map((s: any) => typeof s === 'string' ? s : s?.square).filter(Boolean) || [], [level.stars]);
   const visibleStars = useMemo(() => stars.filter((s: string) => !collected.includes(s)), [stars, collected]);
   const totalLevels = levels.length;
@@ -2926,6 +2926,7 @@ function MultiLevelStarBoard({
                     onClick={() => {
                       setHintLevel(0);
                       if (hintArrows.length === 0) {
+                        setShowOpeningArrows(false);
                         if (hintLoading) return;
                         setHintLoading(true);
                         window.setTimeout(() => {
@@ -3062,6 +3063,7 @@ function MultiLevelStarBoard({
             onClick={() => {
               setHintLevel(0);
               if (hintArrows.length === 0) {
+                setShowOpeningArrows(false);
                 if (hintLoading) return;
                 setHintLoading(true);
                 window.setTimeout(() => {
