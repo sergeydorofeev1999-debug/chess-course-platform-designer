@@ -1145,12 +1145,12 @@ function MultiLevelStarBoard({
   useEffect(() => {
     setMovedPieces(new Set());
     setPromotionPending(null);
-    setShowOpeningArrows(currentLevel <= 1);
-  }, [currentLevel]);
+    setShowOpeningArrows(currentLevel === 0 || (currentLessonId === '6658f91e-9884-40b0-98c0-c94900ae0dc9' && currentLevel === 1));
+  }, [currentLevel, currentLessonId]);
 
   const level = levels[currentLevel];
   const openingArrows = useMemo(() => {
-    if (currentLevel > 1 || phase !== 'playing' || !showOpeningArrows || showHint) return [];
+    if ((currentLevel !== 0 && !(currentLessonId === '6658f91e-9884-40b0-98c0-c94900ae0dc9' && currentLevel === 1)) || phase !== 'playing' || !showOpeningArrows || showHint) return [];
     const configured = level.openingArrows;
     if (Array.isArray(configured)) return configured;
     return level.guideArrows ?? [];
@@ -2121,12 +2121,12 @@ function MultiLevelStarBoard({
     setShowIntro(false);
     setShowHint(false);
     setHintArrows([]);
-    setShowOpeningArrows(currentLevel <= 1);
+    setShowOpeningArrows(currentLevel === 0 || (currentLessonId === '6658f91e-9884-40b0-98c0-c94900ae0dc9' && currentLevel === 1));
     setHintLevel(0);
     setPromotionPending(null);
     setLastMove(null);
     setPlayerAnimatingMoves(null);
-  }, [level]);
+  }, [level, currentLevel, currentLessonId]);
 
   useEffect(() => {
     setPosition(levels[currentLevel].initialFen);
