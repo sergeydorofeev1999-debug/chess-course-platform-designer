@@ -706,8 +706,9 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
 
       setSelectedSquare(null);
       setValidSquares([]);
+      setHideMoveHints(false);
       selectedSquareRef.current = null;
-      setHideMoveHints(true);
+      validSquaresRef.current = [];
       return;
     }
 
@@ -717,12 +718,14 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
       setValidSquares(moves);
       selectedSquareRef.current = square;
       validSquaresRef.current = moves;
+      setHideMoveHints(false);
       return;
     }
 
     setSelectedSquare(null);
     setValidSquares([]);
     selectedSquareRef.current = null;
+    validSquaresRef.current = [];
   }, [wPawns, bPawns, doKingMove]);
 
   useEffect(() => { clickRef.current = click; }, [click]);

@@ -191,6 +191,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
   const [exercise, setExercise] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12>(1);
   const [game, setGame] = useState<Chess | null>(null);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
+  const [hideMoveHints, setHideMoveHints] = useState(false);
   const [message, setMessage] = useState('');
   const [isFail, setIsFail] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
@@ -251,6 +252,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
     const fen = exercise === 1 ? START_FEN_1 : exercise === 2 ? START_FEN_2 : exercise === 3 ? START_FEN_3 : exercise === 4 ? START_FEN_4 : exercise === 5 ? START_FEN_5 : exercise === 6 ? START_FEN_6 : exercise === 7 ? START_FEN_7 : exercise === 8 ? START_FEN_8 : exercise === 9 ? START_FEN_9 : exercise === 10 ? START_FEN_10 : exercise === 11 ? START_FEN_11 : START_FEN_12;
     setGame(new Chess(fen));
     setSelectedSquare(null);
+    setHideMoveHints(false);
     setMessage('');
     setLastMove(null);
     setPlayerAnimatingMove(null);
@@ -275,6 +277,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
     const fen = num === 1 ? START_FEN_1 : num === 2 ? START_FEN_2 : num === 3 ? START_FEN_3 : num === 4 ? START_FEN_4 : num === 5 ? START_FEN_5 : num === 6 ? START_FEN_6 : num === 7 ? START_FEN_7 : num === 8 ? START_FEN_8 : num === 9 ? START_FEN_9 : num === 10 ? START_FEN_10 : num === 11 ? START_FEN_11 : START_FEN_12;
     setGame(new Chess(fen));
     setSelectedSquare(null);
+    setHideMoveHints(false);
     setMessage('');
     setLastMove(null);
     setPlayerAnimatingMove(null);
@@ -1285,19 +1288,25 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
 
     const piece = g.get(square as any);
 
-    if (selectedSquare) {
-      if (selectedSquare === square) {
+    if (selectedSquare === square) {
+      setSelectedSquare(null);
+      setHideMoveHints(false);
+    } else if (selectedSquare && piece && piece.color === 'w') {
+      setSelectedSquare(square);
+      setHideMoveHints(false);
+    } else if (selectedSquare) {
+      const legalTargets = game.moves({ square: selectedSquare as any, verbose: true }).map(move => move.to as string);
+      if (!legalTargets.includes(square)) {
         setSelectedSquare(null);
+        setHideMoveHints(true);
         return;
       }
-      if (piece && piece.color === 'w') {
-        setSelectedSquare(square);
-        return;
-      }
+      setHideMoveHints(false);
       processWhiteMove(selectedSquare, square);
     } else {
       if (piece && piece.color === 'w') {
         setSelectedSquare(square);
+        setHideMoveHints(false);
       }
     }
   }, [game, selectedSquare, processWhiteMove]);
@@ -1388,9 +1397,9 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
 
   const isLight = (f: number, r: number) => (f + r) % 2 === 0;
 
-  const validMoves = selectedSquare && game
+  const validMoves = selectedSquare && game && !hideMoveHints
     ? (game.moves({ square: selectedSquare as any, verbose: true }).map(m => m.to) as string[])
-    : dragPiece && game
+    : !hideMoveHints && dragPiece && game
       ? (game.moves({ square: dragPiece.square as any, verbose: true }).map(m => m.to) as string[])
       : [];
 
@@ -1505,6 +1514,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
               selectedSquare={selectedSquare}
               lastMove={lastMove}
               autoValidMoves={true}
+              validMoves={hideMoveHints ? [] : undefined}
               onMove={(from, to) => processWhiteMove(from, to)}
               onSquareClick={handleSquareClick}
               interactive={!isComplete && !isFail}

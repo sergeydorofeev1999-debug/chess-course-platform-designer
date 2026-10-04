@@ -127,6 +127,7 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
   const reset = useCallback(() => {
     setGame(new Chess(START_FEN));
     setSelectedSquare(null);
+    setHideMoveHints(false);
     setMessage('');
     setLastMove(null);
     setIsFail(false);

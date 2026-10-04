@@ -457,6 +457,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
   const [winner, setWinner] = useState<string | null>(null);
   const [computerThinking, setComputerThinking] = useState(false);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
+  const [hideMoveHints, setHideMoveHints] = useState(false);
   const [validSquares, setValidSquares] = useState<string[]>([]);
   const [enPassant, setEnPassant] = useState<string | null>(null);
   const [turn, setTurn] = useState<'w' | 'b'>('w');
@@ -518,6 +519,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
     setWinner(null);
     setComputerThinking(false);
     setSelectedSquare(null);
+    setHideMoveHints(false);
     setValidSquares([]);
     setEnPassant(null);
     const nextTurn = playerColorRef.current === 'b' ? 'b' : 'w';
@@ -682,6 +684,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
       if (sel === square) {
         selectedSquareRef.current = null;
         setSelectedSquare(null);
+        setHideMoveHints(false);
         setValidSquares([]);
         return;
       }
@@ -689,82 +692,82 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
       if (playerPiece && playerPiece.color === playerColor) {
         selectedSquareRef.current = square;
         setSelectedSquare(square);
+        setHideMoveHints(false);
         setValidSquares(getPawnMoves(square, sqs, playerColor, enPassantRef.current));
         return;
       }
 
-      if (validSquaresRef.current.includes(square)) {
-        setHistory(prev => [...prev, {
-          squares: { ...sqs },
-          whiteCaptured: whiteCapturedRef.current,
-          blackCaptured: blackCapturedRef.current,
-          enPassant: enPassantRef.current,
-          turn: turnRef.current,
-        }]);
-        const result = makePawnMove(sqs, enPassantRef.current, sel, square);
-        let wCap = whiteCapturedRef.current;
-        let bCap = blackCapturedRef.current;
-        if (result.captured?.color === 'w') { wCap++; setWhiteCaptured(wCap); }
-        if (result.captured?.color === 'b') { bCap++; setBlackCaptured(bCap); }
-
-        const movingPiece = sqs[sel];
-        if (!movingPiece) return;
-        const isDragMove = pointerStartRef.current?.isDrag || false;
-        if (!isDragMove) setPlayerAnimatingMove({ from: sel, to: square, piece: { type: movingPiece.type, color: movingPiece.color } });
-        setLastMove({ from: sel, to: square });
-        setSelectedSquare(null);
-        setValidSquares([]);
+      if (!validSquaresRef.current.includes(square)) {
         selectedSquareRef.current = null;
+        setSelectedSquare(null);
+        setHideMoveHints(true);
+        setValidSquares([]);
+        return;
+      }
 
-        setTimeout(() => {
-          if (!mountedRef.current) return;
-          if (!isDragMove) setPlayerAnimatingMove(null);
-          if (result.promoted) {
-            setPromotionPending({ from: sel, to: square });
-            setSquares(result.squares);
-            setEnPassant(result.enPassant);
-            return;
-          }
+      setHistory(prev => [...prev, {
+        squares: { ...sqs },
+        whiteCaptured: whiteCapturedRef.current,
+        blackCaptured: blackCapturedRef.current,
+        enPassant: enPassantRef.current,
+        turn: turnRef.current,
+      }]);
+      const result = makePawnMove(sqs, enPassantRef.current, sel, square);
+      let wCap = whiteCapturedRef.current;
+      let bCap = blackCapturedRef.current;
+      if (result.captured?.color === 'w') { wCap++; setWhiteCaptured(wCap); }
+      if (result.captured?.color === 'b') { bCap++; setBlackCaptured(bCap); }
 
-          const nextTurn = opponentColor(playerColor);
-          const win = checkGameOver(result.squares, wCap, bCap, result.enPassant, nextTurn);
-          if (win) {
-            setWinner(win);
-            setSquares(result.squares);
-            setEnPassant(result.enPassant);
-            if (win.includes(playerColor === 'w' ? 'Белые' : 'Чёрные') && difficultyRef.current) {
-              const diff = difficultyRef.current;
-              setCompletedLevels(prev => {
-                const next = { ...prev, [diff]: true };
-                localStorage.setItem(savedKey, JSON.stringify(next));
-                return next;
-              });
-              onComplete();
-            }
-            return;
-          }
+      const movingPiece = sqs[sel];
+      if (!movingPiece) return;
+      const isDragMove = pointerStartRef.current?.isDrag || false;
+      if (!isDragMove) setPlayerAnimatingMove({ from: sel, to: square, piece: { type: movingPiece.type, color: movingPiece.color } });
+      setLastMove({ from: sel, to: square });
+      setSelectedSquare(null);
+      setValidSquares([]);
+      selectedSquareRef.current = null;
 
+      setTimeout(() => {
+        if (!mountedRef.current) return;
+        if (!isDragMove) setPlayerAnimatingMove(null);
+        if (result.promoted) {
+          setPromotionPending({ from: sel, to: square });
           setSquares(result.squares);
           setEnPassant(result.enPassant);
-          setTurn(nextTurn);
-          turnRef.current = nextTurn;
-          if (hasNoMoves(result.squares, nextTurn, result.enPassant)) setWinner('Ничья');
-        }, 200);
-        return;
-      }
+          return;
+        }
 
-      if (playerPiece && playerPiece.color === playerColor && playerPiece.type === 'p') {
-        selectedSquareRef.current = square;
-        setSelectedSquare(square);
-        setValidSquares(getPawnMoves(square, sqs, playerColor, enPassantRef.current));
-      } else {
-        selectedSquareRef.current = null;
-        setSelectedSquare(null);
-        setValidSquares([]);
-      }
-    } else if (playerPiece && playerPiece.color === playerColor && playerPiece.type === 'p') {
+        const nextTurn = opponentColor(playerColor);
+        const win = checkGameOver(result.squares, wCap, bCap, result.enPassant, nextTurn);
+        if (win) {
+          setWinner(win);
+          setSquares(result.squares);
+          setEnPassant(result.enPassant);
+          if (win.includes(playerColor === 'w' ? 'Белые' : 'Чёрные') && difficultyRef.current) {
+            const diff = difficultyRef.current;
+            setCompletedLevels(prev => {
+              const next = { ...prev, [diff]: true };
+              localStorage.setItem(savedKey, JSON.stringify(next));
+              return next;
+            });
+            onComplete();
+          }
+          return;
+        }
+
+        setSquares(result.squares);
+        setEnPassant(result.enPassant);
+        setTurn(nextTurn);
+        turnRef.current = nextTurn;
+        if (hasNoMoves(result.squares, nextTurn, result.enPassant)) setWinner('Ничья');
+      }, 200);
+      return;
+    }
+
+    if (playerPiece && playerPiece.color === playerColor && playerPiece.type === 'p') {
       selectedSquareRef.current = square;
       setSelectedSquare(square);
+      setHideMoveHints(false);
       setValidSquares(getPawnMoves(square, sqs, playerColor, enPassantRef.current));
     }
   }, [checkGameOver, onComplete, savedKey, playerColor, opponentColor]);
@@ -788,6 +791,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
     if (piece && piece.color === playerColor) {
       pointerStartRef.current = { x: e.clientX, y: e.clientY, square, moved: false, pointerId: e.pointerId, isDrag: false };
       setSelectedSquare(square);
+      setHideMoveHints(false);
       setValidSquares(getPawnMoves(square, sqs, playerColor, enPassantRef.current));
     }
   }, [playerColor]);
@@ -807,6 +811,7 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
         if (piece && piece.color === playerColor) {
           setDragPiece({ square: start.square, type: piece.type, color: piece.color });
           setSelectedSquare(null);
+          setHideMoveHints(false);
         }
       }
       if (start.moved) {
@@ -940,11 +945,11 @@ export default function PawnRaceBoard({ onComplete, lessonId, prevLesson, nextLe
     };
   };
   const promotionPosition = promotionPending ? displaySquarePosition(promotionPending.to) : null;
-  const validMoves = selectedSquare
+  const validMoves: string[] = !hideMoveHints ? (selectedSquare
     ? getPawnMoves(selectedSquare, squares, playerColor, enPassant)
     : dragPiece
       ? getPawnMoves(dragPiece.square, squares, playerColor, enPassant)
-      : [];
+      : []) : [];
 
   // ═══════════════════════════════════════════════════════════════
   // LEVEL SELECTOR

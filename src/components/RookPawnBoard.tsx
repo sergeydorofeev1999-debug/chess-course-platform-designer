@@ -433,6 +433,7 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
   const [winner, setWinner] = useState<string | null>(null);
   const [computerThinking, setComputerThinking] = useState(false);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
+  const [hideMoveHints, setHideMoveHints] = useState(false);
   const [validSquares, setValidSquares] = useState<string[]>([]);
   const [enPassant, setEnPassant] = useState<string | null>(null);
   const [turn, setTurn] = useState<'w' | 'b'>('w');
@@ -486,6 +487,7 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
     setWinner(null);
     setComputerThinking(false);
     setSelectedSquare(null);
+    setHideMoveHints(false);
     setValidSquares([]);
     setEnPassant(null);
     setTurn('w');
@@ -510,6 +512,7 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
     setWinner(null);
     winnerRef.current = null;
     setSelectedSquare(null);
+    setHideMoveHints(false);
     setValidSquares([]);
     selectedSquareRef.current = null;
     validSquaresRef.current = [];
@@ -611,6 +614,7 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
       if (sel === square) {
         selectedSquareRef.current = null;
         setSelectedSquare(null);
+        setHideMoveHints(false);
         setValidSquares([]);
         return;
       }
@@ -618,80 +622,78 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
       if (piece && piece.color === playerColor) {
         selectedSquareRef.current = square;
         setSelectedSquare(square);
+        setHideMoveHints(false);
         setValidSquares(getPieceMoves(square, sqs, playerColor, enPassantRef.current));
         return;
       }
 
-      if (validSquaresRef.current.includes(square)) {
-        const movingPiece = sqs[sel];
-        // Promotion: pawn reached rank 8
-        if (movingPiece?.type === 'p' && square[1] === (playerColor === 'w' ? '8' : '1')) {
-          setPromotionPending({ from: sel, to: square });
-          setSelectedSquare(null);
-          setValidSquares([]);
-          selectedSquareRef.current = null;
-          setLastMove({ from: sel, to: square });
-          return;
-        }
-        setLastMove({ from: sel, to: square });
-        setPlayerAnimatingMove({
-          from: sel,
-          to: square,
-          piece: { type: movingPiece?.type || '', color: movingPiece?.color as 'w' | 'b' || 'w' },
-        });
+      if (!validSquaresRef.current.includes(square)) {
+        selectedSquareRef.current = null;
+        setSelectedSquare(null);
+        setHideMoveHints(true);
+        setValidSquares([]);
+        return;
+      }
+
+      const movingPiece = sqs[sel];
+      // Promotion: pawn reached rank 8
+      if (movingPiece?.type === 'p' && square[1] === (playerColor === 'w' ? '8' : '1')) {
+        setPromotionPending({ from: sel, to: square });
         setSelectedSquare(null);
         setValidSquares([]);
         selectedSquareRef.current = null;
+        setLastMove({ from: sel, to: square });
+        return;
+      }
+      setLastMove({ from: sel, to: square });
+      setPlayerAnimatingMove({
+        from: sel,
+        to: square,
+        piece: { type: movingPiece?.type || '', color: movingPiece?.color as 'w' | 'b' || 'w' },
+      });
+      setSelectedSquare(null);
+      setValidSquares([]);
+      selectedSquareRef.current = null;
 
-        setTimeout(() => {
-          if (!mountedRef.current) return;
-          const result = makeMove(sqs, enPassantRef.current, sel, square);
-          const win = checkGameOver(result.squares, result.enPassant, playerColor === 'w' ? 'b' : 'w');
-          if (win) {
-            setWinner(win);
-            setSquares(result.squares);
-            setEnPassant(result.enPassant);
-            setPlayerAnimatingMove(null);
-            if (win === (playerColor === 'w' ? 'Белые победили!' : 'Чёрные победили!') && difficultyRef.current) {
-              const d = difficultyRef.current;
-              setCompletedLevels(prev => {
-                const next = { ...prev, [d]: true };
-                localStorage.setItem(savedKey, JSON.stringify(next));
-                return next;
-              });
-              onComplete();
-            }
-            return;
-          }
-
-          setHistory(prev => [...prev, { squares: sqs, enPassant: enPassantRef.current, turn: turnRef.current }]);
+      setTimeout(() => {
+        if (!mountedRef.current) return;
+        const result = makeMove(sqs, enPassantRef.current, sel, square);
+        const win = checkGameOver(result.squares, result.enPassant, playerColor === 'w' ? 'b' : 'w');
+        if (win) {
+          setWinner(win);
           setSquares(result.squares);
           setEnPassant(result.enPassant);
-          setTurn(playerColor === 'w' ? 'b' : 'w');
-          turnRef.current = playerColor === 'w' ? 'b' : 'w';
           setPlayerAnimatingMove(null);
-          if (hasNoMoves(result.squares, playerColor === 'w' ? 'b' : 'w', result.enPassant)) {
-            setWinner('Ничья');
+          if (win === (playerColor === 'w' ? 'Белые победили!' : 'Чёрные победили!') && difficultyRef.current) {
+            const d = difficultyRef.current;
+            setCompletedLevels(prev => {
+              const next = { ...prev, [d]: true };
+              localStorage.setItem(savedKey, JSON.stringify(next));
+              return next;
+            });
+            onComplete();
           }
-        }, 200);
-        return;
-      }
+          return;
+        }
 
-      if (piece && piece.color === playerColor) {
-        selectedSquareRef.current = square;
-        setSelectedSquare(square);
-        setValidSquares(getPieceMoves(square, sqs, playerColor, enPassantRef.current));
-      } else {
-        selectedSquareRef.current = null;
-        setSelectedSquare(null);
-        setValidSquares([]);
-      }
-    } else {
-      if (piece && piece.color === playerColor) {
-        selectedSquareRef.current = square;
-        setSelectedSquare(square);
-        setValidSquares(getPieceMoves(square, sqs, playerColor, enPassantRef.current));
-      }
+        setHistory(prev => [...prev, { squares: sqs, enPassant: enPassantRef.current, turn: turnRef.current }]);
+        setSquares(result.squares);
+        setEnPassant(result.enPassant);
+        setTurn(playerColor === 'w' ? 'b' : 'w');
+        turnRef.current = playerColor === 'w' ? 'b' : 'w';
+        setPlayerAnimatingMove(null);
+        if (hasNoMoves(result.squares, playerColor === 'w' ? 'b' : 'w', result.enPassant)) {
+          setWinner('Ничья');
+        }
+      }, 200);
+      return;
+    }
+
+    if (piece && piece.color === playerColor) {
+      selectedSquareRef.current = square;
+      setSelectedSquare(square);
+      setHideMoveHints(false);
+      setValidSquares(getPieceMoves(square, sqs, playerColor, enPassantRef.current));
     }
   }, [checkGameOver, onComplete, savedKey, playerColor]);
 
@@ -874,9 +876,9 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
     x: (isReversed ? 7 - FILES.indexOf(square[0]) : FILES.indexOf(square[0])) * sqSize,
     y: (isReversed ? 7 - RANKS.indexOf(square[1]) : RANKS.indexOf(square[1])) * sqSize,
   });
-  const validMoves = selectedSquare
+  const validMoves = selectedSquare && !hideMoveHints
     ? getPieceMoves(selectedSquare, squares, playerColor, enPassant)
-    : dragPiece
+    : !hideMoveHints && dragPiece
       ? getPieceMoves(dragPiece.square, squares, playerColor, enPassant)
       : [];
 
