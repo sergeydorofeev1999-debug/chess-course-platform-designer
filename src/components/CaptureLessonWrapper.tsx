@@ -86,7 +86,7 @@ function parseFenSimple(fen: string) {
         if (data.levelStars) setLevelStars(data.levelStars);
         if (typeof data.currentLevel === 'number') {
           setCurrentLevel(data.currentLevel);
-          setShowOpeningArrows(data.currentLevel === 0 || (data.currentLevel === 1 && lesson.id === 'acef8edb-9d06-4258-8b33-2ce030b8d28d'));
+          setShowOpeningArrows(data.currentLevel === 0 || (data.currentLevel === 1 && lesson.id === 'acef8edb-9d06-4258-8b33-2ce030b8d28d') || (data.currentLevel === 4 && lesson.id === '81bd8553-2433-4724-b92b-9dd5c383a538'));
           setCurrentPosition(levels[data.currentLevel]?.initialFen || levels[0].initialFen || '');
         }
       }
@@ -121,7 +121,7 @@ function parseFenSimple(fen: string) {
     setCurrentLevel(idx);
     setShowHint(false);
     setHintArrows([]);
-    setShowOpeningArrows(idx === 0 || (idx === 1 && lesson.id === 'acef8edb-9d06-4258-8b33-2ce030b8d28d'));
+    setShowOpeningArrows(idx === 0 || (idx === 1 && lesson.id === 'acef8edb-9d06-4258-8b33-2ce030b8d28d') || (idx === 4 && lesson.id === '81bd8553-2433-4724-b92b-9dd5c383a538'));
     setFailed(false);
     setCurrentPosition(levels[idx]?.initialFen || '');
   };
@@ -799,11 +799,18 @@ function parseFenSimple(fen: string) {
     ? levels[0].guideArrows
     : [];
   const isCaptureLesson = lesson.id === 'acef8edb-9d06-4258-8b33-2ce030b8d28d';
+  const isDefenseLesson = lesson.id === '81bd8553-2433-4724-b92b-9dd5c383a538';
   const exerciseTwoArrows = isCaptureLesson && currentLevel === 1
     ? [
         { from: 'c4', to: 'f7', color: 'green' as const, onTop: true },
         { from: 'c4', to: 'c7', color: 'red' as const },
         { from: 'f7', to: 'c7', color: 'yellow' as const },
+      ]
+    : [];
+  const defenseExerciseFiveArrows = isDefenseLesson && currentLevel === 4
+    ? [
+        { from: 'c6', to: 'h1', color: 'red' as const },
+        { from: 'e2', to: 'e4', color: 'green' as const },
       ]
     : [];
   const totalLevels = levels.length;
@@ -843,7 +850,7 @@ function parseFenSimple(fen: string) {
             externalLevelStars={levelStars}
             onExternalStarsChange={setLevelStars}
             hintArrows={hintArrows}
-            openingArrows={showOpeningArrows ? (currentLevel === 0 ? firstExerciseArrows : currentLevel === 1 && isCaptureLesson ? exerciseTwoArrows : []) : []}
+            openingArrows={showOpeningArrows ? (currentLevel === 0 ? firstExerciseArrows : currentLevel === 1 && isCaptureLesson ? exerciseTwoArrows : currentLevel === 4 && isDefenseLesson ? defenseExerciseFiveArrows : []) : []}
             onBoardInteraction={() => {
               setShowOpeningArrows(false);
               setHintArrows([]);
