@@ -86,7 +86,7 @@ function parseFenSimple(fen: string) {
         if (data.levelStars) setLevelStars(data.levelStars);
         if (typeof data.currentLevel === 'number') {
           setCurrentLevel(data.currentLevel);
-          setShowOpeningArrows(data.currentLevel <= 1);
+          setShowOpeningArrows(data.currentLevel === 0 || (data.currentLevel === 1 && lesson.id === 'acef8edb-9d06-4258-8b33-2ce030b8d28d'));
           setCurrentPosition(levels[data.currentLevel]?.initialFen || levels[0].initialFen || '');
         }
       }
@@ -121,7 +121,7 @@ function parseFenSimple(fen: string) {
     setCurrentLevel(idx);
     setShowHint(false);
     setHintArrows([]);
-    setShowOpeningArrows(idx <= 1);
+    setShowOpeningArrows(idx === 0 || (idx === 1 && lesson.id === 'acef8edb-9d06-4258-8b33-2ce030b8d28d'));
     setFailed(false);
     setCurrentPosition(levels[idx]?.initialFen || '');
   };
@@ -798,7 +798,8 @@ function parseFenSimple(fen: string) {
   const firstExerciseArrows = currentLevel === 0 && Array.isArray(levels[0]?.guideArrows)
     ? levels[0].guideArrows
     : [];
-  const exerciseTwoArrows = currentLevel === 1
+  const isCaptureLesson = lesson.id === 'acef8edb-9d06-4258-8b33-2ce030b8d28d';
+  const exerciseTwoArrows = isCaptureLesson && currentLevel === 1
     ? [
         { from: 'c4', to: 'f7', color: 'green' as const, onTop: true },
         { from: 'c4', to: 'c7', color: 'red' as const },
@@ -842,7 +843,7 @@ function parseFenSimple(fen: string) {
             externalLevelStars={levelStars}
             onExternalStarsChange={setLevelStars}
             hintArrows={hintArrows}
-            openingArrows={showOpeningArrows ? (currentLevel === 0 ? firstExerciseArrows : currentLevel === 1 ? exerciseTwoArrows : []) : []}
+            openingArrows={showOpeningArrows ? (currentLevel === 0 ? firstExerciseArrows : currentLevel === 1 && isCaptureLesson ? exerciseTwoArrows : []) : []}
             onBoardInteraction={() => {
               setShowOpeningArrows(false);
               setHintArrows([]);
