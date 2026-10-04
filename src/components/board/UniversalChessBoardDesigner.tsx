@@ -303,6 +303,8 @@ export default function UniversalChessBoardDesigner({
 
   const [sqSize, setSqSize] = useState(propSqSize ?? 52);
   const [internalSelectedSquare, setInternalSelectedSquare] = useState<string | null>(null);
+  const [hideMoveHints, setHideMoveHints] = useState(false);
+  const [hideHintsForSquare, setHideHintsForSquare] = useState<string | null>(null);
   useEffect(() => {
     if (propSqSize !== undefined) {
       setSqSize(propSqSize);
@@ -327,6 +329,7 @@ export default function UniversalChessBoardDesigner({
   const [promotionPending, setPromotionPending] = useState<{ from: string; to: string } | null>(null);
 
   const validMoves = useMemo(() => {
+    if (hideMoveHints) return [];
     if (propValidMoves) return propValidMoves;
     if (!autoValidMoves) return [];
     const targetSquare = selectedSquare || internalSelectedSquare || dragPiece?.square;
@@ -336,7 +339,7 @@ export default function UniversalChessBoardDesigner({
     } catch {
       return [];
     }
-  }, [game, selectedSquare, internalSelectedSquare, dragPiece, autoValidMoves, propValidMoves]);
+  }, [game, selectedSquare, internalSelectedSquare, dragPiece, autoValidMoves, propValidMoves, hideMoveHints]);
 
   const [ghostAnim, setGhostAnim] = useState<{
     from: string;
@@ -407,6 +410,38 @@ export default function UniversalChessBoardDesigner({
   const handleSquareClick = useCallback((square: string) => {
     if (!interactive) return;
 
+    if (!clickGhost && selectedSquare) {
+      const piece = getPieceAt(square);
+      if (square === selectedSquare) {
+        setHideMoveHints(false);
+        onSquareClick?.(square);
+        return;
+      }
+      if (piece && piece.color === (turn || game.turn())) {
+        setHideMoveHints(false);
+        onSquareClick?.(square);
+        return;
+      }
+      const selectedPiece = getPieceAt(selectedSquare);
+      if (selectedPiece) {
+        const isPromotionTarget = selectedPiece.type === 'P' && (
+          (selectedPiece.color === 'w' && square[1] === '8') || (selectedPiece.color === 'b' && square[1] === '1')
+        );
+        const legalTargets = propPieces
+          ? (propValidMoves || [])
+          : game.moves({ verbose: true, square: selectedSquare as any }).map((move: any) => move.to);
+        if (isPromotionTarget) {
+          setHideMoveHints(false);
+        } else if (!legalTargets.includes(square)) {
+          setHideMoveHints(true);
+          onSquareClick?.(square);
+          return;
+        } else {
+          setHideMoveHints(false);
+        }
+      }
+    }
+
     if (clickGhost) {
       // clickGhost mode: доска сама управляет выбором + ghost
       const piece = getPieceAt(square);
@@ -417,6 +452,8 @@ export default function UniversalChessBoardDesigner({
         if (piece && piece.color === (turn || game.turn())) {
           setInternalSelectedSquare(square);
           onSelectionChange?.(square);
+          setHideMoveHints(false);
+          setHideHintsForSquare(null);
         }
         return;
       }
@@ -425,6 +462,8 @@ export default function UniversalChessBoardDesigner({
         // Клик на ту же клетку — отмена выбора
         setInternalSelectedSquare(null);
         onSelectionChange?.(null);
+        setHideMoveHints(false);
+        setHideHintsForSquare(null);
         return;
       }
 
@@ -432,6 +471,8 @@ export default function UniversalChessBoardDesigner({
         // Клик на другую свою фигуру — смена выбора
         setInternalSelectedSquare(square);
         onSelectionChange?.(square);
+        setHideMoveHints(false);
+        setHideHintsForSquare(null);
         return;
       }
 
@@ -439,14 +480,26 @@ export default function UniversalChessBoardDesigner({
       const fromPiece = getPieceAt(currentSel);
       if (!fromPiece) {
         setInternalSelectedSquare(null);
+        onSelectionChange?.(null);
+        setHideMoveHints(false);
         return;
       }
 
-      // Проверка валидности хода
-      if (!validMoves.includes(square)) {
+      const isPromotionTarget = fromPiece.type === 'P' && (
+        (fromPiece.color === 'w' && square[1] === '8') || (fromPiece.color === 'b' && square[1] === '1')
+      );
+      const isValidTarget = validMoves.includes(square) || (
+        isPromotionTarget && game.moves({ verbose: true, square: currentSel as any }).some((m: any) => m.to === square)
+      );
+      if (!isValidTarget) {
         setInternalSelectedSquare(null);
+        onSelectionChange?.(null);
+        setHideMoveHints(true);
+        setHideHintsForSquare(currentSel);
         return;
       }
+      setHideMoveHints(false);
+      setHideHintsForSquare(null);
 
       // Запуск ghost-анимации с локальным state
       setLocalPlayerAnimatingMove({
@@ -472,7 +525,7 @@ export default function UniversalChessBoardDesigner({
     // Обычный режим
     if (!onSquareClick) return;
     onSquareClick(square);
-  }, [interactive, clickGhost, selectedSquare, internalSelectedSquare, getPieceAt, turn, game, validMoves, onSquareClick, onMove]);
+  }, [interactive, clickGhost, selectedSquare, internalSelectedSquare, getPieceAt, turn, game, validMoves, onSquareClick, onMove, hideMoveHints]);
 
   const handlePointerDown = useCallback((e: React.PointerEvent, square: string) => {
     if (!interactive || !onMove) return;
@@ -529,6 +582,22 @@ export default function UniversalChessBoardDesigner({
           const isPromotion = start.pieceType === 'P' && (
             (start.pieceColor === 'w' && targetSquare[1] === '8') || (start.pieceColor === 'b' && targetSquare[1] === '1')
           );
+          const ownTarget = getPieceAt(targetSquare);
+          if (!isPromotion && !clickGhost) {
+            const possibleMoves = propPieces
+              ? (propValidMoves || [])
+              : game.moves({ verbose: true, square: start.square as any }).map((m: any) => m.to);
+            if (ownTarget?.color === (turn || game.turn())) {
+              onSquareClick?.(targetSquare);
+              pointerStartRef.current = null;
+              return;
+            }
+            if (!possibleMoves.includes(targetSquare)) {
+              onSquareClick?.(targetSquare);
+              pointerStartRef.current = null;
+              return;
+            }
+          }
           if (isPromotion) {
             onPromotionPending?.(start.square, targetSquare);
           } else {
@@ -663,7 +732,7 @@ export default function UniversalChessBoardDesigner({
                   </span>
                 )}
 
-                {isValidMove && !pieceObj && (
+                {!hideMoveHints && isValidMove && !pieceObj && (
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
                     <div
                       style={{
@@ -676,7 +745,7 @@ export default function UniversalChessBoardDesigner({
                     />
                   </div>
                 )}
-                {isValidMove && pieceObj && (
+                {!hideMoveHints && isValidMove && pieceObj && (
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
                     <div
                       style={{

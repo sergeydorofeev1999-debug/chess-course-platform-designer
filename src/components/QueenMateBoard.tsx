@@ -327,6 +327,7 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
   const [currentExercise, setCurrentExercise] = useState<ExerciseId>(1);
   const [game, setGame] = useState<Chess | null>(null);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
+  const [hideMoveHints, setHideMoveHints] = useState(false);
   const [message, setMessage] = useState('');
   const [demoMode, setDemoMode] = useState(false);
   const [demoStep, setDemoStep] = useState(0);
@@ -710,16 +711,26 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
     if (selectedSquare) {
       if (selectedSquare === square) {
         setSelectedSquare(null);
+        setHideMoveHints(false);
         return;
       }
       if (piece && piece.color === 'w') {
         setSelectedSquare(square);
+        setHideMoveHints(false);
         return;
       }
+      const legalTargets = game.moves({ square: selectedSquare as any, verbose: true }).map(move => move.to as string);
+      if (!legalTargets.includes(square)) {
+        setSelectedSquare(null);
+        setHideMoveHints(true);
+        return;
+      }
+      setHideMoveHints(false);
       processWhiteMove(selectedSquare, square);
     } else {
       if (piece && piece.color === 'w') {
         setSelectedSquare(square);
+        setHideMoveHints(false);
       }
     }
   }, [game, selectedSquare, processWhiteMove]);
@@ -812,9 +823,9 @@ export default function QueenMateBoard({ onComplete, lessonId }: { onComplete: (
 
   const isLight = (f: number, r: number) => (f + r) % 2 === 0;
 
-  const validMoves = selectedSquare && game
+  const validMoves = selectedSquare && game && !hideMoveHints
     ? (game.moves({ square: selectedSquare as any, verbose: true }).map(m => m.to) as string[])
-    : dragPiece && game
+    : dragPiece && game && !hideMoveHints
       ? (game.moves({ square: dragPiece.square as any, verbose: true }).map(m => m.to) as string[])
       : [];
 

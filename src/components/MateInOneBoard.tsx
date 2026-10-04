@@ -126,6 +126,7 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
   const [exercise, setExercise] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7 | 8>(1);
   const [game, setGame] = useState<Chess | null>(null);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
+  const [hideMoveHints, setHideMoveHints] = useState(false);
   const [message, setMessage] = useState('');
   const [isFail, setIsFail] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
@@ -338,13 +339,25 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
 
     if (selectedSquare === square) {
       setSelectedSquare(null);
+      setHideMoveHints(false);
     } else if (selectedSquare && piece && piece.color === game.turn()) {
       setSelectedSquare(square);
+      setHideMoveHints(false);
     } else if (selectedSquare) {
+      const legalTargets = game.moves({ square: selectedSquare as any, verbose: true }).map(move => move.to as string);
+      const selectedPiece = game.get(selectedSquare as any);
+      const promotionTarget = selectedPiece?.type === 'p' && square[1] === (selectedPiece.color === 'w' ? '8' : '1');
+      if (!legalTargets.includes(square) && !promotionTarget) {
+        setSelectedSquare(null);
+        setHideMoveHints(true);
+        return;
+      }
+      setHideMoveHints(false);
       processMove(selectedSquare, square);
     } else {
       if (piece && piece.color === game.turn()) {
         setSelectedSquare(square);
+        setHideMoveHints(false);
       }
     }
   }, [game, selectedSquare, processMove, promotionPending]);
@@ -367,7 +380,7 @@ export default function MateInOneBoard({ onComplete, lessonId }: { onComplete: (
 
   const isLight = (f: number, r: number) => (f + r) % 2 === 0;
 
-  const validMoves = selectedSquare && game
+  const validMoves = selectedSquare && game && !hideMoveHints
     ? (game.moves({ square: selectedSquare as any, verbose: true }).map(m => m.to) as string[])
     : [];
 

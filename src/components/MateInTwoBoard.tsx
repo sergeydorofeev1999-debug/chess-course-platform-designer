@@ -75,6 +75,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
   const [exercise, setExercise] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7 | 8>(1);
   const [game, setGame] = useState<Chess | null>(null);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
+  const [hideMoveHints, setHideMoveHints] = useState(false);
   const [message, setMessage] = useState('');
   const [isFail, setIsFail] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
@@ -431,7 +432,6 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
     }
   }, [game, exercise, stage, saveStars, onComplete]);
 
-  // ──── CLICK ────
   const handleSquareClick = useCallback((square: string) => {
     if (isCompleteRef.current || isFailRef.current) return;
     if (!game) return;
@@ -439,14 +439,24 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
 
     if (selectedSquare === square) {
       setSelectedSquare(null);
+      setHideMoveHints(false);
     } else if (selectedSquare && piece && piece.color === game.turn()) {
       // Clicked on another own piece — switch selection
       setSelectedSquare(square);
+      setHideMoveHints(false);
     } else if (selectedSquare) {
+      const legalTargets = game.moves({ square: selectedSquare as any, verbose: true }).map(move => move.to as string);
+      if (!legalTargets.includes(square)) {
+        setSelectedSquare(null);
+        setHideMoveHints(true);
+        return;
+      }
+      setHideMoveHints(false);
       applyMove(selectedSquare, square);
     } else {
       if (piece && piece.color === game.turn()) {
         setSelectedSquare(square);
+        setHideMoveHints(false);
       }
     }
   }, [game, selectedSquare, applyMove]);
@@ -461,9 +471,9 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
 
   const isLight = (f: number, r: number) => (f + r) % 2 === 0;
 
-  const validMoves = selectedSquare && game
+  const validMoves = selectedSquare && game && !hideMoveHints
     ? (game.moves({ square: selectedSquare as any, verbose: true }).map(m => m.to) as string[])
-    : dragPiece && game
+    : !hideMoveHints && dragPiece && game
       ? (game.moves({ square: dragPiece.square as any, verbose: true }).map(m => m.to) as string[])
       : [];
 
@@ -579,6 +589,7 @@ export default function MateInTwoBoard({ onComplete, lessonId }: { onComplete: (
             isReversed={exercise === 2 || exercise === 4 || exercise === 6 || exercise === 7}
             selectedSquare={selectedSquare}
             autoValidMoves={true}
+            validMoves={validMoves}
             lastMove={lastMove}
             onSquareClick={handleSquareClick}
             onMove={(from, to, promotion) => applyMove(from, to, promotion, true)}

@@ -72,6 +72,7 @@ interface PointerStart {
 export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => void; lessonId?: string }) {
   const [game, setGame] = useState<Chess | null>(null);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
+  const [hideMoveHints, setHideMoveHints] = useState(false);
   const [message, setMessage] = useState('');
   const [isFail, setIsFail] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
@@ -225,19 +226,25 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
 
     const piece = g.get(square as any);
 
-    if (selectedSquare) {
-      if (selectedSquare === square) {
+    if (selectedSquare === square) {
+      setSelectedSquare(null);
+      setHideMoveHints(false);
+    } else if (selectedSquare && piece && piece.color === 'w') {
+      setSelectedSquare(square);
+      setHideMoveHints(false);
+    } else if (selectedSquare) {
+      const legalTargets = game.moves({ square: selectedSquare as any, verbose: true }).map(move => move.to as string);
+      if (!legalTargets.includes(square)) {
         setSelectedSquare(null);
+        setHideMoveHints(true);
         return;
       }
-      if (piece && piece.color === 'w') {
-        setSelectedSquare(square);
-        return;
-      }
+      setHideMoveHints(false);
       processWhiteMove(selectedSquare, square);
     } else {
       if (piece && piece.color === 'w') {
         setSelectedSquare(square);
+        setHideMoveHints(false);
       }
     }
   }, [game, selectedSquare, processWhiteMove]);
@@ -317,9 +324,9 @@ export default function ForkBoard({ onComplete, lessonId }: { onComplete: () => 
 
   const isLight = (f: number, r: number) => (f + r) % 2 === 0;
 
-  const validMoves = selectedSquare && game
+  const validMoves = selectedSquare && game && !hideMoveHints
     ? (game.moves({ square: selectedSquare as any, verbose: true }).map(m => m.to) as string[])
-    : dragPiece && game
+    : !hideMoveHints && dragPiece && game
       ? (game.moves({ square: dragPiece.square as any, verbose: true }).map(m => m.to) as string[])
       : [];
 

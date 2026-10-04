@@ -75,6 +75,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
   const [exercise, setExercise] = useState<1 | 2 | 3 | 4 | 5 | 6>(1);
   const [game, setGame] = useState<Chess | null>(null);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
+  const [hideMoveHints, setHideMoveHints] = useState(false);
   const [message, setMessage] = useState('');
   const [isFail, setIsFail] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
@@ -1004,16 +1005,28 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
     if (selectedSquare) {
       if (selectedSquare === square) {
         setSelectedSquare(null);
+        setHideMoveHints(false);
         return;
       }
       if (piece && piece.color === 'w') {
         setSelectedSquare(square);
+        setHideMoveHints(false);
         return;
       }
+      const legalTargets = g.moves({ square: selectedSquare as any, verbose: true }).map(move => move.to as string);
+      const selectedPiece = g.get(selectedSquare as any);
+      const promotionTarget = selectedPiece?.type === 'p' && square[1] === (selectedPiece.color === 'w' ? '8' : '1');
+      if (!legalTargets.includes(square) && !promotionTarget) {
+        setSelectedSquare(null);
+        setHideMoveHints(true);
+        return;
+      }
+      setHideMoveHints(false);
       processWhiteMove(selectedSquare, square, undefined, false);
     } else {
       if (piece && piece.color === 'w') {
         setSelectedSquare(square);
+        setHideMoveHints(false);
       }
     }
   }, [game, selectedSquare, processWhiteMove]);
@@ -1035,7 +1048,7 @@ export default function DiscoveredAttackBoard({ onComplete, lessonId }: { onComp
 
   const isLight = (f: number, r: number) => (f + r) % 2 === 0;
 
-  const validMoves = selectedSquare && game
+  const validMoves = selectedSquare && game && !hideMoveHints
     ? (game.moves({ square: selectedSquare as any, verbose: true }).map(m => m.to) as string[])
     : [];
 

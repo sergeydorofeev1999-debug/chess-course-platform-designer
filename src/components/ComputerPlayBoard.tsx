@@ -93,6 +93,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
   const [selectedColor, setSelectedColor] = useState<'w' | 'random' | 'b'>('random');
   const [game, setGame] = useState<Chess | null>(null);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
+  const [hideMoveHints, setHideMoveHints] = useState(false);
   const [message, setMessage] = useState('');
   const [isComplete, setIsComplete] = useState(false);
   const [sqSize, setSqSize] = useState(52);
@@ -478,17 +479,29 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
 
     if (selectedSquare === sq) {
       setSelectedSquare(null);
+      setHideMoveHints(false);
     } else if (selectedSquare && piece && piece.color === playerColor) {
       setSelectedSquare(sq);
+      setHideMoveHints(false);
     } else if (selectedSquare) {
+      const legalTargets = game.moves({ square: selectedSquare as any, verbose: true }).map(move => move.to as string);
+      const selectedPiece = game.get(selectedSquare as any);
+      const promotionTarget = selectedPiece?.type === 'p' && sq[1] === (playerColor === 'w' ? '8' : '1');
+      if (!legalTargets.includes(sq) && !promotionTarget) {
+        setSelectedSquare(null);
+        setHideMoveHints(true);
+        return;
+      }
+      setHideMoveHints(false);
       wasDragRef.current = false;
       processMove(selectedSquare, sq);
     } else {
       if (piece && piece.color === playerColor) {
         setSelectedSquare(sq);
+        setHideMoveHints(false);
       }
     }
-  }, [game, selectedSquare, processMove, playerColor, isComplete, gameOver, thinking, promotionPending]);
+  }, [selectedSquare, processMove, playerColor, isComplete, gameOver, thinking, promotionPending]);
 
   // ──── DRAG & DROP ────
   const handlePointerDown = useCallback((e: React.PointerEvent, sq: string) => {
@@ -574,6 +587,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
   };
 
   const validMoves = useMemo(() => {
+    if (hideMoveHints) return [];
     if (selectedSquare && game) {
       return game.moves({ square: selectedSquare as any, verbose: true }).map((m: any) => m.to) as string[];
     }
@@ -581,7 +595,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
       return game.moves({ square: dragPiece.square as any, verbose: true }).map((m: any) => m.to) as string[];
     }
     return [];
-  }, [selectedSquare, dragPiece, game]);
+  }, [selectedSquare, dragPiece, game, hideMoveHints]);
 
   const turnText = game ? (game.turn() === 'w' ? 'Ход белых' : 'Ход чёрных') : '';
 

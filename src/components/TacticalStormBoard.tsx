@@ -83,6 +83,7 @@ export default function TacticalStormBoard({ onComplete }: Props) {
   const [puzzleIndex, setPuzzleIndex] = useState(0);
 
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
+  const [hideValidMoves, setHideValidMoves] = useState(false);
   const [sqSize, setSqSize] = useState(56);
   const [promotionPending, setPromotionPending] = useState<{from: string; to: string}|null>(null);
 
@@ -366,8 +367,11 @@ export default function TacticalStormBoard({ onComplete }: Props) {
 
     if (!move) {
       setSelectedSquare(null);
+      setDragPiece(null);
+      setHideValidMoves(true);
       return;
     }
+    setHideValidMoves(false);
 
     // Apply the move to the actual game state so the piece stays on target square
     const newGame = new Chess(game.fen());
@@ -544,7 +548,7 @@ export default function TacticalStormBoard({ onComplete }: Props) {
   const isLight = (fi: number, ri: number) => (fi + ri) % 2 === 0;
 
   const moveSource = dragPiece?.square ?? selectedSquare;
-  const validMoves = moveSource && game
+  const validMoves = !hideValidMoves && moveSource && game
     ? game.moves({ square: moveSource as any, verbose: true }).map(m => m.to)
     : [];
 

@@ -23,6 +23,7 @@ export default function SimpleChessBoard({
 }: Props) {
   const [game] = useState(() => new Chess(fen));
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
+  const [hideMoveHints, setHideMoveHints] = useState(false);
   const [position, setPosition] = useState(fen);
   const [collectedStars, setCollectedStars] = useState<Set<string>>(new Set());
   const [message, setMessage] = useState('');
@@ -41,11 +42,13 @@ export default function SimpleChessBoard({
       if (selectedSquare) {
         if (selectedSquare === square) {
           setSelectedSquare(null);
+          setHideMoveHints(false);
           setMessage('');
           return;
         }
         if (piece && piece.color === game.turn()) {
           setSelectedSquare(square);
+          setHideMoveHints(false);
           setMessage('');
           return;
         }
@@ -54,51 +57,61 @@ export default function SimpleChessBoard({
         const ng = new Chess(game.fen());
         const moveResult = ng.move({ from: selectedSquare, to: square });
 
-        if (moveResult) {
-          const movingPiece = game.get(selectedSquare as any);
-          if (movingPiece) {
-            // Check allowed pieces
-            if (allowedPieces.length > 0 && !allowedPieces.includes(movingPiece.type)) {
-              setSelectedSquare(null);
-              setMessage(`Используйте ${getPieceName(allowedPieces[0])}!`);
-              return;
-            }
+        if (!moveResult) {
+          setSelectedSquare(null);
+          setHideMoveHints(true);
+          setMessage('Недопустимый ход');
+          return;
+        }
+        setHideMoveHints(false);
 
-            setPlayerAnimatingMove({
-              from: selectedSquare,
-              to: square,
-              piece: { type: movingPiece.type.toUpperCase(), color: movingPiece.color as 'w' | 'b' },
-            });
-
-            setTimeout(() => {
-              game.move({ from: selectedSquare, to: square });
-              setPosition(game.fen());
-              setPlayerAnimatingMove(null);
-              setSelectedSquare(null);
-              setMessage('');
-
-              if (stars.includes(square) && !collectedStars.has(square)) {
-                setCollectedStars((prev) => {
-                  const next = new Set(prev);
-                  next.add(square);
-                  return next;
-                });
-                onStarCollect?.(square);
-              }
-
-              onMove?.(selectedSquare, square, movingPiece.type);
-            }, 200);
+        const movingPiece = game.get(selectedSquare as any);
+        if (movingPiece) {
+          // Check allowed pieces
+          if (allowedPieces.length > 0 && !allowedPieces.includes(movingPiece.type)) {
+            setSelectedSquare(null);
+            setMessage(`Используйте ${getPieceName(allowedPieces[0])}!`);
             return;
           }
-        }
 
-        setSelectedSquare(null);
-        setMessage('Недопустимый ход');
+          setPlayerAnimatingMove({
+            from: selectedSquare,
+            to: square,
+            piece: { type: movingPiece.type.toUpperCase(), color: movingPiece.color as 'w' | 'b' },
+          });
+
+          setTimeout(() => {
+            game.move({ from: selectedSquare, to: square });
+            setPosition(game.fen());
+            setPlayerAnimatingMove(null);
+            setSelectedSquare(null);
+            setMessage('');
+
+            if (stars.includes(square) && !collectedStars.has(square)) {
+              setCollectedStars((prev) => {
+                const next = new Set(prev);
+                next.add(square);
+                return next;
+              });
+              onStarCollect?.(square);
+            }
+
+            onMove?.(selectedSquare, square, movingPiece.type);
+          }, 200);
+          return;
+        }
       } else {
         if (piece && piece.color === game.turn()) {
           setSelectedSquare(square);
+          setHideMoveHints(false);
+          setMessage('');
+          return;
         }
       }
+
+      setSelectedSquare(null);
+      setHideMoveHints(true);
+      setMessage('Недопустимый ход');
     },
     [selectedSquare, game, stars, collectedStars, onMove, onStarCollect, playerAnimatingMove, allowedPieces]
   );
@@ -140,6 +153,7 @@ export default function SimpleChessBoard({
         customOverlays={starOverlays}
         interactive={!playerAnimatingMove}
         autoValidMoves={true}
+        validMoves={hideMoveHints ? [] : undefined}
       />
       {message && <p className="text-red-500 text-sm">{message}</p>}
     </div>

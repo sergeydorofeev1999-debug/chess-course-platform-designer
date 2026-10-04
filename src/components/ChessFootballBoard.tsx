@@ -299,6 +299,7 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
   const [completedLevels, setCompletedLevels] = useState<Record<Difficulty, boolean>>(savedProgress);
   const [computerThinking, setComputerThinking] = useState(false);
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
+  const [hideMoveHints, setHideMoveHints] = useState(false);
   const [validSquares, setValidSquares] = useState<string[]>([]);
   const [positionHistory, setPositionHistory] = useState<string[]>([]);
   const [sqSize, setSqSize] = useState(44);
@@ -683,13 +684,31 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
         setSelectedSquare(null);
         setValidSquares([]);
         selectedSquareRef.current = null;
+        setHideMoveHints(false);
         return;
       }
 
       if (validSquaresRef.current.includes(square)) {
+        setHideMoveHints(false);
         doKingMove(square);
         return;
       }
+
+      if (square === wKingRef.current) {
+        const moves = getKingMoves(square, 'w', wKingRef.current, bKingRef.current, wPawns, bPawns);
+        setSelectedSquare(square);
+        setValidSquares(moves);
+        selectedSquareRef.current = square;
+        validSquaresRef.current = moves;
+        setHideMoveHints(false);
+        return;
+      }
+
+      setSelectedSquare(null);
+      setValidSquares([]);
+      selectedSquareRef.current = null;
+      setHideMoveHints(true);
+      return;
     }
 
     if (square === wKingRef.current) {
@@ -799,11 +818,11 @@ export default function ChessFootballBoard({ onComplete, lessonId, lessonTitle }
 
   const isLight = (f: number, r: number) => (f + r) % 2 === 0;
 
-  const validMoves = selectedSquare
+  const validMoves: string[] = !hideMoveHints ? (selectedSquare
     ? getKingMoves(selectedSquare, 'w', wKing, bKing, wPawns, bPawns)
     : dragPiece
       ? getKingMoves(dragPiece.square, 'w', wKing, bKing, wPawns, bPawns)
-      : [];
+      : []) : [];
 
   if (!difficulty) {
     const allCompleted = LEVELS.every(l => completedLevels[l.id]);
