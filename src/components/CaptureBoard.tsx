@@ -568,6 +568,7 @@ function InlineChessBoard({
   setMsg,
   forbiddenSquares = [],
   hintArrows = [],
+  starSquares = [],
   promotionPending,
   onPromotion,
   opponentAnimatingMove,
@@ -586,6 +587,7 @@ function InlineChessBoard({
   setMsg: (s: string) => void;
   forbiddenSquares?: string[];
   hintArrows?: { from: string; to: string }[];
+  starSquares?: string[];
   promotionPending?: { from: string; to: string } | null;
   onPromotion?: (piece: string) => void;
   opponentAnimatingMove?: { from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null;
@@ -1053,6 +1055,17 @@ function InlineChessBoard({
                     />
                   </div>
                 )}
+                {starSquares.includes(sq) && !squares[sq] && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[36]">
+                    <img
+                      src="/images/learn/star.png"
+                      alt=""
+                      draggable={false}
+                      className="star-animate"
+                      style={{ width: Math.round(sqSize * 0.65), height: Math.round(sqSize * 0.65) }}
+                    />
+                  </div>
+                )}
                 {pieceObj && !isSource && !(playerAnimatingMove && sq === playerAnimatingMove.from) && !(opponentAnimatingMove && (sq === opponentAnimatingMove.to || sq === opponentAnimatingMove.from)) && (
                   <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize*0.85), height: Math.round(sqSize*0.85) }}>
                     <PieceImg type={pieceObj.type} color={pieceObj.color} />
@@ -1083,7 +1096,7 @@ function InlineChessBoard({
           <GhostOverlay move={opponentAnimatingMove} sqSize={sqSize} isOpponent />
         )}
         {openingArrows.length > 0 && (
-          <OpeningArrowsOverlay arrows={openingArrows} sqSize={sqSize} inset={3} zIndex={35} />
+          <OpeningArrowsOverlay arrows={openingArrows} sqSize={sqSize} inset={3} zIndex={34} />
         )}
         {failCheck && failed && (
           <svg className="absolute inset-0 pointer-events-none z-[45]" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
@@ -2205,7 +2218,7 @@ export default function CaptureBoard({
       {embedded ? (
         /* Minimal mode: only the board + fail callback */
         <div className="flex flex-col items-center gap-3">
-          <InlineChessBoard fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} openingArrows={openingArrows} onBoardInteraction={onBoardInteraction} promotionPending={promotionPending} onPromotion={handlePromotion} opponentAnimatingMove={opponentAnimatingMove} lastMove={lastMove} waitingForOpponent={waitingForOpponent} gameOver={gameOver} failed={failed} failCheck={failCheck} />
+          <InlineChessBoard fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} starSquares={stars.filter((sq: string) => !collected.includes(sq))} openingArrows={openingArrows} onBoardInteraction={onBoardInteraction} promotionPending={promotionPending} onPromotion={handlePromotion} opponentAnimatingMove={opponentAnimatingMove} lastMove={lastMove} waitingForOpponent={waitingForOpponent} gameOver={gameOver} failed={failed} failCheck={failCheck} />
           {failed && onFail && (
             <div className="w-full">
               <div className="bg-[#A63838] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
