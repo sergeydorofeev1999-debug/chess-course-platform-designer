@@ -795,7 +795,14 @@ function parseFenSimple(fen: string) {
   }
 
   const level = levels[currentLevel];
-  const firstExerciseArrows = currentLevel === 0 && Array.isArray(levels[0]?.guideArrows)
+  const isEnPassantLesson = lesson.id === 'b244d9da-23d9-438f-a81d-64b050b3b32e';
+  const currentSquares = currentPosition ? parseFenBoard(currentPosition) : {};
+  const enPassantMoveReady = isEnPassantLesson && currentLevel === 0 &&
+    currentPosition.split(' ')[3] === 'd6' &&
+    currentSquares.d5?.type === 'p' && currentSquares.d5?.color === 'b' &&
+    currentSquares.c5?.type === 'p' && currentSquares.c5?.color === 'w';
+  const firstExerciseArrows = currentLevel === 0 && Array.isArray(levels[0]?.guideArrows) &&
+    (!isEnPassantLesson || enPassantMoveReady)
     ? levels[0].guideArrows
     : [];
   const isCaptureLesson = lesson.id === 'acef8edb-9d06-4258-8b33-2ce030b8d28d';
