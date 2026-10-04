@@ -1096,7 +1096,7 @@ function InlineChessBoard({
           <GhostOverlay move={opponentAnimatingMove} sqSize={sqSize} isOpponent />
         )}
         {openingArrows.length > 0 && (
-          <OpeningArrowsOverlay arrows={openingArrows} sqSize={sqSize} inset={3} zIndex={34} />
+          <OpeningArrowsOverlay arrows={openingArrows} sqSize={sqSize} inset={0} zIndex={34} />
         )}
         {failCheck && failed && (
           <svg className="absolute inset-0 pointer-events-none z-[45]" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
