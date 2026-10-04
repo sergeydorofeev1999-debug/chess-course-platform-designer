@@ -628,12 +628,14 @@ function InlineChessBoard({
   const pointerIdRef = useRef(0);
   const fenRef = useRef(fen);
   const forbiddenSquaresRef = useRef(forbiddenSquares);
+  const starSquaresRef = useRef(starSquares);
   const clickRef = useRef<((square: string) => void) | null>(null);
   const handledByPointerUpRef = useRef(false);
   const waitingForOpponentRef = useRef(waitingForOpponent);
 
   useEffect(() => { fenRef.current = fen; }, [fen]);
   useEffect(() => { forbiddenSquaresRef.current = forbiddenSquares; }, [forbiddenSquares]);
+  useEffect(() => { starSquaresRef.current = starSquares; }, [starSquares]);
   useEffect(() => { waitingForOpponentRef.current = waitingForOpponent; }, [waitingForOpponent]);
 
   useEffect(() => {
@@ -676,13 +678,13 @@ function InlineChessBoard({
 
   const validMoves = selectedSquare
     ? getValidSquares(
-        squares[selectedSquare]?.type || 'p',
-        selectedSquare,
-        squares,
-        'w',
-        [],
-        parsed.enPassant
-      ).filter(sq => !forbiddenSquares.includes(sq))
+   squares[selectedSquare]?.type || 'p',
+   selectedSquare,
+   squares,
+   'w',
+   starSquares,
+   parsed.enPassant
+ ).filter(sq => !forbiddenSquares.includes(sq))
     : dragState
     ? getValidSquares(
         squares[dragState.square]?.type || 'p',
@@ -715,12 +717,7 @@ function InlineChessBoard({
           setSelectedSquare(square);
           return;
         }
-        if (forbiddenSquaresRef.current.includes(square)) {
-          selectedSquareRef.current = null;
-          setSelectedSquare(null);
-          return;
-        }
-        // Validate move before animating — if square is not in valid moves, just deselect
+        if (forbiddenSquaresRef.current.includes(square)) return;
         const movingPiece = sqs[sel];
         const parsed = parseFen(fenRef.current);
         const vm = getValidSquares(
@@ -728,44 +725,30 @@ function InlineChessBoard({
           sel,
           sqs,
           'w',
-          [],
+          starSquaresRef.current,
           parsed.enPassant
         ).filter(sq => !forbiddenSquaresRef.current.includes(sq));
-        if (!vm.includes(square)) {
-          onBoardInteraction?.();
-          selectedSquareRef.current = null;
-          setSelectedSquare(null);
-          return;
-        }
+        if (!vm.includes(square)) return;
+
+        const accepted = onMoveRef.current?.(sel, square);
+        if (accepted === false) return;
+
         selectedSquareRef.current = null;
         setSelectedSquare(null);
         if (movingPiece) {
-          // En passant: immediately remove the captured pawn from local squares
-          // so it disappears at the same time as the animation starts
           if (movingPiece.type === 'p' && parsed.enPassant && square === parsed.enPassant) {
-            const capturedFile = square[0];
-            const capturedRank = sel[1];
-            const capturedSq = `${capturedFile}${capturedRank}`;
+            const capturedSq = `${square[0]}${sel[1]}`;
             const updatedSquares = { ...squaresRef.current };
             delete updatedSquares[capturedSq];
             squaresRef.current = updatedSquares;
             setSquares(updatedSquares);
           }
           setPlayerAnimatingMove({ from: sel, to: square, piece: movingPiece });
-        }
-        setTimeout(() => {
-          // 1. First update parent position (triggers useEffect[fen] → setSquares)
-          const accepted = onMoveRef.current?.(sel, square);
-          // 2. Wait for React to flush setSquares from useEffect[fen]
           requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              setPlayerAnimatingMove(null);
-            });
+            requestAnimationFrame(() => setPlayerAnimatingMove(null));
           });
-          if (accepted !== false) {
-            setMsg('');
-          }
-        }, 200);
+        }
+        setMsg('');
       } else {
         if (piece && piece.color === 'w') {
           selectedSquareRef.current = square;
@@ -887,7 +870,7 @@ function InlineChessBoard({
             start,
             squaresRef.current,
             'w',
-            [],
+            starSquaresRef.current,
             currentParsed.enPassant
           ).filter(sq => !forbiddenSquaresRef.current.includes(sq));
           if (!vm.includes(targetSquare)) {

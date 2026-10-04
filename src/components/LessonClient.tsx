@@ -520,6 +520,8 @@ function InlineChessBoard({
   const onMoveRef = useRef<((from: string, to: string, isDrag?: boolean) => boolean) | undefined>(undefined);
   const selectedSquareRef = useRef<string | null>(null);
   const starsRef = useRef<string[]>([]);
+  const movedPiecesRef = useRef<Set<string>>(new Set());
+  useEffect(() => { movedPiecesRef.current = movedPieces; }, [movedPieces]);
 
   useEffect(() => {
     const update = () => {
@@ -560,12 +562,26 @@ function InlineChessBoard({
           setSelectedSquare(null);
           return;
         }
-        const movedPiece = sqs[sel];
-        if (movedPiece) {
+        const movingPiece = sqs[sel];
+        const parsed = parseFen(fenRef.current);
+        const isCastlingMove = movingPiece?.type === 'k' && sel === 'e1' &&
+          (square === 'g1' || square === 'c1') &&
+          getValidSquares(movingPiece.type, sel, sqs, starsRef.current, movedPiecesRef.current, parsed.enPassant).includes(square);
+        const isLegalMove = isValidMove(
+          movingPiece?.type || 'p',
+          sel,
+          square,
+          sqs,
+          starsRef.current,
+          parsed.enPassant
+        );
+        if (!isLegalMove && !isCastlingMove) return;
+
+        if (movingPiece) {
           setPlayerAnimatingMove({
             from: sel,
             to: square,
-            piece: { type: movedPiece.type, color: movedPiece.color },
+            piece: { type: movingPiece.type, color: movingPiece.color },
           });
         }
         setTimeout(() => {
@@ -576,13 +592,12 @@ function InlineChessBoard({
           selectedSquareRef.current = null;
           setSelectedSquare(null);
           setMsg('');
-          const movedPiece = sqs[sel];
-          if (movedPiece && setMovedPieces) {
+          if (movingPiece && setMovedPieces) {
             setMovedPieces((prev) => {
               const next = new Set(prev);
               next.add(sel);
-              if (movedPiece.type === 'k') next.add('k');
-              if (movedPiece.type === 'r') {
+              if (movingPiece.type === 'k') next.add('k');
+              if (movingPiece.type === 'r') {
                 if (sel === 'a1') next.add('ra1');
                 if (sel === 'h1') next.add('rh1');
               }
