@@ -1145,16 +1145,28 @@ function MultiLevelStarBoard({
   useEffect(() => {
     setMovedPieces(new Set());
     setPromotionPending(null);
-    setShowOpeningArrows(currentLevel === 0 || (currentLessonId === '6658f91e-9884-40b0-98c0-c94900ae0dc9' && currentLevel === 1));
+    setShowOpeningArrows(
+      currentLevel === 0 ||
+      (currentLessonId === '6658f91e-9884-40b0-98c0-c94900ae0dc9' && currentLevel === 1) ||
+      (currentLessonId === '9b3c2780-0790-4f41-819d-31ede059d9c1' && currentLevel === 1)
+    );
   }, [currentLevel, currentLessonId]);
 
   const level = levels[currentLevel];
+  const isLesson12 = currentLessonId === '9b3c2780-0790-4f41-819d-31ede059d9c1';
+  const lesson12ExerciseTwoArrows = isLesson12 && currentLevel === 1
+    ? [{ from: 'e1', to: 'a1' }, { from: 'f1', to: 'h1' }]
+    : [];
   const openingArrows = useMemo(() => {
-    if ((currentLevel !== 0 && !(currentLessonId === '6658f91e-9884-40b0-98c0-c94900ae0dc9' && currentLevel === 1)) || phase !== 'playing' || !showOpeningArrows || showHint) return [];
+    if (
+      (currentLevel !== 0 && !(currentLessonId === '6658f91e-9884-40b0-98c0-c94900ae0dc9' && currentLevel === 1) && !(currentLessonId === '9b3c2780-0790-4f41-819d-31ede059d9c1' && currentLevel === 1)) ||
+      phase !== 'playing' || !showOpeningArrows || showHint
+    ) return [];
+    if (isLesson12 && currentLevel === 1) return lesson12ExerciseTwoArrows;
     const configured = level.openingArrows;
     if (Array.isArray(configured)) return configured;
     return level.guideArrows ?? [];
-  }, [currentLevel, level, phase, showOpeningArrows, showHint]);
+  }, [currentLevel, currentLessonId, level, phase, showOpeningArrows, showHint, lesson12ExerciseTwoArrows]);
   const stars = useMemo(() => level.stars?.map((s: any) => typeof s === 'string' ? s : s?.square).filter(Boolean) || [], [level.stars]);
   const visibleStars = useMemo(() => stars.filter((s: string) => !collected.includes(s)), [stars, collected]);
   const totalLevels = levels.length;
