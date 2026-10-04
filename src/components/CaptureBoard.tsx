@@ -1055,17 +1055,6 @@ function InlineChessBoard({
                     />
                   </div>
                 )}
-                {starSquares.includes(sq) && !squares[sq] && (
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[40]">
-                    <img
-                      src="/images/learn/star.png"
-                      alt=""
-                      draggable={false}
-                      className="star-animate"
-                      style={{ width: Math.round(sqSize * 0.65), height: Math.round(sqSize * 0.65) }}
-                    />
-                  </div>
-                )}
                 {pieceObj && !isSource && !(playerAnimatingMove && sq === playerAnimatingMove.from) && !(opponentAnimatingMove && (sq === opponentAnimatingMove.to || sq === opponentAnimatingMove.from)) && (
                   <div className="relative pointer-events-none z-30" style={{ width: Math.round(sqSize*0.85), height: Math.round(sqSize*0.85) }}>
                     <PieceImg type={pieceObj.type} color={pieceObj.color} />
@@ -2236,19 +2225,6 @@ export default function CaptureBoard({
             <div className="w-full">
               <div className="bg-[#4A7A3A] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
                 <p className="text-white font-bold text-lg">Верно!</p>
-                <div className="flex justify-center gap-1">
-                  {[...Array(lastEarned)].map((_, i) => (
-                    <svg
-                      key={i}
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="#FFFFFF"
-                    >
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                    </svg>
-                  ))}
-                </div>
               </div>
             </div>
           )}
@@ -2256,19 +2232,6 @@ export default function CaptureBoard({
             <div className="w-full">
               <div className="bg-[#4A7A3A] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
                 <p className="text-white font-bold text-lg">Верно!</p>
-                <div className="flex justify-center gap-1">
-                  {[...Array(lastEarned)].map((_, i) => (
-                    <svg
-                      key={i}
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="#FFFFFF"
-                    >
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                    </svg>
-                  ))}
-                </div>
                 <button
                   onClick={() => {
                     clearSuccessTimers();
@@ -2287,48 +2250,20 @@ export default function CaptureBoard({
       ) : (
         /* Full mode: original UI */
         <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
-      {/* LEFT COLUMN: Stars + Figure menu + reset */}
+      {/* LEFT COLUMN: Exercise navigation + reset */}
       <div className="w-full lg:w-[140px] flex-shrink-0 space-y-2">
         <div className="hidden lg:flex flex-col rounded overflow-hidden border border-gray-200">
           {levels.map((_l: any, i: number) => {
-            const earned = levelStars[i];
             const isCurrent = i === currentLevel;
-            const isDone = earned != null;
-            const isFuture = false;
             return (
               <button
                 key={i}
-                onClick={() => {
-                  if (isFuture) return;
-                  if (i !== currentLevel) {
-                    setCurrentLevel(i);
-                  }
-                }}
-                disabled={isFuture}
+                onClick={() => { if (!isCurrent) setCurrentLevel(i); }}
                 className={`flex items-center justify-center px-2 py-1.5 transition ${
-                  isCurrent
-                    ? 'bg-[#5A4A3A] text-white'
-                    : isDone
-                    ? 'bg-[#C9A84C] text-white'
-                    : 'bg-gray-200 text-gray-500'
-                } ${isFuture ? 'cursor-not-allowed' : 'cursor-pointer hover:brightness-110'}`}
+                  isCurrent ? 'bg-[#5A4A3A] text-white' : 'bg-gray-200 text-gray-500 hover:brightness-110'
+                }`}
               >
-                <div className="flex gap-0.5">
-                  {[1, 2, 3].map((s) => (
-                    <svg
-                      key={s}
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill={earned != null && s <= earned ? '#FFFFFF' : 'none'}
-                      stroke={earned != null && s <= earned ? 'none' : '#9CA3AF'}
-                      strokeWidth="2"
-                    >
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                    </svg>
-                  ))}
-                </div>
-                <span className="ml-2 text-xs font-medium">{i + 1}</span>
+                <span className="text-xs font-medium">{i + 1}</span>
               </button>
             );
           })}
@@ -2362,44 +2297,24 @@ export default function CaptureBoard({
           </div>
         )}
 
-        {/* Mobile level stars bar */}
+        {/* Mobile exercise navigation */}
         <div className="flex lg:hidden gap-1 justify-center w-full overflow-x-auto">
           {levels.map((_l: any, i: number) => {
-            const earned = levelStars[i];
             const isCurrent = i === currentLevel;
-            const isDone = earned != null;
-            const isFuture = false;
             return (
               <button
                 key={i}
                 onClick={() => {
-                  if (isFuture) return;
-                  if (i !== currentLevel) {
-                    setCurrentLevel(i);
-                    setAllDone(false);
-                    setGameOver(false);
-                  }
+                  if (isCurrent) return;
+                  setCurrentLevel(i);
+                  setAllDone(false);
+                  setGameOver(false);
                 }}
-                disabled={isFuture}
-                className={`flex items-center gap-0.5 px-1.5 py-1 rounded text-xs transition ${
-                  isCurrent ? 'bg-[#5A4A3A] text-white' : isDone ? 'bg-[#C9A84C] text-white' : 'bg-gray-200 text-gray-500'
-                } ${isFuture ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                className={`flex items-center justify-center min-w-8 px-2 py-1 rounded text-xs transition ${
+                  isCurrent ? 'bg-[#5A4A3A] text-white' : 'bg-gray-200 text-gray-600'
+                }`}
               >
-                <div className="flex gap-0.5">
-                  {[1, 2, 3].map((s) => (
-                    <svg
-                      key={s}
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill={isFuture ? 'none' : s <= (earned || 0) ? '#FFFFFF' : 'none'}
-                      stroke={isFuture ? '#9CA3AF' : s <= (earned || 0) ? 'none' : '#9CA3AF'}
-                      strokeWidth="2"
-                    >
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                    </svg>
-                  ))}
-                </div>
+                {i + 1}
               </button>
             );
           })}
@@ -2414,19 +2329,6 @@ export default function CaptureBoard({
           <div className="w-full">
             <div className="bg-[#4A7A3A] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
               <p className="text-white font-bold text-lg">Верно!</p>
-              <div className="flex justify-center gap-1">
-                {[...Array(lastEarned)].map((_, i) => (
-                  <svg
-                    key={i}
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="#FFFFFF"
-                  >
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                  </svg>
-                ))}
-              </div>
             </div>
           </div>
         )}
@@ -2435,19 +2337,6 @@ export default function CaptureBoard({
           <div className="w-full">
             <div className="bg-[#4A7A3A] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
               <p className="text-white font-bold text-lg">Верно!</p>
-              <div className="flex justify-center gap-1">
-                {[...Array(lastEarned)].map((_, i) => (
-                  <svg
-                    key={i}
-                    width="20"
-                    height="20"
-                    viewBox="0 0 24 24"
-                    fill="#FFFFFF"
-                  >
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                  </svg>
-                ))}
-              </div>
               <button
                 onClick={() => {
                   setPosition(levels[0].initialFen);

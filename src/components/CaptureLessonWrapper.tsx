@@ -7,14 +7,6 @@ import dynamic from 'next/dynamic';
 
 import CaptureBoard from './CaptureBoard';
 
-function MassiveStar({ filled }: { filled: boolean }) {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill={filled ? '#FFFFFF' : 'none'} stroke={filled ? 'none' : '#9CA3AF'} strokeWidth="2">
-      <polygon points="12,2 15,9 22,9 17,14 19,21 12,17 5,21 7,14 2,9 9,9" />
-    </svg>
-  );
-}
-
 interface Props {
   lesson: any;
   allLessons?: any[];
@@ -857,51 +849,18 @@ function parseFenSimple(fen: string) {
       <div className="w-full">
         <div className="w-full flex items-stretch gap-[1px]">
           {levels.map((_l: any, i: number) => {
-            const earnedI = levelStars[i];
-            const starCountI = typeof earnedI === 'number' ? earnedI : (earnedI ? 1 : 0);
             const isCurrent = i === currentLevel;
-            const isDone = earnedI != null;
-            const isFuture = !isCurrent && !isDone && i > currentLevel;
             return (
               <button
                 key={i}
-                onClick={() => {
-                  if (isCurrent) return;
-                  goToLevel(i);
-                }}
+                onClick={() => { if (!isCurrent) goToLevel(i); }}
                 disabled={isCurrent}
-                className={`flex-1 flex flex-col items-center justify-center gap-[2px] rounded-md transition-all duration-200 h-9 ${
-                  isCurrent
-                    ? 'bg-[#2C241B] shadow-md'
-                    : isDone
-                      ? 'bg-[#C9A84C]'
-                      : 'bg-[#F0EBE4] border border-[#D4C5B5]'
-                } ${isCurrent ? 'cursor-not-allowed' : 'cursor-pointer hover:scale-[1.02]'}`}
-                title={isDone ? `Упражнение ${i + 1} — пройдено` : `Упражнение ${i + 1}`}
+                className={`flex-1 flex items-center justify-center rounded-md transition-all duration-200 h-9 ${
+                  isCurrent ? 'bg-[#2C241B] text-white shadow-md' : 'bg-[#F0EBE4] border border-[#D4C5B5] text-[#9CA3AF] cursor-pointer hover:scale-[1.02]'
+                }`}
+                title={`Упражнение ${i + 1}`}
               >
-                {isDone && starCountI > 0 ? (
-                  starCountI === 3 ? (
-                    <>
-                      <div className="flex">
-                        <MassiveStar filled={true} />
-                      </div>
-                      <div className="flex gap-[1px]">
-                        <MassiveStar filled={true} />
-                        <MassiveStar filled={true} />
-                      </div>
-                    </>
-                  ) : (
-                    <div className="flex gap-[2px] justify-center w-full">
-                      {Array.from({ length: starCountI }, (_, s) => (
-                        <MassiveStar key={s} filled={true} />
-                      ))}
-                    </div>
-                  )
-                ) : (
-                  <span className={`text-sm font-bold leading-none ${
-                    isCurrent ? 'text-white' : 'text-[#9CA3AF]'
-                  }`}>{i + 1}</span>
-                )}
+                <span className="text-sm font-bold leading-none">{i + 1}</span>
               </button>
             );
           })}
