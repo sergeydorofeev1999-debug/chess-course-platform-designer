@@ -575,7 +575,11 @@ function InlineChessBoard({
           starsRef.current,
           parsed.enPassant
         );
-        if (!isLegalMove && !isCastlingMove) return;
+        if (!isLegalMove && !isCastlingMove) {
+          selectedSquareRef.current = null;
+          setSelectedSquare(null);
+          return;
+        }
 
         if (movingPiece) {
           setPlayerAnimatingMove({

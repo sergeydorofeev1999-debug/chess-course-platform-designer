@@ -717,7 +717,11 @@ function InlineChessBoard({
           setSelectedSquare(square);
           return;
         }
-        if (forbiddenSquaresRef.current.includes(square)) return;
+        if (forbiddenSquaresRef.current.includes(square)) {
+          selectedSquareRef.current = null;
+          setSelectedSquare(null);
+          return;
+        }
         const movingPiece = sqs[sel];
         const parsed = parseFen(fenRef.current);
         const vm = getValidSquares(
@@ -728,10 +732,18 @@ function InlineChessBoard({
           starSquaresRef.current,
           parsed.enPassant
         ).filter(sq => !forbiddenSquaresRef.current.includes(sq));
-        if (!vm.includes(square)) return;
+        if (!vm.includes(square)) {
+          selectedSquareRef.current = null;
+          setSelectedSquare(null);
+          return;
+        }
 
         const accepted = onMoveRef.current?.(sel, square);
-        if (accepted === false) return;
+        if (accepted === false) {
+          selectedSquareRef.current = null;
+          setSelectedSquare(null);
+          return;
+        }
 
         selectedSquareRef.current = null;
         setSelectedSquare(null);
