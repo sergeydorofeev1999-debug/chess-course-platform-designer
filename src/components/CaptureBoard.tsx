@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { RotateCcw } from 'lucide-react';
+import OpeningArrowsOverlay from './board/OpeningArrowsOverlay';
 
 /* ====== Shared chess utils (copied from LessonClient) ====== */
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
@@ -575,6 +576,8 @@ function InlineChessBoard({
   gameOver,
   failed,
   failCheck,
+  openingArrows = [],
+  onBoardInteraction,
 }: {
   fen: string;
   onMove: (from: string, to: string) => boolean;
@@ -591,6 +594,8 @@ function InlineChessBoard({
   gameOver?: boolean;
   failed?: boolean;
   failCheck?: { kingSquare: string; attackers: { from: string; to: string }[] } | null;
+  onBoardInteraction?: () => void;
+  openingArrows?: { from: string; to: string; color?: 'green' | 'red' }[];
 }) {
   const parsed = parseFen(fen);
   const [squares, setSquares] = useState(parsed.squares);
@@ -693,6 +698,7 @@ function InlineChessBoard({
       if (gameOver || failed) return;
       if (promotionPending) return;
       if (justDraggedRef.current) { justDraggedRef.current = false; return; }
+      onBoardInteraction?.();
       const sqs = squaresRef.current;
       const sel = selectedSquareRef.current;
       const piece = sqs[square];
@@ -724,6 +730,7 @@ function InlineChessBoard({
           parsed.enPassant
         ).filter(sq => !forbiddenSquaresRef.current.includes(sq));
         if (!vm.includes(square)) {
+          onBoardInteraction?.();
           selectedSquareRef.current = null;
           setSelectedSquare(null);
           return;
@@ -777,6 +784,7 @@ function InlineChessBoard({
     if (!containerRef.current) return;
     const piece = squares[sq];
     if (!piece || piece.color !== 'w') return;
+    onBoardInteraction?.();
     pointerStartRef.current = sq;
     justDraggedRef.current = false;
     pointerIdRef.current = e.pointerId;
@@ -1074,6 +1082,9 @@ function InlineChessBoard({
         {opponentAnimatingMove && (
           <GhostOverlay move={opponentAnimatingMove} sqSize={sqSize} isOpponent />
         )}
+        {openingArrows.length > 0 && (
+          <OpeningArrowsOverlay arrows={openingArrows} sqSize={sqSize} inset={3} zIndex={35} />
+        )}
         {failCheck && failed && (
           <svg className="absolute inset-0 pointer-events-none z-[45]" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
             {failCheck.attackers.map((attack, i) => {
@@ -1234,8 +1245,10 @@ interface Props {
   externalLevelStars?: Record<number, number>;
   onExternalStarsChange?: (stars: Record<number, number>) => void;
   hintArrows?: { from: string; to: string }[];
+  openingArrows?: { from: string; to: string; color?: 'green' | 'red' }[];
   onAnyMove?: () => void;
   onPositionChange?: (fen: string) => void;
+  onBoardInteraction?: () => void;
   resetTrigger?: number;
 }
 
@@ -1252,6 +1265,8 @@ export default function CaptureBoard({
   externalLevelStars,
   onExternalStarsChange,
   hintArrows = [],
+  openingArrows = [],
+  onBoardInteraction,
   onAnyMove,
   onPositionChange,
   resetTrigger,
@@ -2190,7 +2205,7 @@ export default function CaptureBoard({
       {embedded ? (
         /* Minimal mode: only the board + fail callback */
         <div className="flex flex-col items-center gap-3">
-          <InlineChessBoard fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} promotionPending={promotionPending} onPromotion={handlePromotion} opponentAnimatingMove={opponentAnimatingMove} lastMove={lastMove} waitingForOpponent={waitingForOpponent} gameOver={gameOver} failed={failed} failCheck={failCheck} />
+          <InlineChessBoard fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} openingArrows={openingArrows} onBoardInteraction={onBoardInteraction} promotionPending={promotionPending} onPromotion={handlePromotion} opponentAnimatingMove={opponentAnimatingMove} lastMove={lastMove} waitingForOpponent={waitingForOpponent} gameOver={gameOver} failed={failed} failCheck={failCheck} />
           {failed && onFail && (
             <div className="w-full">
               <div className="bg-[#A63838] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">

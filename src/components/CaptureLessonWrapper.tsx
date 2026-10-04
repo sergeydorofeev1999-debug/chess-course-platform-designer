@@ -32,12 +32,11 @@ export default function CaptureLessonWrapper({
   onAllComplete,
   onLevelComplete,
 }: Props) {
-  // DEBUG: Verify component loaded in production
-  console.log('CaptureLessonWrapper LOADED');
   const [currentLevel, setCurrentLevel] = useState(0);
   const [levelStars, setLevelStars] = useState<Record<number, number>>({});
   const [showHint, setShowHint] = useState(false);
   const [hintArrows, setHintArrows] = useState<{ from: string; to: string }[]>([]);
+  const [showOpeningArrows, setShowOpeningArrows] = useState(true);
   const [resetKey, setResetKey] = useState(0);
   const [currentPosition, setCurrentPosition] = useState(() => {
     // SSR-safe: initialize synchronously with the initial level's FEN
@@ -87,6 +86,7 @@ function parseFenSimple(fen: string) {
         if (data.levelStars) setLevelStars(data.levelStars);
         if (typeof data.currentLevel === 'number') {
           setCurrentLevel(data.currentLevel);
+          setShowOpeningArrows(data.currentLevel === 0);
           setCurrentPosition(levels[data.currentLevel]?.initialFen || levels[0].initialFen || '');
         }
       }
@@ -121,6 +121,7 @@ function parseFenSimple(fen: string) {
     setCurrentLevel(idx);
     setShowHint(false);
     setHintArrows([]);
+    setShowOpeningArrows(idx === 0);
     setFailed(false);
     setCurrentPosition(levels[idx]?.initialFen || '');
   };
@@ -794,6 +795,9 @@ function parseFenSimple(fen: string) {
   }
 
   const level = levels[currentLevel];
+  const firstExerciseArrows = currentLevel === 0 && Array.isArray(levels[0]?.guideArrows)
+    ? levels[0].guideArrows
+    : [];
   const totalLevels = levels.length;
   const earned = levelStars[currentLevel];
 
@@ -831,6 +835,12 @@ function parseFenSimple(fen: string) {
             externalLevelStars={levelStars}
             onExternalStarsChange={setLevelStars}
             hintArrows={hintArrows}
+            openingArrows={showOpeningArrows && currentLevel === 0 ? firstExerciseArrows : []}
+            onBoardInteraction={() => {
+              setShowOpeningArrows(false);
+              setHintArrows([]);
+              setShowHint(false);
+            }}
             onAnyMove={() => {
               setHintArrows([]);
               setShowHint(false);

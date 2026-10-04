@@ -1,6 +1,7 @@
 'use client';
 
 import AvatarBubble from './AvatarBubble';
+import OpeningArrowsOverlay from './board/OpeningArrowsOverlay';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -430,6 +431,8 @@ interface InlineChessBoardProps {
   fen: string;
   stars?: string[];
   onMove?: (from: string, to: string, isDrag?: boolean) => boolean;
+  openingArrows?: { from: string; to: string; color?: 'green' | 'red' }[];
+  onBoardInteraction?: () => void;
   pieceType?: string;
   pieceName?: string;
   guideArrows?: { from: string; to: string }[];
@@ -448,6 +451,8 @@ function InlineChessBoard({
   fen,
   stars = [],
   onMove,
+  openingArrows = [],
+  onBoardInteraction,
   pieceType = 'r',
   pieceName = 'Ладья',
   guideArrows = [],
@@ -595,7 +600,7 @@ function InlineChessBoard({
         }
       }
     },
-    [],
+    [onBoardInteraction],
   );
 
   useEffect(() => {
@@ -615,6 +620,7 @@ function InlineChessBoard({
       if (promotionPendingRef.current) return;
       if (processLockRef.current) return;
       if (e.pointerType === 'touch' && e.isPrimary === false) return;
+      onBoardInteraction?.();
       e.preventDefault();
       pointerStartRef.current = { x: e.clientX, y: e.clientY, square, moved: false, pointerId: e.pointerId };
       setMsg('');
@@ -623,7 +629,7 @@ function InlineChessBoard({
         setSelectedSquare(square);
       }
     },
-    [],
+    [onBoardInteraction],
   );
 
   useEffect(() => {
@@ -886,6 +892,9 @@ function InlineChessBoard({
             </div>
           );
         })}
+        {openingArrows.length > 0 && (
+          <OpeningArrowsOverlay arrows={openingArrows} sqSize={sqSize} inset={3} zIndex={19} />
+        )}
         {hintArrows.length > 0 && !selectedSquare && !dragPiece && (
           <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
             {hintArrows.map((arrow, i) => {
@@ -1098,6 +1107,7 @@ function MultiLevelStarBoard({
   const [phase, setPhase] = useState<'intro' | 'playing' | 'success' | 'fail'>('intro');
   const [showHint, setShowHint] = useState(false);
   const [hintArrows, setHintArrows] = useState<{from: string; to: string}[]>([]);
+  const [showOpeningArrows, setShowOpeningArrows] = useState(true);
   const [showIntro, setShowIntro] = useState(true);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const [playerAnimatingMoves, setPlayerAnimatingMoves] = useState<{ from: string; to: string; piece: { type: string; color: string } }[] | null>(null);
@@ -1133,9 +1143,16 @@ function MultiLevelStarBoard({
   useEffect(() => {
     setMovedPieces(new Set());
     setPromotionPending(null);
+    setShowOpeningArrows(currentLevel === 0);
   }, [currentLevel]);
 
   const level = levels[currentLevel];
+  const openingArrows = useMemo(() => {
+    if (currentLevel !== 0 || phase !== 'playing' || !showOpeningArrows) return [];
+    const configured = level.openingArrows;
+    if (Array.isArray(configured)) return configured;
+    return level.guideArrows ?? [];
+  }, [currentLevel, level, phase, showOpeningArrows]);
   const stars = useMemo(() => level.stars?.map((s: any) => typeof s === 'string' ? s : s?.square).filter(Boolean) || [], [level.stars]);
   const visibleStars = useMemo(() => stars.filter((s: string) => !collected.includes(s)), [stars, collected]);
   const totalLevels = levels.length;
@@ -2820,6 +2837,12 @@ function MultiLevelStarBoard({
             <InlineChessBoard
               fen={position}
               stars={visibleStars}
+              openingArrows={openingArrows}
+              onBoardInteraction={() => {
+                setShowOpeningArrows(false);
+                setHintArrows([]);
+                setShowHint(false);
+              }}
               onMove={handleMove}
               pieceType={pieceType}
               pieceName={pieceName}
