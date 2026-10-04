@@ -48,19 +48,16 @@ export default function OpeningArrowsOverlay({ arrows, sqSize, isReversed = fals
         const dx = x2 - x1;
         const dy = y2 - y1;
         const len = Math.sqrt(dx * dx + dy * dy) || 1;
-        const headHeight = Math.min(sqSize * 0.6, len * 0.42);
+        const headHeight = sqSize * 0.6;
         const headBase = strokeW * 3;
-        const arrowTipPadding = Math.min(sqSize * 0.34, len * 0.28);
-        const endX = x2 - (dx / len) * arrowTipPadding;
-        const endY = y2 - (dy / len) * arrowTipPadding;
         const nx = -dy / len;
         const ny = dx / len;
         const blx = x1 + nx * halfW;
         const bly = y1 + ny * halfW;
         const brx = x1 - nx * halfW;
         const bry = y1 - ny * halfW;
-        const tailX = endX - (dx / len) * headHeight;
-        const tailY = endY - (dy / len) * headHeight;
+        const tailX = x2 - (dx / len) * headHeight;
+        const tailY = y2 - (dy / len) * headHeight;
         const tlx = tailX + nx * halfW;
         const tly = tailY + ny * halfW;
         const trx = tailX - nx * halfW;
@@ -71,7 +68,7 @@ export default function OpeningArrowsOverlay({ arrows, sqSize, isReversed = fals
         const hry = tailY - (ny * headBase) / 2;
         const cross = (brx - blx) * (-dy / len) - (bry - bly) * (-dx / len);
         const sweep = cross > 0 ? 1 : 0;
-        const pathD = `M ${blx} ${bly} L ${tlx} ${tly} L ${hlx} ${hly} L ${endX} ${endY} L ${hrx} ${hry} L ${trx} ${try_} L ${brx} ${bry} A ${halfW} ${halfW} 0 1 ${sweep} ${blx} ${bly} Z`;
+        const pathD = `M ${blx} ${bly} L ${tlx} ${tly} L ${hlx} ${hly} L ${x2} ${y2} L ${hrx} ${hry} L ${trx} ${try_} L ${brx} ${bry} A ${halfW} ${halfW} 0 1 ${sweep} ${blx} ${bly} Z`;
         const isThreat = arrow.color === 'red';
 
         return (
