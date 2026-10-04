@@ -804,7 +804,7 @@ function InlineChessBoard({
                   <div className="absolute inset-0 pointer-events-none" style={{ backgroundColor: 'rgba(201,168,76,0.70)', zIndex: 5 }} />
                 )}
                 <div
-                  className={`absolute inset-0 flex items-center justify-center pointer-events-none ${hasStar ? 'z-[36]' : 'z-0'}`}
+                  className={`absolute inset-0 flex items-center justify-center pointer-events-none ${hasStar ? 'z-[40]' : 'z-0'}`}
                   style={{ opacity: hasStar ? 1 : 0, visibility: hasStar ? 'visible' : 'hidden' }}
                 >
                   <div className={hasStar ? 'star-twinkle' : ''}>

@@ -1056,7 +1056,7 @@ function InlineChessBoard({
                   </div>
                 )}
                 {starSquares.includes(sq) && !squares[sq] && (
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[36]">
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-[40]">
                     <img
                       src="/images/learn/star.png"
                       alt=""
