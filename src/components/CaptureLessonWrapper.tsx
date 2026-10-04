@@ -37,6 +37,8 @@ export default function CaptureLessonWrapper({
   const [showHint, setShowHint] = useState(false);
   const [hintArrows, setHintArrows] = useState<{ from: string; to: string }[]>([]);
   const [showOpeningArrows, setShowOpeningArrows] = useState(true);
+  const [enPassantArrowReady, setEnPassantArrowReady] = useState(false);
+  const enPassantArrowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [resetKey, setResetKey] = useState(0);
   const [currentPosition, setCurrentPosition] = useState(() => {
     // SSR-safe: initialize synchronously with the initial level's FEN
@@ -46,7 +48,29 @@ export default function CaptureLessonWrapper({
   const currentPositionRef = useRef(currentPosition);
   useEffect(() => {
     currentPositionRef.current = currentPosition;
-  }, [currentPosition]);
+    if (enPassantArrowTimerRef.current) {
+      clearTimeout(enPassantArrowTimerRef.current);
+      enPassantArrowTimerRef.current = null;
+    }
+    setEnPassantArrowReady(false);
+
+    const isTargetPosition = lesson.id === 'b244d9da-23d9-438f-a81d-64b050b3b32e' &&
+      currentLevel === 0 && currentPosition.split(' ')[3] === 'd6' &&
+      /(^|\/)2Pp4(\/|$)/.test(currentPosition.split(' ')[0]);
+    if (isTargetPosition) {
+      enPassantArrowTimerRef.current = setTimeout(() => {
+        setEnPassantArrowReady(true);
+        enPassantArrowTimerRef.current = null;
+      }, 500);
+    }
+
+    return () => {
+      if (enPassantArrowTimerRef.current) {
+        clearTimeout(enPassantArrowTimerRef.current);
+        enPassantArrowTimerRef.current = null;
+      }
+    };
+  }, [currentPosition, currentLevel, lesson.id]);
 
   const boardRef = useRef<HTMLDivElement>(null);
   const [boardSize, setBoardSize] = useState(352);
@@ -797,7 +821,7 @@ function parseFenSimple(fen: string) {
   const level = levels[currentLevel];
   const isEnPassantLesson = lesson.id === 'b244d9da-23d9-438f-a81d-64b050b3b32e';
   const currentSquares = currentPosition ? parseFenBoard(currentPosition) : {};
-  const enPassantMoveReady = isEnPassantLesson && currentLevel === 0 &&
+  const enPassantMoveReady = enPassantArrowReady && isEnPassantLesson && currentLevel === 0 &&
     currentPosition.split(' ')[3] === 'd6' &&
     currentSquares.d5?.type === 'p' && currentSquares.d5?.color === 'b' &&
     currentSquares.c5?.type === 'p' && currentSquares.c5?.color === 'w';
