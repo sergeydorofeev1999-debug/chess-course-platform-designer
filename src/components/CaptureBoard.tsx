@@ -1105,7 +1105,7 @@ function InlineChessBoard({
               const cross = (brx - blx) * (-dy / len) - (bry - bly) * (-dx / len);
               const sweep = cross > 0 ? 1 : 0;
               const pathD = `M ${blx} ${bly} L ${tlx} ${tly} L ${hlx} ${hly} L ${x2} ${y2} L ${hrx} ${hry} L ${trx} ${try_} L ${brx} ${bry} A ${halfW} ${halfW} 0 1 ${sweep} ${blx} ${bly} Z`;
-              return <path key={i} d={pathD} fill="#A63838" />;
+              return <path key={i} d={pathD} fill="#A63838" fillOpacity={0.35} />;
             })}
           </svg>
         )}
