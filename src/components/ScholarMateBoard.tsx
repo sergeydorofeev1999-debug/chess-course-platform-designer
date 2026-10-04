@@ -5,6 +5,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
 import { RotateCcw, Eye, Trophy } from 'lucide-react';
 import UniversalChessBoardDesigner from './board/UniversalChessBoardDesigner';
+import OpeningArrowsOverlay from './board/OpeningArrowsOverlay';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const REVERSED_FILES = ['h','g','f','e','d','c','b','a'];
@@ -62,7 +63,9 @@ const HINTS: Record<number, { from: string; to: string; phase: number }[]> = {
   ],
   7: [
     { from: 'e7', to: 'e5', phase: 0 },
-    { from: 'g8', to: 'f6', phase: 1 },
+    { from: 'b8', to: 'c6', phase: 1 },
+    { from: 'g7', to: 'g6', phase: 2 },
+    { from: 'g8', to: 'f6', phase: 3 },
   ],
   8: [
     { from: 'e7', to: 'e5', phase: 0 },
@@ -222,6 +225,9 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const [hintVisible, setHintVisible] = useState(false);
+  const [moveGuideReadyKey, setMoveGuideReadyKey] = useState<string | null>(null);
+  const [hiddenGuideKey, setHiddenGuideKey] = useState<string | null>(null);
+  const moveGuideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [playerAnimatingMove, setPlayerAnimatingMove] = useState<GhostMove | null>(null);
   const [playerAnimatingMoves, setPlayerAnimatingMoves] = useState<GhostMove[] | null>(null);
   const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<GhostMove | null>(null);
@@ -244,6 +250,34 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
   useEffect(() => () => { mountedRef.current = false; }, []);
   useEffect(() => { isCompleteRef.current = isComplete; }, [isComplete]);
   useEffect(() => { isFailRef.current = isFail; }, [isFail]);
+  useEffect(() => () => {
+    if (moveGuideTimerRef.current) clearTimeout(moveGuideTimerRef.current);
+  }, []);
+
+  useEffect(() => {
+    if (moveGuideTimerRef.current) clearTimeout(moveGuideTimerRef.current);
+    moveGuideTimerRef.current = null;
+    const playerColor = (exercise === 1 || exercise === 3) ? 'w' : (exercise === 5 || exercise === 7) ? 'b' : null;
+    const isPlayersTurn = Boolean(playerColor && game?.turn() === playerColor);
+    const shouldShow = Boolean(playerColor && [1, 3, 5, 7].includes(exercise) && isPlayersTurn && !isFail && !isComplete);
+    const readyKey = `${exercise}:${whiteMoves}`;
+    if (!shouldShow || hiddenGuideKey === readyKey) {
+      setMoveGuideReadyKey(null);
+      return;
+    }
+    setMoveGuideReadyKey(current => current === readyKey ? current : null);
+    if (moveGuideReadyKey === readyKey) return;
+    moveGuideTimerRef.current = setTimeout(() => {
+      setMoveGuideReadyKey(readyKey);
+      moveGuideTimerRef.current = null;
+    }, 500);
+    return () => {
+      if (moveGuideTimerRef.current) {
+        clearTimeout(moveGuideTimerRef.current);
+        moveGuideTimerRef.current = null;
+      }
+    };
+  }, [game, exercise, whiteMoves, isFail, isComplete, moveGuideReadyKey, hiddenGuideKey]);
 
   useEffect(() => {
     try {
@@ -313,6 +347,8 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
 
   const reset = useCallback(() => {
     const fen = exercise === 1 ? START_FEN_1 : exercise === 2 ? START_FEN_2 : exercise === 3 ? START_FEN_3 : exercise === 4 ? START_FEN_4 : exercise === 5 ? START_FEN_5 : exercise === 6 ? START_FEN_6 : exercise === 7 ? START_FEN_7 : START_FEN_8;
+    setHiddenGuideKey(null);
+    setMoveGuideReadyKey(null);
     setGame(new Chess(fen));
     setSelectedSquare(null);
     setMessage('');
@@ -342,6 +378,8 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
   const switchExercise = useCallback((num: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8) => {
     setExercise(num);
     setHintVisible(false);
+    setMoveGuideReadyKey(null);
+    setHiddenGuideKey(null);
     const fen = num === 1 ? START_FEN_1 : num === 2 ? START_FEN_2 : num === 3 ? START_FEN_3 : num === 4 ? START_FEN_4 : num === 5 ? START_FEN_5 : num === 6 ? START_FEN_6 : num === 7 ? START_FEN_7 : START_FEN_8;
     setGame(new Chess(fen));
     setSelectedSquare(null);
@@ -1109,12 +1147,16 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
     }
   }, [game, whiteMoves, onComplete, saveStars, exercise]);
 
-const handleSquareClick = useCallback((square: string) => {
+  const handleSquareClick = useCallback((square: string) => {
     if (promotionPending) return;
     if (isCompleteRef.current || isFailRef.current) return;
     if (!game) return;
     const g = game;
     if (g.turn() !== 'w' && exercise !== 5 && exercise !== 6 && exercise !== 7 && exercise !== 8) return;
+    const playerColor = (exercise === 1 || exercise === 3) ? 'w' : (exercise === 5 || exercise === 7) ? 'b' : null;
+    if (playerColor && game.turn() === playerColor && moveGuideReadyKey === `${exercise}:${whiteMoves}`) {
+      setHiddenGuideKey(`${exercise}:${whiteMoves}`);
+    }
 
     const piece = g.get(square as any);
 
@@ -1134,7 +1176,7 @@ const handleSquareClick = useCallback((square: string) => {
         setSelectedSquare(square);
       }
     }
-  }, [game, selectedSquare, processWhiteMove, exercise]);
+  }, [game, selectedSquare, processWhiteMove, exercise, promotionPending, moveGuideReadyKey, whiteMoves]);
 
   const handlePointerDown = useCallback((e: React.PointerEvent, square: string) => {
     if (promotionPending) return;
@@ -1364,56 +1406,23 @@ const handleSquareClick = useCallback((square: string) => {
               disableAutoGhost={true}
               sqSize={sqSize}
             />
-            {/* Hint arrows SVG overlay */}
-            {hintVisible && !isFail && !isComplete && !selectedSquare && (
-              (() => {
-                const arrows = HINTS[exercise] || [];
-                const phaseArrows = arrows.filter(a => a.phase === whiteMoves);
-                if (phaseArrows.length === 0) return null;
-                return (
-                  <svg className="absolute pointer-events-none z-[35]" style={{ top: 3, left: 3, width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
-                    {phaseArrows.map((arrow, i) => {
-                      const fromF = (isReversed ? REVERSED_FILES : FILES).indexOf(arrow.from[0]);
-                      const fromR = (isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).indexOf(arrow.from[1]);
-                      const toF = (isReversed ? REVERSED_FILES : FILES).indexOf(arrow.to[0]);
-                      const toR = (isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).indexOf(arrow.to[1]);
-                      const x1 = (fromF + 0.5) * sqSize;
-                      const y1 = (fromR + 0.5) * sqSize;
-                      const x2 = (toF + 0.5) * sqSize;
-                      const y2 = (toR + 0.5) * sqSize;
-                      const strokeW = sqSize < 60 ? 14 : 18;
-                      const halfW = strokeW / 2;
-                      const dx = x2 - x1;
-                      const dy = y2 - y1;
-                      const len = Math.sqrt(dx * dx + dy * dy) || 1;
-                      const headHeight = sqSize * 0.6;
-                      const headBase = strokeW * 3;
-                      const nx = -dy / len;
-                      const ny = dx / len;
-                      const blx = x1 + nx * halfW;   const bly = y1 + ny * halfW;
-                      const brx = x1 - nx * halfW;   const bry = y1 - ny * halfW;
-                      const tailX = x2 - (dx / len) * headHeight;
-                      const tailY = y2 - (dy / len) * headHeight;
-                      const tlx = tailX + nx * halfW; const tly = tailY + ny * halfW;
-                      const trx = tailX - nx * halfW; const try_ = tailY - ny * halfW;
-                      const hlx = tailX + nx * headBase / 2; const hly = tailY + ny * headBase / 2;
-                      const hrx = tailX - nx * headBase / 2; const hry = tailY - ny * headBase / 2;
-                      const cross = (brx - blx) * (-dy / len) - (bry - bly) * (-dx / len);
-                      const sweep = cross > 0 ? 1 : 0;
-                      const pathD = `M ${blx} ${bly} L ${tlx} ${tly} L ${hlx} ${hly} L ${x2} ${y2} L ${hrx} ${hry} L ${trx} ${try_} L ${brx} ${bry} A ${halfW} ${halfW} 0 1 ${sweep} ${blx} ${bly} Z`;
-                      return (
-                        <path
-                          key={i}
-                          d={pathD}
-                          fill="rgba(44, 36, 27, 0.35)"
-                          className="arrow-hint-line"
-                        />
-                      );
-                    })}
-                  </svg>
-                );
-              })()
-            )}
+            {hintVisible && !isFail && !isComplete && !selectedSquare && game && (() => {
+              const arrows = HINTS[exercise] || [];
+              const phaseArrows = arrows.filter(a => a.phase === whiteMoves);
+              if (phaseArrows.length === 0) return null;
+              return <OpeningArrowsOverlay
+                arrows={phaseArrows.map(arrow => ({ from: arrow.from, to: arrow.to, color: 'yellow' as const }))}
+                sqSize={sqSize}
+                isReversed={isReversed}
+                inset={3}
+                zIndex={36}
+              />;
+            })()}
+            {moveGuideReadyKey === `${exercise}:${whiteMoves}` && hiddenGuideKey !== `${exercise}:${whiteMoves}` && [1, 3, 5, 7].includes(exercise) && !hintVisible && !isFail && !isComplete && !selectedSquare && game && (() => {
+              const guide = (HINTS[exercise] || []).find(move => move.phase === whiteMoves);
+              if (!guide || !game.moves({ square: guide.from as any, verbose: true }).some(legal => legal.to === guide.to)) return null;
+              return <OpeningArrowsOverlay arrows={[{ from: guide.from, to: guide.to }]} sqSize={sqSize} isReversed={isReversed} inset={3} zIndex={35} />;
+            })()}
           </div>
         </div>
 
