@@ -4,6 +4,7 @@ interface OpeningArrow {
   from: string;
   to: string;
   color?: 'green' | 'red' | 'yellow';
+  onTop?: boolean;
 }
 
 interface Props {
@@ -32,7 +33,10 @@ export default function OpeningArrowsOverlay({ arrows, sqSize, isReversed = fals
       style={{ top: inset, left: inset, width: 8 * sqSize, height: 8 * sqSize, zIndex }}
       viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}
     >
-      {arrows.map((arrow, index) => {
+      {arrows
+        .map((arrow, index) => ({ arrow, index }))
+        .sort(({ arrow: a }, { arrow: b }) => Number(Boolean(a.onTop)) - Number(Boolean(b.onTop)))
+        .map(({ arrow, index }) => {
         const fromF = files.indexOf(arrow.from[0]);
         const fromR = ranks.indexOf(arrow.from[1]);
         const toF = files.indexOf(arrow.to[0]);

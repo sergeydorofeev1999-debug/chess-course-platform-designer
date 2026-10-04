@@ -800,7 +800,7 @@ function parseFenSimple(fen: string) {
     : [];
   const exerciseTwoArrows = currentLevel === 1
     ? [
-        { from: 'c4', to: 'f7', color: 'green' as const },
+        { from: 'c4', to: 'f7', color: 'green' as const, onTop: true },
         { from: 'c4', to: 'c7', color: 'red' as const },
         { from: 'f7', to: 'c7', color: 'yellow' as const },
       ]
