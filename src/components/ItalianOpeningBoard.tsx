@@ -5,6 +5,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
 import { RotateCcw, Trophy, Eye } from 'lucide-react';
 import UniversalChessBoardDesigner from './board/UniversalChessBoardDesigner';
+import OpeningArrowsOverlay from './board/OpeningArrowsOverlay';
 
 const FILES = ['a','b','c','d','e','f','g','h'];
 const RANKS = ['8','7','6','5','4','3','2','1'];
@@ -2680,6 +2681,11 @@ const handleSquareClick = useCallback((square: string) => {
       : [];
 
   const turnText = game ? (game.turn() === 'w' ? 'Ваш ход (белые)' : 'Ход чёрных...') : '';
+  const openingGuideMove = [1, 3, 5].includes(exercise) && game?.turn() === 'w' && !hintVisible && !isFail && !isComplete && !selectedSquare
+    ? (HINTS[exercise] || [])
+        .filter(move => move.phase === whiteMoves)
+        .find(move => game.moves({ square: move.from as any, verbose: true }).some(legal => legal.to === move.to)) || null
+    : null;
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
@@ -2905,6 +2911,10 @@ const handleSquareClick = useCallback((square: string) => {
                 disableAutoGhost={true}
             sqSize={sqSize}
           />
+          {openingGuideMove && game && (() => {
+            const legal = game.moves({ square: openingGuideMove.from as any, verbose: true }).some(move => move.to === openingGuideMove.to);
+            return legal ? <OpeningArrowsOverlay arrows={[{ from: openingGuideMove.from, to: openingGuideMove.to, color: 'green' }]} sqSize={sqSize} inset={3} zIndex={36} greenOpacity={0.7} /> : null;
+          })()}
           {/* Hint arrows SVG overlay */}
           {hintVisible && !isFail && !isComplete && !selectedSquare && (
             (() => {

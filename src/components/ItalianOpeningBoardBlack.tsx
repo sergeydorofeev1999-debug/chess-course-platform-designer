@@ -5,6 +5,7 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
 import { RotateCcw, Trophy, Eye } from 'lucide-react';
 import UniversalChessBoardDesigner from './board/UniversalChessBoardDesigner';
+import OpeningArrowsOverlay from './board/OpeningArrowsOverlay';
 
 const FILES = ['h','g','f','e','d','c','b','a'];
 const RANKS = ['8','7','6','5','4','3','2','1'];
@@ -2826,6 +2827,11 @@ setLastMove({ from: 'd1', to: 'f3' });
     : '';
 
   const earnedStars = exerciseStars[exercise] || 0;
+  const openingGuideMove = [1, 3, 5].includes(exercise) && game?.turn() === 'b' && !hintVisible && !isFail && !isComplete && !selectedSquare
+    ? (HINTS[exercise] || [])
+        .filter(move => move.phase === blackMoves)
+        .find(move => game.moves({ square: move.from as any, verbose: true }).some(legal => legal.to === move.to)) || null
+    : null;
 
   return (
     <div className="flex flex-col lg:flex-row gap-4 w-full min-h-[500px]">
@@ -2936,6 +2942,10 @@ setLastMove({ from: 'd1', to: 'f3' });
                 ) : null
               }
             />
+            {openingGuideMove && game && (() => {
+              const legal = game.moves({ square: openingGuideMove.from as any, verbose: true }).some(move => move.to === openingGuideMove.to);
+              return legal ? <OpeningArrowsOverlay arrows={[{ from: openingGuideMove.from, to: openingGuideMove.to, color: 'green' }]} sqSize={sqSize} inset={3} zIndex={36} greenOpacity={0.7} isReversed={true} /> : null;
+            })()}
             {/* Hint arrows SVG overlay */}
             {(() => {
               const arrows = HINTS[exercise] || [];
