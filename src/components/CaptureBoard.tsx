@@ -1620,10 +1620,8 @@ export default function CaptureBoard({
         setLastMove({ from, to });
         setFailed(true);
         setGameOver(true);
-        successTimersRef.current.push(setTimeout(() => {
-          setFailCheck({ kingSquare, attackers });
-          onFail?.();
-        }, 500));
+        setFailCheck({ kingSquare, attackers });
+        onFail?.();
         return false;
       }
       if ((level.requireEscapeCheck || wasInCheck) && remainingAttackers.length > 0) {
@@ -1631,14 +1629,13 @@ export default function CaptureBoard({
         setLastMove({ from, to });
         setFailed(true);
         setGameOver(true);
-        successTimersRef.current.push(setTimeout(() => {
-          setFailCheck({ kingSquare: whiteKingSq, attackers: remainingAttackers });
-          onFail?.();
-        }, 500));
+        setFailCheck({ kingSquare: whiteKingSq, attackers: remainingAttackers });
+        onFail?.();
         return false;
       }
       if (level.requireSafeKing && remainingAttackers.length > 0) {
-        setFailCheck({ kingSquare: whiteKingSq, attackers: remainingAttackers });
+        setFailCheck(null);
+        setLastMove({ from, to });
         setFailed(true);
         setGameOver(true);
         return false;
