@@ -743,7 +743,7 @@ function InlineChessBoard({
       <div className="relative inline-block rounded-sm">
         <div className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none board-fade-in" style={{ gridTemplateColumns: `repeat(8, ${sqSize}px)`, gridTemplateRows: `repeat(8, ${sqSize}px)`, touchAction: 'none' }}>
           {openingArrows.length > 0 && (
-            <OpeningArrowsOverlay arrows={openingArrows} sqSize={sqSize} inset={3} zIndex={34} />
+            <OpeningArrowsOverlay arrows={openingArrows} sqSize={sqSize} inset={0} zIndex={34} />
           )}
           {RANKS.map((rank, ri) =>
           FILES.map((file, fi) => {
