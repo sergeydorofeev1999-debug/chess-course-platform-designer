@@ -1142,13 +1142,27 @@ function MultiLevelStarBoard({
 
   const [movedPieces, setMovedPieces] = useState<Set<string>>(new Set());
 
+  const lesson13CastlingArrows: Record<number, { from: string; to: string; color?: 'green' | 'red' }[]> = {
+    1: [{ from: 'e1', to: 'c1' }],
+    2: [{ from: 'g1', to: 'f3' }, { from: 'e1', to: 'g1' }],
+    3: [{ from: 'e1', to: 'g1' }],
+    4: [{ from: 'e1', to: 'c1' }],
+    5: [{ from: 'e1', to: 'g1', color: 'red' }, { from: 'e1', to: 'c1' }],
+    6: [{ from: 'c4', to: 'f1', color: 'red' }, { from: 'd2', to: 'd3' }],
+    7: [{ from: 'e1', to: 'g1' }],
+    8: [{ from: 'e1', to: 'c1' }],
+  };
+  const isLesson13 = currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2';
+  const lesson13Arrows = isLesson13 ? lesson13CastlingArrows[currentLevel] ?? [] : [];
+
   useEffect(() => {
     setMovedPieces(new Set());
     setPromotionPending(null);
     setShowOpeningArrows(
       currentLevel === 0 ||
       (currentLessonId === '6658f91e-9884-40b0-98c0-c94900ae0dc9' && currentLevel === 1) ||
-      (currentLessonId === '9b3c2780-0790-4f41-819d-31ede059d9c1' && currentLevel === 1)
+      (currentLessonId === '9b3c2780-0790-4f41-819d-31ede059d9c1' && currentLevel === 1) ||
+      (currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2' && currentLevel >= 1 && currentLevel <= 8)
     );
   }, [currentLevel, currentLessonId]);
 
@@ -1159,14 +1173,15 @@ function MultiLevelStarBoard({
     : [];
   const openingArrows = useMemo(() => {
     if (
-      (currentLevel !== 0 && !(currentLessonId === '6658f91e-9884-40b0-98c0-c94900ae0dc9' && currentLevel === 1) && !(currentLessonId === '9b3c2780-0790-4f41-819d-31ede059d9c1' && currentLevel === 1)) ||
+      (currentLevel !== 0 && !(currentLessonId === '6658f91e-9884-40b0-98c0-c94900ae0dc9' && currentLevel === 1) && !(currentLessonId === '9b3c2780-0790-4f41-819d-31ede059d9c1' && currentLevel === 1) && !(currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2' && currentLevel >= 1 && currentLevel <= 8)) ||
       phase !== 'playing' || !showOpeningArrows || showHint
     ) return [];
+    if (isLesson13) return lesson13Arrows;
     if (isLesson12 && currentLevel === 1) return lesson12ExerciseTwoArrows;
     const configured = level.openingArrows;
     if (Array.isArray(configured)) return configured;
     return level.guideArrows ?? [];
-  }, [currentLevel, currentLessonId, level, phase, showOpeningArrows, showHint, lesson12ExerciseTwoArrows]);
+  }, [currentLevel, currentLessonId, level, phase, showOpeningArrows, showHint, lesson12ExerciseTwoArrows, lesson13Arrows]);
   const stars = useMemo(() => level.stars?.map((s: any) => typeof s === 'string' ? s : s?.square).filter(Boolean) || [], [level.stars]);
   const visibleStars = useMemo(() => stars.filter((s: string) => !collected.includes(s)), [stars, collected]);
   const totalLevels = levels.length;
