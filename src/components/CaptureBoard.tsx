@@ -1081,9 +1081,32 @@ function InlineChessBoard({
               const fromR = RANKS.indexOf(attack.from[1]);
               const toF = FILES.indexOf(attack.to[0]);
               const toR = RANKS.indexOf(attack.to[1]);
-              return <line key={i} x1={(fromF + 0.5) * sqSize} y1={(fromR + 0.5) * sqSize} x2={(toF + 0.5) * sqSize} y2={(toR + 0.5) * sqSize} stroke="rgba(190, 35, 35, 0.64)" strokeWidth={Math.max(5, sqSize * 0.14)} strokeLinecap="round" />;
+              const x1 = (fromF + 0.5) * sqSize;
+              const y1 = (fromR + 0.5) * sqSize;
+              const x2 = (toF + 0.5) * sqSize;
+              const y2 = (toR + 0.5) * sqSize;
+              const strokeW = sqSize < 60 ? 14 : 18;
+              const halfW = strokeW / 2;
+              const dx = x2 - x1;
+              const dy = y2 - y1;
+              const len = Math.sqrt(dx * dx + dy * dy) || 1;
+              const headHeight = sqSize * 0.6;
+              const headBase = strokeW * 3;
+              const nx = -dy / len;
+              const ny = dx / len;
+              const blx = x1 + nx * halfW; const bly = y1 + ny * halfW;
+              const brx = x1 - nx * halfW; const bry = y1 - ny * halfW;
+              const tailX = x2 - (dx / len) * headHeight;
+              const tailY = y2 - (dy / len) * headHeight;
+              const tlx = tailX + nx * halfW; const tly = tailY + ny * halfW;
+              const trx = tailX - nx * halfW; const try_ = tailY - ny * halfW;
+              const hlx = tailX + nx * headBase / 2; const hly = tailY + ny * headBase / 2;
+              const hrx = tailX - nx * headBase / 2; const hry = tailY - ny * headBase / 2;
+              const cross = (brx - blx) * (-dy / len) - (bry - bly) * (-dx / len);
+              const sweep = cross > 0 ? 1 : 0;
+              const pathD = `M ${blx} ${bly} L ${tlx} ${tly} L ${hlx} ${hly} L ${x2} ${y2} L ${hrx} ${hry} L ${trx} ${try_} L ${brx} ${bry} A ${halfW} ${halfW} 0 1 ${sweep} ${blx} ${bly} Z`;
+              return <path key={i} d={pathD} fill="#A63838" />;
             })}
-            <circle cx={(FILES.indexOf(failCheck.kingSquare[0]) + 0.5) * sqSize} cy={(RANKS.indexOf(failCheck.kingSquare[1]) + 0.5) * sqSize} r={sqSize * 0.43} fill="rgba(190, 35, 35, 0.28)" />
           </svg>
         )}
         {/* Hint arrows SVG - always rendered, high visibility */}
