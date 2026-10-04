@@ -742,6 +742,9 @@ function InlineChessBoard({
     <div className="flex flex-col items-center gap-2 select-none" style={{ touchAction: 'none' }}>
       <div className="relative inline-block rounded-sm">
         <div className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none board-fade-in" style={{ gridTemplateColumns: `repeat(8, ${sqSize}px)`, gridTemplateRows: `repeat(8, ${sqSize}px)`, touchAction: 'none' }}>
+          {openingArrows.length > 0 && (
+            <OpeningArrowsOverlay arrows={openingArrows} sqSize={sqSize} inset={3} zIndex={34} />
+          )}
           {RANKS.map((rank, ri) =>
           FILES.map((file, fi) => {
             const sq = `${file}${rank}`;
@@ -832,9 +835,6 @@ function InlineChessBoard({
               </div>
             );
           })
-        )}
-        {openingArrows.length > 0 && (
-          <OpeningArrowsOverlay arrows={openingArrows} sqSize={sqSize} inset={3} zIndex={34} />
         )}
         {/* Player move ghost piece */}
         {playerAnimatingMove && (() => {
