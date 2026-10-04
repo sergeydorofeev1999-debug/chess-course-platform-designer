@@ -740,8 +740,9 @@ function InlineChessBoard({
 
   return (
     <div className="flex flex-col items-center gap-2 select-none" style={{ touchAction: 'none' }}>
-      <div className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none board-fade-in" style={{ gridTemplateColumns: `repeat(8, ${sqSize}px)`, gridTemplateRows: `repeat(8, ${sqSize}px)`, touchAction: 'none' }}>
-        {RANKS.map((rank, ri) =>
+      <div className="relative inline-block rounded-sm">
+        <div className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none board-fade-in" style={{ gridTemplateColumns: `repeat(8, ${sqSize}px)`, gridTemplateRows: `repeat(8, ${sqSize}px)`, touchAction: 'none' }}>
+          {RANKS.map((rank, ri) =>
           FILES.map((file, fi) => {
             const sq = `${file}${rank}`;
             const pieceObj = squares[sq];
@@ -892,9 +893,6 @@ function InlineChessBoard({
             </div>
           );
         })}
-        {openingArrows.length > 0 && (
-          <OpeningArrowsOverlay arrows={openingArrows} sqSize={sqSize} inset={3} zIndex={19} />
-        )}
         {hintArrows.length > 0 && !selectedSquare && !dragPiece && (
           <svg className="absolute inset-0 pointer-events-none z-20" style={{ width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
             {hintArrows.map((arrow, i) => {
@@ -990,6 +988,10 @@ function InlineChessBoard({
             );
           })}
         </div>
+      )}
+      </div>
+      {openingArrows.length > 0 && (
+        <OpeningArrowsOverlay arrows={openingArrows} sqSize={sqSize} inset={3} zIndex={35} />
       )}
     </div>
     {dragPiece && (
