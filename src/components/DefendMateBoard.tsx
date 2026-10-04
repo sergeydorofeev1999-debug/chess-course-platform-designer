@@ -59,7 +59,6 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
   const [selectedSquare, setSelectedSquare] = useState<string | null>(null);
   const [message, setMessage] = useState('');
   const [isFail, setIsFail] = useState(false);
-  const [failureAttack, setFailureAttack] = useState<{ from: string; to: string } | null>(null);
   const [isComplete, setIsComplete] = useState(false);
   const [sqSize, setSqSize] = useState(52);
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
@@ -120,7 +119,6 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
     setLastMove(null);
     setHintVisible(false);
     setIsFail(false);
-    setFailureAttack(null);
     setIsComplete(false);
     setDragPiece(null);
     setSequenceStep(0);
@@ -147,7 +145,6 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
     setMessage('');
     setLastMove(null);
     setIsFail(false);
-    setFailureAttack(null);
     setIsComplete(false);
     setDragPiece(null);
     setSequenceStep(0);
@@ -287,20 +284,6 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
 
       // Wrong move — computer response (with delay like ForkBoard)
       const afterWhite = new Chess(ng.fen());
-      const checkedKing = afterWhite.isCheck() ? (() => {
-        const board = afterWhite.board();
-        for (let rank = 0; rank < 8; rank++) {
-          for (let file = 0; file < 8; file++) {
-            const piece = board[rank][file];
-            if (piece?.type === 'k' && piece.color === 'w') return `${'abcdefgh'[file]}${8 - rank}`;
-          }
-        }
-        return null;
-      })() : null;
-      if (checkedKing) {
-        const attackerSquare = afterWhite.attackers(checkedKing as any, 'b')[0];
-        if (attackerSquare) setFailureAttack({ from: attackerSquare, to: checkedKing });
-      }
       const mateMove = afterWhite.moves({ verbose: true }).find((m: any) => m.san.includes('#'));
       const captureMoves = afterWhite.moves({ verbose: true }).filter((m: any) => m.captured);
 
@@ -497,42 +480,6 @@ export default function DefendMateBoard({ onComplete, lessonId }: { onComplete: 
             interactive={!isComplete && !isFail}
             sqSize={sqSize}
           />
-          {isFail && failureAttack && (
-            <svg className="absolute pointer-events-none z-[40]" style={{ top: 3, left: 3, width: 8 * sqSize, height: 8 * sqSize }} viewBox={`0 0 ${8 * sqSize} ${8 * sqSize}`}>
-              {(() => {
-                const isReversed = exercise === 2 || exercise === 6 || exercise === 8;
-                const fromF = (isReversed ? REVERSED_FILES : FILES).indexOf(failureAttack.from[0]);
-                const fromR = (isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).indexOf(failureAttack.from[1]);
-                const toF = (isReversed ? REVERSED_FILES : FILES).indexOf(failureAttack.to[0]);
-                const toR = (isReversed ? REVERSED_DISPLAY_RANKS : DISPLAY_RANKS).indexOf(failureAttack.to[1]);
-                const x1 = (fromF + 0.5) * sqSize;
-                const y1 = (fromR + 0.5) * sqSize;
-                const x2 = (toF + 0.5) * sqSize;
-                const y2 = (toR + 0.5) * sqSize;
-                const strokeW = sqSize < 60 ? 14 : 18;
-                const halfW = strokeW / 2;
-                const dx = x2 - x1;
-                const dy = y2 - y1;
-                const len = Math.sqrt(dx * dx + dy * dy) || 1;
-                const headHeight = sqSize * 0.6;
-                const headBase = strokeW * 3;
-                const nx = -dy / len;
-                const ny = dx / len;
-                const blx = x1 + nx * halfW; const bly = y1 + ny * halfW;
-                const brx = x1 - nx * halfW; const bry = y1 - ny * halfW;
-                const tailX = x2 - (dx / len) * headHeight;
-                const tailY = y2 - (dy / len) * headHeight;
-                const tlx = tailX + nx * halfW; const tly = tailY + ny * halfW;
-                const trx = tailX - nx * halfW; const try_ = tailY - ny * halfW;
-                const hlx = tailX + nx * headBase / 2; const hly = tailY + ny * headBase / 2;
-                const hrx = tailX - nx * headBase / 2; const hry = tailY - ny * headBase / 2;
-                const cross = (brx - blx) * (-dy / len) - (bry - bly) * (-dx / len);
-                const sweep = cross > 0 ? 1 : 0;
-                const pathD = `M ${blx} ${bly} L ${tlx} ${tly} L ${hlx} ${hly} L ${x2} ${y2} L ${hrx} ${hry} L ${trx} ${try_} L ${brx} ${bry} A ${halfW} ${halfW} 0 1 ${sweep} ${blx} ${bly} Z`;
-                return <path d={pathD} fill="#A63838" fillOpacity={0.7} />;
-              })()}
-            </svg>
-          )}
           {/* Hint arrows SVG overlay */}
           {hintVisible && !isFail && !isComplete && !selectedSquare && !dragPiece && (
             (() => {
