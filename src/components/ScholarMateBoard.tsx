@@ -1188,9 +1188,13 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
     if (!piece) return;
     if ((exercise === 5 || exercise === 6 || exercise === 7 || exercise === 8) && piece.color !== 'b') return;
     if (exercise !== 5 && exercise !== 6 && exercise !== 7 && exercise !== 8 && piece.color !== 'w') return;
+    const guidePlayerColor = (exercise === 1 || exercise === 3) ? 'w' : (exercise === 5 || exercise === 7) ? 'b' : null;
+    if (guidePlayerColor && game.turn() === guidePlayerColor && moveGuideReadyKey === `${exercise}:${whiteMoves}`) {
+      setHiddenGuideKey(`${exercise}:${whiteMoves}`);
+    }
     if (e.pointerType === 'touch' && !(e as any).isPrimary) return;
     pointerStartRef.current = { x: e.clientX, y: e.clientY, square, moved: false, pointerId: e.pointerId };
-  }, [game, exercise]);
+  }, [game, exercise, promotionPending, moveGuideReadyKey, whiteMoves]);
 
   useEffect(() => {
     const handleGlobalMove = (e: PointerEvent) => {
@@ -1398,6 +1402,13 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
               autoValidMoves={true}
               onMove={async (from, to, _promotion) => { await processWhiteMove(from, to, undefined, true); }}
               onSquareClick={handleSquareClick}
+              onDragPieceChange={(piece) => {
+                const moveGuideKey = `${exercise}:${whiteMoves}`;
+                const guidePlayerColor = (exercise === 1 || exercise === 3) ? 'w' : (exercise === 5 || exercise === 7) ? 'b' : null;
+                if (piece && guidePlayerColor && game?.turn() === guidePlayerColor && moveGuideReadyKey === moveGuideKey) {
+                  setHiddenGuideKey(moveGuideKey);
+                }
+              }}
               playerAnimatingMove={playerAnimatingMove}
               playerAnimatingMoves={playerAnimatingMoves}
               opponentAnimatingMove={opponentAnimatingMove}

@@ -2912,6 +2912,11 @@ setLastMove({ from: 'd1', to: 'f3' });
               autoValidMoves={true}
               onMove={async (from, to, _promotion) => { await processBlackMove(from, to, undefined, true); }}
               onSquareClick={handleSquareClick}
+              onDragPieceChange={(piece) => {
+                if (piece && moveGuideReadyKey === `${exercise}:${blackMoves}`) {
+                  setHiddenGuideKey(`${exercise}:${blackMoves}`);
+                }
+              }}
               playerAnimatingMove={playerAnimatingMove}
               playerAnimatingMoves={playerAnimatingMoves}
               opponentAnimatingMove={opponentAnimatingMove}

@@ -2937,6 +2937,11 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
             autoValidMoves={true}
             onMove={async (from, to, _promotion) => { await processWhiteMove(from, to, undefined, true); }}
             onSquareClick={handleSquareClick}
+            onDragPieceChange={(piece) => {
+              if (piece && moveGuideReadyKey === `${exercise}:${whiteMoves}`) {
+                setHiddenGuideKey(`${exercise}:${whiteMoves}`);
+              }
+            }}
             playerAnimatingMove={playerAnimatingMove}
             playerAnimatingMoves={playerAnimatingMoves}
             opponentAnimatingMove={opponentAnimatingMove}
