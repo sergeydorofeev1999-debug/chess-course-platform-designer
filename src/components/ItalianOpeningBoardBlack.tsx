@@ -277,6 +277,7 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
   const [blackMoves, setBlackMoves] = useState(0);
   const [hintVisible, setHintVisible] = useState(false);
   const [moveGuideReadyKey, setMoveGuideReadyKey] = useState<string | null>(null);
+  const [hiddenGuideKey, setHiddenGuideKey] = useState<string | null>(null);
   const moveGuideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [sqSize, setSqSize] = useState(52);
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
@@ -310,11 +311,11 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
     moveGuideTimerRef.current = null;
     const playerTurn = game?.turn() === 'b';
     const shouldDelay = playerTurn && [1, 3, 5].includes(exercise) && !hintVisible && !isFail && !isComplete;
-    if (!shouldDelay) {
+    const readyKey = `${exercise}:${blackMoves}`;
+    if (!shouldDelay || hiddenGuideKey === readyKey) {
       setMoveGuideReadyKey(null);
       return;
     }
-    const readyKey = `${exercise}:${blackMoves}`;
     setMoveGuideReadyKey(current => current === readyKey ? current : null);
     if (moveGuideReadyKey === readyKey) return;
     moveGuideTimerRef.current = setTimeout(() => {
@@ -327,7 +328,7 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
         moveGuideTimerRef.current = null;
       }
     };
-  }, [game, exercise, blackMoves, hintVisible, isFail, isComplete, moveGuideReadyKey]);
+  }, [game, exercise, blackMoves, hintVisible, isFail, isComplete, moveGuideReadyKey, hiddenGuideKey]);
 
   useEffect(() => {
     try {
@@ -382,7 +383,7 @@ setLastMove({ from: 'e2', to: 'e4' });
     return () => window.removeEventListener('resize', update);
   }, []);
 
-    const handleHint = useCallback(() => {
+  const handleHint = useCallback(() => {
     if (isComplete || isFail) return;
     if (game?.turn() !== 'b') return;
     setHintVisible(prev => !prev);
@@ -390,6 +391,8 @@ setLastMove({ from: 'e2', to: 'e4' });
 
   const reset = useCallback(() => {
     const g = new Chess(START_FEN);
+    setMoveGuideReadyKey(null);
+    setHiddenGuideKey(null);
     setGame(g);
     setSelectedSquare(null);
     setMessage('');
@@ -2756,6 +2759,9 @@ setLastMove({ from: 'd1', to: 'f3' });
     if (!game) return;
     const g = game;
     if (g.turn() !== 'b') return;
+    if (moveGuideReadyKey === `${exercise}:${blackMoves}`) {
+      setHiddenGuideKey(`${exercise}:${blackMoves}`);
+    }
 
     const piece = g.get(square as any);
 
@@ -2774,7 +2780,7 @@ setLastMove({ from: 'd1', to: 'f3' });
         setSelectedSquare(square);
       }
     }
-  }, [game, selectedSquare, processBlackMove, promotionPending]);
+  }, [game, selectedSquare, processBlackMove, promotionPending, moveGuideReadyKey, exercise, blackMoves]);
 
 
   // Drag is handled by UniversalChessBoardDesigner
@@ -2853,7 +2859,7 @@ setLastMove({ from: 'd1', to: 'f3' });
     : '';
 
   const earnedStars = exerciseStars[exercise] || 0;
-  const openingGuideMove = moveGuideReadyKey === `${exercise}:${blackMoves}` && [1, 3, 5].includes(exercise) && game?.turn() === 'b' && !hintVisible && !isFail && !isComplete && !selectedSquare
+  const openingGuideMove = moveGuideReadyKey === `${exercise}:${blackMoves}` && hiddenGuideKey !== `${exercise}:${blackMoves}` && [1, 3, 5].includes(exercise) && game?.turn() === 'b' && !hintVisible && !isFail && !isComplete && !selectedSquare
     ? (HINTS[exercise] || [])
         .filter(move => move.phase === blackMoves)
         .find(move => game.moves({ square: move.from as any, verbose: true }).some(legal => legal.to === move.to)) || null

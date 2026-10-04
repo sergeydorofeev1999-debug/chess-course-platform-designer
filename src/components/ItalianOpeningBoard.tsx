@@ -246,6 +246,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
   const [hintVisible, setHintVisible] = useState(false);
   const [moveGuideReadyKey, setMoveGuideReadyKey] = useState<string | null>(null);
+  const [hiddenGuideKey, setHiddenGuideKey] = useState<string | null>(null);
   const moveGuideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
 
@@ -270,11 +271,11 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
     moveGuideTimerRef.current = null;
     const playerTurn = game?.turn() === 'w';
     const shouldDelay = playerTurn && [1, 3, 5].includes(exercise) && !hintVisible && !isFail && !isComplete;
-    if (!shouldDelay) {
+    const readyKey = `${exercise}:${whiteMoves}`;
+    if (!shouldDelay || hiddenGuideKey === readyKey) {
       setMoveGuideReadyKey(null);
       return;
     }
-    const readyKey = `${exercise}:${whiteMoves}`;
     setMoveGuideReadyKey(current => current === readyKey ? current : null);
     if (moveGuideReadyKey === readyKey) return;
     moveGuideTimerRef.current = setTimeout(() => {
@@ -287,7 +288,7 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
         moveGuideTimerRef.current = null;
       }
     };
-  }, [game, exercise, whiteMoves, hintVisible, isFail, isComplete, moveGuideReadyKey]);
+  }, [game, exercise, whiteMoves, hintVisible, isFail, isComplete, moveGuideReadyKey, hiddenGuideKey]);
 
   useEffect(() => {
     try {
@@ -317,6 +318,8 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
 
   const reset = useCallback(() => {
     const fen = exercise === 1 ? START_FEN_1 : exercise === 2 ? START_FEN_2 : exercise === 3 ? START_FEN_3 : exercise === 4 ? START_FEN_4 : exercise === 5 ? START_FEN_5 : START_FEN_6;
+    setMoveGuideReadyKey(null);
+    setHiddenGuideKey(null);
     setGame(new Chess(fen));
     setSelectedSquare(null);
     setMessage('');
@@ -339,13 +342,15 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
     setExercise(num);
     const fen = num === 1 ? START_FEN_1 : num === 2 ? START_FEN_2 : num === 3 ? START_FEN_3 : num === 4 ? START_FEN_4 : num === 5 ? START_FEN_5 : START_FEN_6;
     setGame(new Chess(fen));
+    setMoveGuideReadyKey(null);
+    setHiddenGuideKey(null);
     setSelectedSquare(null);
     setMessage('');
     setIsFail(false);
     setIsComplete(false);
     setWhiteMoves(0);
     setHintVisible(false);
-  setLastMove(null);
+    setLastMove(null);
   }, []);
 
   useEffect(() => {
@@ -2655,12 +2660,15 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
     }
   }, [game, whiteMoves, onComplete, saveStars, exercise]);
 
-const handleSquareClick = useCallback((square: string) => {
+  const handleSquareClick = useCallback((square: string) => {
     if (promotionPending) return;
     if (isCompleteRef.current || isFailRef.current) return;
     if (!game) return;
     const g = game;
     if (g.turn() !== 'w') return;
+    if (moveGuideReadyKey === `${exercise}:${whiteMoves}`) {
+      setHiddenGuideKey(`${exercise}:${whiteMoves}`);
+    }
 
     const piece = g.get(square as any);
 
@@ -2679,7 +2687,7 @@ const handleSquareClick = useCallback((square: string) => {
         setSelectedSquare(square);
       }
     }
-  }, [game, selectedSquare, processWhiteMove]);
+  }, [game, selectedSquare, processWhiteMove, promotionPending, moveGuideReadyKey, exercise, whiteMoves]);
 
 
 
@@ -2707,7 +2715,7 @@ const handleSquareClick = useCallback((square: string) => {
       : [];
 
   const turnText = game ? (game.turn() === 'w' ? 'Ваш ход (белые)' : 'Ход чёрных...') : '';
-  const openingGuideMove = moveGuideReadyKey === `${exercise}:${whiteMoves}` && [1, 3, 5].includes(exercise) && game?.turn() === 'w' && !hintVisible && !isFail && !isComplete && !selectedSquare
+  const openingGuideMove = moveGuideReadyKey === `${exercise}:${whiteMoves}` && hiddenGuideKey !== `${exercise}:${whiteMoves}` && [1, 3, 5].includes(exercise) && game?.turn() === 'w' && !hintVisible && !isFail && !isComplete && !selectedSquare
     ? (HINTS[exercise] || [])
         .filter(move => move.phase === whiteMoves)
         .find(move => game.moves({ square: move.from as any, verbose: true }).some(legal => legal.to === move.to)) || null
