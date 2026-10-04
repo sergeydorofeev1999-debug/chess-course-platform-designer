@@ -2099,7 +2099,6 @@ function MultiLevelStarBoard({
     }
   }, [phase, currentLevel, totalLevels, allDone, onAllComplete]);
 
-  // Auto-advance after the success banner has been visible briefly.
   useEffect(() => {
     const isCastlingLesson = currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2';
     if (isCastlingLesson || phase !== 'success' || allDone || currentLevel + 1 >= totalLevels) return;
@@ -2876,8 +2875,8 @@ function MultiLevelStarBoard({
             <div className="bg-[#4A7A3A] rounded-lg px-4 py-3 flex flex-col items-center gap-2 shadow-lg">
               <p className="text-white font-bold text-lg">Верно!</p>
               <div className="flex justify-center gap-1">
-                {[1, 2, 3].map((star) => (
-                  <svg key={star} width="20" height="20" viewBox="0 0 24 24" fill={star <= (levelStars[currentLevel] || 3) ? '#FFFFFF' : 'rgba(255,255,255,0.35)'}>
+                {Array.from({ length: levelStars[currentLevel] ?? 3 }, (_, i) => (
+                  <svg key={i} width="20" height="20" viewBox="0 0 24 24" fill="#FFFFFF">
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                   </svg>
                 ))}
@@ -2905,7 +2904,7 @@ function MultiLevelStarBoard({
               />
             </div>
             <div className="flex items-center gap-2">
-              {(phase === 'playing' || phase === 'fail' || ((currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2') && phase === 'success')) && (
+              {(
                 <>
                   <button
                     onClick={() => {
@@ -3034,7 +3033,7 @@ function MultiLevelStarBoard({
         </div>
 
         {/* 7. Кнопка "Подсказка" — перенесена сюда */}
-        {(phase === 'playing' || phase === 'fail') && (
+        {phase !== 'intro' && (
           <button
             onClick={() => {
               setHintLevel(0);
