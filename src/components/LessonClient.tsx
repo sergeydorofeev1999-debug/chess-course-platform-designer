@@ -2121,6 +2121,7 @@ function MultiLevelStarBoard({
     setShowIntro(false);
     setShowHint(false);
     setHintArrows([]);
+    setShowOpeningArrows(currentLevel === 0);
     setHintLevel(0);
     setPromotionPending(null);
     setLastMove(null);
