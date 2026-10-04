@@ -833,6 +833,9 @@ function InlineChessBoard({
             );
           })
         )}
+        {openingArrows.length > 0 && (
+          <OpeningArrowsOverlay arrows={openingArrows} sqSize={sqSize} inset={3} zIndex={34} />
+        )}
         {/* Player move ghost piece */}
         {playerAnimatingMove && (() => {
           const fromF = FILES.indexOf(playerAnimatingMove.from[0]);
@@ -990,9 +993,6 @@ function InlineChessBoard({
         </div>
       )}
       </div>
-      {openingArrows.length > 0 && (
-        <OpeningArrowsOverlay arrows={openingArrows} sqSize={sqSize} inset={3} zIndex={34} />
-      )}
     </div>
     {dragPiece && (
         <div className="fixed pointer-events-none z-50" style={{ left: dragPos.x - Math.round(sqSize/2), top: dragPos.y - Math.round(sqSize/2), width: Math.round(sqSize*0.85), height: Math.round(sqSize*0.85) }}>
