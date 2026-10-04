@@ -3,7 +3,7 @@
 interface OpeningArrow {
   from: string;
   to: string;
-  color?: 'green' | 'red';
+  color?: 'green' | 'red' | 'yellow';
 }
 
 interface Props {
@@ -69,14 +69,15 @@ export default function OpeningArrowsOverlay({ arrows, sqSize, isReversed = fals
         const cross = (brx - blx) * (-dy / len) - (bry - bly) * (-dx / len);
         const sweep = cross > 0 ? 1 : 0;
         const pathD = `M ${blx} ${bly} L ${tlx} ${tly} L ${hlx} ${hly} L ${x2} ${y2} L ${hrx} ${hry} L ${trx} ${try_} L ${brx} ${bry} A ${halfW} ${halfW} 0 1 ${sweep} ${blx} ${bly} Z`;
-        const isThreat = arrow.color === 'red';
+        const isRed = arrow.color === 'red';
+        const isYellow = arrow.color === 'yellow';
 
         return (
           <path
             key={`${arrow.from}-${arrow.to}-${index}`}
             d={pathD}
-            fill={isThreat ? '#A63838' : greenColor}
-            fillOpacity={isThreat ? 0.7 : greenOpacity}
+            fill={isRed ? '#A63838' : isYellow ? '#E6B84A' : greenColor}
+            fillOpacity={isRed || isYellow ? 0.7 : greenOpacity}
           />
         );
       })}

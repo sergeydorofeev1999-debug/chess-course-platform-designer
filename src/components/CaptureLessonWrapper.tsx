@@ -86,7 +86,7 @@ function parseFenSimple(fen: string) {
         if (data.levelStars) setLevelStars(data.levelStars);
         if (typeof data.currentLevel === 'number') {
           setCurrentLevel(data.currentLevel);
-          setShowOpeningArrows(data.currentLevel === 0);
+          setShowOpeningArrows(data.currentLevel <= 1);
           setCurrentPosition(levels[data.currentLevel]?.initialFen || levels[0].initialFen || '');
         }
       }
@@ -121,7 +121,7 @@ function parseFenSimple(fen: string) {
     setCurrentLevel(idx);
     setShowHint(false);
     setHintArrows([]);
-    setShowOpeningArrows(idx === 0);
+    setShowOpeningArrows(idx <= 1);
     setFailed(false);
     setCurrentPosition(levels[idx]?.initialFen || '');
   };
@@ -798,6 +798,13 @@ function parseFenSimple(fen: string) {
   const firstExerciseArrows = currentLevel === 0 && Array.isArray(levels[0]?.guideArrows)
     ? levels[0].guideArrows
     : [];
+  const exerciseTwoArrows = currentLevel === 1
+    ? [
+        { from: 'c4', to: 'f7', color: 'green' as const },
+        { from: 'c4', to: 'c7', color: 'red' as const },
+        { from: 'f7', to: 'c7', color: 'yellow' as const },
+      ]
+    : [];
   const totalLevels = levels.length;
   const earned = levelStars[currentLevel];
 
@@ -835,7 +842,7 @@ function parseFenSimple(fen: string) {
             externalLevelStars={levelStars}
             onExternalStarsChange={setLevelStars}
             hintArrows={hintArrows}
-            openingArrows={showOpeningArrows && currentLevel === 0 ? firstExerciseArrows : []}
+            openingArrows={showOpeningArrows ? (currentLevel === 0 ? firstExerciseArrows : currentLevel === 1 ? exerciseTwoArrows : []) : []}
             onBoardInteraction={() => {
               setShowOpeningArrows(false);
               setHintArrows([]);

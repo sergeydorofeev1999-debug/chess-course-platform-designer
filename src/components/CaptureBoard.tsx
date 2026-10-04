@@ -597,7 +597,7 @@ function InlineChessBoard({
   failed?: boolean;
   failCheck?: { kingSquare: string; attackers: { from: string; to: string }[] } | null;
   onBoardInteraction?: () => void;
-  openingArrows?: { from: string; to: string; color?: 'green' | 'red' }[];
+  openingArrows?: { from: string; to: string; color?: 'green' | 'red' | 'yellow' }[];
 }) {
   const parsed = parseFen(fen);
   const [squares, setSquares] = useState(parsed.squares);
@@ -1247,7 +1247,7 @@ interface Props {
   externalLevelStars?: Record<number, number>;
   onExternalStarsChange?: (stars: Record<number, number>) => void;
   hintArrows?: { from: string; to: string }[];
-  openingArrows?: { from: string; to: string; color?: 'green' | 'red' }[];
+  openingArrows?: { from: string; to: string; color?: 'green' | 'red' | 'yellow' }[];
   onAnyMove?: () => void;
   onPositionChange?: (fen: string) => void;
   onBoardInteraction?: () => void;
