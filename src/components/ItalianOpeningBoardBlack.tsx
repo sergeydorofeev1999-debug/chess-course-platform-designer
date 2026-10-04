@@ -276,6 +276,8 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
   const [isComplete, setIsComplete] = useState(false);
   const [blackMoves, setBlackMoves] = useState(0);
   const [hintVisible, setHintVisible] = useState(false);
+  const [moveGuideReadyKey, setMoveGuideReadyKey] = useState<string | null>(null);
+  const moveGuideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [sqSize, setSqSize] = useState(52);
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
   const [postMoveHint, setPostMoveHint] = useState('');
@@ -302,6 +304,30 @@ export default function ItalianOpeningBoardBlack({ onComplete, lessonId }: { onC
   useEffect(() => () => { mountedRef.current = false; }, []);
   useEffect(() => { isCompleteRef.current = isComplete; }, [isComplete]);
   useEffect(() => { isFailRef.current = isFail; }, [isFail]);
+
+  useEffect(() => {
+    if (moveGuideTimerRef.current) clearTimeout(moveGuideTimerRef.current);
+    moveGuideTimerRef.current = null;
+    const playerTurn = game?.turn() === 'b';
+    const shouldDelay = playerTurn && [1, 3, 5].includes(exercise) && !hintVisible && !isFail && !isComplete;
+    if (!shouldDelay) {
+      setMoveGuideReadyKey(null);
+      return;
+    }
+    const readyKey = `${exercise}:${blackMoves}`;
+    setMoveGuideReadyKey(current => current === readyKey ? current : null);
+    if (moveGuideReadyKey === readyKey) return;
+    moveGuideTimerRef.current = setTimeout(() => {
+      setMoveGuideReadyKey(readyKey);
+      moveGuideTimerRef.current = null;
+    }, 500);
+    return () => {
+      if (moveGuideTimerRef.current) {
+        clearTimeout(moveGuideTimerRef.current);
+        moveGuideTimerRef.current = null;
+      }
+    };
+  }, [game, exercise, blackMoves, hintVisible, isFail, isComplete, moveGuideReadyKey]);
 
   useEffect(() => {
     try {
@@ -2827,7 +2853,7 @@ setLastMove({ from: 'd1', to: 'f3' });
     : '';
 
   const earnedStars = exerciseStars[exercise] || 0;
-  const openingGuideMove = [1, 3, 5].includes(exercise) && game?.turn() === 'b' && !hintVisible && !isFail && !isComplete && !selectedSquare
+  const openingGuideMove = moveGuideReadyKey === `${exercise}:${blackMoves}` && [1, 3, 5].includes(exercise) && game?.turn() === 'b' && !hintVisible && !isFail && !isComplete && !selectedSquare
     ? (HINTS[exercise] || [])
         .filter(move => move.phase === blackMoves)
         .find(move => game.moves({ square: move.from as any, verbose: true }).some(legal => legal.to === move.to)) || null
@@ -2944,7 +2970,7 @@ setLastMove({ from: 'd1', to: 'f3' });
             />
             {openingGuideMove && game && (() => {
               const legal = game.moves({ square: openingGuideMove.from as any, verbose: true }).some(move => move.to === openingGuideMove.to);
-              return legal ? <OpeningArrowsOverlay arrows={[{ from: openingGuideMove.from, to: openingGuideMove.to, color: 'green' }]} sqSize={sqSize} inset={3} zIndex={36} greenOpacity={0.7} isReversed={true} /> : null;
+              return legal ? <OpeningArrowsOverlay arrows={[{ from: openingGuideMove.from, to: openingGuideMove.to, color: 'green' }]} sqSize={sqSize} inset={3} zIndex={36} isReversed={true} /> : null;
             })()}
             {/* Hint arrows SVG overlay */}
             {(() => {

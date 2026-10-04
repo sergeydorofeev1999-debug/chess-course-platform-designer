@@ -245,6 +245,8 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
   const [sqSize, setSqSize] = useState(52);
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
   const [hintVisible, setHintVisible] = useState(false);
+  const [moveGuideReadyKey, setMoveGuideReadyKey] = useState<string | null>(null);
+  const moveGuideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
 
   const isCompleteRef = useRef(false);
@@ -262,6 +264,30 @@ export default function ItalianOpeningBoard({ onComplete, lessonId }: { onComple
 
   useEffect(() => { isCompleteRef.current = isComplete; }, [isComplete]);
   useEffect(() => { isFailRef.current = isFail; }, [isFail]);
+
+  useEffect(() => {
+    if (moveGuideTimerRef.current) clearTimeout(moveGuideTimerRef.current);
+    moveGuideTimerRef.current = null;
+    const playerTurn = game?.turn() === 'w';
+    const shouldDelay = playerTurn && [1, 3, 5].includes(exercise) && !hintVisible && !isFail && !isComplete;
+    if (!shouldDelay) {
+      setMoveGuideReadyKey(null);
+      return;
+    }
+    const readyKey = `${exercise}:${whiteMoves}`;
+    setMoveGuideReadyKey(current => current === readyKey ? current : null);
+    if (moveGuideReadyKey === readyKey) return;
+    moveGuideTimerRef.current = setTimeout(() => {
+      setMoveGuideReadyKey(readyKey);
+      moveGuideTimerRef.current = null;
+    }, 500);
+    return () => {
+      if (moveGuideTimerRef.current) {
+        clearTimeout(moveGuideTimerRef.current);
+        moveGuideTimerRef.current = null;
+      }
+    };
+  }, [game, exercise, whiteMoves, hintVisible, isFail, isComplete, moveGuideReadyKey]);
 
   useEffect(() => {
     try {
@@ -2681,7 +2707,7 @@ const handleSquareClick = useCallback((square: string) => {
       : [];
 
   const turnText = game ? (game.turn() === 'w' ? 'Ваш ход (белые)' : 'Ход чёрных...') : '';
-  const openingGuideMove = [1, 3, 5].includes(exercise) && game?.turn() === 'w' && !hintVisible && !isFail && !isComplete && !selectedSquare
+  const openingGuideMove = moveGuideReadyKey === `${exercise}:${whiteMoves}` && [1, 3, 5].includes(exercise) && game?.turn() === 'w' && !hintVisible && !isFail && !isComplete && !selectedSquare
     ? (HINTS[exercise] || [])
         .filter(move => move.phase === whiteMoves)
         .find(move => game.moves({ square: move.from as any, verbose: true }).some(legal => legal.to === move.to)) || null
@@ -2913,7 +2939,7 @@ const handleSquareClick = useCallback((square: string) => {
           />
           {openingGuideMove && game && (() => {
             const legal = game.moves({ square: openingGuideMove.from as any, verbose: true }).some(move => move.to === openingGuideMove.to);
-            return legal ? <OpeningArrowsOverlay arrows={[{ from: openingGuideMove.from, to: openingGuideMove.to, color: 'green' }]} sqSize={sqSize} inset={3} zIndex={36} greenOpacity={0.7} /> : null;
+            return legal ? <OpeningArrowsOverlay arrows={[{ from: openingGuideMove.from, to: openingGuideMove.to, color: 'green' }]} sqSize={sqSize} inset={3} zIndex={36} /> : null;
           })()}
           {/* Hint arrows SVG overlay */}
           {hintVisible && !isFail && !isComplete && !selectedSquare && (
