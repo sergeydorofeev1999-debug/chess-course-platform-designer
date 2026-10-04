@@ -2824,7 +2824,7 @@ function MultiLevelStarBoard({
               <img src="/coach-avatar.png" alt="Тренер" className="w-full h-full object-contain" draggable={false} />
             </div>
             <AvatarBubble className="flex-1 bg-white rounded-xl rounded-tl-none px-3 py-2 shadow-sm border border-[rgba(92,64,51,0.06)]">
-              <p className={`text-sm text-[var(--text-primary)] leading-snug ${isLesson13 && currentLevel === 6 ? '' : 'line-clamp-3'}`}>
+              <p className="text-sm text-[var(--text-primary)] leading-snug line-clamp-3">
                 {phase === 'intro' && (lessonTitle || lessonContent || pieceDesc)}
                 {phase === 'playing' && (isLesson13 && currentLevel === 6
                   ? moves === 0
