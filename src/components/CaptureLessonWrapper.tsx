@@ -1001,11 +1001,12 @@ function parseFenSimple(fen: string) {
       <div className="flex items-center gap-3">
         <button
           onClick={() => {
-            console.log('HINT BUTTON CLICKED, current hintArrows:', hintArrows);
             if (hintArrows.length === 0) {
               setShowOpeningArrows(false);
+              if (isEnPassantLesson && (currentLevel === 1 || currentLevel === 2)) {
+                setEnPassantArrowReady(false);
+              }
               const arrows = computeHintArrow();
-              console.log('COMPUTED ARROWS:', arrows);
               setHintArrows(arrows);
               setShowHint(true);
             } else {
