@@ -489,6 +489,7 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
       const promotionTarget = selectedPiece?.type === 'p' && sq[1] === (playerColor === 'w' ? '8' : '1');
       if (!legalTargets.includes(sq) && !promotionTarget) {
         setSelectedSquare(null);
+        setDragPiece(null);
         setHideMoveHints(true);
         return;
       }

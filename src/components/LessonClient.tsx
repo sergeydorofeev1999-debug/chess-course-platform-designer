@@ -578,6 +578,7 @@ function InlineChessBoard({
         if (!isLegalMove && !isCastlingMove) {
           selectedSquareRef.current = null;
           setSelectedSquare(null);
+          setMsg('');
           return;
         }
 
