@@ -1145,12 +1145,12 @@ function MultiLevelStarBoard({
   useEffect(() => {
     setMovedPieces(new Set());
     setPromotionPending(null);
-    setShowOpeningArrows(currentLevel === 0);
+    setShowOpeningArrows(currentLevel <= 1);
   }, [currentLevel]);
 
   const level = levels[currentLevel];
   const openingArrows = useMemo(() => {
-    if (currentLevel !== 0 || phase !== 'playing' || !showOpeningArrows || showHint) return [];
+    if (currentLevel > 1 || phase !== 'playing' || !showOpeningArrows || showHint) return [];
     const configured = level.openingArrows;
     if (Array.isArray(configured)) return configured;
     return level.guideArrows ?? [];
@@ -2121,7 +2121,7 @@ function MultiLevelStarBoard({
     setShowIntro(false);
     setShowHint(false);
     setHintArrows([]);
-    setShowOpeningArrows(currentLevel === 0);
+    setShowOpeningArrows(currentLevel <= 1);
     setHintLevel(0);
     setPromotionPending(null);
     setLastMove(null);
