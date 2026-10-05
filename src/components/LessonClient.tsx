@@ -2923,9 +2923,9 @@ function MultiLevelStarBoard({
                       Далее: Слон <ArrowRight size={16} />
                     </Link>
                   )}
-                  <a href={`/courses/${courseId}`} className="mt-2 inline-flex min-h-9 items-center justify-center gap-1.5 px-3 text-xs font-semibold text-[#8B7355] transition hover:text-[#5A3A22]">
+                  <Link href={`/courses/${courseId}`} prefetch={true} className="mt-2 inline-flex min-h-9 items-center justify-center gap-1.5 px-3 text-xs font-semibold text-[#8B7355] transition hover:text-[#5A3A22]">
                     <ArrowLeft size={14} /> Вернуться в меню
-                  </a>
+                  </Link>
                 </div>
               </div>
             )}
