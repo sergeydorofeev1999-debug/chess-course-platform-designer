@@ -429,6 +429,7 @@ function StarSvg({ size }: { size: number }) {
 
 interface InlineChessBoardProps {
   fen: string;
+  resetVersion?: number;
   stars?: string[];
   onMove?: (from: string, to: string, isDrag?: boolean) => boolean;
   openingArrows?: { from: string; to: string; color?: 'green' | 'red' }[];
@@ -449,6 +450,7 @@ interface InlineChessBoardProps {
 
 function InlineChessBoard({
   fen,
+  resetVersion = 0,
   stars = [],
   onMove,
   openingArrows = [],
@@ -519,6 +521,15 @@ function InlineChessBoard({
   const clickRef = useRef<(square: string) => void>(() => {});
   const onMoveRef = useRef<((from: string, to: string, isDrag?: boolean) => boolean) | undefined>(undefined);
   const selectedSquareRef = useRef<string | null>(null);
+  useEffect(() => {
+    selectedSquareRef.current = null;
+    setSelectedSquare(null);
+    setDragPiece(null);
+    setDragPos({ x: 0, y: 0 });
+    setHoveredSquare(null);
+    pointerStartRef.current = null;
+    processLockRef.current = false;
+  }, [resetVersion]);
   const starsRef = useRef<string[]>([]);
   const movedPiecesRef = useRef<Set<string>>(new Set());
   useEffect(() => { movedPiecesRef.current = movedPieces; }, [movedPieces]);
@@ -1108,6 +1119,7 @@ function MultiLevelStarBoard({
   }, [levels.length]);
 
   const [position, setPosition] = useState(levels[currentLevel || 0].initialFen);
+  const [boardResetVersion, setBoardResetVersion] = useState(0);
   const positionRef = useRef(position);
   useEffect(() => { positionRef.current = position; }, [position]);
 
@@ -2170,6 +2182,7 @@ function MultiLevelStarBoard({
   }, [phase, currentLevel, totalLevels, currentLessonId]);
 
   const reset = useCallback(() => {
+    setBoardResetVersion(version => version + 1);
     setPosition(level.initialFen);
     setCollected([]);
     setMoves(0);
@@ -2862,6 +2875,7 @@ function MultiLevelStarBoard({
           <div className="relative inline-block rounded-sm">
             <InlineChessBoard
               fen={position}
+              resetVersion={boardResetVersion}
               stars={visibleStars}
               openingArrows={openingArrows}
               onBoardInteraction={() => {

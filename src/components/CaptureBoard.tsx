@@ -579,6 +579,7 @@ function InlineChessBoard({
   failCheck,
   openingArrows = [],
   onBoardInteraction,
+  resetVersion,
 }: {
   fen: string;
   onMove: (from: string, to: string) => boolean;
@@ -598,6 +599,7 @@ function InlineChessBoard({
   failCheck?: { kingSquare: string; attackers: { from: string; to: string }[] } | null;
   onBoardInteraction?: () => void;
   openingArrows?: { from: string; to: string; color?: 'green' | 'red' | 'yellow' }[];
+  resetVersion?: number;
 }) {
   const parsed = parseFen(fen);
   const [squares, setSquares] = useState(parsed.squares);
@@ -632,6 +634,16 @@ function InlineChessBoard({
   const clickRef = useRef<((square: string) => void) | null>(null);
   const handledByPointerUpRef = useRef(false);
   const waitingForOpponentRef = useRef(waitingForOpponent);
+  useEffect(() => {
+    if (resetVersion === undefined) return;
+    selectedSquareRef.current = null;
+    setSelectedSquare(null);
+    setDragState(null);
+    dragStateRef.current = null;
+    pointerStartRef.current = null;
+    justDraggedRef.current = false;
+    setPlayerAnimatingMove(null);
+  }, [resetVersion]);
 
   useEffect(() => { fenRef.current = fen; }, [fen]);
   useEffect(() => { forbiddenSquaresRef.current = forbiddenSquares; }, [forbiddenSquares]);
@@ -1292,6 +1304,7 @@ export default function CaptureBoard({
   const [promotionPending, setPromotionPending] = useState<{from: string, to: string} | null>(null);
   const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: 'w' | 'b' } } | null>(null);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
+  const [boardResetVersion, setBoardResetVersion] = useState(0);
   const [waitingForOpponent, setWaitingForOpponent] = useState(false);
   const successTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
@@ -1416,6 +1429,7 @@ export default function CaptureBoard({
   // Reset trigger from parent (e.g. "Заново" button)
   useEffect(() => {
     if (resetTrigger === undefined) return;
+    setBoardResetVersion(version => version + 1);
     clearSuccessTimers();
     const lvl = levels[currentLevel];
     setPosition(lvl.initialFen);
@@ -2102,6 +2116,7 @@ export default function CaptureBoard({
   const remainingBlack = Object.values(parseFen(position).squares).filter((p) => p.color === 'b').length;
 
   const resetLevel = () => {
+    setBoardResetVersion(version => version + 1);
     clearSuccessTimers();
     setOpponentAnimatingMove(null); // Prevent ghost dupe on reset
     setWaitingForOpponent(false); // UNBLOCK clicks after reset
@@ -2202,7 +2217,27 @@ export default function CaptureBoard({
       {embedded ? (
         /* Minimal mode: only the board + fail callback */
         <div className="flex flex-col items-center gap-3">
-          <InlineChessBoard fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} hintArrows={hintArrows} starSquares={stars.filter((sq: string) => !collected.includes(sq))} openingArrows={openingArrows} onBoardInteraction={onBoardInteraction} promotionPending={promotionPending} onPromotion={handlePromotion} opponentAnimatingMove={opponentAnimatingMove} lastMove={lastMove} waitingForOpponent={waitingForOpponent} gameOver={gameOver} failed={failed} failCheck={failCheck} />
+          <InlineChessBoard
+            key={`${currentLevel}:${resetTrigger ?? 0}`}
+            fen={position}
+            onMove={handleMove}
+            msg={msg}
+            setMsg={setMsg}
+            forbiddenSquares={level.forbiddenSquares || []}
+            hintArrows={hintArrows}
+            starSquares={stars.filter((sq: string) => !collected.includes(sq))}
+            openingArrows={openingArrows}
+            onBoardInteraction={onBoardInteraction}
+            resetVersion={boardResetVersion}
+            promotionPending={promotionPending}
+            onPromotion={handlePromotion}
+            opponentAnimatingMove={opponentAnimatingMove}
+            lastMove={lastMove}
+            waitingForOpponent={waitingForOpponent}
+            gameOver={gameOver}
+            failed={failed}
+            failCheck={failCheck}
+          />
           {failed && onFail && (
             <div className="w-full">
               <div className="bg-[#A63838] rounded-lg p-4 flex flex-col items-center gap-2 shadow-lg">
@@ -2329,7 +2364,20 @@ export default function CaptureBoard({
 
       {/* CENTER COLUMN: Chess board + stats */}
       <div className="flex-1 flex flex-col items-center gap-3">
-        <InlineChessBoard key={currentLevel} fen={position} onMove={handleMove} msg={msg} setMsg={setMsg} forbiddenSquares={level.forbiddenSquares || []} opponentAnimatingMove={opponentAnimatingMove} lastMove={lastMove} waitingForOpponent={waitingForOpponent} gameOver={gameOver} failed={failed} failCheck={failCheck} />
+        <InlineChessBoard
+          key={`${currentLevel}:${boardResetVersion}`}
+          fen={position}
+          onMove={handleMove}
+          msg={msg}
+          setMsg={setMsg}
+          forbiddenSquares={level.forbiddenSquares || []}
+          opponentAnimatingMove={opponentAnimatingMove}
+          lastMove={lastMove}
+          waitingForOpponent={waitingForOpponent}
+          gameOver={gameOver}
+          failed={failed}
+          failCheck={failCheck}
+        />
 
         {/* Red fail banner */}
         {failed && (

@@ -198,6 +198,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
   const [whiteMoves, setWhiteMoves] = useState(0);
   const [sqSize, setSqSize] = useState(52);
   const [exerciseStars, setExerciseStars] = useState<Record<number, number>>({});
+  const [boardResetVersion, setBoardResetVersion] = useState(0);
   const [hintVisible, setHintVisible] = useState(false);
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const [opponentAnimatingMove, setOpponentAnimatingMove] = useState<{ from: string; to: string; piece: { type: string; color: "w" | "b" } } | null>(null);
@@ -250,6 +251,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
 
   const reset = useCallback(() => {
     const fen = exercise === 1 ? START_FEN_1 : exercise === 2 ? START_FEN_2 : exercise === 3 ? START_FEN_3 : exercise === 4 ? START_FEN_4 : exercise === 5 ? START_FEN_5 : exercise === 6 ? START_FEN_6 : exercise === 7 ? START_FEN_7 : exercise === 8 ? START_FEN_8 : exercise === 9 ? START_FEN_9 : exercise === 10 ? START_FEN_10 : exercise === 11 ? START_FEN_11 : START_FEN_12;
+    setBoardResetVersion(version => version + 1);
     setGame(new Chess(fen));
     setSelectedSquare(null);
     setHideMoveHints(false);
@@ -273,6 +275,8 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
 
   const switchExercise = useCallback((num: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12) => {
     setExercise(num);
+    setBoardResetVersion(version => version + 1);
+    setHideMoveHints(false);
     setHintVisible(false);
     const fen = num === 1 ? START_FEN_1 : num === 2 ? START_FEN_2 : num === 3 ? START_FEN_3 : num === 4 ? START_FEN_4 : num === 5 ? START_FEN_5 : num === 6 ? START_FEN_6 : num === 7 ? START_FEN_7 : num === 8 ? START_FEN_8 : num === 9 ? START_FEN_9 : num === 10 ? START_FEN_10 : num === 11 ? START_FEN_11 : START_FEN_12;
     setGame(new Chess(fen));
@@ -1510,6 +1514,7 @@ export default function PinBoard({ onComplete, lessonId }: { onComplete: () => v
         <div className="flex justify-center w-full relative" style={{ minHeight: 8 * sqSize }}>
           <div className="relative" style={{ width: 8 * sqSize + 6, height: 8 * sqSize + 6 }}>
             <UniversalChessBoardDesigner
+              key={boardResetVersion}
               fen={game?.fen() || ''}
               selectedSquare={selectedSquare}
               lastMove={lastMove}
