@@ -2906,7 +2906,7 @@ function MultiLevelStarBoard({
             {phase === 'success' && isRookStarLesson && currentLevel + 1 >= totalLevels && (
               <div className="absolute inset-0 z-40 flex flex-col items-center justify-center rounded-sm bg-[rgba(0,0,0,0.58)] p-3">
                 <div className="w-full max-w-[320px] rounded-2xl bg-white px-5 py-5 text-center shadow-2xl">
-                  <div className="mb-2 flex items-center justify-center gap-3 text-[#D4A843]" aria-label="3 звезды">
+                  <div className="mb-4 flex items-center justify-center gap-3 text-[#D4A843]" aria-label="3 звезды">
                     {[1, 2, 3].map(star => <Star key={star} size={38} fill="currentColor" strokeWidth={1.5} />)}
                   </div>
                   <h2 className="mb-2 text-xl font-bold text-[#2C241B]">Урок 1 пройден!</h2>
@@ -2915,7 +2915,7 @@ function MultiLevelStarBoard({
                     <span className="block">Вы мастерски овладели ладьёй.</span>
                   </p>
                   {nextLesson && (
-                    <a href={`/lessons/${nextLesson.id}?course=${courseId}`} className="mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#D4A84C] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#C79A3E]">
+                    <a href={`/lessons/${nextLesson.id}?course=${courseId}`} className="mt-6 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#D4A84C] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#C79A3E]">
                       Далее: Слон <ArrowRight size={16} />
                     </a>
                   )}
