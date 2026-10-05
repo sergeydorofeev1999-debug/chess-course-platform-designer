@@ -116,7 +116,10 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
   const workerRef = useRef<Worker | null>(null);
   const openingStepRef = useRef(0);
 
-  useEffect(() => () => { mountedRef.current = false; }, []);
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   const [dragPiece, setDragPiece] = useState<DragState | null>(null);
   const [dragPos, setDragPos] = useState({ x: 0, y: 0 });
@@ -787,11 +790,9 @@ export default function ComputerPlayBoard({ onComplete, lessonId, lessonTitle }:
 
       {/* CENTER COLUMN */}
       <div className="flex-1 flex flex-col items-center gap-3 px-2">
-        {thinking && (
-          <div className="w-full h-1.5 bg-[#F5F0E8] rounded-full overflow-hidden">
-            <div className="h-full bg-[#C9A84C] rounded-full w-full transition-opacity duration-300 opacity-100" />
-          </div>
-        )}
+        <div className="w-full h-1.5 rounded-full overflow-hidden" aria-hidden="true">
+          <div className={`h-full bg-[#C9A84C] rounded-full w-full transition-opacity duration-300 ${thinking ? 'opacity-100' : 'opacity-0'}`} />
+        </div>
 
         {message && (
           <div className={`px-6 py-3 rounded-xl text-center font-bold text-white w-full flex items-center justify-center gap-2 ${
