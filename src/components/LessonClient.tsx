@@ -55,6 +55,7 @@ interface Lesson {
   chess_board_fen: string | null;
   video_url: string | null;
   course_id: string;
+  order?: number;
 }
 
 interface LessonNav {
@@ -94,6 +95,59 @@ function parseInteractiveConfig(videoUrl: string | null | object) {
   }
   return null;
 }
+
+const COMPLETED_EXERCISE_KEY_BY_LESSON: Record<string, string> = {
+  'af74a851-e308-411d-82e1-fafdc5bd390a': 'pawnrace_progress',
+  'd239daeb-f7e9-410e-84c7-8f0eac3ebcb4': 'rookpawn_progress',
+  '2976cdff-d622-45a6-9ce4-fbcc33fa9528': 'bishoppawn_progress',
+  'a8b9a524-5e37-43c5-a479-9c98494d704e': 'queenpawn_progress',
+  '1ce04101-6a7d-45c9-bcef-6e17dbafa6ac': 'knightpawn_progress',
+  'bae12fca-bfa4-44b6-9dff-7555fe240706': 'football_progress',
+  '126a2252-7482-4ed4-8d5a-a0afe82d834d': 'tworooks_progress',
+  '3ca74ff6-7274-4cbd-9336-f33378310fcd': 'queenmate_progress',
+  'e1ff27cf-cc1c-47e8-8407-2bc8edf9a5d2': 'rookmate_progress',
+  '5804a975-097a-4937-8705-4ce2de979b1e': 'fork_progress',
+  '7d92d36a-96c3-4fc4-9437-067933b20dfa': 'fork_progress',
+  '0011d27c-f877-46a0-9bd3-78cbe242ad6d': 'discovered_attack_progress',
+  'be278517-07fc-41d4-a9e7-482bf485d997': 'square_rule_progress',
+  'b31096e9-a9ec-4a8e-8b09-fc865a702cfb': 'mixed_progress',
+  '85964947-1d1f-4ee8-a365-232761d350d7': 'italian_progress',
+  '00a3558e-a793-47a0-a41a-6303c0c63454': 'italian_black_progress',
+  '5b7ed669-82a7-44c5-a149-412e7fbac473': 'italian_progress',
+  '25178d27-5eb5-44a0-a56c-0e4337c26e58': 'mateinone_progress',
+  '33984720-00fa-44a1-a10f-1180ff445b34': 'mateintwo_progress',
+  'd9a3b7c8-5e4f-4a2b-9c1d-8e7f6a5b4c3d': 'defendmate_progress',
+  '58401e68-3384-4253-81e2-8ea23c3bbefe': 'computerplay_progress',
+};
+
+function normalizeProgressValues(progressValues: unknown): number[] {
+  if (!progressValues || typeof progressValues !== 'object' || Array.isArray(progressValues)) return [];
+  return Object.entries(progressValues as Record<string, unknown>)
+    .filter(([key]) => !['currentLevel', 'done', 'completed'].includes(key))
+    .map(([, value]) => typeof value === 'boolean' ? (value ? 1 : 0) : value)
+    .filter((value): value is number => typeof value === 'number' && Number.isFinite(value) && value >= 1 && value <= 3);
+}
+
+function getLessonMinimumStarsFromValues(progressValues: unknown): number {
+  const stars = normalizeProgressValues(progressValues);
+  return stars.length ? Math.min(...stars) : 0;
+}
+
+function getLessonMinimumStars(lessonId: string, storage: Pick<Storage, 'getItem'> = typeof window === 'undefined' ? { getItem: () => null } : localStorage): number {
+  const customPrefix = COMPLETED_EXERCISE_KEY_BY_LESSON[lessonId];
+  const keys = customPrefix ? [`${customPrefix}_${lessonId}`] : [`lesson_progress_${lessonId}`, `lesson_capture_${lessonId}`];
+  const progressValues: unknown[] = [];
+  for (const key of keys) {
+    try {
+      const parsed = JSON.parse(storage.getItem(key) || 'null');
+      if (!parsed) continue;
+      progressValues.push(parsed?.levelStars && typeof parsed.levelStars === 'object' ? parsed.levelStars : parsed);
+    } catch {}
+  }
+  const values = progressValues.sort((a, b) => normalizeProgressValues(b).length - normalizeProgressValues(a).length)[0];
+  return getLessonMinimumStarsFromValues(values);
+}
+
 
 /* ====== ВСТРОЕННАЯ ШАХМАТНАЯ ДОСКА (без chess.js — pure JS) ====== */
 const FILES = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
@@ -3207,6 +3261,12 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
   const [isCompleted, setIsCompleted] = useState(isCompletedInit);
   const [isCompletionSaving, setIsCompletionSaving] = useState(false);
   const [completionError, setCompletionError] = useState('');
+  const [showCompletionCard, setShowCompletionCard] = useState(false);
+  const [completionCardStars, setCompletionCardStars] = useState(3);
+  const [completionCardLessonNumber, setCompletionCardLessonNumber] = useState(0);
+  const [completionCardNextLabel, setCompletionCardNextLabel] = useState('');
+  const [completionCardNextHref, setCompletionCardNextHref] = useState('');
+  const [completionCardHasNext, setCompletionCardHasNext] = useState(false);
 
   useEffect(() => {
     if (!isCompleted && typeof window !== 'undefined') {
@@ -3215,8 +3275,9 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
   }, [lesson.id, isCompleted]);
 
   const lessonIndex = allLessons.findIndex((l) => l.id === lesson.id);
+  const displayLessonNumber = lesson.order || (lessonIndex >= 0 ? lessonIndex + 1 : 0);
   const prevLesson = lessonIndex > 0 ? allLessons[lessonIndex - 1] : null;
-  const nextLesson = lessonIndex < allLessons.length - 1 ? allLessons[lessonIndex + 1] : null;
+  const nextLesson = lessonIndex >= 0 && lessonIndex < allLessons.length - 1 ? allLessons[lessonIndex + 1] : null;
 
   const interactiveConfig = parseInteractiveConfig(lesson.video_url);
 
@@ -3229,6 +3290,14 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
   };
 
   const handleInteractiveComplete = async () => {
+    const isPieceStarLesson = Boolean(PIECE_STAR_LESSONS[lesson.id]);
+    const starCount = getLessonMinimumStars(lesson.id);
+    setCompletionCardStars(starCount);
+    setCompletionCardLessonNumber(displayLessonNumber);
+    setCompletionCardNextLabel(nextLesson ? nextLesson.title.replace(/^Урок\s+\d+\s*[:.\-]?\s*/, '').toLowerCase() : '');
+    setCompletionCardNextHref(nextLesson ? `/lessons/${nextLesson.id}?course=${courseId}` : '');
+    setCompletionCardHasNext(Boolean(nextLesson));
+    if (!isPieceStarLesson) setShowCompletionCard(true);
     if (isCompleted || isCompletionSaving) return;
 
     setIsCompletionSaving(true);
@@ -3270,7 +3339,7 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
                   allLessons={allLessons}
                   courseId={courseId}
                   levels={interactiveConfig.levels || []}
-                  onAllComplete={handleInteractiveComplete}
+                  onAllComplete={() => handleInteractiveComplete()}
                   onLevelComplete={handleLevelComplete}
                 />
               );
@@ -3365,7 +3434,7 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
             return (
             <MultiLevelStarBoard
               config={interactiveConfig}
-              onAllComplete={handleInteractiveComplete}
+              onAllComplete={() => handleInteractiveComplete()}
               onLevelComplete={handleLevelComplete}
               nextLessonUrl={nextLesson ? `/lessons/${nextLesson.id}?course=${courseId}` : undefined}
               allLessons={allLessons}
@@ -3403,9 +3472,28 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
         </div>
       )}
 
-      {isCompletionSaving && (
-        <div className="mb-4 rounded-lg bg-slate-100 px-4 py-2 text-sm text-slate-600">
-          Сохраняем прогресс...
+      {showCompletionCard && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[rgba(0,0,0,0.58)] p-3">
+          <div className="w-full max-w-[320px] rounded-2xl bg-white px-5 py-5 text-center shadow-2xl">
+            <div className="mb-4 flex items-center justify-center gap-3 text-[#D4A843]" aria-label={`${completionCardStars} звезды`}>
+              {Array.from({ length: 3 }, (_, starIndex) => (
+                <Star key={starIndex} size={38} fill={starIndex < completionCardStars ? 'currentColor' : 'transparent'} strokeWidth={1.5} />
+              ))}
+            </div>
+            <h2 className="mb-2 text-xl font-bold text-[#2C241B]">Урок {completionCardLessonNumber} пройден!</h2>
+            <p className="mt-4 text-sm leading-relaxed text-[#756454]">
+              <span className="block">Поздравляем!</span>
+              <span className="block">Вы прошли все упражнения урока.</span>
+            </p>
+            {completionCardHasNext && (
+              <Link href={completionCardNextHref} prefetch={true} className="mt-6 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#5A3A22] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#6B472B]">
+                Далее: {completionCardNextLabel} <ArrowRight size={16} />
+              </Link>
+            )}
+            <Link href={`/courses/${courseId}`} prefetch={true} className="mt-2 inline-flex min-h-9 items-center justify-center gap-1.5 px-3 text-xs font-semibold text-[#8B7355] transition hover:text-[#5A3A22]">
+              <ArrowLeft size={14} /> Вернуться в меню
+            </Link>
+          </div>
         </div>
       )}
 
