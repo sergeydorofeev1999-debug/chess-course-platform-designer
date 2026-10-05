@@ -1076,6 +1076,10 @@ function MultiLevelStarBoard({
   ]);
   const isRookStarLesson = currentLessonId === '6658f91e-9884-40b0-98c0-c94900ae0dc9';
 
+  useEffect(() => {
+    if (isRookStarLesson && nextLessonUrl) router.prefetch(nextLessonUrl);
+  }, [isRookStarLesson, nextLessonUrl, router]);
+
   const savedKey = `lesson_progress_${currentLessonId || ''}`;
   const savedProgress = useMemo(() => {
     if (typeof window === 'undefined') return {};
@@ -2915,9 +2919,9 @@ function MultiLevelStarBoard({
                     <span className="block">Вы мастерски овладели ладьёй.</span>
                   </p>
                   {nextLesson && (
-                    <a href={`/lessons/${nextLesson.id}?course=${courseId}`} className="mt-6 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#5A3A22] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#6B472B]">
+                    <Link href={`/lessons/${nextLesson.id}?course=${courseId}`} prefetch={true} className="mt-6 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#5A3A22] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#6B472B]">
                       Далее: Слон <ArrowRight size={16} />
-                    </a>
+                    </Link>
                   )}
                   <a href={`/courses/${courseId}`} className="mt-2 inline-flex min-h-9 items-center justify-center gap-1.5 px-3 text-xs font-semibold text-[#8B7355] transition hover:text-[#5A3A22]">
                     <ArrowLeft size={14} /> Вернуться в меню
