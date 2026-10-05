@@ -1020,8 +1020,27 @@ function parseFenSimple(fen: string) {
         </button>
         <button
           onClick={() => {
+            if (isEnPassantLesson) {
+              if (enPassantArrowTimerRef.current) clearTimeout(enPassantArrowTimerRef.current);
+              enPassantArrowTimerRef.current = null;
+              setEnPassantArrowReady(false);
+            }
             setResetKey((prev) => prev + 1);
             goToLevel(currentLevel);
+            if (isEnPassantLesson && (currentLevel === 1 || currentLevel === 2)) {
+              setShowOpeningArrows(true);
+              const initialFen = levels[currentLevel]?.initialFen || '';
+              const initialSquares = parseFenBoard(initialFen);
+              const epSquare = initialFen.split(' ')[3];
+              const expectedPosition = (currentLevel === 1 && epSquare === 'g6' && initialSquares.g5?.type === 'p' && initialSquares.g5?.color === 'b') ||
+                (currentLevel === 2 && epSquare === 'b6' && initialSquares.b5?.type === 'p' && initialSquares.b5?.color === 'b');
+              if (expectedPosition) {
+                enPassantArrowTimerRef.current = setTimeout(() => {
+                  setEnPassantArrowReady(true);
+                  enPassantArrowTimerRef.current = null;
+                }, 500);
+              }
+            }
           }}
           className="flex-1 h-10 flex items-center justify-center gap-1 rounded-lg border text-xs font-medium transition-all duration-200 border-[rgba(92,64,51,0.12)] text-[var(--text-secondary)] hover:bg-[rgba(92,64,51,0.04)] hover:border-[rgba(92,64,51,0.2)]"
         >

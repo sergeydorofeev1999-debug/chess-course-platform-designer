@@ -2193,7 +2193,12 @@ function MultiLevelStarBoard({
     setShowIntro(false);
     setShowHint(false);
     setHintArrows([]);
-    setShowOpeningArrows(currentLevel === 0 || (currentLessonId === '6658f91e-9884-40b0-98c0-c94900ae0dc9' && currentLevel === 1));
+    setShowOpeningArrows(
+      currentLevel === 0 ||
+      (currentLessonId === '6658f91e-9884-40b0-98c0-c94900ae0dc9' && currentLevel === 1) ||
+      (currentLessonId === '9b3c2780-0790-4f41-819d-31ede059d9c1' && currentLevel === 1) ||
+      (currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2' && currentLevel >= 1 && currentLevel <= 8)
+    );
     setHintLevel(0);
     setPromotionPending(null);
     setLastMove(null);
