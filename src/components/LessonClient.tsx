@@ -2870,6 +2870,7 @@ function MultiLevelStarBoard({
                     ? 'Слон чёрных на c4 нападает на поле f1 — рокировка невозможна! Сначала закройте путь пешкой с d2 на d3.'
                     : 'Теперь сделайте короткую рокировку: переместите короля с e1 на g1.'
                   : level.instructions || 'Выполните задание')}
+                {phase === 'success' && isRookStarLesson && currentLevel + 1 >= totalLevels && (levels[totalLevels - 1]?.instructions || 'Соберите все звёзды!')}
                 {phase === 'fail' && 'Подумай ещё раз...'}
               </p>
             </AvatarBubble>
@@ -2905,15 +2906,16 @@ function MultiLevelStarBoard({
             {phase === 'success' && isRookStarLesson && currentLevel + 1 >= totalLevels && (
               <div className="absolute inset-0 z-40 flex flex-col items-center justify-center rounded-sm bg-[rgba(0,0,0,0.58)] p-3">
                 <div className="w-full max-w-[320px] rounded-2xl bg-white px-5 py-5 text-center shadow-2xl">
+                  <h2 className="mb-1 text-xl font-bold text-[#2C241B]">Урок 1 пройден!</h2>
                   <div className="mb-3 flex items-center justify-center gap-3 text-[#D4A843]" aria-label="3 звезды">
                     {[1, 2, 3].map(star => <Star key={star} size={38} fill="currentColor" strokeWidth={1.5} />)}
                   </div>
-                  <p className="mt-2 text-sm leading-relaxed text-[#756454]">
+                  <p className="mt-1 text-sm leading-relaxed text-[#756454]">
                     <span className="block">Поздравляем!</span>
                     <span className="block">Вы мастерски овладели ладьёй.</span>
                   </p>
                   {nextLesson && (
-                    <a href={`/lessons/${nextLesson.id}?course=${courseId}`} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#5A3A22] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#6B472B]">
+                    <a href={`/lessons/${nextLesson.id}?course=${courseId}`} className="-mt-1 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#5A3A22] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#6B472B]">
                       Далее: Слон <ArrowRight size={16} />
                     </a>
                   )}
