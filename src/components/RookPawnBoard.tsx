@@ -2,7 +2,7 @@
 
 import AvatarBubble from './AvatarBubble';
 import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { RotateCcw, ChevronRight, Star, Trophy, Layers, ArrowLeft } from 'lucide-react';
+import { RotateCcw, ChevronRight, Star, Trophy, Layers, ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
 
 const PROMOTION_PIECES: { code: string; name: string }[] = [
   { code: 'q', name: 'Ферзь' },
@@ -417,7 +417,7 @@ const LEVELS: { id: Difficulty; label: string; description: string; color: strin
   { id: 'hard', label: 'Продвинутый', description: 'Чёрные почти не ошибаются', color: '#4A2A1A', stars: 3 },
 ];
 
-export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { onComplete: () => void; lessonId?: string; lessonTitle?: string }) {
+export default function RookPawnBoard({ onComplete, lessonId, lessonTitle, nextLessonUrl, nextLessonTitle, courseUrl }: { onComplete: () => void; lessonId?: string; lessonTitle?: string; nextLessonUrl?: string; nextLessonTitle?: string; courseUrl?: string }) {
   const savedKey = lessonId ? `rookpawn_progress_${lessonId}` : 'rookpawn_progress';
   const savedProgress = useMemo(() => {
     if (typeof window === 'undefined') return {} as Record<Difficulty, boolean>;
@@ -429,6 +429,15 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
   const [playerColor, setPlayerColor] = useState<'w' | 'b'>('w');
   const playerColorRef = useRef<'w' | 'b'>('w');
   const [completedLevels, setCompletedLevels] = useState<Record<Difficulty, boolean>>(savedProgress);
+  const completedLevelsRef = useRef(completedLevels);
+  const [showLessonCompletion, setShowLessonCompletion] = useState(false);
+  const markLevelComplete = (level: Difficulty) => {
+    const next = { ...completedLevelsRef.current, [level]: true };
+    completedLevelsRef.current = next;
+    setCompletedLevels(next);
+    localStorage.setItem(savedKey, JSON.stringify(next));
+    if (LEVELS.every(item => next[item.id])) setShowLessonCompletion(true);
+  };
   const [squares, setSquares] = useState<Record<string, Piece>>(() => parseFen(START_FEN));
   const [winner, setWinner] = useState<string | null>(null);
   const [computerThinking, setComputerThinking] = useState(false);
@@ -576,11 +585,7 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
           setOpponentAnimatingMove(null);
           if (win === (playerColor === 'w' ? 'Белые победили!' : 'Чёрные победили!') && difficultyRef.current) {
             const d = difficultyRef.current;
-            setCompletedLevels(prev => {
-              const next = { ...prev, [d]: true };
-              localStorage.setItem(savedKey, JSON.stringify(next));
-              return next;
-            });
+            markLevelComplete(d);
             onComplete();
           }
           return;
@@ -666,11 +671,7 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
           setPlayerAnimatingMove(null);
           if (win === (playerColor === 'w' ? 'Белые победили!' : 'Чёрные победили!') && difficultyRef.current) {
             const d = difficultyRef.current;
-            setCompletedLevels(prev => {
-              const next = { ...prev, [d]: true };
-              localStorage.setItem(savedKey, JSON.stringify(next));
-              return next;
-            });
+            markLevelComplete(d);
             onComplete();
           }
           return;
@@ -710,11 +711,7 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
       setWinner(playerColor === 'w' ? 'Белые победили!' : 'Чёрные победили!');
       if (difficultyRef.current) {
         const d = difficultyRef.current;
-        setCompletedLevels(prev => {
-          const next = { ...prev, [d]: true };
-          localStorage.setItem(savedKey, JSON.stringify(next));
-          return next;
-        });
+        markLevelComplete(d);
         onComplete();
       }
       return;
@@ -725,11 +722,7 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
       setWinner(win);
       if (win === (playerColor === 'w' ? 'Белые победили!' : 'Чёрные победили!') && difficultyRef.current) {
         const d = difficultyRef.current;
-        setCompletedLevels(prev => {
-          const next = { ...prev, [d]: true };
-          localStorage.setItem(savedKey, JSON.stringify(next));
-          return next;
-        });
+        markLevelComplete(d);
         onComplete();
       }
     } else {
@@ -825,11 +818,7 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
               setPlayerAnimatingMove(null);
               if (win === (playerColor === 'w' ? 'Белые победили!' : 'Чёрные победили!') && difficultyRef.current) {
                 const d = difficultyRef.current;
-                setCompletedLevels(prev => {
-                  const next = { ...prev, [d]: true };
-                  localStorage.setItem(savedKey, JSON.stringify(next));
-                  return next;
-                });
+                markLevelComplete(d);
                 onComplete();
               }
             } else {
@@ -987,7 +976,7 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
       </div>
 
       {/* Board */}
-      <div className="flex justify-center w-full">
+      <div className="relative flex justify-center w-full">
         <div
           className="grid border-[3px] border-[#2b2b2b] rounded-sm relative select-none"
           style={{
@@ -996,6 +985,34 @@ export default function RookPawnBoard({ onComplete, lessonId, lessonTitle }: { o
             touchAction: 'none',
           }}
         >
+          {showLessonCompletion && (
+            <div className="absolute inset-0 z-[60] flex items-start justify-center p-3 pt-4 bg-[rgba(31,24,18,0.46)] pointer-events-auto" role="dialog" aria-modal="true" aria-labelledby="rook-lesson-complete-title">
+              <div className="w-full max-w-[340px] rounded-2xl border border-[rgba(201,168,76,0.45)] bg-[var(--surface-primary,#fffdf9)] px-5 py-5 text-center shadow-[0_18px_54px_rgba(24,18,12,0.32)]">
+                <div className="mb-2 flex items-center justify-center gap-2 text-[#C9A84C]" aria-label="3 звезды">
+                  {Array.from({ length: 3 }, (_, index) => <Star key={index} size={25} fill="currentColor" strokeWidth={1.5} />)}
+                </div>
+                <div className="mx-auto mb-2 flex h-11 w-11 items-center justify-center rounded-full bg-[rgba(201,168,76,0.13)] text-[#9A742D]">
+                  <CheckCircle2 size={25} />
+                </div>
+                <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.14em] text-[#A07820]">Урок завершён</p>
+                <h2 id="rook-lesson-complete-title" className="text-xl font-bold leading-tight text-[var(--text-primary,#2C241B)]">
+                  {lessonTitle || 'Как ходит ладья'}
+                </h2>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--text-secondary,#756454)]">Поздравляем! Вы прошли все упражнения и освоили, как ходит ладья.</p>
+                <div className="my-4 flex items-center justify-center gap-2 rounded-xl bg-[rgba(201,168,76,0.10)] px-3 py-2.5 text-sm font-semibold text-[#80602B]">
+                  <Trophy size={17} /> Все 3 уровня пройдены
+                </div>
+                {nextLessonUrl ? (
+                  <a href={nextLessonUrl} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#5A3A22] px-4 py-3 text-sm font-bold text-[#F8F0E6] shadow-sm transition hover:bg-[#6B472B] active:scale-[0.98]">
+                    Следующий шаг: {nextLessonTitle || 'следующий урок'} <ArrowRight size={17} />
+                  </a>
+                ) : null}
+                <a href={courseUrl || '/courses'} className="mt-3 inline-flex min-h-10 items-center justify-center gap-1.5 px-3 text-xs font-semibold text-[#8B7355] transition hover:text-[#5A3A22]">
+                  <ArrowLeft size={14} /> Вернуться к курсу
+                </a>
+              </div>
+            </div>
+          )}
           {displayRanks.map((rank, ri) =>
             displayFiles.map((file, fi) => {
               const sq = `${file}${rank}`;

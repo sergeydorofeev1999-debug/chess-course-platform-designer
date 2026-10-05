@@ -3252,7 +3252,7 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
               );
             }
             if (type === 'interactive_rook_pawn') {
-              return <RookPawnBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} lessonTitle={lesson.title.replace(/^Урок\s+\d+\s*[:.\-]?\s*/, '')} />;
+              return <RookPawnBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} lessonTitle={lesson.title.replace(/^Урок\s+\d+\s*[:.\-]?\s*/, '')} nextLessonUrl={nextLesson ? `/lessons/${nextLesson.id}?course=${courseId}` : undefined} nextLessonTitle={nextLesson?.title.replace(/^Урок\s+\d+\s*[:.\-]?\s*/, '')} courseUrl={`/courses/${courseId}`} />;
             }
             if (type === 'interactive_bishop_pawn') {
               return <BishopPawnBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} lessonTitle={lesson.title.replace(/^Урок\s+\d+\s*[:.\-]?\s*/, '')} />;
