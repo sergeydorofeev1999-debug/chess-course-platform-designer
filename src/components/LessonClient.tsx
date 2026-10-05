@@ -63,6 +63,15 @@ interface LessonNav {
   order: number;
 }
 
+const PIECE_STAR_LESSONS: Record<string, { lessonNumber: number; pieceInstrumental: string }> = {
+  '6658f91e-9884-40b0-98c0-c94900ae0dc9': { lessonNumber: 1, pieceInstrumental: 'ладьёй' },
+  '83e74379-09cf-4bc1-a50e-a73779ee6f3d': { lessonNumber: 2, pieceInstrumental: 'слоном' },
+  '5a1dd2f3-44bb-410a-acfa-fb277a0a979d': { lessonNumber: 3, pieceInstrumental: 'ферзём' },
+  'b9d07753-98bb-4057-9e6d-c7cb51121e8f': { lessonNumber: 4, pieceInstrumental: 'королём' },
+  '04da96f9-0761-413f-b21c-690c82c43d79': { lessonNumber: 5, pieceInstrumental: 'конём' },
+  'b3fcc15a-bf8c-46ba-986e-709fc2354ce0': { lessonNumber: 6, pieceInstrumental: 'пешкой' },
+};
+
 interface Props {
   lesson: Lesson;
   allLessons: LessonNav[];
@@ -1075,10 +1084,12 @@ function MultiLevelStarBoard({
     { initialFen: config.initialFen, stars: config.stars, instructions: config.instructions, hint: config.hint }
   ]);
   const isRookStarLesson = currentLessonId === '6658f91e-9884-40b0-98c0-c94900ae0dc9';
+  const starLessonMeta = currentLessonId ? PIECE_STAR_LESSONS[currentLessonId] : undefined;
 
   useEffect(() => {
-    if (isRookStarLesson && nextLessonUrl) router.prefetch(nextLessonUrl);
-  }, [isRookStarLesson, nextLessonUrl, router]);
+    if (starLessonMeta && nextLessonUrl) router.prefetch(nextLessonUrl);
+    if (starLessonMeta && courseId) router.prefetch(`/courses/${courseId}`);
+  }, [starLessonMeta, nextLessonUrl, courseId, router]);
 
   const savedKey = `lesson_progress_${currentLessonId || ''}`;
   const savedProgress = useMemo(() => {
@@ -2166,14 +2177,14 @@ function MultiLevelStarBoard({
 
   useEffect(() => {
     const isCastlingLesson = currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2';
-    if (isCastlingLesson || isRookStarLesson || phase !== 'success' || allDone || currentLevel + 1 >= totalLevels) return;
+    if (isCastlingLesson || starLessonMeta || phase !== 'success' || allDone || currentLevel + 1 >= totalLevels) return;
     const timer = setTimeout(() => {
       setCurrentLevel((l) => l + 1);
       setPhase('playing');
       setMsg('');
     }, 1200);
     return () => clearTimeout(timer);
-  }, [phase, currentLevel, totalLevels, currentLessonId, allDone]);
+  }, [phase, currentLevel, totalLevels, currentLessonId, allDone, starLessonMeta]);
 
   // Auto-advance to next level in castling lesson (like CaptureBoard)
   useEffect(() => {
@@ -2874,7 +2885,7 @@ function MultiLevelStarBoard({
                     ? 'Слон чёрных на c4 нападает на поле f1 — рокировка невозможна! Сначала закройте путь пешкой с d2 на d3.'
                     : 'Теперь сделайте короткую рокировку: переместите короля с e1 на g1.'
                   : level.instructions || 'Выполните задание')}
-                {phase === 'success' && isRookStarLesson && currentLevel + 1 >= totalLevels && (levels[totalLevels - 1]?.instructions || 'Соберите все звёзды!')}
+                {phase === 'success' && starLessonMeta && currentLevel + 1 >= totalLevels && (levels[totalLevels - 1]?.instructions || 'Соберите все звёзды!')}
                 {phase === 'fail' && 'Подумай ещё раз...'}
               </p>
             </AvatarBubble>
@@ -2907,20 +2918,20 @@ function MultiLevelStarBoard({
               lastMove={lastMove}
               playerAnimatingMoves={playerAnimatingMoves}
             />
-            {phase === 'success' && isRookStarLesson && currentLevel + 1 >= totalLevels && (
+            {phase === 'success' && starLessonMeta && currentLevel + 1 >= totalLevels && (
               <div className="absolute inset-0 z-40 flex flex-col items-center justify-center rounded-sm bg-[rgba(0,0,0,0.58)] p-3">
                 <div className="w-full max-w-[320px] rounded-2xl bg-white px-5 py-5 text-center shadow-2xl">
                   <div className="mb-4 flex items-center justify-center gap-3 text-[#D4A843]" aria-label="3 звезды">
                     {[1, 2, 3].map(star => <Star key={star} size={38} fill="currentColor" strokeWidth={1.5} />)}
                   </div>
-                  <h2 className="mb-2 text-xl font-bold text-[#2C241B]">Урок 1 пройден!</h2>
+                  <h2 className="mb-2 text-xl font-bold text-[#2C241B]">Урок {starLessonMeta.lessonNumber} пройден!</h2>
                   <p className="mt-4 text-sm leading-relaxed text-[#756454]">
                     <span className="block">Поздравляем!</span>
-                    <span className="block">Вы мастерски овладели ладьёй.</span>
+                    <span className="block">Вы мастерски овладели {starLessonMeta.pieceInstrumental}.</span>
                   </p>
                   {nextLesson && (
                     <Link href={`/lessons/${nextLesson.id}?course=${courseId}`} prefetch={true} className="mt-6 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#5A3A22] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#6B472B]">
-                      Далее: Слон <ArrowRight size={16} />
+                      {starLessonMeta.lessonNumber === 1 ? 'Далее: Слон' : `Далее: ${nextLesson.title.replace(/^Урок\s+\d+\s*[:.\-]?\s*/, '')}`} <ArrowRight size={16} />
                     </Link>
                   )}
                   <Link href={`/courses/${courseId}`} prefetch={true} className="mt-2 inline-flex min-h-9 items-center justify-center gap-1.5 px-3 text-xs font-semibold text-[#8B7355] transition hover:text-[#5A3A22]">
@@ -2969,7 +2980,7 @@ function MultiLevelStarBoard({
           </div>
         )}
 
-        {phase === 'success' && !(isRookStarLesson && currentLevel + 1 >= totalLevels) && !(currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2') && (
+        {phase === 'success' && !(starLessonMeta && currentLevel + 1 >= totalLevels) && !(currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2') && (
           <div className="w-full mt-3">
             <div className="bg-[#4A7A3A] rounded-lg px-4 py-3 flex flex-col items-center gap-2 shadow-lg">
               <p className="text-white font-bold text-lg">Верно!</p>
