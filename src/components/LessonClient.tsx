@@ -2915,7 +2915,7 @@ function MultiLevelStarBoard({
                     <span className="block">Вы мастерски овладели ладьёй.</span>
                   </p>
                   {nextLesson && (
-                    <a href={`/lessons/${nextLesson.id}?course=${courseId}`} className="mt-6 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#D4A84C] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#C79A3E]">
+                    <a href={`/lessons/${nextLesson.id}?course=${courseId}`} className="mt-6 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#5A3A22] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#6B472B]">
                       Далее: Слон <ArrowRight size={16} />
                     </a>
                   )}
