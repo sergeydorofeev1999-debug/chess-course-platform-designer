@@ -1074,6 +1074,7 @@ function MultiLevelStarBoard({
   const [levels] = useState(() => config.levels || [
     { initialFen: config.initialFen, stars: config.stars, instructions: config.instructions, hint: config.hint }
   ]);
+  const isRookStarLesson = currentLessonId === '6658f91e-9884-40b0-98c0-c94900ae0dc9';
 
   const savedKey = `lesson_progress_${currentLessonId || ''}`;
   const savedProgress = useMemo(() => {
@@ -2161,7 +2162,7 @@ function MultiLevelStarBoard({
 
   useEffect(() => {
     const isCastlingLesson = currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2';
-    if (isCastlingLesson || phase !== 'success' || allDone || currentLevel + 1 >= totalLevels) return;
+    if (isCastlingLesson || isRookStarLesson || phase !== 'success' || allDone || currentLevel + 1 >= totalLevels) return;
     const timer = setTimeout(() => {
       setCurrentLevel((l) => l + 1);
       setPhase('playing');
@@ -2901,6 +2902,28 @@ function MultiLevelStarBoard({
               lastMove={lastMove}
               playerAnimatingMoves={playerAnimatingMoves}
             />
+            {phase === 'success' && isRookStarLesson && currentLevel + 1 >= totalLevels && (
+              <div className="absolute inset-0 z-40 flex flex-col items-center justify-center rounded-sm bg-[rgba(0,0,0,0.58)] p-3">
+                <div className="w-full max-w-[320px] rounded-2xl bg-white px-5 py-5 text-center shadow-2xl">
+                  <div className="mb-2 flex items-center justify-center gap-2 text-[#D4A843]" aria-label="3 звезды">
+                    {[1, 2, 3].map(star => <Star key={star} size={24} fill="currentColor" strokeWidth={1.5} />)}
+                  </div>
+                  <h2 className="text-xl font-bold text-[#2C241B]">Урок 1 усвоен!</h2>
+                  <p className="mt-2 text-sm leading-relaxed text-[#756454]">Поздравляем! Вы мастерски овладели ладьёй.</p>
+                  <div className="my-4 flex items-center justify-center gap-2 rounded-lg bg-[#F8F0E6] px-3 py-2 text-sm font-semibold text-[#80602B]">
+                    <Trophy size={17} /> Все упражнения пройдены
+                  </div>
+                  {nextLesson && (
+                    <a href={`/lessons/${nextLesson.id}?course=${courseId}`} className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#5A3A22] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#6B472B]">
+                      Следующий шаг: {nextLesson.title.replace(/^Урок\s+\d+\s*[:.\-]?\s*/, '')} <ArrowRight size={16} />
+                    </a>
+                  )}
+                  <a href={`/courses/${courseId}`} className="mt-2 inline-flex min-h-9 items-center justify-center gap-1.5 px-3 text-xs font-semibold text-[#8B7355] transition hover:text-[#5A3A22]">
+                    <ArrowLeft size={14} /> Вернуться в меню
+                  </a>
+                </div>
+              </div>
+            )}
             {phase === 'intro' && <IntroOverlay />}
             {!(currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2') && phase === 'fail' && <FailOverlay />}
           </div>
@@ -2941,7 +2964,7 @@ function MultiLevelStarBoard({
           </div>
         )}
 
-        {phase === 'success' && !(currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2') && (
+        {phase === 'success' && !(isRookStarLesson && currentLevel + 1 >= totalLevels) && !(currentLessonId === '13' || currentLessonId === '373fe215-be2c-4733-87c6-48cc482197b2') && (
           <div className="w-full mt-3">
             <div className="bg-[#4A7A3A] rounded-lg px-4 py-3 flex flex-col items-center gap-2 shadow-lg">
               <p className="text-white font-bold text-lg">Верно!</p>
@@ -3252,7 +3275,7 @@ export default function LessonClient({ lesson, allLessons, courseId, isCompleted
               );
             }
             if (type === 'interactive_rook_pawn') {
-              return <RookPawnBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} lessonTitle={lesson.title.replace(/^Урок\s+\d+\s*[:.\-]?\s*/, '')} nextLessonUrl={nextLesson ? `/lessons/${nextLesson.id}?course=${courseId}` : undefined} nextLessonTitle={nextLesson?.title.replace(/^Урок\s+\d+\s*[:.\-]?\s*/, '')} courseUrl={`/courses/${courseId}`} />;
+              return <RookPawnBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} lessonTitle={lesson.title.replace(/^Урок\s+\d+\s*[:.\-]?\s*/, '')} />;
             }
             if (type === 'interactive_bishop_pawn') {
               return <BishopPawnBoard onComplete={handleInteractiveComplete} lessonId={lesson.id} lessonTitle={lesson.title.replace(/^Урок\s+\d+\s*[:.\-]?\s*/, '')} />;
