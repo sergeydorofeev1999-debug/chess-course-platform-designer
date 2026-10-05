@@ -1185,6 +1185,12 @@ function MultiLevelStarBoard({
   const [hintLoading, setHintLoading] = useState(false);
   const [promotionPending, setPromotionPending] = useState<{from: string, to: string} | null>(null);
   const [levelStars, setLevelStars] = useState<Record<number, number>>(() => savedProgress);
+  const completionStarCount = levels.length > 0
+    ? Math.max(0, Math.min(3, ...levels.map((_: any, index: number) => {
+      const earned = levelStars[index];
+      return typeof earned === 'number' ? earned : (earned ? 1 : 0);
+    })))
+    : 0;
   const movesRef = useRef(moves);
   useEffect(() => { movesRef.current = moves; }, [moves]);
 
@@ -2921,8 +2927,10 @@ function MultiLevelStarBoard({
             {phase === 'success' && starLessonMeta && currentLevel + 1 >= totalLevels && (
               <div className="absolute inset-0 z-40 flex flex-col items-center justify-center rounded-sm bg-[rgba(0,0,0,0.58)] p-3">
                 <div className="w-full max-w-[320px] rounded-2xl bg-white px-5 py-5 text-center shadow-2xl">
-                  <div className="mb-4 flex items-center justify-center gap-3 text-[#D4A843]" aria-label="3 звезды">
-                    {[1, 2, 3].map(star => <Star key={star} size={38} fill="currentColor" strokeWidth={1.5} />)}
+                  <div className="mb-4 flex items-center justify-center gap-3 text-[#D4A843]" aria-label={`${completionStarCount} звезды`}>
+                    {Array.from({ length: 3 }, (_, starIndex) => (
+                      <Star key={starIndex} size={38} fill={starIndex < completionStarCount ? 'currentColor' : 'transparent'} strokeWidth={1.5} />
+                    ))}
                   </div>
                   <h2 className="mb-2 text-xl font-bold text-[#2C241B]">Урок {starLessonMeta.lessonNumber} пройден!</h2>
                   <p className="mt-4 text-sm leading-relaxed text-[#756454]">
