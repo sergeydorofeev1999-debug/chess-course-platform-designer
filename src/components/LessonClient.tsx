@@ -2910,7 +2910,7 @@ function MultiLevelStarBoard({
                     {[1, 2, 3].map(star => <Star key={star} size={38} fill="currentColor" strokeWidth={1.5} />)}
                   </div>
                   <h2 className="mb-2 text-xl font-bold text-[#2C241B]">Урок 1 пройден!</h2>
-                  <p className="text-sm leading-relaxed text-[#756454]">
+                  <p className="mt-4 text-sm leading-relaxed text-[#756454]">
                     <span className="block">Поздравляем!</span>
                     <span className="block">Вы мастерски овладели ладьёй.</span>
                   </p>
