@@ -63,13 +63,13 @@ interface LessonNav {
   order: number;
 }
 
-const PIECE_STAR_LESSONS: Record<string, { lessonNumber: number; pieceInstrumental: string }> = {
-  '6658f91e-9884-40b0-98c0-c94900ae0dc9': { lessonNumber: 1, pieceInstrumental: 'ладьёй' },
-  '83e74379-09cf-4bc1-a50e-a73779ee6f3d': { lessonNumber: 2, pieceInstrumental: 'слоном' },
-  '5a1dd2f3-44bb-410a-acfa-fb277a0a979d': { lessonNumber: 3, pieceInstrumental: 'ферзём' },
-  'b9d07753-98bb-4057-9e6d-c7cb51121e8f': { lessonNumber: 4, pieceInstrumental: 'королём' },
-  '04da96f9-0761-413f-b21c-690c82c43d79': { lessonNumber: 5, pieceInstrumental: 'конём' },
-  'b3fcc15a-bf8c-46ba-986e-709fc2354ce0': { lessonNumber: 6, pieceInstrumental: 'пешкой' },
+const PIECE_STAR_LESSONS: Record<string, { lessonNumber: number; pieceInstrumental: string; nextPieceLabel: string }> = {
+  '6658f91e-9884-40b0-98c0-c94900ae0dc9': { lessonNumber: 1, pieceInstrumental: 'ладьёй', nextPieceLabel: 'слон' },
+  '83e74379-09cf-4bc1-a50e-a73779ee6f3d': { lessonNumber: 2, pieceInstrumental: 'слоном', nextPieceLabel: 'ферзь' },
+  '5a1dd2f3-44bb-410a-acfa-fb277a0a979d': { lessonNumber: 3, pieceInstrumental: 'ферзём', nextPieceLabel: 'король' },
+  'b9d07753-98bb-4057-9e6d-c7cb51121e8f': { lessonNumber: 4, pieceInstrumental: 'королём', nextPieceLabel: 'конь' },
+  '04da96f9-0761-413f-b21c-690c82c43d79': { lessonNumber: 5, pieceInstrumental: 'конём', nextPieceLabel: 'пешка' },
+  'b3fcc15a-bf8c-46ba-986e-709fc2354ce0': { lessonNumber: 6, pieceInstrumental: 'пешкой', nextPieceLabel: 'взятие' },
 };
 
 interface Props {
@@ -2931,7 +2931,7 @@ function MultiLevelStarBoard({
                   </p>
                   {nextLesson && (
                     <Link href={`/lessons/${nextLesson.id}?course=${courseId}`} prefetch={true} className="mt-6 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#5A3A22] px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-[#6B472B]">
-                      {starLessonMeta.lessonNumber === 1 ? 'Далее: Слон' : `Далее: ${nextLesson.title.replace(/^Урок\s+\d+\s*[:.\-]?\s*/, '')}`} <ArrowRight size={16} />
+                      {`Далее: ${starLessonMeta.nextPieceLabel}`} <ArrowRight size={16} />
                     </Link>
                   )}
                   <Link href={`/courses/${courseId}`} prefetch={true} className="mt-2 inline-flex min-h-9 items-center justify-center gap-1.5 px-3 text-xs font-semibold text-[#8B7355] transition hover:text-[#5A3A22]">
