@@ -2218,7 +2218,6 @@ export default function CaptureBoard({
         /* Minimal mode: only the board + fail callback */
         <div className="flex flex-col items-center gap-3">
           <InlineChessBoard
-            key={`${currentLevel}:${resetTrigger ?? 0}`}
             fen={position}
             onMove={handleMove}
             msg={msg}
