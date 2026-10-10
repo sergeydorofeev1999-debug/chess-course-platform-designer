@@ -205,7 +205,6 @@ function isValidMove(pieceType: string, from: string, to: string, squares: Recor
         for (let r = min + 1; r < max; r++) {
           const sq = `${FILES[ff]}${RANKS[r]}`;
           if (squares[sq]) return false;
-          if (starSquares.includes(sq)) return false;
         }
       } else {
         const min = Math.min(ff, tf);
@@ -213,7 +212,6 @@ function isValidMove(pieceType: string, from: string, to: string, squares: Recor
         for (let f = min + 1; f < max; f++) {
           const sq = `${FILES[f]}${RANKS[fr]}`;
           if (squares[sq]) return false;
-          if (starSquares.includes(sq)) return false;
         }
       }
       return true;
@@ -225,7 +223,6 @@ function isValidMove(pieceType: string, from: string, to: string, squares: Recor
       for (let step = 1; step < Math.abs(df); step++) {
         const sq = `${FILES[ff + sf * step]}${RANKS[fr + sr * step]}`;
         if (squares[sq]) return false;
-        if (starSquares.includes(sq)) return false;
       }
       return true;
     }
@@ -240,7 +237,6 @@ function isValidMove(pieceType: string, from: string, to: string, squares: Recor
           for (let r = min + 1; r < max; r++) {
             const sq = `${FILES[ff]}${RANKS[r]}`;
             if (squares[sq]) return false;
-            if (starSquares.includes(sq)) return false;
           }
         } else {
           const min = Math.min(ff, tf);
@@ -248,7 +244,6 @@ function isValidMove(pieceType: string, from: string, to: string, squares: Recor
           for (let f = min + 1; f < max; f++) {
             const sq = `${FILES[f]}${RANKS[fr]}`;
             if (squares[sq]) return false;
-            if (starSquares.includes(sq)) return false;
           }
         }
       } else {
@@ -326,9 +321,10 @@ function getValidSquares(pieceType: string, from: string, squares: Record<string
     if (p && p.color === 'w') return false;
     if (starSquares.includes(sq)) {
       valid.push(sq);
-      return false;
+      return true; // A highlighted target is not an obstruction to a sliding piece.
     }
     valid.push(sq);
+    if (p && p.color !== 'w') return false; // Enemy piece is capturable but blocks squares beyond it.
     return true;
   };
 

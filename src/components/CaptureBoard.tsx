@@ -85,7 +85,6 @@ function isValidMove(
         for (let r = min + 1; r < max; r++) {
           const sq = `${FILES[ff]}${RANKS[r]}`;
           if (squares[sq]) return false;
-          if (starSquares.includes(sq)) return false;
         }
       } else {
         const min = Math.min(ff, tf);
@@ -93,7 +92,6 @@ function isValidMove(
         for (let f = min + 1; f < max; f++) {
           const sq = `${FILES[f]}${RANKS[fr]}`;
           if (squares[sq]) return false;
-          if (starSquares.includes(sq)) return false;
         }
       }
       return true;
@@ -105,7 +103,6 @@ function isValidMove(
       for (let step = 1; step < Math.abs(df); step++) {
         const sq = `${FILES[ff + sf * step]}${RANKS[fr + sr * step]}`;
         if (squares[sq]) return false;
-        if (starSquares.includes(sq)) return false;
       }
       return true;
     }
@@ -120,7 +117,6 @@ function isValidMove(
           for (let r = min + 1; r < max; r++) {
             const sq = `${FILES[ff]}${RANKS[r]}`;
             if (squares[sq]) return false;
-            if (starSquares.includes(sq)) return false;
           }
         } else {
           const min = Math.min(ff, tf);
@@ -128,7 +124,6 @@ function isValidMove(
           for (let f = min + 1; f < max; f++) {
             const sq = `${FILES[f]}${RANKS[fr]}`;
             if (squares[sq]) return false;
-            if (starSquares.includes(sq)) return false;
           }
         }
       } else {
@@ -137,7 +132,6 @@ function isValidMove(
         for (let step = 1; step < Math.abs(df); step++) {
           const sq = `${FILES[ff + sf * step]}${RANKS[fr + sr * step]}`;
           if (squares[sq]) return false;
-          if (starSquares.includes(sq)) return false;
         }
       }
       return true;
@@ -200,10 +194,10 @@ function getValidSquares(
     if (p && p.color === movingColor) return false;
     if (starSquares.includes(sq)) {
       valid.push(sq);
-      return false;
+      return true; // A highlighted target is not an obstruction to a sliding piece.
     }
     valid.push(sq);
-    if (p && p.color !== movingColor) return false; // enemy piece blocks further
+    if (p && p.color !== movingColor) return false; // Enemy piece is capturable but blocks squares beyond it.
     return true;
   };
 
