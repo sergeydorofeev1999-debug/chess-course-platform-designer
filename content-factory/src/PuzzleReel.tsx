@@ -20,14 +20,15 @@ export const reelSchemaDefaults = {
   cta: 'Подпишись — каждый день одна задача, и ты играешь сильнее',
   theme: 'classic',
   lang: 'ru',
+  offset: 0,
 };
 type Props = typeof reelSchemaDefaults;
 
 const sq = (s: string) => ({f: s.charCodeAt(0) - 97, r: 8 - Number(s[1])});
 
-export const PuzzleReel: React.FC<Props> = ({index, hook, sub, ctaTitle, cta, theme, lang}) => {
+export const PuzzleReel: React.FC<Props> = ({index, hook, sub, ctaTitle, cta, theme, lang, offset}) => {
   const C = {...BASE, ...(THEMES[theme] ?? {})};
-  const frame = useCurrentFrame();
+  const frame = useCurrentFrame() + offset;
   const {fps} = useVideoConfig();
   const p = (puzzles as {fen: string; moves: string[]; rating: number}[])[index % puzzles.length];
   const fill = (x: string) => x.replace('{rating}', String(p.rating));
