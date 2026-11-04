@@ -8,7 +8,7 @@ const C = {gold: '#C9A84C', dark: '#2C241B', cream: '#F5EFE6', light: '#F0D9B5',
 
 export const reelSchemaDefaults = {
   index: 0,
-  hook: '97% игроков НЕ видят этот ход',
+  hook: 'Задача рейтинга {rating}. Видишь мат?',
   sub: 'Белые ставят мат. Найдёшь за 5 секунд?',
   cta: 'Пиши «ЗАДАЧИ» в комментариях — пришлю 50 таких',
 };
@@ -19,7 +19,8 @@ const sq = (s: string) => ({f: s.charCodeAt(0) - 97, r: 8 - Number(s[1])});
 export const PuzzleReel: React.FC<Props> = ({index, hook, sub, cta}) => {
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
-  const p = (puzzles as {fen: string; moves: string[]}[])[index % puzzles.length];
+  const p = (puzzles as {fen: string; moves: string[]; rating: number}[])[index % puzzles.length];
+  const fill = (x: string) => x.replace('{rating}', String(p.rating));
 
   // Timeline (sec): 0-2.5 hook, 2.5-8 think + timer, 8-12 solution, 12-15 CTA
   const t = frame / fps;
@@ -51,8 +52,8 @@ export const PuzzleReel: React.FC<Props> = ({index, hook, sub, cta}) => {
       {/* HOOK */}
       <div style={{position: 'absolute', top: 150, width: '100%', textAlign: 'center', padding: '0 60px', boxSizing: 'border-box',
         transform: `scale(${hookIn}) translateX(${shake}px)`}}>
-        <div style={{fontSize: 84, fontWeight: 900, lineHeight: 1.1, color: C.gold, textShadow: '0 6px 0 #000'}}>{hook}</div>
-        <div style={{fontSize: 46, marginTop: 24, opacity: interpolate(t, [1.2, 2], [0, 1], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'})}}>{sub}</div>
+        <div style={{fontSize: 84, fontWeight: 900, lineHeight: 1.1, color: C.gold, textShadow: '0 6px 0 #000'}}>{fill(hook)}</div>
+        <div style={{fontSize: 46, marginTop: 24, opacity: interpolate(t, [1.2, 2], [0, 1], {extrapolateLeft: 'clamp', extrapolateRight: 'clamp'})}}>{fill(sub)}</div>
       </div>
       {/* BOARD */}
       <div style={{position: 'absolute', left: 40, top: 520, width: 1000, height: 1000, transform: `scale(${0.85 + 0.15 * boardIn})`,
