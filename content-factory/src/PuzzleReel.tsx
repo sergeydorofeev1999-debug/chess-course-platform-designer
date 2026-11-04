@@ -4,19 +4,28 @@ import {Chess} from 'chess.js';
 import puzzles from './puzzles.json';
 
 // Brand palette (from platform): gold, dark brown, cream
-const C = {gold: '#C9A84C', dark: '#2C241B', cream: '#F5EFE6', light: '#F0D9B5', darkSq: '#8B7355', red: '#E5484D'};
+const BASE = {gold: '#C9A84C', dark: '#2C241B', cream: '#F5EFE6', light: '#F0D9B5', darkSq: '#8B7355', red: '#E5484D'};
+// Варианты оформления для уникализации перемонтажей (в рамках бренда)
+const THEMES: Record<string, Partial<typeof BASE>> = {
+  classic: {},
+  walnut: {light: '#E8D3B0', darkSq: '#6B4F36'},
+  night: {dark: '#141414', light: '#D9D4C7', darkSq: '#5A4A3A'},
+};
 
 export const reelSchemaDefaults = {
   index: 0,
   hook: 'Задача рейтинга {rating}. Видишь мат?',
   sub: 'Белые ставят мат. Найдёшь за 5 секунд?',
-  cta: 'Пиши «ЗАДАЧИ» в комментариях — пришлю 50 таких',
+  ctaTitle: 'Угадал? Напиши ход 👇',
+  cta: 'Подпишись — каждый день одна задача, и ты играешь сильнее',
+  theme: 'classic',
 };
 type Props = typeof reelSchemaDefaults;
 
 const sq = (s: string) => ({f: s.charCodeAt(0) - 97, r: 8 - Number(s[1])});
 
-export const PuzzleReel: React.FC<Props> = ({index, hook, sub, cta}) => {
+export const PuzzleReel: React.FC<Props> = ({index, hook, sub, ctaTitle, cta, theme}) => {
+  const C = {...BASE, ...(THEMES[theme] ?? {})};
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
   const p = (puzzles as {fen: string; moves: string[]; rating: number}[])[index % puzzles.length];
@@ -48,7 +57,7 @@ export const PuzzleReel: React.FC<Props> = ({index, hook, sub, cta}) => {
   const flash = mate ? interpolate((t - solveStart - (p.moves.length - 1) * stepDur) % 1, [0, 1], [0.6, 0]) : 0;
 
   return (
-    <AbsoluteFill style={{background: `radial-gradient(circle at 50% 40%, #3d3226, ${C.dark})`, fontFamily: 'DejaVu Sans, sans-serif', color: C.cream}}>
+    <AbsoluteFill style={{background: `radial-gradient(circle at 50% 40%, ${C.dark}cc, ${C.dark})`, fontFamily: 'DejaVu Sans, sans-serif', color: C.cream}}>
       {/* HOOK */}
       <div style={{position: 'absolute', top: 150, width: '100%', textAlign: 'center', padding: '0 60px', boxSizing: 'border-box',
         transform: `scale(${hookIn}) translateX(${shake}px)`}}>
@@ -79,7 +88,7 @@ export const PuzzleReel: React.FC<Props> = ({index, hook, sub, cta}) => {
       </div>
       {/* CTA */}
       {t >= ctaStart && <AbsoluteFill style={{background: 'rgba(44,36,27,0.92)', justifyContent: 'center', alignItems: 'center', padding: 80, opacity: ctaIn}}>
-        <div style={{fontSize: 78, fontWeight: 900, textAlign: 'center', color: C.gold, transform: `scale(${ctaIn})`}}>Угадал? Напиши ход 👇</div>
+        <div style={{fontSize: 78, fontWeight: 900, textAlign: 'center', color: C.gold, transform: `scale(${ctaIn})`}}>{ctaTitle}</div>
         <div style={{fontSize: 52, textAlign: 'center', marginTop: 40}}>{cta}</div>
       </AbsoluteFill>}
     </AbsoluteFill>
