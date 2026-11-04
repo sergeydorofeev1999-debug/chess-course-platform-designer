@@ -4,9 +4,9 @@ import {Chess} from 'chess.js';
 import puzzles from './puzzles.json';
 
 // Brand palette (from platform): gold, dark brown, cream
-const BASE = {gold: '#C9A84C', dark: '#2C241B', cream: '#F5EFE6', light: '#F0D9B5', darkSq: '#8B7355', red: '#E5484D'};
+export const BASE = {gold: '#C9A84C', dark: '#2C241B', cream: '#F5EFE6', light: '#F0D9B5', darkSq: '#8B7355', red: '#E5484D'};
 // Варианты оформления для уникализации перемонтажей (в рамках бренда)
-const THEMES: Record<string, Partial<typeof BASE>> = {
+export const THEMES: Record<string, Partial<typeof BASE>> = {
   classic: {},
   walnut: {light: '#E8D3B0', darkSq: '#6B4F36'},
   night: {dark: '#141414', light: '#D9D4C7', darkSq: '#5A4A3A'},
@@ -19,12 +19,13 @@ export const reelSchemaDefaults = {
   ctaTitle: 'Угадал? Напиши ход 👇',
   cta: 'Подпишись — каждый день одна задача, и ты играешь сильнее',
   theme: 'classic',
+  lang: 'ru',
 };
 type Props = typeof reelSchemaDefaults;
 
 const sq = (s: string) => ({f: s.charCodeAt(0) - 97, r: 8 - Number(s[1])});
 
-export const PuzzleReel: React.FC<Props> = ({index, hook, sub, ctaTitle, cta, theme}) => {
+export const PuzzleReel: React.FC<Props> = ({index, hook, sub, ctaTitle, cta, theme, lang}) => {
   const C = {...BASE, ...(THEMES[theme] ?? {})};
   const frame = useCurrentFrame();
   const {fps} = useVideoConfig();
@@ -84,7 +85,7 @@ export const PuzzleReel: React.FC<Props> = ({index, hook, sub, ctaTitle, cta, th
       {/* TIMER / RESULT */}
       <div style={{position: 'absolute', top: 1580, width: '100%', textAlign: 'center'}}>
         {t >= 2.5 && t < solveStart && <div style={{fontSize: 140, fontWeight: 900, color: timer <= 2 ? C.red : C.cream}}>{timer}</div>}
-        {t >= solveStart && t < ctaStart && <div style={{fontSize: 96, fontWeight: 900, color: C.gold}}>{mate ? 'МАТ! 🤯' : 'Смотри...'}</div>}
+        {t >= solveStart && t < ctaStart && <div style={{fontSize: 96, fontWeight: 900, color: C.gold}}>{mate ? (lang === 'en' ? 'MATE! 🤯' : 'МАТ! 🤯') : (lang === 'en' ? 'Watch...' : 'Смотри...')}</div>}
       </div>
       {/* CTA */}
       {t >= ctaStart && <AbsoluteFill style={{background: 'rgba(44,36,27,0.92)', justifyContent: 'center', alignItems: 'center', padding: 80, opacity: ctaIn}}>
