@@ -2,6 +2,7 @@ import {Composition} from 'remotion';
 import {PuzzleReel, reelSchemaDefaults} from './PuzzleReel';
 import {Carousel, carouselDefaults} from './Carousel';
 import {UgcReel, ugcDefaults} from './UgcReel';
+import {RuleReel, ruleDefaults, ruleDuration} from './RuleReel';
 import {LineReel, lineDefaults, lineDuration} from './LineReel';
 export const Root = () => (<>
   <Composition id="PuzzleReel" component={PuzzleReel} durationInFrames={30 * 15}
@@ -13,4 +14,7 @@ export const Root = () => (<>
   <Composition id="LineReel" component={LineReel} durationInFrames={lineDuration('scholars-mate')}
     calculateMetadata={({props}) => ({durationInFrames: lineDuration(props.id, 30, props.perMove)})}
     fps={30} width={1080} height={1920} defaultProps={lineDefaults} />
+  <Composition id="RuleReel" component={RuleReel} durationInFrames={ruleDuration('en-passant')}
+    calculateMetadata={({props}) => ({durationInFrames: ruleDuration(props.id)})}
+    fps={30} width={1080} height={1920} defaultProps={ruleDefaults} />
 </>);
