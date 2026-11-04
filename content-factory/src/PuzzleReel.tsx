@@ -1,7 +1,7 @@
 import React from 'react';
 import {AbsoluteFill, Img, interpolate, spring, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
 import {Chess} from 'chess.js';
-import puzzles from './puzzles.json';
+import {getPuzzle} from './puzzles';
 
 // Brand palette (from platform): gold, dark brown, cream
 export const BASE = {gold: '#C9A84C', dark: '#2C241B', cream: '#F5EFE6', light: '#F0D9B5', darkSq: '#8B7355', red: '#E5484D'};
@@ -21,16 +21,18 @@ export const reelSchemaDefaults = {
   theme: 'classic',
   lang: 'ru',
   offset: 0,
+  source: 'lichess',
+  bucket: 'mateIn1',
 };
 type Props = typeof reelSchemaDefaults;
 
 const sq = (s: string) => ({f: s.charCodeAt(0) - 97, r: 8 - Number(s[1])});
 
-export const PuzzleReel: React.FC<Props> = ({index, hook, sub, ctaTitle, cta, theme, lang, offset}) => {
+export const PuzzleReel: React.FC<Props> = ({index, hook, sub, ctaTitle, cta, theme, lang, offset, source, bucket}) => {
   const C = {...BASE, ...(THEMES[theme] ?? {})};
   const frame = useCurrentFrame() + offset;
   const {fps} = useVideoConfig();
-  const p = (puzzles as {fen: string; moves: string[]; rating: number}[])[index % puzzles.length];
+  const p = getPuzzle(index, source, bucket);
   const fill = (x: string) => x.replace('{rating}', String(p.rating));
 
   // Timeline (sec): 0-2.5 hook, 2.5-8 think + timer, 8-12 solution, 12-15 CTA
@@ -39,7 +41,7 @@ export const PuzzleReel: React.FC<Props> = ({index, hook, sub, ctaTitle, cta, th
   const stepDur = 1.2;
   const step = t < solveStart ? 0 : Math.min(p.moves.length, Math.floor((t - solveStart) / stepDur) + 1);
   const game = new Chess(p.fen);
-  let last: {from: string; to: string} | null = null;
+  let last: {from: string; to: string} | null = p.last;
   for (let i = 0; i < step; i++) {
     const m = p.moves[i];
     const r = game.move({from: m.slice(0, 2), to: m.slice(2, 4), promotion: m[4] || 'q'});

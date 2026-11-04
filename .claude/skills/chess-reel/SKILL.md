@@ -16,6 +16,9 @@ description: Производство шахматных рилсов для Ins
 - «цикл» / «утренний цикл» → выполни `content-factory/orchestrator/PROMPT.md` целиком.
 - «карусель N» → `node carousel.mjs <N> ru` и `en`.
 - «английская версия» → `LANG_REEL=en node batch.mjs ...` (хуки/CTA в `i18n.json`).
+- «ловушка <id>» → `npx remotion render src/index.ts LineReel out/line-<id>.mp4 --props='{"id":"<id>"}'` (данные — `data/lines.json`, новые ловушки добавляй туда, проверяя ходы через chess.js).
+- Категория задач: `BUCKET=fork node batch.mjs ...` (mateIn1, mateIn2, opening, fork, pin, sacrifice, smothered, queenSac, endgame).
+- Темы и боли — `content-factory/CONTENT-MAP.md`.
 - «отчёт по рилсам» → `node economics.mjs <расходы$> <выручка$>`: лучшие хуки → размножить (тот же хук, новые задачи); слабые (< медианы через 7 дней) → выключить.
 
 ## Правила

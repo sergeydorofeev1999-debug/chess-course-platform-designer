@@ -2,11 +2,11 @@
 import React from 'react';
 import {AbsoluteFill, Img, staticFile, useCurrentFrame} from 'remotion';
 import {Chess} from 'chess.js';
-import puzzles from './puzzles.json';
+import {getPuzzle} from './puzzles';
 import {BASE} from './PuzzleReel';
 
 export const carouselDefaults = {
-  index: 0, lang: 'ru',
+  index: 0, lang: 'ru', source: 'lichess', bucket: 'mateIn2',
   hook: 'Мат в {moves} хода. Найдёшь?', hint: 'Подсказка: ищи шах, после которого у короля нет полей',
   ctaTitle: 'Сохрани, чтобы не потерять', cta: 'Подпишись — каждый день новая задача',
 };
@@ -29,9 +29,9 @@ const Board: React.FC<{fen: string; last?: {from: string; to: string} | null; si
   </div>;
 };
 
-export const Carousel: React.FC<P> = ({index, lang, hook, hint, ctaTitle, cta}) => {
+export const Carousel: React.FC<P> = ({index, lang, source, bucket, hook, hint, ctaTitle, cta}) => {
   const slide = useCurrentFrame();
-  const p = (puzzles as {fen: string; moves: string[]; rating: number}[])[index % puzzles.length];
+  const p = getPuzzle(index, source, bucket);
   const fill = (s: string) => s.replace('{moves}', String(Math.ceil(p.moves.length / 2))).replace('{rating}', String(p.rating));
   const flip = p.fen.split(' ')[1] === 'b';
   const g = new Chess(p.fen); let last = null; const san: string[] = [];
@@ -40,7 +40,7 @@ export const Carousel: React.FC<P> = ({index, lang, hook, hint, ctaTitle, cta}) 
   const n = <div style={{position: 'absolute', top: 30, right: 40, fontSize: 36, opacity: 0.6}}>{slide + 1}/4 →</div>;
   return <AbsoluteFill style={{background: BASE.dark, color: BASE.cream, fontFamily: 'DejaVu Sans, sans-serif', alignItems: 'center', justifyContent: 'center', gap: 40, padding: 60}}>
     {n}
-    {slide === 0 && <>{title(fill(hook))}<Board fen={p.fen} size={860} flip={flip} /><div style={{fontSize: 40}}>{lang === 'en' ? 'Rating' : 'Рейтинг'}: {p.rating}</div></>}
+    {slide === 0 && <>{title(fill(hook))}<Board fen={p.fen} last={p.last} size={860} flip={flip} /><div style={{fontSize: 40}}>{lang === 'en' ? 'Rating' : 'Рейтинг'}: {p.rating}</div></>}
     {slide === 1 && <>{title(lang === 'en' ? 'Hint' : 'Подсказка')}<Board fen={p.fen} size={760} flip={flip} /><div style={{fontSize: 46, textAlign: 'center'}}>{hint}</div></>}
     {slide === 2 && <>{title(lang === 'en' ? 'Solution' : 'Решение')}<Board fen={g.fen()} last={last} size={760} flip={flip} /><div style={{fontSize: 56, fontWeight: 900}}>{san.join('  ')}</div></>}
     {slide === 3 && <>{title(ctaTitle)}<div style={{fontSize: 52, textAlign: 'center'}}>{cta}</div></>}

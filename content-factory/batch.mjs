@@ -9,7 +9,7 @@ const i18n = JSON.parse(fs.readFileSync('i18n.json', 'utf8'));
 const hooks = LANG === 'ru' ? JSON.parse(fs.readFileSync('hooks.json', 'utf8')) : i18n[LANG].hooks;
 const ctas = LANG === 'ru' ? JSON.parse(fs.readFileSync('ctas.json', 'utf8')) : i18n[LANG].ctas;
 const themes = ['classic', 'walnut', 'night'];
-const puzzles = JSON.parse(fs.readFileSync('src/puzzles.json', 'utf8'));
+const puzzles = JSON.parse(fs.readFileSync('src/puzzles-lichess.json', 'utf8')).filter((p) => p.bucket === (process.env.BUCKET || 'mateIn1'));
 const [startArg = '0', countArg = '6', onlyHook, onlyCta, onlyTheme] = process.argv.slice(2);
 const start = Number(startArg), count = Number(countArg);
 const browser = process.env.CHROME ? `--browser-executable=${process.env.CHROME}` : '';
@@ -21,7 +21,7 @@ for (let i = start; i < start + count; i++) {
   const theme = onlyTheme || themes[0];
   const pz = puzzles[i % puzzles.length];
   const sub = h.sub.replace('{moves}', String(Math.ceil(pz.moves.length / 2)));
-  const props = JSON.stringify({index: i, hook: h.hook, sub, ctaTitle: c.title, cta: c.text, theme, lang: LANG});
+  const props = JSON.stringify({index: i, hook: h.hook, sub, ctaTitle: c.title, cta: c.text, theme, lang: LANG, source: 'lichess', bucket: process.env.BUCKET || 'mateIn1'});
   const file = `out/reel-${i}-${LANG}-${h.id}-${c.id}-${theme}.mp4`;
   const t0 = Date.now();
   execSync(`npx remotion render src/index.ts PuzzleReel ${file} --props=${propsFile(props)} ${browser}`, {stdio: 'inherit'});
